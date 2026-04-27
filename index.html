@@ -4647,6 +4647,14 @@ function genVideoPrompt(shotId) {
   var projNegative = currentProject.negative || (typeof POT_NEGATIVE !== 'undefined' ? POT_NEGATIVE : '');
   var imgPrompt = '';
   imgPrompt += '── IMAGE PROMPT (ZIPPY 시네마틱 + BAENE 리얼리티) ──\n\n';
+  // Reference manifest
+  const _ms = (typeof getSBRefMatchSummary === 'function') ? getSBRefMatchSummary(shot.scene) : null;
+  if (_ms && _ms.labels.length > 0) {
+    imgPrompt += '── 매칭 레퍼런스 (자동 매칭) ──\n';
+    imgPrompt += '인물(' + _ms.character + ') · 의상(' + _ms.costume + ') · 배경(' + _ms.background + ') · 소품(' + _ms.prop + ')\n';
+    _ms.labels.forEach((l, i) => { imgPrompt += '  ' + (i+1) + '. ' + l + '\n'; });
+    imgPrompt += '\n';
+  }
   imgPrompt += 'CINEMATIC STORYBOARD FRAME — SHOT ' + shotId + '\n\n';
   imgPrompt += 'CAMERA: ' + frame + ', ' + (preset.angle || 'eye level') + ', ARRI Signature Prime ' + (preset.lens || '35mm') + ' at ' + fStop + '\n';
   imgPrompt += 'SCENE: ' + (preset.scene || desc) + '\n';
@@ -4961,6 +4969,16 @@ function importAssetToSB(type) {
   }
 }
 
+function getSBRefMatchSummary(sceneNum) {
+  const refs = getSBRefsForShot(sceneNum);
+  const summary = {character:0, costume:0, background:0, prop:0, labels:[]};
+  refs.forEach(r => {
+    if (r._type && summary[r._type] !== undefined) summary[r._type]++;
+    if (r._label) summary.labels.push((r._type||'?') + ':' + r._label);
+  });
+  return summary;
+}
+
 function getSBRefsForShot(sceneNum) {
   const refs = [];
   const preset = SCENE_PRESETS[String(sceneNum)] || {};
@@ -5158,8 +5176,14 @@ const sbGenImages = {};
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
   const hasImg = sbGenImages[imgKey];
+  const ms = getSBRefMatchSummary(shot.scene);
+  const badge = '<span title="' + ms.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
+    (ms.character ? '<span style="color:var(--or)">👤'+ms.character+'</span>' : '') +
+    (ms.costume ? '<span style="color:var(--pu)">👗'+ms.costume+'</span>' : '') +
+    (ms.background ? '<span style="color:var(--bl)">🏞'+ms.background+'</span>' : '') +
+    (ms.prop ? '<span style="color:var(--gr)">📦'+ms.prop+'</span>' : '') + '</span>';
   let html = `<div class="sb-shot" data-scene="${sceneVal}" id="sb-shot-${shot.id.replace(/[^a-z0-9]/gi,'-')}">`;
-  html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span><span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
+  html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
   if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
     html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button></div></div>`;
@@ -5242,8 +5266,14 @@ function buildStoryboardTimeline() {
     shots.forEach(shot => {
       const imgKey = shot.id;
       const hasImg = sbGenImages[imgKey];
+      const ms2 = getSBRefMatchSummary(shot.scene);
+      const badge2 = '<span title="' + ms2.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
+        (ms2.character ? '<span style="color:var(--or)">👤'+ms2.character+'</span>' : '') +
+        (ms2.costume ? '<span style="color:var(--pu)">👗'+ms2.costume+'</span>' : '') +
+        (ms2.background ? '<span style="color:var(--bl)">🏞'+ms2.background+'</span>' : '') +
+        (ms2.prop ? '<span style="color:var(--gr)">📦'+ms2.prop+'</span>' : '') + '</span>';
       html += `<div class="sb-shot" data-scene="${sc}" id="sb-shot-${shot.id.replace(/[^a-z0-9]/gi,'-')}">`;
-      html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span><span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
+      html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
       if (hasImg) {
         html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
         html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button></div></div>`;

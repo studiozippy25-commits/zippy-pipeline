@@ -5177,10 +5177,7 @@ async function generateSBShot(shotId) {
   if(!shot) return;
   // 모드별 프리체크
   const imgMode = getImgMode();
-  if (imgMode === 'cloud') {
-    const key = document.getElementById('apiKey').value.trim();
-    if(!key){alert('Gemini API Key를 입력하세요 (또는 이미지 모드를 Z-Image 로컬로 변경)');return;}
-  }
+  // Proxy handles auth — no client-side key check needed
   const preset = SCENE_PRESETS[String(shot.scene)] || {};
   const spaceDna = (currentProject && currentProject.spaceDNA && currentProject.spaceDNA[preset.loc]) || SPACE_DNA[preset.loc] || '';
   const costumeDna = (currentProject && currentProject.costumes && currentProject.costumes[preset.costume]) || COSTUME_DNA[preset.costume] || '';
@@ -5212,7 +5209,11 @@ async function generateSBShot(shotId) {
   const projNegative = (currentProject && currentProject.negative) || POT_NEGATIVE;
   // BAENE Anatomy + ZIPPY DNA prompt
   const fStop = shot.frame.indexOf('CU') !== -1 ? 'f/2.8' : shot.frame.indexOf('WIDE') !== -1 ? 'f/8' : 'f/4';
-  const prompt = `${(sbRefs.char1 || sbRefs.char2 || assetLib.char.length > 0) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' : ''}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const hasCharRef = Object.keys(sbRefs).some(k => k.startsWith('char') && sbRefs[k]) || assetLib.char.length > 0;
+  const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
+  const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' : '';
+  const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, text).\n' : '';
+  const prompt = `${lockHeader}${objLockHeader}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA: ${shot.frame}, ${preset.angle || 'eye level'}, ARRI Signature Prime ${preset.lens || '35mm'} at ${fStop}
 SCENE: ${preset.scene || shot.desc}

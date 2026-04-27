@@ -4792,7 +4792,9 @@ function buildSBRefUI() {
   // Character refs - show ALL characters from project
   const charContainer = document.getElementById('sbCharRefContainer');
   if (charContainer) {
-    const charNames = currentProject.characterPresets ? Object.keys(currentProject.characterPresets) : [];
+    const charNames = currentProject.characterPresets
+      ? Object.keys(currentProject.characterPresets)
+      : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
     const charCount = Math.max(charNames.length, 3);
     let html = '';
     for (let i = 0; i < charCount; i++) {

@@ -839,8 +839,7 @@ input[type=file]{display:none}
   </div>
   <div class="ar" style="margin-top:8px">
     <span class="al">Unsplash</span>
-    <input type="text" class="api-inp" id="unsplashKey" placeholder="Access Key" style="flex:1;min-width:200px">
-    <span class="ast sno" id="unsplashStat">미입력</span>
+    <span class="ast sok" id="unsplashStat">☁ Proxy 연결됨</span>
   </div>
   <div class="ar" style="margin-top:8px">
     <span class="al">Image Search</span>
@@ -6802,9 +6801,6 @@ let unsplashLastQuery = '';
 async function searchUnsplash(page) {
   const query = document.getElementById('unsplashQuery')?.value?.trim();
   if (!query) { document.getElementById('unsplashQuery').focus(); return; }
-  const key = document.getElementById('unsplashKey')?.value?.trim();
-  if (!key) { alert('Unsplash Access Key를 입력하세요 (상단 API 바)'); return; }
-
   unsplashPage = page || 1;
   unsplashLastQuery = query;
 
@@ -6817,9 +6813,7 @@ async function searchUnsplash(page) {
   results.style.display = 'none';
 
   try {
-    const res = await fetch('https://api.unsplash.com/search/photos?query=' + encodeURIComponent(query) + '&per_page=20&page=' + unsplashPage + '&orientation=landscape', {
-      headers: {'Authorization': 'Client-ID ' + key}
-    });
+    const res = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/unsplash/search/photos?query=' + encodeURIComponent(query) + '&per_page=20&page=' + unsplashPage + '&orientation=landscape');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
 

@@ -8851,6 +8851,19 @@ function applyDramaPreset(key) {
   if(CHAR_COSTUME[key]){
     document.querySelectorAll('[data-g="costume"]').forEach(c=>{c.classList.remove('on');if(c.textContent.trim()===CHAR_COSTUME[key])c.classList.add('on');});
   }
+  // Inject character DNA text from project + auto-fill character name
+  if (typeof currentProject !== 'undefined' && currentProject && currentProject.characterDNA) {
+    // Match key against DNA: try exact, then strip role suffix '정우 (주연)' → '정우'
+    const baseKey = key.split(/[\s(（]/)[0];
+    const dna = currentProject.characterDNA[key] || currentProject.characterDNA[baseKey];
+    if (dna) {
+      const cn1 = document.getElementById('cn1');
+      if (cn1 && !cn1.value.trim()) cn1.value = baseKey;
+      window.ccPromptGlobal = (window.ccPromptGlobal ? window.ccPromptGlobal + '\n\n' : '') + 'CHARACTER DNA: ' + dna;
+      const previewEl = document.getElementById('cc-preview');
+      if (previewEl) previewEl.value = window.ccPromptGlobal;
+    }
+  }
 }
 
 // ═══ CHARACTER CREATOR ═══════════════════════════

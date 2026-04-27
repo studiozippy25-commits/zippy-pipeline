@@ -2771,6 +2771,13 @@ const PROJECTS = {
       '오준': '[DNA OJUN Z7-OJ32] Korean male early 30s, Jungwoo best friend, casual streetwear, easygoing smile, slightly messy hair, relaxed posture',
       '이나경': '[DNA INAGYEONG Z7-IN27] Korean female late 20s, Hayoon colleague, neat professional attire, warm friendly expression',
       '박준': '[DNA BAKJUN Z7-BJ55] Korean male mid 50s, Yeomil regular customer, weathered kind face, reading glasses, simple comfortable clothing'
+    },
+    characterPresets: {
+      '정우 (주연)': {eth:['Korean'],gender:'male',age:'30s adult',height:'average (175cm)',build:'medium',head:'8-head proportion',face:'warm steady features, calm jawline',eyes:'warm steady gaze',iris:'dark brown',skin:'medium-light',hcol:'black',hlen:'short',hstyle:'natural neat',extra:'chef-owner of small seasonal restaurant Yeomil in Seongsu. Charcoal cotton t-shirt with olive work apron, slightly calloused hands from kitchen work, quiet confidence, muted earth tones, no logo'},
+      '하윤 (주연)': {eth:['Korean'],gender:'female',age:'20s late',height:'average (167cm)',build:'slim elegant',head:'8-head proportion',face:'observant precise features',eyes:'observant precise eyes',iris:'dark brown',skin:'medium-light',hcol:'dark brown black',hlen:'shoulder-length',hstyle:'sleek straight',extra:'fragrance brand planner. Cream structured cotton shirt + wide-leg grey slacks, canvas tote bag with color chips, thin silver earrings, slim elegant posture'},
+      '오준 (조연)': {eth:['Korean'],gender:'male',age:'30s adult',height:'average (175cm)',build:'medium relaxed',head:'8-head proportion',face:'easygoing features',eyes:'easygoing smile',iris:'dark brown',skin:'medium-light',hcol:'black',hlen:'short medium',hstyle:'slightly messy',extra:'Jungwoo best friend. Casual streetwear, relaxed posture, friendly approachable energy'},
+      '이나경 (조연)': {eth:['Korean'],gender:'female',age:'20s late',height:'average (165cm)',build:'slim',head:'8-head proportion',face:'warm friendly features',eyes:'warm friendly expression',iris:'dark brown',skin:'medium-light',hcol:'black',hlen:'medium',hstyle:'neat professional',extra:'Hayoon colleague. Black sleeveless top + off-white jacket, neat professional attire'},
+      '박준 (조연)': {eth:['Korean'],gender:'male',age:'50s middle-aged',height:'average (170cm)',build:'medium with slight age',head:'8-head proportion',face:'weathered kind face',eyes:'kind eyes behind reading glasses',iris:'dark brown',skin:'medium with age marks',hcol:'salt-and-pepper',hlen:'short',hstyle:'neat combed',extra:'Yeomil regular customer. Off-white shirt + navy blouson, simple comfortable clothing, reading glasses'}
     }
   },
   'ncity': {
@@ -8834,7 +8841,12 @@ function applyDramaPreset(key) {
     hayoon:'현장설치 (크림 셔츠+그레이 슬랙스+토트백)',
     ojun:'식당 기본 (차콜 티셔츠+올리브 앞치마)',
     inagyeong:'브랜드미팅 (블랙 슬리브리스+오프화이트 재킷)',
-    bakjun:'브레이크타임 (오프화이트 셔츠+네이비 블루종)'
+    bakjun:'브레이크타임 (오프화이트 셔츠+네이비 블루종)',
+    '정우 (주연)':'식당 기본 (차콜 티셔츠+올리브 앞치마)',
+    '하윤 (주연)':'현장설치 (크림 셔츠+그레이 슬랙스+토트백)',
+    '오준 (조연)':'식당 기본 (차콜 티셔츠+올리브 앞치마)',
+    '이나경 (조연)':'브랜드미팅 (블랙 슬리브리스+오프화이트 재킷)',
+    '박준 (조연)':'브레이크타임 (오프화이트 셔츠+네이비 블루종)'
   };
   if(CHAR_COSTUME[key]){
     document.querySelectorAll('[data-g="costume"]').forEach(c=>{c.classList.remove('on');if(c.textContent.trim()===CHAR_COSTUME[key])c.classList.add('on');});

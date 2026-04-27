@@ -4469,10 +4469,17 @@ function selectProject(key) {
   }
 
   // Load storyboard data
-  if (currentProject.storyboardShots && currentProject.storyboardShots.length > 0) {
-    if (typeof SB_SHOTS !== 'undefined') {
-      SB_SHOTS.length = 0;
+  if (typeof SB_SHOTS !== 'undefined') {
+    // Backup original SB_SHOTS on first call
+    if (typeof window.__SB_SHOTS_DEFAULT === 'undefined') {
+      window.__SB_SHOTS_DEFAULT = SB_SHOTS.slice();
+    }
+    SB_SHOTS.length = 0;
+    if (currentProject.storyboardShots && currentProject.storyboardShots.length > 0) {
       currentProject.storyboardShots.forEach(function(s) { SB_SHOTS.push(s); });
+    } else {
+      // Restore default (proof-of-taste hardcoded shots)
+      window.__SB_SHOTS_DEFAULT.forEach(function(s) { SB_SHOTS.push(s); });
     }
   }
 

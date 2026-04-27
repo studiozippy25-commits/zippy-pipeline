@@ -4789,29 +4789,36 @@ function buildSBRefUI() {
   // Clear refs
   Object.keys(sbRefs).forEach(function(k) { sbRefs[k] = null; });
 
-  // Character refs
+  // Character refs - show ALL characters from project
   const charContainer = document.getElementById('sbCharRefContainer');
   if (charContainer) {
     const charNames = currentProject.characterPresets ? Object.keys(currentProject.characterPresets) : [];
+    const charCount = Math.max(charNames.length, 3);
     let html = '';
-    for (let i = 0; i < Math.max(charNames.length, 3); i++) {
+    for (let i = 0; i < charCount; i++) {
       const key = 'char' + (i + 1);
       const label = charNames[i] || '캐릭터 ' + (i + 1);
-      html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px">' + label + '</div><div id="sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + '" style="width:120px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:20px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+      const cap = key.charAt(0).toUpperCase() + key.slice(1);
+      html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px">' + label + '</div><div id="sbRef' + cap + '" style="width:120px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:20px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+      // Ensure sbRefs slot exists
+      if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
     }
     html += '<div style="align-self:flex-end"><button class="btn bgh bsm" onclick="importAssetToSB(\'char\')" style="font-size:10px">Asset Library에서 가져오기</button></div>';
     charContainer.innerHTML = html;
   }
 
-  // Location refs
+  // Location refs - show ALL locations from project
   const locContainer = document.getElementById('sbLocRefContainer');
   if (locContainer) {
-    const locNames = currentProject.spaceNames && currentProject.spaceNames.length > 0 ? currentProject.spaceNames : currentProject.locations.slice(0, 4);
+    const locNames = currentProject.spaceNames && currentProject.spaceNames.length > 0 ? currentProject.spaceNames : (currentProject.locations || []);
     let html = '';
     locNames.forEach(function(name, i) {
       const key = 'loc' + (i + 1);
+      const cap = key.charAt(0).toUpperCase() + key.slice(1);
       const shortName = name.length > 10 ? name.substring(0, 10) + '...' : name;
-      html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px">' + shortName + '</div><div id="sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + '" style="width:140px;height:80px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + key.charAt(0).toUpperCase() + key.slice(1) + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+      html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + '">' + shortName + '</div><div id="sbRef' + cap + '" style="width:140px;height:80px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+      // Ensure sbRefs slot exists
+      if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
     });
     html += '<div style="align-self:flex-end"><button class="btn bgh bsm" onclick="importAssetToSB(\'space\')" style="font-size:10px">Asset Library에서 가져오기</button></div>';
     locContainer.innerHTML = html;
@@ -4869,9 +4876,11 @@ function importAssetToSB(type) {
 
 function getSBRefsForShot(sceneNum) {
   const refs = [];
-  // Always include character refs
-  ['char1', 'char2', 'char3'].forEach(function(k) {
-    if (sbRefs[k]) refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}});
+  // Include ALL character refs (char1, char2, ..., charN)
+  Object.keys(sbRefs).forEach(function(k) {
+    if (k.startsWith('char') && sbRefs[k]) {
+      refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}});
+    }
   });
   // Also include Asset Library character refs
   if (refs.length === 0 && assetLib.char.length > 0) {
@@ -4879,15 +4888,28 @@ function getSBRefsForShot(sceneNum) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}});
     });
   }
-  // Match location based on scene's preset location
+  const charCount = refs.length;
+  // Match location based on scene's preset — match against project locations dynamically
   const preset = SCENE_PRESETS[String(sceneNum)] || {};
   const loc = (preset.loc || '').toLowerCase();
-  if (loc.includes('골목') && sbRefs.loc1) refs.push({inline_data: {mime_type: sbRefMimes.loc1, data: sbRefs.loc1}});
-  else if (loc.includes('식당') && sbRefs.loc2) refs.push({inline_data: {mime_type: sbRefMimes.loc2, data: sbRefs.loc2}});
-  else if (loc.includes('팝업') && sbRefs.loc3) refs.push({inline_data: {mime_type: sbRefMimes.loc3, data: sbRefs.loc3}});
-  else if (loc.includes('편집') && sbRefs.loc4) refs.push({inline_data: {mime_type: sbRefMimes.loc4, data: sbRefs.loc4}});
-  // Also try Asset Library space assets
-  if (refs.filter(r => true).length <= 3) { // only char refs, no location matched from sbRefs
+  const locNames = (currentProject && (currentProject.spaceNames || currentProject.locations)) || [];
+  let locMatched = false;
+  if (loc) {
+    for (let i = 0; i < locNames.length; i++) {
+      const key = 'loc' + (i + 1);
+      const projLoc = (locNames[i] || '').toLowerCase();
+      // Match if scene loc contains project loc keyword OR vice versa (split on spaces, dots, dashes)
+      const tokens = projLoc.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
+      const matched = tokens.some(t => loc.includes(t)) || projLoc.includes(loc);
+      if (matched && sbRefs[key]) {
+        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}});
+        locMatched = true;
+        break;
+      }
+    }
+  }
+  // Fallback to Asset Library space assets
+  if (!locMatched && refs.length === charCount) {
     const spaceAssets = (typeof getMatchingSpaceAssets === 'function') ? getMatchingSpaceAssets(preset.loc) : [];
     spaceAssets.forEach(function(a) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}});

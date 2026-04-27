@@ -1133,7 +1133,12 @@ input[type=file]{display:none}
       </div>
       <!-- 장소 레퍼런스 (동적) -->
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--bl);font-weight:700;margin-bottom:8px">장소 레퍼런스 <span style="font-weight:400;color:var(--mu);font-size:11px">— 씬의 장소와 매칭되어 자동 포함</span></div>
-      <div id="sbLocRefContainer" style="display:flex;gap:10px;flex-wrap:wrap">
+      <div id="sbLocRefContainer" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <!-- 프로젝트별 동적 생성 -->
+      </div>
+      <!-- 소품 레퍼런스 (동적) -->
+      <div id="sbObjRefHeader" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--gr);font-weight:700;margin-bottom:8px">소품 레퍼런스 <span style="font-weight:400;color:var(--mu);font-size:11px">— 씬에 등장하는 소품 자동 포함</span></div>
+      <div id="sbObjRefContainer" style="display:flex;gap:10px;flex-wrap:wrap">
         <!-- 프로젝트별 동적 생성 -->
       </div>
     </div>
@@ -4832,6 +4837,29 @@ function buildSBRefUI() {
     html += '<div style="align-self:flex-end"><button class="btn bgh bsm" onclick="importAssetToSB(\'space\')" style="font-size:10px">Asset Library에서 가져오기</button></div>';
     locContainer.innerHTML = html;
   }
+
+  // Object refs - show all project objectAssets
+  const objContainer = document.getElementById('sbObjRefContainer');
+  const objHeader = document.getElementById('sbObjRefHeader');
+  if (objContainer) {
+    const objAssets = (currentProject.objectAssets || []);
+    if (objAssets.length === 0) {
+      objContainer.innerHTML = '';
+      if (objHeader) objHeader.style.display = 'none';
+    } else {
+      if (objHeader) objHeader.style.display = 'block';
+      let html = '';
+      objAssets.forEach(function(obj, i) {
+        const key = 'obj' + (i + 1);
+        const cap = key.charAt(0).toUpperCase() + key.slice(1);
+        const shortName = obj.name && obj.name.length > 10 ? obj.name.substring(0, 10) + '...' : (obj.name || ('소품 ' + (i + 1)));
+        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + (obj.desc || obj.name || '') + '">' + shortName + '</div><div id="sbRef' + cap + '" style="width:100px;height:100px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+        if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
+      });
+      html += '<div style="align-self:flex-end"><button class="btn bgh bsm" onclick="importAssetToSB(\'obj\')" style="font-size:10px">Asset Library에서 가져오기</button></div>';
+      objContainer.innerHTML = html;
+    }
+  }
 }
 
 function loadSBRef(key, files) {
@@ -4924,7 +4952,27 @@ function getSBRefsForShot(sceneNum) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}});
     });
   }
-  // Include object assets
+  // Match object refs based on shot description / scene preset
+  const objAssets = (currentProject && currentProject.objectAssets) || [];
+  if (objAssets.length > 0) {
+    const haystack = ((preset.scene || '') + ' ' + (preset.desc || '')).toLowerCase();
+    // Also pull from SB_SHOTS for this scene (more shot-level descriptions)
+    let shotsText = '';
+    if (typeof SB_SHOTS !== 'undefined') {
+      SB_SHOTS.filter(s => s.scene === sceneNum).forEach(s => { shotsText += ' ' + (s.desc || '') + ' ' + (s.frame || ''); });
+    }
+    const fullText = (haystack + ' ' + shotsText).toLowerCase();
+    objAssets.forEach(function(obj, i) {
+      const key = 'obj' + (i + 1);
+      const name = (obj.name || '').toLowerCase();
+      const tokens = name.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
+      const matched = tokens.some(t => fullText.includes(t)) || (name && fullText.includes(name));
+      if (matched && sbRefs[key]) {
+        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}});
+      }
+    });
+  }
+  // Also include Asset Library object assets
   if (assetLib.obj && assetLib.obj.length > 0) {
     assetLib.obj.forEach(function(a) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}});

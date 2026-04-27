@@ -4923,21 +4923,39 @@ function importAssetToSB(type) {
 
 function getSBRefsForShot(sceneNum) {
   const refs = [];
-  // Include ALL character refs (char1, char2, ..., charN)
-  Object.keys(sbRefs).forEach(function(k) {
-    if (k.startsWith('char') && sbRefs[k]) {
-      refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}});
+  const preset = SCENE_PRESETS[String(sceneNum)] || {};
+  const sceneText = ((preset.scene || '') + ' ' + (preset.desc || '')).toLowerCase();
+  let shotsText = '';
+  if (typeof SB_SHOTS !== 'undefined') {
+    SB_SHOTS.filter(s => s.scene === sceneNum).forEach(s => { shotsText += ' ' + (s.desc || '') + ' ' + (s.frame || ''); });
+  }
+  const sceneFullText = (sceneText + ' ' + shotsText).toLowerCase();
+
+  // ── 인물: 씬에 등장하는 캐릭터만 ──
+  const charNames = (currentProject && currentProject.characterPresets)
+    ? Object.keys(currentProject.characterPresets)
+    : (currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+  const matchedCharIndices = [];
+  charNames.forEach(function(name, i) {
+    const baseName = name.split(/[\s(（]/)[0].toLowerCase();
+    if (baseName && sceneFullText.indexOf(baseName) !== -1) matchedCharIndices.push(i);
+  });
+  const charIdxToInclude = matchedCharIndices.length > 0 ? matchedCharIndices : charNames.map((_, i) => i);
+  charIdxToInclude.forEach(function(i) {
+    const k = 'char' + (i + 1);
+    if (sbRefs[k]) {
+      const label = (charNames[i] || ('Character ' + (i+1))).split(/[\s(（]/)[0];
+      refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}, _type:'character', _label: label});
     }
   });
-  // Also include Asset Library character refs
   if (refs.length === 0 && assetLib.char.length > 0) {
-    assetLib.char.forEach(function(a) {
-      refs.push({inline_data: {mime_type: a.mime, data: a.b64}});
+    assetLib.char.forEach(function(a, i) {
+      refs.push({inline_data: {mime_type: a.mime, data: a.b64}, _type:'character', _label:'Character ' + (i+1)});
     });
   }
   const charCount = refs.length;
-  // Match location based on scene's preset — match against project locations dynamically
-  const preset = SCENE_PRESETS[String(sceneNum)] || {};
+
+  // ── 배경: 씬 장소와 매칭 ──
   const loc = (preset.loc || '').toLowerCase();
   const locNames = (currentProject && (currentProject.spaceNames || currentProject.locations)) || [];
   let locMatched = false;
@@ -4945,47 +4963,38 @@ function getSBRefsForShot(sceneNum) {
     for (let i = 0; i < locNames.length; i++) {
       const key = 'loc' + (i + 1);
       const projLoc = (locNames[i] || '').toLowerCase();
-      // Match if scene loc contains project loc keyword OR vice versa (split on spaces, dots, dashes)
       const tokens = projLoc.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
       const matched = tokens.some(t => loc.includes(t)) || projLoc.includes(loc);
       if (matched && sbRefs[key]) {
-        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}});
+        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}, _type:'background', _label: locNames[i]});
         locMatched = true;
         break;
       }
     }
   }
-  // Fallback to Asset Library space assets
   if (!locMatched && refs.length === charCount) {
     const spaceAssets = (typeof getMatchingSpaceAssets === 'function') ? getMatchingSpaceAssets(preset.loc) : [];
     spaceAssets.forEach(function(a) {
-      refs.push({inline_data: {mime_type: a.mime, data: a.b64}});
+      refs.push({inline_data: {mime_type: a.mime, data: a.b64}, _type:'background', _label: preset.loc || 'Background'});
     });
   }
-  // Match object refs based on shot description / scene preset
+
+  // ── 소품: 씬 설명에 등장하는 소품만 ──
   const objAssets = (currentProject && currentProject.objectAssets) || [];
   if (objAssets.length > 0) {
-    const haystack = ((preset.scene || '') + ' ' + (preset.desc || '')).toLowerCase();
-    // Also pull from SB_SHOTS for this scene (more shot-level descriptions)
-    let shotsText = '';
-    if (typeof SB_SHOTS !== 'undefined') {
-      SB_SHOTS.filter(s => s.scene === sceneNum).forEach(s => { shotsText += ' ' + (s.desc || '') + ' ' + (s.frame || ''); });
-    }
-    const fullText = (haystack + ' ' + shotsText).toLowerCase();
     objAssets.forEach(function(obj, i) {
       const key = 'obj' + (i + 1);
       const name = (obj.name || '').toLowerCase();
       const tokens = name.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
-      const matched = tokens.some(t => fullText.includes(t)) || (name && fullText.includes(name));
+      const matched = tokens.some(t => sceneFullText.includes(t)) || (name && sceneFullText.includes(name));
       if (matched && sbRefs[key]) {
-        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}});
+        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}, _type:'prop', _label: obj.name});
       }
     });
   }
-  // Also include Asset Library object assets
   if (assetLib.obj && assetLib.obj.length > 0) {
-    assetLib.obj.forEach(function(a) {
-      refs.push({inline_data: {mime_type: a.mime, data: a.b64}});
+    assetLib.obj.forEach(function(a, i) {
+      refs.push({inline_data: {mime_type: a.mime, data: a.b64}, _type:'prop', _label: 'Prop ' + (i+1)});
     });
   }
   return refs;
@@ -5183,8 +5192,18 @@ async function generateSBShot(shotId) {
   const costumeDna = (currentProject && currentProject.costumes && currentProject.costumes[preset.costume]) || COSTUME_DNA[preset.costume] || '';
   const rawRefs = getSBRefsForShot(shot.scene);
   const images = rawRefs.map(r => r.inline_data
-    ? {b64: r.inline_data.data, mime: r.inline_data.mime_type}
+    ? {b64: r.inline_data.data, mime: r.inline_data.mime_type, _type: r._type, _label: r._label}
     : r);
+  // Build reference manifest for prompt
+  let refManifest = '';
+  if (images.length > 0) {
+    refManifest = '\nREFERENCE IMAGES (in order):\n';
+    images.forEach((img, idx) => {
+      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background/Location)' : img._type === 'prop' ? '소품 (Prop)' : 'Reference';
+      refManifest += `  ${idx+1}. ${typeLabel}: ${img._label || ''}\n`;
+    });
+    refManifest += '\n';
+  }
   // Character DNA injection
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
@@ -5213,7 +5232,7 @@ async function generateSBShot(shotId) {
   const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
   const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' : '';
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, text).\n' : '';
-  const prompt = `${lockHeader}${objLockHeader}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${lockHeader}${objLockHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA: ${shot.frame}, ${preset.angle || 'eye level'}, ARRI Signature Prime ${preset.lens || '35mm'} at ${fStop}
 SCENE: ${preset.scene || shot.desc}
@@ -7235,20 +7254,33 @@ async function callGPTImage({images=[], prompt, signal=null}) {
   const fetchOpts = { signal };
   let url, body, imgB64 = null;
   if (hasImages) {
-    // 이미지 편집 (edits endpoint) — FormData
+    // 이미지 편집 (edits endpoint) — FormData, gpt-image-2 supports up to 16 images
     const form = new FormData();
     form.append('model', model);
-    form.append('prompt', prompt);
+    // Inject reference manifest into prompt (image[] order maps to manifest)
+    let manifestPrefix = '';
+    if (images.some(im => im._type && im._label)) {
+      manifestPrefix = 'REFERENCE IMAGES (in order):\n';
+      images.forEach((im, idx) => {
+        const typeLabel = im._type === 'character' ? '인물 (Character)' : im._type === 'background' ? '배경 (Background)' : im._type === 'prop' ? '소품 (Prop)' : 'Reference';
+        manifestPrefix += `  ${idx+1}. ${typeLabel}: ${im._label || ''}\n`;
+      });
+      manifestPrefix += '\n';
+    }
+    form.append('prompt', manifestPrefix + prompt);
     form.append('n', '1');
     if (size !== 'auto') form.append('size', size);
-    // 첫 번째 이미지만 사용 (gpt-image-1 edits는 단일 이미지)
-    const img = images[0];
-    const mime = img.mime || 'image/png';
-    const bin = atob(img.b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    const blob = new Blob([arr], {type: mime});
-    form.append('image[]', blob, 'input.png');
+    // Send up to 16 images
+    const maxImgs = Math.min(images.length, 16);
+    for (let i = 0; i < maxImgs; i++) {
+      const img = images[i];
+      const mime = img.mime || 'image/png';
+      const bin = atob(img.b64);
+      const arr = new Uint8Array(bin.length);
+      for (let j = 0; j < bin.length; j++) arr[j] = bin.charCodeAt(j);
+      const blob = new Blob([arr], {type: mime});
+      form.append('image[]', blob, 'input' + (i+1) + '.png');
+    }
     url = 'https://pipeline.studiozippy25.workers.dev/proxy/openai/images/edits';
     fetchOpts.method = 'POST';
     fetchOpts.body = form;
@@ -7706,7 +7738,14 @@ async function callLLM({images=[], prompt, signal=null, options={}}) {
 
 async function callGemini({images, prompt, textOnly=false, resVal='1K', signal=null}){
   const model=getModel();
-  const parts=images.map(img=>({inline_data:{mime_type:img.mime,data:img.b64}}));
+  const parts=[];
+  images.forEach(img => {
+    if (img._type && img._label) {
+      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background)' : img._type === 'prop' ? '소품 (Prop)' : 'Reference';
+      parts.push({text: `[REF] ${typeLabel}: ${img._label}`});
+    }
+    parts.push({inline_data:{mime_type:img.mime,data:img.b64}});
+  });
   parts.push({text:prompt});
   const genCfg = textOnly
     ? {responseModalities:['TEXT']}

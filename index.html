@@ -5521,9 +5521,16 @@ async function generateSBShot(shotId) {
   const fStop = shot.frame.indexOf('CU') !== -1 ? 'f/2.8' : shot.frame.indexOf('WIDE') !== -1 ? 'f/8' : 'f/4';
   const hasCharRef = Object.keys(sbRefs).some(k => k.startsWith('char') && sbRefs[k]) || assetLib.char.length > 0;
   const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
+  const hasBgRef = Object.keys(sbRefs).some(k => k.startsWith('loc') && sbRefs[k]);
   const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' : '';
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, text).\n' : '';
-  const prompt = `${lockHeader}${objLockHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  // Moodboard safety guide — references may be 12-photo concept sheets
+  const moodGuideHeader = (hasBgRef || images.length > 0) ?
+    'REFERENCE HANDLING:\nReference images may be CONCEPT MOODBOARDS containing multiple sample photos with grid layout and text labels. ' +
+    'CRITICAL — Do NOT replicate any grid/collage layout. Do NOT reproduce any visible text, captions, numbers, or labels from references. ' +
+    'Extract ONLY: mood, color palette, lighting quality, material/texture, atmospheric tone. ' +
+    'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
+  const prompt = `${lockHeader}${objLockHeader}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA: ${shot.frame}, ${preset.angle || 'eye level'}, ARRI Signature Prime ${preset.lens || '35mm'} at ${fStop}
 SCENE: ${preset.scene || shot.desc}

@@ -4936,20 +4936,48 @@ async function loadDefaultSpaceRefs() {
   if (!currentProject || !currentProject.defaultSpaceRefs) return;
   const locNames = currentProject.spaceNames || currentProject.locations || [];
   let loadedCount = 0;
+  // Ensure assetLib has the 4 space buckets and a flat 'space-all' bucket
+  if (typeof assetLib !== 'undefined') {
+    if (!assetLib['space-all']) assetLib['space-all'] = [];
+  }
   for (let i = 0; i < locNames.length; i++) {
     const key = 'loc' + (i + 1);
-    const url = currentProject.defaultSpaceRefs[locNames[i]];
-    if (!url || sbRefs[key]) continue; // skip if already uploaded by user
+    const name = locNames[i];
+    const url = currentProject.defaultSpaceRefs[name];
+    if (!url) continue;
+    if (sbRefs[key]) continue; // skip if user already uploaded
     const img = await fetchImageAsB64(url);
-    if (img) {
-      sbRefs[key] = img.b64;
-      sbRefMimes[key] = img.mime;
-      const el = document.getElementById('sbRefLoc' + (i + 1));
-      if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
-      loadedCount++;
+    if (!img) continue;
+    // Storyboard ref slot
+    sbRefs[key] = img.b64;
+    sbRefMimes[key] = img.mime;
+    const el = document.getElementById('sbRefLoc' + (i + 1));
+    if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    // Asset Library: distribute first 4 to space-a/b/c/d + flat list
+    if (typeof assetLib !== 'undefined') {
+      const bucketIdx = ['space-a','space-b','space-c','space-d'][i];
+      if (bucketIdx && assetLib[bucketIdx]) {
+        if (!assetLib[bucketIdx].some(a => a.name === name)) {
+          assetLib[bucketIdx].push({b64: img.b64, mime: img.mime, name: name, source: 'default'});
+        }
+        // Update Asset Library name input field
+        const nameInput = document.getElementById('asset-' + bucketIdx + '-name');
+        if (nameInput && !nameInput.value.trim()) nameInput.value = name;
+      }
+      // Flat 'space-all' for full project asset access
+      if (!assetLib['space-all'].some(a => a.name === name)) {
+        assetLib['space-all'].push({b64: img.b64, mime: img.mime, name: name, source: 'default'});
+      }
+    }
+    loadedCount++;
+  }
+  if (loadedCount > 0) {
+    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    // Refresh asset library space previews
+    if (typeof renderAssetGrid === 'function') {
+      ['space-a','space-b','space-c','space-d'].forEach(cat => renderAssetGrid(cat));
     }
   }
-  if (loadedCount > 0 && typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
 }
 
 function buildSBRefUI() {

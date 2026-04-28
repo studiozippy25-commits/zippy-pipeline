@@ -5322,7 +5322,8 @@ function getSBRefsForShot(sceneNum, shotId) {
     const baseName = name.split(/[\s(（]/)[0].toLowerCase();
     if (baseName && sceneFullText.indexOf(baseName) !== -1) matchedCharIndices.push(i);
   });
-  const charIdxToInclude = matchedCharIndices.length > 0 ? matchedCharIndices : charNames.map((_, i) => i);
+  // 매칭된 캐릭터가 없으면 0명 (establishing 쇼트 등)
+  const charIdxToInclude = matchedCharIndices;
   charIdxToInclude.forEach(function(i) {
     const k = 'char' + (i + 1);
     if (sbRefs[k]) {

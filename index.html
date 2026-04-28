@@ -2841,7 +2841,12 @@ const PROJECTS = {
     defaultCharRefs: {
       '정우': 'assets/proof-of-taste/C01_유정우.png',
       '하윤': 'assets/proof-of-taste/C02_서하윤.png',
-      '박준': 'assets/proof-of-taste/C03_박준.png'
+      '박준': 'assets/proof-of-taste/C03_박준.png',
+      '이나경': 'assets/proof-of-taste/C04_이나경.png'
+    },
+    defaultCostumeRefs: {
+      '이나경': 'assets/proof-of-taste/W04_이나경_의상시트.png',
+      '박준': 'assets/proof-of-taste/W05_박준_의상시트.png'
     },
     defaultSpaceRefs: {
       '성수 생활형 골목': 'assets/proof-of-taste/S04a_성수골목_거리.png',
@@ -4979,6 +4984,32 @@ function buildAssetSpaceSlots() {
   container.innerHTML = html;
 }
 
+async function loadDefaultCostumeRefs() {
+  if (!currentProject || !currentProject.defaultCostumeRefs) return;
+  const charNames = currentProject.characterPresets
+    ? Object.keys(currentProject.characterPresets)
+    : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+  let loadedCount = 0;
+  for (let i = 0; i < charNames.length; i++) {
+    const sbKey = 'cos' + (i + 1);
+    const fullName = charNames[i];
+    const baseName = fullName.split(/[\s(（]/)[0];
+    const url = currentProject.defaultCostumeRefs[fullName] || currentProject.defaultCostumeRefs[baseName];
+    if (!url) continue;
+    if (sbRefs[sbKey]) continue;
+    const img = await fetchImageAsB64(url);
+    if (!img) continue;
+    sbRefs[sbKey] = img.b64;
+    sbRefMimes[sbKey] = img.mime;
+    const cap = sbKey.charAt(0).toUpperCase() + sbKey.slice(1);
+    const el = document.getElementById('sbRef' + cap);
+    if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    loadedCount++;
+  }
+  if (loadedCount > 0 && typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  console.log('[loadDefaultCostumeRefs] Loaded:', loadedCount);
+}
+
 async function loadDefaultCharRefs() {
   if (!currentProject || !currentProject.defaultCharRefs) return;
   const charNames = currentProject.characterPresets
@@ -5121,22 +5152,24 @@ function buildSBRefUI() {
     }
   }
 
-  // Costume refs - show all project costumeAssets
+  // Costume refs — 캐릭터별 5명 슬롯 (인물 슬롯과 1:1 대응)
   const costContainer = document.getElementById('sbCostumeRefContainer');
   const costHeader = document.getElementById('sbCostumeRefHeader');
   if (costContainer) {
-    const costAssets = (currentProject.costumeAssets || []);
-    if (costAssets.length === 0) {
+    const charNames = currentProject.characterPresets
+      ? Object.keys(currentProject.characterPresets)
+      : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+    if (charNames.length === 0) {
       costContainer.innerHTML = '';
       if (costHeader) costHeader.style.display = 'none';
     } else {
       if (costHeader) costHeader.style.display = 'block';
       let html = '';
-      costAssets.forEach(function(c, i) {
+      charNames.forEach(function(name, i) {
+        const baseName = name.split(/[\s(（]/)[0];
         const key = 'cos' + (i + 1);
         const cap = key.charAt(0).toUpperCase() + key.slice(1);
-        const shortName = c.name && c.name.length > 14 ? c.name.substring(0, 14) + '...' : (c.name || ('의상 ' + (i + 1)));
-        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + (c.desc || c.name || '') + '">' + shortName + '</div><div id="sbRef' + cap + '" style="width:100px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 의상">' + baseName + ' 의상</div><div id="sbRef' + cap + '" style="width:100px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
         if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
       });
       costContainer.innerHTML = html;
@@ -5146,6 +5179,10 @@ function buildSBRefUI() {
   // Auto-load default character references (인물 자동 등록)
   if (currentProject.defaultCharRefs) {
     loadDefaultCharRefs();
+  }
+  // Auto-load default costume references (의상 자동 등록)
+  if (currentProject.defaultCostumeRefs) {
+    loadDefaultCostumeRefs();
   }
   // Auto-load default space references from repo (if defined)
   if (currentProject.defaultSpaceRefs) {
@@ -5305,31 +5342,15 @@ function getSBRefsForShot(sceneNum) {
     });
   }
 
-  // ── 의상: 씬 프리셋의 costume 키와 매칭 ──
-  const costAssets = (currentProject && currentProject.costumeAssets) || [];
-  if (costAssets.length > 0 && preset.costume) {
-    const sceneCost = (preset.costume || '').toLowerCase();
-    let bestCostIdx = -1;
-    // 1단계: 키 포함 여부 (key가 sceneCost에 포함되면 매칭)
-    for (let i = 0; i < costAssets.length; i++) {
-      const ck = (costAssets[i].key || '').toLowerCase();
-      if (ck && sceneCost.indexOf(ck) !== -1) { bestCostIdx = i; break; }
+  // ── 의상: 씬에 등장하는 캐릭터별 의상 시트 자동 첨부 ──
+  // (캐릭터 매칭 인덱스를 재사용 — 인물 슬롯과 1:1 대응)
+  charIdxToInclude.forEach(function(i) {
+    const cosKey = 'cos' + (i + 1);
+    if (sbRefs[cosKey]) {
+      const charName = (charNames[i] || '').split(/[\s(（]/)[0];
+      refs.push({inline_data: {mime_type: sbRefMimes[cosKey], data: sbRefs[cosKey]}, _type:'costume', _label: charName + ' 의상'});
     }
-    // 2단계: 토큰 매칭
-    if (bestCostIdx === -1) {
-      for (let i = 0; i < costAssets.length; i++) {
-        const ck = (costAssets[i].key || '').toLowerCase();
-        const tokens = ck.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
-        if (tokens.some(t => sceneCost.includes(t))) { bestCostIdx = i; break; }
-      }
-    }
-    if (bestCostIdx !== -1) {
-      const key = 'cos' + (bestCostIdx + 1);
-      if (sbRefs[key]) {
-        refs.push({inline_data: {mime_type: sbRefMimes[key], data: sbRefs[key]}, _type:'costume', _label: costAssets[bestCostIdx].name || costAssets[bestCostIdx].key});
-      }
-    }
-  }
+  });
   return refs;
 }
 

@@ -858,13 +858,13 @@ input[type=file]{display:none}
   <div class="ar" style="margin-top:8px">
     <span class="al" style="color:var(--pu)">이미지</span>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="cloud" checked onchange="onImgModeChange()"> ☁ Nano Banana
+      <input type="radio" name="imgMode" value="cloud" onchange="onImgModeChange()"> ☁ Nano Banana
     </label>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="gpt" onchange="onImgModeChange()"> ✦ GPT Image 2
+      <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image 2
     </label>
   </div>
-  <div class="ar" id="gptModelRow" style="display:none;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
+  <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
     <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
       <span style="font-family:var(--font-mono);font-size:10px;color:#10a37f;font-weight:700">MODEL</span>
@@ -8345,25 +8345,44 @@ async function callGemini({images, prompt, textOnly=false, resVal='1K', signal=n
 }
 
 // 이미지 없이 텍스트 프롬프트만으로 이미지 생성 (사물 6전도 텍스트 전용)
+// 텍스트 전용 LLM 호출 — GPT-5.4 우선, 실패 시 Gemini fallback
 async function callGeminiTextOnly(prompt) {
-  const model=getModel();
-  const body={
-    contents:[{parts:[{text:prompt}]}],
-    generationConfig:{responseModalities:['IMAGE','TEXT']}
+  // 1차: GPT-5.4 (가성비 텍스트 작업)
+  try {
+    const res = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/openai/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-5.4',
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const textOut = data?.choices?.[0]?.message?.content || '';
+      if (textOut) return { imgB64: null, textOut };
+    }
+  } catch(e) { console.warn('GPT-5.4 fail, falling back to Gemini:', e.message); }
+
+  // Fallback: Gemini
+  const model = getModel();
+  const body = {
+    contents: [{parts:[{text: prompt}]}],
+    generationConfig: {responseModalities: ['IMAGE','TEXT']}
   };
-  const res=await fetch(
+  const res = await fetch(
     `https://pipeline.studiozippy25.workers.dev/proxy/gemini/${model}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}
+    {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}
   );
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${res.status}`);}
-  const data=await res.json();
-  const rp=data?.candidates?.[0]?.content?.parts||[];
-  let imgB64=null, textOut='';
-  for(const p of rp){
-    if(p.inlineData?.mimeType?.startsWith('image/')) imgB64=p.inlineData.data;
-    if(p.text) textOut+=p.text;
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
+  const data = await res.json();
+  const rp = data?.candidates?.[0]?.content?.parts || [];
+  let imgB64 = null, textOut = '';
+  for (const p of rp) {
+    if (p.inlineData?.mimeType?.startsWith('image/')) imgB64 = p.inlineData.data;
+    if (p.text) textOut += p.text;
   }
-  return{imgB64,textOut};
+  return { imgB64, textOut };
 }
 
 // ═══ SEG PICKER ══════════════════════════════════

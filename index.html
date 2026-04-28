@@ -4920,8 +4920,10 @@ function filterSBEp(epNum, btn) {
 
 async function fetchImageAsB64(url) {
   try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
+    // URL-encode each path segment (handles Korean filenames)
+    const encoded = url.split('/').map(s => s.indexOf(':') !== -1 ? s : encodeURIComponent(s)).join('/');
+    const res = await fetch(encoded);
+    if (!res.ok) { console.warn('Fetch HTTP error:', res.status, encoded); return null; }
     const blob = await res.blob();
     const mime = blob.type || 'image/png';
     return await new Promise((resolve) => {

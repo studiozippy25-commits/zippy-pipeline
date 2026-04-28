@@ -5334,6 +5334,51 @@ const SB_SHOTS = [
   {scene:16,id:'16-2',frame:'INS / 마지막 잔상',desc:'골목 바닥의 마지막 잔상 인서트. 잔향. F.O.',func:'잔향',pri:'opt'}
 ];
 const sbGenImages = {};
+async function expandSBShot(shotId) {
+  const shot = SB_SHOTS.find(s => s.id === shotId);
+  if (!shot) return;
+  const preset = SCENE_PRESETS[String(shot.scene)] || {};
+  const charDNAList = currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA).join(', ') : '';
+  const prompt = `Expand this storyboard shot into a detailed cinematic shot description for AI image generation.
+
+CONTEXT:
+- Project: ${currentProject.name}
+- Scene location: ${preset.loc || ''}
+- Scene time: ${preset.time || ''}
+- Scene narrative (full scene context): ${preset.scene || ''}
+- Available characters: ${charDNAList}
+
+CURRENT SHOT (${shot.id}):
+- Frame: ${shot.frame}
+- Description: ${shot.desc}
+- Function: ${shot.func || ''}
+
+TASK: Rewrite the shot description with concrete visual details for THIS specific shot ONLY (not the entire scene). Include:
+- Subject placement and posture (specific to this frame)
+- Camera angle and distance details
+- Foreground / midground / background composition
+- Specific gestures, micro-actions, gaze direction
+- Visible props or surfaces in frame
+- Light direction and quality (specific to this moment)
+- Atmospheric details (dust, particles, reflections)
+
+OUTPUT: A single Korean paragraph (3-5 sentences, max 250 characters) that another AI can use as a precise visual prompt. Do NOT include scene narrative beyond this shot. Do NOT mention timing seconds. Be visually specific.`;
+
+  const btn = document.querySelector('#sb-shot-' + shot.id.replace(/[^a-z0-9]/gi,'-') + ' .sb-expand-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '확장 중...'; }
+  try {
+    const { textOut } = await callGeminiTextOnly(prompt);
+    const expanded = (textOut || '').trim();
+    if (expanded) {
+      shot.desc = expanded;
+      buildStoryboardTimeline();
+    }
+  } catch(e) {
+    alert('확장 실패: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✨ AI 확장'; }
+  }
+}
+
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
   const hasImg = sbGenImages[imgKey];
@@ -5354,7 +5399,8 @@ function renderShotCard(shot, sceneVal) {
   html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
   html += `<div class="sb-shot-desc">${shot.desc}</div>`;
   html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func||''}</div>`;
-  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
+  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
   html += `</div>`;
   return html;
 }
@@ -5444,7 +5490,8 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
       html += `<div class="sb-shot-desc">${shot.desc}</div>`;
       html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func}</div>`;
-      html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
+      html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
       html += `</div>`;
     });
     html += `</div>`;

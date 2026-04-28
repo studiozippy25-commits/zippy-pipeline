@@ -952,52 +952,9 @@ input[type=file]{display:none}
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-space-count">0개 등록</div>
     </div>
     <div style="padding:14px">
-      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">각 공간의 마스터 샷 — 벽 질감, 조명, 가구 배치의 기준</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px">
-        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
-          <div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--bl)">공간 A</div>
-          <div style="padding:10px">
-            <input type="text" class="ci" id="asset-space-a-name" placeholder="공간 이름" value="성수 생활형 골목" style="margin-bottom:6px;font-size:12px;padding:6px 10px">
-            <div class="muz" onclick="document.getElementById('asset-space-a-input').click()" style="padding:14px;border-radius:6px">
-              <div class="ulbl" style="font-size:12px"><strong>업로드</strong></div>
-              <input type="file" id="asset-space-a-input" accept="image/*" multiple style="display:none" onchange="addAsset('space-a',this.files)">
-            </div>
-            <div class="tgrid" id="asset-space-a-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:11px">—</div></div>
-          </div>
-        </div>
-        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
-          <div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--bl)">공간 B</div>
-          <div style="padding:10px">
-            <input type="text" class="ci" id="asset-space-b-name" placeholder="공간 이름" value="여밀 식당" style="margin-bottom:6px;font-size:12px;padding:6px 10px">
-            <div class="muz" onclick="document.getElementById('asset-space-b-input').click()" style="padding:14px;border-radius:6px">
-              <div class="ulbl" style="font-size:12px"><strong>업로드</strong></div>
-              <input type="file" id="asset-space-b-input" accept="image/*" multiple style="display:none" onchange="addAsset('space-b',this.files)">
-            </div>
-            <div class="tgrid" id="asset-space-b-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:11px">—</div></div>
-          </div>
-        </div>
-        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
-          <div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--bl)">공간 C</div>
-          <div style="padding:10px">
-            <input type="text" class="ci" id="asset-space-c-name" placeholder="공간 이름" value="LATEN 팝업" style="margin-bottom:6px;font-size:12px;padding:6px 10px">
-            <div class="muz" onclick="document.getElementById('asset-space-c-input').click()" style="padding:14px;border-radius:6px">
-              <div class="ulbl" style="font-size:12px"><strong>업로드</strong></div>
-              <input type="file" id="asset-space-c-input" accept="image/*" multiple style="display:none" onchange="addAsset('space-c',this.files)">
-            </div>
-            <div class="tgrid" id="asset-space-c-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:11px">—</div></div>
-          </div>
-        </div>
-        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">
-          <div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--bl)">공간 D</div>
-          <div style="padding:10px">
-            <input type="text" class="ci" id="asset-space-d-name" placeholder="공간 이름" value="편집숍·인쇄소 주변" style="margin-bottom:6px;font-size:12px;padding:6px 10px">
-            <div class="muz" onclick="document.getElementById('asset-space-d-input').click()" style="padding:14px;border-radius:6px">
-              <div class="ulbl" style="font-size:12px"><strong>업로드</strong></div>
-              <input type="file" id="asset-space-d-input" accept="image/*" multiple style="display:none" onchange="addAsset('space-d',this.files)">
-            </div>
-            <div class="tgrid" id="asset-space-d-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:11px">—</div></div>
-          </div>
-        </div>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">각 공간의 마스터 샷 — 벽 질감, 조명, 가구 배치의 기준 (프로젝트 선택 시 자동 로드)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px" id="asset-space-container">
+        <!-- 프로젝트별 동적 생성 -->
       </div>
     </div>
   </div>
@@ -2836,8 +2793,8 @@ const PROJECTS = {
     name: '취향의 증거', nameEn: 'Proof of Taste', icon: '🍚', sbEpLabel: 'SCENE',
     desc: '7분 AI 단편영화 · 로맨스',
     defaultRatio: '16:9',
-    spaceNames: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', '여밀 주방', 'LATEN 팝업', '편집숍·인쇄소 주변', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '503 대형 패션 팝업'],
-    locations: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', '여밀 주방', 'LATEN 팝업', '편집숍·인쇄소 주변', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '503 대형 패션 팝업'],
+    spaceNames: ['성수 생활형 골목', '성수 골목 거리 (추가)', '여밀 식당 (외부)', '여밀 메인 다이닝', '여밀 내부 디테일', '여밀 주방', 'LATEN 팝업', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '성수 리서치 셀렉트샵', '성수 생활동선 교차지점', '팝업 백오브하우스', '503 대형 패션 팝업'],
+    locations: ['성수 생활형 골목', '성수 골목 거리 (추가)', '여밀 식당 (외부)', '여밀 메인 다이닝', '여밀 내부 디테일', '여밀 주방', 'LATEN 팝업', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '성수 리서치 셀렉트샵', '성수 생활동선 교차지점', '팝업 백오브하우스', '503 대형 패션 팝업'],
     customEmotions: ['미세한 혼란','재확인','반복 관찰','정확한 인지','능동적 신호','선택','감정의 첫 발생','기억','보관함','궁금함','알아봄','응답함','놓치고 싶지 않음','마지막에 멈춤','무심함','조용한 확신','자기 검열','숨긴 관심','종료 예감','저항 극복'],
     customLights: ['자연 윈도우 확산광','따뜻한 저녁 실내조명','오전 자연광','LATEN 소프트 디퓨즈','골목 가로등 앰버','마감 시간 단일 오버헤드'],
     hasStoryboard: true, hasCostumes: true,
@@ -2855,11 +2812,12 @@ const PROJECTS = {
     ],
     defaultSpaceRefs: {
       '성수 생활형 골목': 'assets/proof-of-taste/S04a_성수골목_거리.png',
+      '성수 골목 거리 (추가)': 'assets/proof-of-taste/S04b_성수골목_거리.png',
       '여밀 식당 (외부)': 'assets/proof-of-taste/S01_여밀_외관.png',
-      '여밀 식당 (내부)': 'assets/proof-of-taste/S02_여밀_메인다이닝.png',
+      '여밀 메인 다이닝': 'assets/proof-of-taste/S02_여밀_메인다이닝.png',
+      '여밀 내부 디테일': 'assets/proof-of-taste/S02b_여밀_내부.png',
       '여밀 주방': 'assets/proof-of-taste/S03_여밀_주방.png',
       'LATEN 팝업': 'assets/proof-of-taste/S05_성수_팝업스토어.png',
-      '편집숍·인쇄소 주변': 'assets/proof-of-taste/S04b_성수골목_거리.png',
       '레트로 리스닝 카페': 'assets/proof-of-taste/S06_레트로_리스닝카페_LOFTSHOP.png',
       '서울숲 산책길': 'assets/proof-of-taste/S07_서울숲_산책공간.png',
       '서하윤 VMD 작업실': 'assets/proof-of-taste/S08_서하윤_VMD작업실_팝업백스테이지.png',
@@ -2867,6 +2825,9 @@ const PROJECTS = {
       '유정우의 집': 'assets/proof-of-taste/S10_유정우의집.png',
       '유정우 식재료 동선': 'assets/proof-of-taste/S11_유정우_식재료동선.png',
       '서하윤 리서치 동선': 'assets/proof-of-taste/S12a_서하윤_리서치동선.png',
+      '성수 리서치 셀렉트샵': 'assets/proof-of-taste/S12b_성수리서치_셀렉트샵.png',
+      '성수 생활동선 교차지점': 'assets/proof-of-taste/S13_성수생활동선_교차지점.png',
+      '팝업 백오브하우스': 'assets/proof-of-taste/S13b_팝업백오브하우스_VMD준비실.png',
       '503 대형 패션 팝업': 'assets/proof-of-taste/S503_성수_대형패션팝업_VMD메인.png'
     },
     costumeAssets: [
@@ -4934,51 +4895,59 @@ async function fetchImageAsB64(url) {
   } catch(e) { console.warn('Default ref fetch failed:', url, e.message); return null; }
 }
 
+function buildAssetSpaceSlots() {
+  const container = document.getElementById('asset-space-container');
+  if (!container || !currentProject) return;
+  const locNames = currentProject.spaceNames || currentProject.locations || [];
+  let html = '';
+  locNames.forEach(function(name, i) {
+    const key = 'space-' + (i + 1);
+    if (typeof assetLib !== 'undefined' && !assetLib[key]) assetLib[key] = [];
+    html += '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
+      '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--bl)" title="' + name + '">' + name + '</div>' +
+      '<div style="padding:10px">' +
+        '<div class="muz" onclick="document.getElementById(\'asset-' + key + '-input\').click()" style="padding:14px;border-radius:6px">' +
+          '<div class="ulbl" style="font-size:12px"><strong>업로드</strong></div>' +
+          '<input type="file" id="asset-' + key + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + key + '\',this.files)">' +
+        '</div>' +
+        '<div class="tgrid" id="asset-' + key + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:11px">—</div></div>' +
+      '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
 async function loadDefaultSpaceRefs() {
   if (!currentProject || !currentProject.defaultSpaceRefs) return;
+  // Build dynamic asset library slots first
+  buildAssetSpaceSlots();
   const locNames = currentProject.spaceNames || currentProject.locations || [];
   let loadedCount = 0;
-  // Ensure assetLib has the 4 space buckets and a flat 'space-all' bucket
-  if (typeof assetLib !== 'undefined') {
-    if (!assetLib['space-all']) assetLib['space-all'] = [];
-  }
   for (let i = 0; i < locNames.length; i++) {
-    const key = 'loc' + (i + 1);
+    const sbKey = 'loc' + (i + 1);
+    const alKey = 'space-' + (i + 1);
     const name = locNames[i];
     const url = currentProject.defaultSpaceRefs[name];
     if (!url) continue;
-    if (sbRefs[key]) continue; // skip if user already uploaded
     const img = await fetchImageAsB64(url);
     if (!img) continue;
     // Storyboard ref slot
-    sbRefs[key] = img.b64;
-    sbRefMimes[key] = img.mime;
-    const el = document.getElementById('sbRefLoc' + (i + 1));
-    if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
-    // Asset Library: distribute first 4 to space-a/b/c/d + flat list
-    if (typeof assetLib !== 'undefined') {
-      const bucketIdx = ['space-a','space-b','space-c','space-d'][i];
-      if (bucketIdx && assetLib[bucketIdx]) {
-        if (!assetLib[bucketIdx].some(a => a.name === name)) {
-          assetLib[bucketIdx].push({b64: img.b64, mime: img.mime, name: name, source: 'default'});
-        }
-        // Update Asset Library name input field
-        const nameInput = document.getElementById('asset-' + bucketIdx + '-name');
-        if (nameInput && !nameInput.value.trim()) nameInput.value = name;
+    if (!sbRefs[sbKey]) {
+      sbRefs[sbKey] = img.b64;
+      sbRefMimes[sbKey] = img.mime;
+      const el = document.getElementById('sbRefLoc' + (i + 1));
+      if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    // Asset Library dynamic slot
+    if (typeof assetLib !== 'undefined' && assetLib[alKey]) {
+      if (!assetLib[alKey].some(a => a.name === name)) {
+        assetLib[alKey].push({b64: img.b64, mime: img.mime, name: name, source: 'default'});
       }
-      // Flat 'space-all' for full project asset access
-      if (!assetLib['space-all'].some(a => a.name === name)) {
-        assetLib['space-all'].push({b64: img.b64, mime: img.mime, name: name, source: 'default'});
-      }
+      if (typeof renderAssetGrid === 'function') renderAssetGrid(alKey);
     }
     loadedCount++;
   }
   if (loadedCount > 0) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
-    // Refresh asset library space previews + counts
-    if (typeof renderAssetGrid === 'function') {
-      ['space-a','space-b','space-c','space-d'].forEach(cat => renderAssetGrid(cat));
-    }
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
 }
@@ -7448,7 +7417,10 @@ function updateAssetCounts() {
   const se = document.getElementById('asset-space-count');
   const oe = document.getElementById('asset-obj-count');
   if(ce) ce.textContent = assetLib.char.length + '개 등록';
-  if(se) se.textContent = (assetLib['space-a'].length+assetLib['space-b'].length+assetLib['space-c'].length+assetLib['space-d'].length) + '개 등록';
+  // Sum all space-* buckets (legacy a/b/c/d + dynamic 1..N)
+  let spaceTotal = 0;
+  Object.keys(assetLib).forEach(k => { if (k.indexOf('space-') === 0) spaceTotal += (assetLib[k]||[]).length; });
+  if(se) se.textContent = spaceTotal + '개 등록';
   const objTotal = assetLib.obj.length + (assetLib['obj-card']||[]).length + (assetLib['obj-menu']||[]).length + (assetLib['obj-show']||[]).length + (assetLib['obj-blot']||[]).length + (assetLib['obj-etc']||[]).length;
   if(oe) oe.textContent = objTotal + '개 등록';
 }
@@ -7459,15 +7431,18 @@ function getAssetImages(category) {
   return assetLib[category] || [];
 }
 function getMatchingSpaceAssets(locName) {
-  const nameA = (document.getElementById('asset-space-a-name')?.value||'').trim().toLowerCase();
-  const nameB = (document.getElementById('asset-space-b-name')?.value||'').trim().toLowerCase();
-  const nameC = (document.getElementById('asset-space-c-name')?.value||'').trim().toLowerCase();
-  const nameD = (document.getElementById('asset-space-d-name')?.value||'').trim().toLowerCase();
   const loc = (locName||'').toLowerCase();
-  if (nameA && loc.includes(nameA)) return assetLib['space-a'];
-  if (nameB && loc.includes(nameB)) return assetLib['space-b'];
-  if (nameC && loc.includes(nameC)) return assetLib['space-c'];
-  if (nameD && loc.includes(nameD)) return assetLib['space-d'];
+  if (!loc || !currentProject) return [];
+  const locNames = currentProject.spaceNames || currentProject.locations || [];
+  for (let i = 0; i < locNames.length; i++) {
+    const projLoc = (locNames[i]||'').toLowerCase();
+    if (!projLoc) continue;
+    const tokens = projLoc.replace(/\([^)]+\)/g,'').split(/[\s·,\-/]+/).filter(t=>t.length>=2);
+    if (projLoc === loc || loc.includes(projLoc) || projLoc.includes(loc) || tokens.some(t=>loc.includes(t))) {
+      const k = 'space-' + (i+1);
+      if (assetLib[k] && assetLib[k].length > 0) return assetLib[k];
+    }
+  }
   return [];
 }
 

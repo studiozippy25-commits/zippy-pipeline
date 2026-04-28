@@ -916,6 +916,7 @@ input[type=file]{display:none}
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
+  <button class="stab" id="tabIns" onclick="goStep('ins')" style="border-bottom-color:var(--cy);color:var(--cy)">인서트 라이브러리</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
 </div>
@@ -1238,6 +1239,27 @@ input[type=file]{display:none}
   </div>
   <div id="sbLoadingWrap" style="display:none;margin-top:14px" class="ldw">
     <div class="lst" id="sbLoadStatus">준비 중...</div>
+    <div class="lbar"><div class="lbi lor"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ INSERT LIBRARY ═══════════════ -->
+<div class="panel" id="pIns">
+  <div class="slbl" style="color:var(--cy)">인서트 라이브러리 — 감정·디테일 인서트 컷</div>
+  <div style="padding:12px 16px;background:rgba(8,145,178,.06);border:1px solid rgba(8,145,178,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--cy);line-height:1.7">
+    스토리보드와 별개로 운용하는 인서트 컷 풀. 감정 전환·디테일 보강·OFF 컷용.<br>
+    필요한 인서트만 선택 생성 → 편집 단계에서 삽입.
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+    <button class="btn bgh" onclick="filterInsCat('all', this)" id="insFilterAll">전체</button>
+    <button class="btn bgh" onclick="filterInsCat('jungwoo', this)">유정우 (8)</button>
+    <button class="btn bgh" onclick="filterInsCat('hayoon', this)">서하윤 (8)</button>
+    <button class="btn bgh" onclick="filterInsCat('cafe', this)">교집합 카페 (6)</button>
+    <button class="btn bgh" onclick="filterInsCat('night', this)">밤 감정 (4)</button>
+  </div>
+  <div id="insGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+  <div id="insLoadWrap" style="display:none;margin-top:14px" class="ldw">
+    <div class="lst" id="insLoadStatus">준비 중...</div>
     <div class="lbar"><div class="lbi lor"></div></div>
   </div>
 </div>
@@ -5410,6 +5432,120 @@ function getSBRefsForShot(sceneNum, shotId) {
 }
 
 /* ═══ STORYBOARD DATA & FUNCTIONS ═══ */
+// ═══ 인서트 라이브러리 (스토리보드와 별개) ═══
+const INSERT_CUTS = [
+  // 유정우 인서트 (8)
+  {id:'INS-J01', cat:'jungwoo', label:'레시피 노트 메모', frame:'ECU / 손 + 종이', desc:'유정우의 손이 레시피 노트에 짧게 메모하는 컷. 만년필 끝이 종이결에 닿기 직전. 따뜻한 자연광. 종이 텍스처 강조'},
+  {id:'INS-J02', cat:'jungwoo', label:'펜 끝 정지', frame:'ECU / 펜 끝', desc:'펜 끝이 종이 표면에 닿기 직전, 망설임의 0.5초. 손가락 미세 떨림'},
+  {id:'INS-J03', cat:'jungwoo', label:'드립 커피', frame:'CU / 드립 서버', desc:'드립 커피가 서버에 한 방울씩 떨어지는 클로즈업. 김 서림, 빛 산란'},
+  {id:'INS-J04', cat:'jungwoo', label:'제철 나물 손', frame:'CU / 손 + 채소', desc:'제철 나물을 물기 털어 올리는 손. 물방울 비산, 자연광'},
+  {id:'INS-J05', cat:'jungwoo', label:'반상 마지막 반찬', frame:'INS / 반상 위', desc:'작은 반상 위에 마지막 반찬을 놓는 손. 도자기 그릇 정렬'},
+  {id:'INS-J06', cat:'jungwoo', label:'장바구니 든 손', frame:'CU / 닫힌 문 앞 손', desc:'닫힌 여밀 문 앞, 장바구니를 든 손. 늦은 오후 그림자'},
+  {id:'INS-J07', cat:'jungwoo', label:'LP 바늘', frame:'ECU / 턴테이블 바늘', desc:'LP 바늘이 천천히 내려가는 익스트림 클로즈업. 미세 진동'},
+  {id:'INS-J08', cat:'jungwoo', label:'앞치마와 행주', frame:'INS / 정적', desc:'조용히 접힌 앞치마와 행주. 마감 후 정적, 단일 오버헤드 조명'},
+  // 서하윤 인서트 (8)
+  {id:'INS-H01', cat:'hayoon', label:'컬러칩 빛에', frame:'CU / 손 + 컬러칩', desc:'서하윤이 컬러칩을 겹쳐 빛에 대보는 손. 색의 미묘한 차이 식별'},
+  {id:'INS-H02', cat:'hayoon', label:'시향지 향', frame:'CU / 코 옆 시향지', desc:'향 시향지를 코 가까이 가져가는 컷. 눈은 살짝 감김'},
+  {id:'INS-H03', cat:'hayoon', label:'패브릭 손끝', frame:'ECU / 손가락 + 패브릭', desc:'패브릭 샘플을 손끝으로 문지르는 컷. 직물 결 클로즈업'},
+  {id:'INS-H04', cat:'hayoon', label:'도면 빨간펜', frame:'INS / 도면 + 손', desc:'도면 위에 빨간 펜으로 동선을 수정하는 손. 정밀한 손목'},
+  {id:'INS-H05', cat:'hayoon', label:'마스킹테이프', frame:'CU / 손 + 테이프', desc:'마스킹테이프를 찢는 손 클로즈업. 작업감, 노동감'},
+  {id:'INS-H06', cat:'hayoon', label:'샘플 가방 쏟아짐', frame:'INS / 가방 입구', desc:'샘플 가방에서 오브제가 쏟아지는 컷. 색·소재의 카오스'},
+  {id:'INS-H07', cat:'hayoon', label:'선글라스 놓는 손', frame:'CU / 테이블 + 선글라스', desc:'선글라스를 벗어 테이블 위에 놓는 컷. 페르소나 해제 순간'},
+  {id:'INS-H08', cat:'hayoon', label:'구겨진 체크리스트', frame:'INS / 새벽 정적', desc:'새벽 팝업 철수 후, 구겨진 체크리스트. 피곤함의 잔흔'},
+  // 교집합 카페 인서트 (6)
+  {id:'INS-C01', cat:'cafe', label:'같은 LP 다른 시간', frame:'CU / LP 커버', desc:'두 사람이 같은 LP 커버를 다른 시간에 보는 시간차 교차 컷. 같은 손 모양'},
+  {id:'INS-C02', cat:'cafe', label:'커피잔 옆 같은 책', frame:'INS / 테이블', desc:'커피잔 옆에 같은 책이 놓인 컷. 공통 취향의 물증, 자연광'},
+  {id:'INS-C03', cat:'cafe', label:'컵받침 물자국', frame:'ECU / 컵받침', desc:'컵받침에 남은 물자국. 머문 시간의 흔적, 빈티지 자국'},
+  {id:'INS-C04', cat:'cafe', label:'레코드 바늘 손', frame:'CU / 손 + 바늘', desc:'레코드 바늘이 내려가는 손. 감정 시작점, 감각의 결단'},
+  {id:'INS-C05', cat:'cafe', label:'두 의자 한 테이블', frame:'WS / 정면', desc:'색이 다른 의자 두 개가 같은 테이블을 향한 컷. 차이와 공존의 메타포'},
+  {id:'INS-C06', cat:'cafe', label:'중고 가격표', frame:'CU / 손 + 가격표', desc:'중고 오브제 가격표를 손끝으로 넘기는 컷. 숨은 취향 발견'},
+  // 밤 감정 공간 인서트 (4)
+  {id:'INS-N01', cat:'night', label:'젖은 우산', frame:'CU / 우산 + 바닥', desc:'젖은 우산이 바닥에 놓인 컷. 가로등 앰버, 반사광'},
+  {id:'INS-N02', cat:'night', label:'젖은 바닥 반사', frame:'WS / 바닥 반사', desc:'젖은 바닥에 반사되는 가로등과 인물 실루엣. 비 그친 직후'},
+  {id:'INS-N03', cat:'night', label:'문자 화면', frame:'ECU / 폰 화면', desc:'폰 화면, 보낸 메시지를 길게 누르고 삭제하는 손가락. 미발신의 망설임'},
+  {id:'INS-N04', cat:'night', label:'택시 문 손잡이', frame:'CU / 손 + 손잡이', desc:'택시 문 손잡이를 잡았다 떼는 손. 떠남과 망설임 사이'}
+];
+const insGenImages = {};
+let insCurrentFilter = 'all';
+
+function renderInsertLibrary() {
+  const grid = document.getElementById('insGrid');
+  if (!grid) return;
+  const filtered = insCurrentFilter === 'all' ? INSERT_CUTS : INSERT_CUTS.filter(i => i.cat === insCurrentFilter);
+  grid.innerHTML = filtered.map(function(ins) {
+    const hasImg = insGenImages[ins.id];
+    let html = '<div class="sb-shot" id="ins-' + ins.id + '">';
+    html += '<div class="sb-shot-hdr"><span class="sb-shot-id">' + ins.id + '</span><span class="sb-shot-pri opt" style="background:rgba(8,145,178,.15);color:var(--cy)">' + ins.cat + '</span></div>';
+    if (hasImg) {
+      html += '<img class="sb-shot-img" src="data:image/png;base64,' + hasImg + '" onclick="openLightbox(\'' + hasImg + '\')">';
+      html += '<div style="display:flex;gap:4px;margin-top:6px"><button class="hist-card-btn" onclick="dlInsImg(\'' + ins.id + '\')">↓</button><button class="hist-card-btn" onclick="delInsImg(\'' + ins.id + '\')" style="border-color:var(--er);color:var(--er)">✕</button></div>';
+    } else {
+      html += '<div class="sb-shot-empty" onclick="generateInsCut(\'' + ins.id + '\')">+ 생성</div>';
+    }
+    html += '<div class="sb-shot-info"><strong>' + ins.frame + '</strong></div>';
+    html += '<div class="sb-shot-desc">' + ins.label + '</div>';
+    html += '<div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:3px">' + ins.desc + '</div>';
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+function filterInsCat(cat, btn) {
+  insCurrentFilter = cat;
+  document.querySelectorAll('#pIns .btn.bgh').forEach(b => b.style.background = '');
+  if (btn) btn.style.background = 'rgba(8,145,178,.15)';
+  renderInsertLibrary();
+}
+
+async function generateInsCut(insId) {
+  const ins = INSERT_CUTS.find(i => i.id === insId);
+  if (!ins) return;
+  const card = document.getElementById('ins-' + insId);
+  const empty = card?.querySelector('.sb-shot-empty');
+  if (empty) { empty.textContent = '생성 중...'; empty.style.cursor = 'wait'; }
+  try {
+    // 인물 ref 자동 매칭 (cat 기반)
+    const charNames = currentProject && currentProject.characterPresets ? Object.keys(currentProject.characterPresets) : [];
+    const catCharMap = {jungwoo: '정우', hayoon: '하윤'};
+    const targetChar = catCharMap[ins.cat];
+    const refs = [];
+    if (targetChar) {
+      const idx = charNames.findIndex(n => n.startsWith(targetChar));
+      if (idx >= 0 && sbRefs['char' + (idx+1)]) {
+        refs.push({b64: sbRefs['char' + (idx+1)], mime: sbRefMimes['char' + (idx+1)], _type:'character', _label: targetChar});
+      }
+      // 의상도 추가
+      if (idx >= 0 && sbRefs['cos' + (idx+1)]) {
+        refs.push({b64: sbRefs['cos' + (idx+1)], mime: sbRefMimes['cos' + (idx+1)], _type:'costume', _label: targetChar + ' 의상'});
+      }
+    }
+    const moodGuide = refs.length > 0 ? 'REFERENCE HANDLING:\nReferences may include grid moodboards. Do NOT replicate grid layout. Do NOT include text/labels. Extract mood/color/material only.\n\n' : '';
+    const prompt = moodGuide + 'CINEMATIC INSERT CUT — ' + ins.id + '\n\nFRAME: ' + ins.frame + '\nDETAIL: ' + ins.desc + '\n\nSTYLE: Cinematic film still, ARRI ALEXA 35, Kodak Vision3 500T, photorealistic, visible texture detail, shallow depth of field. Single complete frame, no border, no watermark, no text overlay.';
+    const { imgB64 } = await callImageGen({images: refs, prompt: prompt, resVal: '1K'});
+    if (!imgB64) throw new Error('이미지 없음');
+    insGenImages[insId] = imgB64;
+    renderInsertLibrary();
+  } catch(e) {
+    alert('인서트 생성 실패: ' + e.message);
+    if (empty) { empty.textContent = '+ 생성'; empty.style.cursor = 'pointer'; }
+  }
+}
+
+function dlInsImg(insId) {
+  const b64 = insGenImages[insId];
+  if (!b64) return;
+  const a = document.createElement('a');
+  a.href = 'data:image/png;base64,' + b64;
+  a.download = 'INSERT_' + insId + '_' + Date.now() + '.png';
+  a.click();
+}
+
+function delInsImg(insId) {
+  if (!confirm('이 인서트의 생성된 이미지를 삭제할까요?')) return;
+  delete insGenImages[insId];
+  renderInsertLibrary();
+}
+
 const SB_SHOTS = [
   {scene:1,id:'1-1',frame:'WS / ST / 골목 establishing',desc:'성수 생활형 골목 와이드. 오전 자연광. 메인 상권 비껴난 곳.',func:'공간 정체성 제시',pri:'must'},
   {scene:1,id:'1-2',frame:'INS / 셔터 질감',desc:'옛 공장 셔터 질감과 광고지가 붙은 벽. 골목의 시간성을 인서트로.',func:'공간 텍스처',pri:'opt'},
@@ -9165,10 +9301,11 @@ function setupDnD(id,cb){
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pIns','pVid','pHist','pMB'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
+    else if(n==='ins') el.classList.toggle('active',id==='pIns');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
@@ -9179,12 +9316,15 @@ function goStep(n){
   document.getElementById('tab0').className='stab '+(n===0?'a1':'');
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
+  const tabIns = document.getElementById('tabIns');
+  if (tabIns) tabIns.className='stab '+(n==='ins'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
   if(n==='sb') { buildStoryboardTimeline(); refreshEpSelector(); }
+  if(n==='ins') { renderInsertLibrary(); }
   if(n==='hist') refreshHistory();
 }
 function setSt(pfx,idx){

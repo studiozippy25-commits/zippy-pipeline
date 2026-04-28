@@ -1148,7 +1148,7 @@ input[type=file]{display:none}
     <div class="mb-wrap">
       <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--gr);font-weight:700">생성 결과</div></div>
       <div style="padding:14px">
-        <img id="igResult" src="" style="max-width:100%;border-radius:8px;cursor:pointer" onclick="window.open(this.src)">
+        <img id="igResult" src="" style="max-width:100%;border-radius:8px;cursor:pointer" onclick="openIGLightbox(igLastB64)">
         <!-- 수정 (Refine) -->
         <div style="margin-top:12px;padding:10px;background:rgba(14,165,233,.04);border:1px solid rgba(14,165,233,.15);border-radius:6px">
           <div style="font-family:var(--font-mono);font-size:11px;color:var(--bl);font-weight:700;margin-bottom:6px">↻ 결과 수정</div>
@@ -6965,7 +6965,7 @@ function renderIGHistory() {
   if (igHistory.length === 0) { wrap.innerHTML = ''; return; }
   let html = '<div class="mb-wrap"><div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700">최근 생성 (' + igHistory.length + ')</div></div><div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
   igHistory.slice(0, 12).forEach(function(h, i) {
-    html += '<div style="border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:#fff"><img src="data:image/png;base64,' + h.b64 + '" style="width:100%;display:block;cursor:pointer" onclick="window.open(this.src)"><div style="padding:4px 6px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + h.time + '</div></div>';
+    html += '<div style="border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:#fff"><img src="data:image/png;base64,' + h.b64 + '" style="width:100%;display:block;cursor:pointer" onclick="openIGLightbox(\'' + h.b64 + '\')"><div style="padding:4px 6px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + h.time + '</div></div>';
   });
   html += '</div></div>';
   wrap.innerHTML = html;
@@ -6977,6 +6977,26 @@ function downloadIGImage() {
   a.href = 'data:image/png;base64,' + igLastB64;
   a.download = 'imagegen_' + Date.now() + '.png';
   a.click();
+}
+
+function openIGLightbox(b64) {
+  if (!b64) return;
+  let lb = document.getElementById('igLightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'igLightbox';
+    lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
+    lb.onclick = function(e){ if(e.target===lb) lb.style.display='none'; };
+    lb.innerHTML =
+      '<img id="igLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
+      '<div style="display:flex;gap:10px">' +
+        '<button onclick="(function(){var b=document.getElementById(\'igLbImg\').src;var a=document.createElement(\'a\');a.href=b;a.download=\'imagegen_\'+Date.now()+\'.png\';a.click();})()" style="padding:8px 20px;background:#fff;border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+        '<button onclick="document.getElementById(\'igLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
+      '</div>';
+    document.body.appendChild(lb);
+  }
+  document.getElementById('igLbImg').src = 'data:image/png;base64,' + b64;
+  lb.style.display = 'flex';
 }
 
 function reuseIGAsRef() {

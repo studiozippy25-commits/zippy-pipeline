@@ -5533,9 +5533,10 @@ async function generateSBShot(shotId) {
   const prompt = `${lockHeader}${objLockHeader}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA: ${shot.frame}, ${preset.angle || 'eye level'}, ARRI Signature Prime ${preset.lens || '35mm'} at ${fStop}
-SCENE: ${preset.scene || shot.desc}
-ACTION: ${shot.desc}
+LOCATION: ${preset.loc || ''} · TIME: ${preset.time || ''}
+ACTION (this specific shot only): ${shot.desc}
 FUNCTION: ${shot.func}
+NOTE: Render ONLY the specific action above — do NOT depict other moments from the scene.
 
 SUBJECT DNA:
 ${charDnaBlock || '(no character DNA)'}

@@ -935,13 +935,16 @@ input[type=file]{display:none}
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-char-count">0개 등록</div>
     </div>
     <div style="padding:14px">
-      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">캐릭터 시트, 3전도, 정면 전신 등 — 인물 일관성의 기준 이미지</div>
-      <div class="muz" onclick="document.getElementById('asset-char-input').click()" style="padding:20px;border-radius:8px">
-        <div class="uico">+</div>
-        <div class="ulbl"><strong>인물 레퍼런스</strong> 업로드 (복수 가능)</div>
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">캐릭터 시트, 3전도, 정면 전신 등 — 인물 일관성의 기준 이미지 (프로젝트별 자동 슬롯)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px" id="asset-char-container">
+        <!-- 프로젝트별 동적 생성 -->
+      </div>
+      <!-- 일반 추가 (프로젝트 슬롯 외) -->
+      <div class="muz" onclick="document.getElementById('asset-char-input').click()" style="padding:14px;border-radius:8px;margin-top:8px">
+        <div class="ulbl" style="font-size:12px"><strong>+ 추가 인물</strong> 업로드 (분류 외 등록)</div>
         <input type="file" id="asset-char-input" accept="image/*" multiple style="display:none" onchange="addAsset('char',this.files)">
       </div>
-      <div class="tgrid" id="asset-char-grid" style="margin-top:8px;min-height:40px"><div class="tg-empty">등록된 인물 에셋이 없습니다</div></div>
+      <div class="tgrid" id="asset-char-grid" style="margin-top:8px;min-height:40px"><div class="tg-empty">—</div></div>
     </div>
   </div>
 
@@ -4612,9 +4615,34 @@ function selectProject(key) {
     }
   }
 
+  // Render character assets dynamically (per-character slots)
+  const charContainer = document.getElementById('asset-char-container');
+  if (charContainer) {
+    const charNames = currentProject.characterPresets
+      ? Object.keys(currentProject.characterPresets)
+      : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+    charContainer.innerHTML = charNames.map(function(name, i) {
+      const baseKey = 'char-' + (i + 1);
+      const displayName = name.split(/[\s(（]/)[0];
+      if (typeof assetLib !== 'undefined' && !assetLib[baseKey]) assetLib[baseKey] = [];
+      return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
+        '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--or);font-weight:700">' + name + '</div>' +
+        '<div style="padding:10px">' +
+        '<div class="muz" onclick="document.getElementById(\'asset-' + baseKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
+        '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
+        '<input type="file" id="asset-' + baseKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + baseKey + '\',this.files)">' +
+        '</div>' +
+        '<div class="tgrid" id="asset-' + baseKey + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:10px">—</div></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
   // Render object assets dynamically
   const objContainer = document.getElementById('asset-obj-container');
   if (objContainer && currentProject.objectAssets) {
+    currentProject.objectAssets.forEach(function(o) {
+      if (typeof assetLib !== 'undefined' && !assetLib[o.key]) assetLib[o.key] = [];
+    });
     objContainer.innerHTML = currentProject.objectAssets.map(function(o) {
       return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
         '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + o.name + '</div>' +

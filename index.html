@@ -4503,6 +4503,10 @@ function selectProject(key) {
 
   // Load scene presets
   if (typeof SCENE_PRESETS !== 'undefined') {
+    // Backup original SCENE_PRESETS on first call
+    if (typeof window.__SCENE_PRESETS_DEFAULT === 'undefined') {
+      window.__SCENE_PRESETS_DEFAULT = Object.assign({}, SCENE_PRESETS);
+    }
     Object.keys(SCENE_PRESETS).forEach(k => delete SCENE_PRESETS[k]);
   }
   if (currentProject.scenePresets && Object.keys(currentProject.scenePresets).length > 0) {
@@ -4521,8 +4525,9 @@ function selectProject(key) {
         sel.appendChild(opt);
       });
     }
-  } else if (typeof SCENE_PRESETS !== 'undefined' && Object.keys(SCENE_PRESETS).length > 0) {
-    // Use existing global SCENE_PRESETS (e.g. PoT hardcoded data)
+  } else if (typeof SCENE_PRESETS !== 'undefined' && typeof window.__SCENE_PRESETS_DEFAULT !== 'undefined') {
+    // Restore default SCENE_PRESETS (e.g. PoT hardcoded data)
+    Object.assign(SCENE_PRESETS, window.__SCENE_PRESETS_DEFAULT);
     const sel = document.getElementById('scenePresetSel');
     if (sel) {
       sel.innerHTML = '<option value="">— 씬 선택 —</option>';

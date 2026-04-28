@@ -313,23 +313,23 @@ input[type=file]{display:none}
 .lens-panel.active{display:block}
 
 /* ── 캐릭터 카드 ── */
-.char-card{padding:14px;border:2px solid var(--bd);border-radius:12px;background:#fff;cursor:pointer;transition:all .18s;box-shadow:0 1px 3px rgba(30,58,95,.05);}
+.char-card{padding:14px;border:2px solid var(--bd);border-radius:12px;background:var(--card);cursor:pointer;transition:all .18s;box-shadow:0 1px 3px rgba(30,58,95,.05);}
 .char-card:hover{border-color:var(--bl);box-shadow:0 4px 12px rgba(30,58,95,.1);transform:translateY(-1px);}
 .char-card.on{border-color:var(--bl);background:rgba(30,58,95,.04);box-shadow:0 0 0 3px rgba(30,58,95,.1);}
 
 /* ═══ LANDING PAGE ═══ */
 .landing{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 32px;background:#FAFBFC}
-.landing-title{font-family:var(--font-mono);font-size:24px;font-weight:800;color:#111;letter-spacing:4px;text-align:center;text-transform:uppercase}
+.landing-title{font-family:var(--font-mono);font-size:24px;font-weight:800;color:var(--tx);letter-spacing:4px;text-align:center;text-transform:uppercase}
 .landing-sub{font-size:13px;color:#9CA3AF;margin-bottom:56px;text-align:center;font-family:var(--font-mono);letter-spacing:2px}
 .landing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;max-width:1080px;width:100%}
 @media(max-width:900px){.landing-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.landing-grid{grid-template-columns:1fr}}
-.project-card{border:1px solid #E5E7EB;border-radius:12px;padding:36px 28px;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);background:#fff;text-align:center;position:relative;overflow:hidden}
+.project-card{border:1px solid var(--bd);border-radius:12px;padding:36px 28px;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);background:var(--card);text-align:center;position:relative;overflow:hidden}
 .project-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--or),var(--bl));opacity:0;transition:opacity .2s}
 .project-card:hover{border-color:#2563EB;box-shadow:0 8px 30px rgba(37,99,235,.1);transform:translateY(-3px)}
 .project-card:hover::before{opacity:1}
 .project-card .pc-icon{font-size:40px;margin-bottom:16px;display:block}
-.project-card .pc-name{font-family:var(--font-body);font-size:18px;font-weight:800;color:#111;margin-bottom:6px;letter-spacing:-.5px}
+.project-card .pc-name{font-family:var(--font-body);font-size:18px;font-weight:800;color:var(--tx);margin-bottom:6px;letter-spacing:-.5px}
 .project-card .pc-name-en{font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-bottom:14px;letter-spacing:3px;text-transform:uppercase}
 .project-card .pc-desc{font-size:13px;color:#6B7280;line-height:1.7}
 .project-card.new{border-style:dashed;border-color:var(--s2)}
@@ -352,13 +352,13 @@ input[type=file]{display:none}
   width:32px; height:32px; border-radius:6px;
   border:1.5px solid #111;
   font-size:10px; font-weight:800; letter-spacing:0;
-  color:#111; background:transparent;
+  color:var(--tx); background:transparent;
 }
-.hdr h1 { font-size:14px; letter-spacing:2px; font-weight:700; color:#111; text-transform:uppercase; }
+.hdr h1 { font-size:14px; letter-spacing:2px; font-weight:700; color:var(--tx); text-transform:uppercase; }
 .hdr p  { font-size:10px; margin-top:2px; color:#9CA3AF; letter-spacing:1px; }
 .vb {
   font-size:9px; padding:3px 8px;
-  border-radius:4px; border:1px solid #E5E7EB;
+  border-radius:4px; border:1px solid var(--bd);
   background:transparent; color:#9CA3AF; font-weight:500;
 }
 
@@ -377,7 +377,7 @@ input[type=file]{display:none}
   background:var(--sf);
   transition:var(--transition);
 }
-.api-inp:focus { border-color:var(--or); box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#fff; }
+.api-inp:focus { border-color:var(--or); box-shadow:0 0 0 3px rgba(37,99,235,.1); background:var(--card); }
 .msel { border-radius:8px; padding:9px 12px; border:1.5px solid var(--s2); background:var(--sf); font-size:13px; }
 .ast  { border-radius:8px; font-size:11px; padding:6px 12px; font-weight:600; }
 
@@ -402,7 +402,7 @@ input[type=file]{display:none}
   background:transparent;
   white-space:nowrap;
 }
-.stab:hover { color:#111; background:transparent; }
+.stab:hover { color:var(--tx); background:transparent; }
 .stab:first-child { border-radius:0; }
 .stab:last-child  { border-radius:0; }
 .stab.a1 { border-bottom-color:#2563EB; background:transparent; color:#2563EB; font-weight:700; }
@@ -410,25 +410,25 @@ input[type=file]{display:none}
 .stab.a3 { border-bottom-color:#7C3AED; background:transparent; color:#7C3AED; font-weight:700; }
 
 /* 섹션 레이블 */
-.slbl { font-size:18px; letter-spacing:.2px; margin-bottom:24px; font-weight:700; line-height:1.5; color:#111; }
+.slbl { font-size:18px; letter-spacing:.2px; margin-bottom:24px; font-weight:700; line-height:1.5; color:var(--tx); }
 .cfg-lbl { font-size:13px; letter-spacing:.5px; font-weight:600; color:#9CA3AF; margin-bottom:10px; line-height:1.5; text-transform:uppercase; }
 
 /* 입력창 */
 .ci {
   border-radius:8px; padding:12px 16px;
-  border:1px solid #E5E7EB; background:#F9FAFB;
+  border:1px solid var(--bd); background:var(--s2);
   font-size:15px; margin-bottom:12px;
   transition:all .15s;
   line-height:1.5;
 }
-.ci:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.08); background:#fff; }
+.ci:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.08); background:var(--card); }
 .ci::placeholder { font-size:12px; color:#D1D5DB; }
 
 /* 칩 */
 .chip {
   border-radius:6px; padding:9px 16px;
-  font-size:14px; border:1px solid #E5E7EB;
-  background:#fff; font-weight:500;
+  font-size:14px; border:1px solid var(--bd);
+  background:var(--card); font-weight:500;
   transition:all .15s;
   line-height:1.3;
   color:#6B7280;
@@ -457,8 +457,8 @@ input[type=file]{display:none}
 .bpu { background:#7C3AED; color:#fff; }
 .bpu:hover { background:#6D28D9; transform:translateY(-1px); }
 .bgh {
-  background:#fff; color:#374151;
-  border:1px solid #E5E7EB;
+  background:var(--card); color:var(--tx);
+  border:1px solid var(--bd);
 }
 .bgh:hover { border-color:#2563EB; color:#2563EB; }
 .bsm { font-size:13px; padding:9px 18px; border-radius:6px; }
@@ -482,10 +482,10 @@ input[type=file]{display:none}
 
 /* 씬 컨피그 */
 .cfg-wrap {
-  border-radius:12px; border:1px solid #E5E7EB; background:#fff;
+  border-radius:12px; border:1px solid var(--bd); background:var(--card);
   box-shadow:none; overflow:hidden; margin-bottom:20px;
 }
-.cfg-hdr { padding:14px 20px; background:#F9FAFB; border-bottom:1px solid #E5E7EB; }
+.cfg-hdr { padding:14px 20px; background:var(--s2); border-bottom:1px solid #E5E7EB; }
 .cfg-body { gap:0; }
 .cfg-left { padding:24px; border-right:1px solid #F3F4F6; }
 .cfg-right { padding:24px; }
@@ -494,10 +494,10 @@ input[type=file]{display:none}
 .cfg-ta {
   font-size:15px; line-height:1.7;
   padding:12px 16px; border-radius:8px;
-  border:1px solid #E5E7EB; background:#F9FAFB;
+  border:1px solid var(--bd); background:var(--s2);
   transition:all .15s;
 }
-.cfg-ta:focus { border-color:#2563EB; background:#fff; }
+.cfg-ta:focus { border-color:#2563EB; background:var(--card); }
 .cfg-ta::placeholder { font-size:12px; color:#D1D5DB; }
 
 /* 업로드 존 */
@@ -543,7 +543,7 @@ input[type=file]{display:none}
 @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
 /* ═══ STORYBOARD ═══ */
-.sb-scene{min-width:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff}
+.sb-scene{min-width:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)}
 .sb-scene:last-child{}
 #sbTimelineInner{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;gap:12px !important;min-width:0 !important}
 @media (max-width:1400px){#sbTimelineInner{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
@@ -608,14 +608,14 @@ input[type=file]{display:none}
 .mb-extract-title{font-family:var(--font-mono);font-size:12px;color:var(--or);font-weight:700;margin-bottom:6px}
 .mb-extract-text{font-family:var(--font-mono);font-size:12px;color:var(--tx);line-height:1.7;white-space:pre-wrap}
 .mb-pinterest{margin-bottom:12px;display:flex;gap:8px;align-items:center}
-.mb-pinterest input{flex:1;padding:8px 12px;border:1.5px solid var(--bd);border-radius:6px;font-family:var(--font-body);font-size:13px;outline:none;background:#fff}
+.mb-pinterest input{flex:1;padding:8px 12px;border:1.5px solid var(--bd);border-radius:6px;font-family:var(--font-body);font-size:13px;outline:none;background:var(--card)}
 .mb-pinterest input:focus{border-color:var(--or)}
 
 /* ═══ EDIT TOOLS DROPDOWN ═══ */
 .edit-dropdown{position:relative;display:inline-block}
 .edit-dropdown-btn{display:inline-flex;align-items:center;gap:4px;padding:8px 14px;border:1.5px solid var(--bl);background:rgba(14,165,233,.06);color:var(--bl);font-family:var(--font-mono);font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .12s}
 .edit-dropdown-btn:hover{background:rgba(14,165,233,.15)}
-.edit-dropdown-menu{display:none;position:absolute;bottom:100%;left:0;margin-bottom:4px;background:#fff;border:1.5px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:200px;z-index:100;overflow:hidden}
+.edit-dropdown-menu{display:none;position:absolute;bottom:100%;left:0;margin-bottom:4px;background:var(--card);border:1.5px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:200px;z-index:100;overflow:hidden}
 .edit-dropdown.open .edit-dropdown-menu{display:block}
 .edit-menu-item{display:flex;align-items:center;gap:8px;padding:10px 14px;font-family:var(--font-body);font-size:13px;color:var(--tx);cursor:pointer;transition:background .1s;border-bottom:1px solid rgba(0,0,0,.04)}
 .edit-menu-item:last-child{border-bottom:none}
@@ -655,7 +655,7 @@ input[type=file]{display:none}
 .hist-date-group{margin-bottom:20px}
 .hist-date-label{font-family:var(--font-mono);font-size:13px;color:var(--tx);font-weight:700;padding:8px 0;border-bottom:1px solid var(--bd);margin-bottom:10px;letter-spacing:.5px}
 .hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.hist-card{border:1.5px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff;transition:all .15s;cursor:pointer}
+.hist-card{border:1.5px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card);transition:all .15s;cursor:pointer}
 .hist-card:hover{border-color:var(--bl);box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .hist-card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;border-bottom:1px solid var(--bd)}
 .hist-card-info{padding:8px 10px}
@@ -687,12 +687,12 @@ input[type=file]{display:none}
 .mc-panel{display:none}
 .mc-panel.on{display:block}
 .mc-shot-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.mc-shot-btn{padding:6px 12px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;transition:all .12s}
+.mc-shot-btn{padding:6px 12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;transition:all .12s}
 .mc-shot-btn:hover{border-color:var(--bl)}
 .mc-shot-btn.on{background:rgba(14,165,233,.1);border-color:var(--bl);color:var(--bl);font-weight:700}
 .mc-mini-sphere{border:1px solid var(--bd);border-radius:8px;background:rgba(15,23,42,.02)}
 .mc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.mc-sum-card{border:1px solid var(--bd);border-radius:8px;padding:8px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--mu);background:#fff;min-height:60px}
+.mc-sum-card{border:1px solid var(--bd);border-radius:8px;padding:8px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--mu);background:var(--card);min-height:60px}
 .mc-sum-card.active{border-color:var(--bl);background:rgba(14,165,233,.03)}
 .mc-sum-card .mc-sum-title{font-weight:700;color:var(--tx);font-size:11px;margin-bottom:4px}
 
@@ -706,14 +706,14 @@ input[type=file]{display:none}
 .ca-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--bl);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .ca-val{font-family:var(--font-mono);font-size:13px;color:var(--bl);width:36px;text-align:right;font-weight:700}
 .ca-presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
-.ca-pre{padding:5px 10px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;border-radius:5px;cursor:pointer;transition:all .12s;font-weight:500}
+.ca-pre{padding:5px 10px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;border-radius:5px;cursor:pointer;transition:all .12s;font-weight:500}
 .ca-pre:hover{border-color:var(--bl);color:var(--bl)}
 .ca-pre.on{background:rgba(14,165,233,.1);border-color:var(--bl);color:var(--bl);font-weight:700}
 .ca-output{margin-top:10px;padding:8px 12px;background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);border-radius:6px;font-family:var(--font-mono);font-size:11px;color:var(--cy);line-height:1.5;min-height:20px}
 
 /* ═══ LOOK CREATOR ═══ */
 .look-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
-.look-card{border:1.5px solid var(--bd);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;background:#fff;text-align:center}
+.look-card{border:1.5px solid var(--bd);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s;background:var(--card);text-align:center}
 .look-card:hover{border-color:var(--wn);box-shadow:0 2px 8px rgba(217,119,6,.1)}
 .look-card.on{border-color:var(--wn);background:rgba(217,119,6,.06);box-shadow:0 0 0 2px rgba(217,119,6,.15)}
 .look-card-name{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--tx);margin-bottom:3px;letter-spacing:.3px}
@@ -744,21 +744,21 @@ input[type=file]{display:none}
   <!-- YouTube Channel -->
   <div style="max-width:780px;width:100%;margin:0 auto 40px;text-align:center">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:left" id="ytVideoGrid">
-      <a href="https://www.youtube.com/watch?v=FdMmh3IjVE4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;transition:all .2s;background:#fff" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
+      <a href="https://www.youtube.com/watch?v=FdMmh3IjVE4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid var(--bd);transition:all .2s;background:var(--card)" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
         <div style="position:relative"><img src="https://img.youtube.com/vi/FdMmh3IjVE4/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2)"><div style="width:36px;height:36px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-left:14px solid #111;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px"></div></div></div></div>
-        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:#111;font-weight:600;line-height:1.4">Animation Showreel</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
+        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:var(--tx);font-weight:600;line-height:1.4">Animation Showreel</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
       </a>
-      <a href="https://www.youtube.com/watch?v=zVnn2aCoId4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;transition:all .2s;background:#fff" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
+      <a href="https://www.youtube.com/watch?v=zVnn2aCoId4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid var(--bd);transition:all .2s;background:var(--card)" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
         <div style="position:relative"><img src="https://img.youtube.com/vi/zVnn2aCoId4/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2)"><div style="width:36px;height:36px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-left:14px solid #111;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px"></div></div></div></div>
-        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:#111;font-weight:600;line-height:1.4">N시의 무법자</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
+        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:var(--tx);font-weight:600;line-height:1.4">N시의 무법자</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
       </a>
-      <a href="https://www.youtube.com/watch?v=JcAaFsB2mj4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;transition:all .2s;background:#fff" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
+      <a href="https://www.youtube.com/watch?v=JcAaFsB2mj4" target="_blank" style="text-decoration:none;border-radius:10px;overflow:hidden;border:1px solid var(--bd);transition:all .2s;background:var(--card)" onmouseover="this.style.borderColor='#2563EB';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E7EB';this.style.transform=''">
         <div style="position:relative"><img src="https://img.youtube.com/vi/JcAaFsB2mj4/mqdefault.jpg" style="width:100%;display:block"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.2)"><div style="width:36px;height:36px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center"><div style="width:0;height:0;border-left:14px solid #111;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px"></div></div></div></div>
-        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:#111;font-weight:600;line-height:1.4">취향의 증거</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
+        <div style="padding:10px 12px"><div style="font-family:var(--font-body);font-size:12px;color:var(--tx);font-weight:600;line-height:1.4">취향의 증거</div><div style="font-family:var(--font-mono);font-size:10px;color:#9CA3AF;margin-top:4px">studioZIPPY</div></div>
       </a>
     </div>
     <div style="margin-top:16px">
-      <a href="https://www.youtube.com/@Studiozippyseoul" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border:1px solid #E5E7EB;border-radius:8px;color:#6B7280;font-family:var(--font-mono);font-size:11px;text-decoration:none;transition:all .15s;letter-spacing:.5px" onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB'" onmouseout="this.style.borderColor='#E5E7EB';this.style.color='#6B7280'">
+      <a href="https://www.youtube.com/@Studiozippyseoul" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border:1px solid var(--bd);border-radius:8px;color:#6B7280;font-family:var(--font-mono);font-size:11px;text-decoration:none;transition:all .15s;letter-spacing:.5px" onmouseover="this.style.borderColor='#2563EB';this.style.color='#2563EB'" onmouseout="this.style.borderColor='#E5E7EB';this.style.color='#6B7280'">
         YouTube 채널에서 더 보기 →
       </a>
     </div>
@@ -851,16 +851,16 @@ input[type=file]{display:none}
   </div>
   <div class="ar" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd)">
     <span class="al" style="color:var(--pu)">LLM (텍스트)</span>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:#fff">
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="llmMode" value="cloud" checked onchange="onLLMModeChange()"> ☁ Gemini
     </label>
   </div>
   <div class="ar" style="margin-top:8px">
     <span class="al" style="color:var(--pu)">이미지</span>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:#fff">
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="cloud" checked onchange="onImgModeChange()"> ☁ Nano Banana
     </label>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:#fff">
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gpt" onchange="onImgModeChange()"> ✦ GPT Image 2
     </label>
   </div>
@@ -900,7 +900,7 @@ input[type=file]{display:none}
   </div>
   <div class="ar" style="margin-top:8px">
     <span class="al" style="color:var(--pu)">영상</span>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:#fff">
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="vidMode" value="cloud" checked onchange="onVidModeChange()"> ☁ Kling 3.0
     </label>
   </div>
@@ -1182,8 +1182,8 @@ input[type=file]{display:none}
     </div>
   </div>
   <!-- 기획안 업로드 -->
-  <div style="border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:10px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB;font-family:var(--font-mono);font-size:13px;font-weight:700;color:#111">기획안 / 스토리보드 문서</div>
+  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
+    <div style="padding:10px 16px;background:var(--s2);border-bottom:1px solid #E5E7EB;font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">기획안 / 스토리보드 문서</div>
     <div style="padding:14px">
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
@@ -1199,9 +1199,9 @@ input[type=file]{display:none}
     </div>
   </div>
   <!-- 쇼트 편집기 (토글) -->
-  <div id="sbEditorWrap" style="display:none;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:10px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#111">쇼트 편집기</div>
+  <div id="sbEditorWrap" style="display:none;border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
+    <div style="padding:10px 16px;background:var(--s2);border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">쇼트 편집기</div>
       <div style="display:flex;gap:6px">
         <button class="btn bgh bsm" onclick="addSBShot()">+ 쇼트 추가</button>
         <button class="btn bbl bsm" onclick="applySBEdits()">적용</button>
@@ -1243,11 +1243,11 @@ input[type=file]{display:none}
       <div style="margin-bottom:14px;padding:12px 14px;background:rgba(3,105,161,.05);border:1px solid rgba(3,105,161,.15);border-radius:4px">
         <div style="font-family:var(--font-mono);font-size:12px;color:var(--or);letter-spacing:1.5px;margin-bottom:10px;font-weight:700">드라마 스타일 프리셋</div>
         <div style="display:flex;flex-wrap:wrap;gap:7px">
-          <button onclick="applyDramaPreset('jungwoo')" style="padding:8px 16px;border:1.5px solid var(--or);background:#fff;color:var(--or);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">정우 (주연)</button>
-          <button onclick="applyDramaPreset('hayoon')" style="padding:8px 16px;border:1.5px solid var(--or);background:#fff;color:var(--or);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">하윤 (주연)</button>
-          <button onclick="applyDramaPreset('ojun')" style="padding:8px 16px;border:1.5px solid var(--bl);background:#fff;color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">오준 (조연)</button>
-          <button onclick="applyDramaPreset('inagyeong')" style="padding:8px 16px;border:1.5px solid var(--bl);background:#fff;color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">이나경 (조연)</button>
-          <button onclick="applyDramaPreset('bakjun')" style="padding:8px 16px;border:1.5px solid var(--bl);background:#fff;color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">박준 (조연)</button>
+          <button onclick="applyDramaPreset('jungwoo')" style="padding:8px 16px;border:1.5px solid var(--or);background:var(--card);color:var(--or);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">정우 (주연)</button>
+          <button onclick="applyDramaPreset('hayoon')" style="padding:8px 16px;border:1.5px solid var(--or);background:var(--card);color:var(--or);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">하윤 (주연)</button>
+          <button onclick="applyDramaPreset('ojun')" style="padding:8px 16px;border:1.5px solid var(--bl);background:var(--card);color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">오준 (조연)</button>
+          <button onclick="applyDramaPreset('inagyeong')" style="padding:8px 16px;border:1.5px solid var(--bl);background:var(--card);color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">이나경 (조연)</button>
+          <button onclick="applyDramaPreset('bakjun')" style="padding:8px 16px;border:1.5px solid var(--bl);background:var(--card);color:var(--bl);font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">박준 (조연)</button>
         </div>
       </div>
       <div style="margin-bottom:10px">
@@ -1311,7 +1311,7 @@ input[type=file]{display:none}
       </div>
       <div style="border-top:1px solid var(--bd);padding-top:12px;margin-top:12px">
         <div style="font-family:var(--font-mono);font-size:11px;color:var(--or);letter-spacing:1px;margin-bottom:6px;font-weight:700">프롬프트 직접 입력</div>
-        <textarea id="cc-custom-prompt" style="width:100%;box-sizing:border-box;min-height:80px;padding:10px 12px;background:#fff;border:1.5px solid var(--or);color:var(--tx);font-family:var(--font-body);font-size:13px;line-height:1.6;resize:vertical;border-radius:8px;outline:none" placeholder="칩 선택 대신 직접 프롬프트를 입력할 수 있습니다. 여기에 입력하면 칩 선택보다 우선 적용됩니다.&#10;&#10;예: Korean male, early 30s, lean build, charcoal cotton t-shirt, olive work apron, slightly calloused hands..."></textarea>
+        <textarea id="cc-custom-prompt" style="width:100%;box-sizing:border-box;min-height:80px;padding:10px 12px;background:var(--card);border:1.5px solid var(--or);color:var(--tx);font-family:var(--font-body);font-size:13px;line-height:1.6;resize:vertical;border-radius:8px;outline:none" placeholder="칩 선택 대신 직접 프롬프트를 입력할 수 있습니다. 여기에 입력하면 칩 선택보다 우선 적용됩니다.&#10;&#10;예: Korean male, early 30s, lean build, charcoal cotton t-shirt, olive work apron, slightly calloused hands..."></textarea>
         <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:4px">칩 선택과 직접 입력 모두 있으면, 직접 입력이 우선 적용됩니다.</div>
       </div>
     </div>
@@ -1497,7 +1497,7 @@ input[type=file]{display:none}
     <div style="padding:14px 20px;border-bottom:1px solid var(--bd);background:linear-gradient(135deg,rgba(232,93,4,.04),rgba(217,119,6,.02))">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div style="font-family:var(--font-mono);font-size:12px;color:var(--or);font-weight:700;letter-spacing:.5px;white-space:nowrap">SCENE</div>
-        <select id="scenePresetSel" onchange="applyScenePreset(this.value)" style="flex:1;min-width:280px;padding:10px 14px;border:2px solid var(--or);background:#fff;color:var(--tx);font-family:var(--font-mono);font-size:13px;border-radius:8px;cursor:pointer;font-weight:600">
+        <select id="scenePresetSel" onchange="applyScenePreset(this.value)" style="flex:1;min-width:280px;padding:10px 14px;border:2px solid var(--or);background:var(--card);color:var(--tx);font-family:var(--font-mono);font-size:13px;border-radius:8px;cursor:pointer;font-weight:600">
           <option value="">— 씬 선택 —</option>
           <option value="1">S1  EXT. 성수 생활형 골목 / 오전</option>
           <option value="2">S2  INT. 정우 식당 / 늦은 오후</option>
@@ -1517,10 +1517,10 @@ input[type=file]{display:none}
           <option value="16">S16 EXT. 골목 끝 / 밤</option>
         </select>
         <div style="display:flex;gap:4px">
-          <button onclick="applyPreset('MCU','Slightly High','50mm')" style="padding:7px 12px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">인물</button>
-          <button onclick="applyPreset('MS','Slightly High','35mm')" style="padding:7px 12px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">드라마</button>
-          <button onclick="applyPreset('CU','Slightly High','85mm')" style="padding:7px 12px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">감정</button>
-          <button onclick="applyPreset('WS','Slightly High','24mm')" style="padding:7px 12px;border:1px solid var(--bd);background:#fff;color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">공간</button>
+          <button onclick="applyPreset('MCU','Slightly High','50mm')" style="padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">인물</button>
+          <button onclick="applyPreset('MS','Slightly High','35mm')" style="padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">드라마</button>
+          <button onclick="applyPreset('CU','Slightly High','85mm')" style="padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">감정</button>
+          <button onclick="applyPreset('WS','Slightly High','24mm')" style="padding:7px 12px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;cursor:pointer;border-radius:6px;transition:all .12s" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">공간</button>
         </div>
       </div>
     </div>
@@ -4492,7 +4492,7 @@ function selectProject(key) {
         const key = entry[0], val = entry[1];
         const isLead = val.extra && val.extra.length > 50;
         const color = isLead ? 'var(--or)' : 'var(--bl)';
-        return '<button onclick="applyDramaPreset(\'' + key + '\')" style="padding:8px 16px;border:1.5px solid ' + color + ';background:#fff;color:' + color + ';font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">' + key + '</button>';
+        return '<button onclick="applyDramaPreset(\'' + key + '\')" style="padding:8px 16px;border:1.5px solid ' + color + ';background:var(--card);color:' + color + ';font-family:var(--font-mono);font-size:12px;border-radius:4px;cursor:pointer;font-weight:700">' + key + '</button>';
       }).join('');
     }
   } else {
@@ -4795,7 +4795,7 @@ function genVideoPrompt(shotId) {
     modal = document.createElement('div');
     modal.id = 'vidPromptModal';
     modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    modal.innerHTML = '<div style="background:#fff;border-radius:12px;max-width:860px;width:100%;max-height:92vh;overflow:auto;padding:0">' +
+    modal.innerHTML = '<div style="background:var(--card);border-radius:12px;max-width:860px;width:100%;max-height:92vh;overflow:auto;padding:0">' +
       '<div style="padding:16px 20px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between">' +
       '<div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--pu)">ZIPPY PROMPT GENERATOR — <span id="vpShotId"></span></div>' +
       '<button onclick="document.getElementById(\'vidPromptModal\').style.display=\'none\'" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--mu)">✕</button></div>' +
@@ -5654,12 +5654,12 @@ function renderSBEditor() {
   if (!content || typeof SB_SHOTS === 'undefined') return;
   content.innerHTML = SB_SHOTS.map(function(shot, i) {
     return '<div style="display:grid;grid-template-columns:60px 100px 1fr 1fr 80px 40px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:13px">' +
-      '<input value="' + (shot.id||'') + '" onchange="SB_SHOTS['+i+'].id=this.value" style="padding:4px 6px;border:1px solid #E5E7EB;border-radius:4px;font-size:12px;font-family:var(--font-mono)">' +
-      '<input value="' + (shot.frame||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].frame=this.value" style="padding:4px 6px;border:1px solid #E5E7EB;border-radius:4px;font-size:11px">' +
-      '<input value="' + (shot.desc||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].desc=this.value" style="padding:4px 6px;border:1px solid #E5E7EB;border-radius:4px;font-size:12px">' +
-      '<input value="' + (shot.func||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].func=this.value" style="padding:4px 6px;border:1px solid #E5E7EB;border-radius:4px;font-size:12px">' +
-      '<select onchange="SB_SHOTS['+i+'].pri=this.value" style="padding:4px;border:1px solid #E5E7EB;border-radius:4px;font-size:11px"><option value="must"' + (shot.pri==='must'?' selected':'') + '>필수</option><option value="opt"' + (shot.pri==='opt'?' selected':'') + '>선택</option></select>' +
-      '<button onclick="SB_SHOTS.splice('+i+',1);renderSBEditor()" style="padding:2px 6px;border:1px solid #E5E7EB;border-radius:4px;background:#fff;color:#DC2626;cursor:pointer;font-size:11px">x</button>' +
+      '<input value="' + (shot.id||'') + '" onchange="SB_SHOTS['+i+'].id=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:var(--font-mono)">' +
+      '<input value="' + (shot.frame||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].frame=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:11px">' +
+      '<input value="' + (shot.desc||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].desc=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
+      '<input value="' + (shot.func||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].func=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
+      '<select onchange="SB_SHOTS['+i+'].pri=this.value" style="padding:4px;border:1px solid var(--bd);border-radius:4px;font-size:11px"><option value="must"' + (shot.pri==='must'?' selected':'') + '>필수</option><option value="opt"' + (shot.pri==='opt'?' selected':'') + '>선택</option></select>' +
+      '<button onclick="SB_SHOTS.splice('+i+',1);renderSBEditor()" style="padding:2px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--card);color:#DC2626;cursor:pointer;font-size:11px">x</button>' +
       '</div>';
   }).join('');
   if (SB_SHOTS.length > 0) {
@@ -5784,7 +5784,7 @@ function openSBLightbox(shotId) {
     lb.innerHTML =
       '<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
       '<div style="display:flex;gap:10px">' +
-        '<button onclick="downloadSBImg(document.getElementById(\'sbLightbox\').dataset.shotId)" style="padding:8px 20px;background:#fff;border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+        '<button onclick="downloadSBImg(document.getElementById(\'sbLightbox\').dataset.shotId)" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
         '<button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
       '</div>';
     document.body.appendChild(lb);
@@ -5849,7 +5849,7 @@ async function generateAngles2() {
 
   btn.disabled = true;
   result.style.display = 'block';
-  grid.innerHTML = ANGLES2_VIEWS.map((v,i) => '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff"><div style="padding:6px 8px;background:var(--s2);font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">' + v.label + '</div><div id="a2card-'+i+'" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--mu)">대기 중</div></div>').join('');
+  grid.innerHTML = ANGLES2_VIEWS.map((v,i) => '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)"><div style="padding:6px 8px;background:var(--s2);font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">' + v.label + '</div><div id="a2card-'+i+'" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--mu)">대기 중</div></div>').join('');
 
   for (let i = 0; i < ANGLES2_VIEWS.length; i++) {
     const v = ANGLES2_VIEWS[i];
@@ -5914,7 +5914,7 @@ async function generateShots2(){
   const grid=document.getElementById('shots2Grid');
   btn.disabled=true;
   result.style.display='block';
-  grid.innerHTML=SHOTS2_VIEWS.map(function(v,i){return'<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff"><div style="padding:6px 8px;background:var(--s2);font-family:var(--font-mono);font-size:10px;color:var(--ok);font-weight:700">'+v.label+'</div><div id="s2card-'+i+'" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--mu)">대기 중</div></div>';}).join('');
+  grid.innerHTML=SHOTS2_VIEWS.map(function(v,i){return'<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)"><div style="padding:6px 8px;background:var(--s2);font-family:var(--font-mono);font-size:10px;color:var(--ok);font-weight:700">'+v.label+'</div><div id="s2card-'+i+'" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--mu)">대기 중</div></div>';}).join('');
   for(var i=0;i<SHOTS2_VIEWS.length;i++){
     var v=SHOTS2_VIEWS[i];
     status.textContent=(i+1)+'/9 생성 중: '+v.label;
@@ -6463,7 +6463,7 @@ function renderVidTabHistory() {
   const el = document.getElementById('vidTabHistory');
   if (!el || vidTabVideos.length === 0) return;
   el.innerHTML = vidTabVideos.map((v, i) => `
-    <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:#fff">
+    <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)">
       <video src="${v.url}" style="width:100%;aspect-ratio:16/9;object-fit:cover" muted loop onmouseenter="this.play()" onmouseleave="this.pause()"></video>
       <div style="padding:8px 10px">
         <div style="font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">${v.model} · ${v.time}</div>
@@ -7117,7 +7117,7 @@ function renderIGHistory() {
   if (igHistory.length === 0) { wrap.innerHTML = ''; return; }
   let html = '<div class="mb-wrap"><div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700">최근 생성 (' + igHistory.length + ')</div></div><div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
   igHistory.slice(0, 12).forEach(function(h, i) {
-    html += '<div style="border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:#fff"><img src="data:image/png;base64,' + h.b64 + '" style="width:100%;display:block;cursor:pointer" onclick="openIGLightbox(\'' + h.b64 + '\')"><div style="padding:4px 6px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + h.time + '</div></div>';
+    html += '<div style="border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--card)"><img src="data:image/png;base64,' + h.b64 + '" style="width:100%;display:block;cursor:pointer" onclick="openIGLightbox(\'' + h.b64 + '\')"><div style="padding:4px 6px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + h.time + '</div></div>';
   });
   html += '</div></div>';
   wrap.innerHTML = html;
@@ -7142,7 +7142,7 @@ function openIGLightbox(b64) {
     lb.innerHTML =
       '<img id="igLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
       '<div style="display:flex;gap:10px">' +
-        '<button onclick="(function(){var b=document.getElementById(\'igLbImg\').src;var a=document.createElement(\'a\');a.href=b;a.download=\'imagegen_\'+Date.now()+\'.png\';a.click();})()" style="padding:8px 20px;background:#fff;border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+        '<button onclick="(function(){var b=document.getElementById(\'igLbImg\').src;var a=document.createElement(\'a\');a.href=b;a.download=\'imagegen_\'+Date.now()+\'.png\';a.click();})()" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
         '<button onclick="document.getElementById(\'igLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
       '</div>';
     document.body.appendChild(lb);
@@ -7675,7 +7675,7 @@ async function refineImage(btn) {
       </div>
       <div class="refine-wrap" data-imgb64="${newB64}" data-imgmime="${newMime}" style="margin-top:8px">
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" class="refine-input" placeholder="추가 수정 지시 (예: 조명을 더 따뜻하게, 배경 흐리게...)" style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:#fff;color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none">
+          <input type="text" class="refine-input" placeholder="추가 수정 지시 (예: 조명을 더 따뜻하게, 배경 흐리게...)" style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:var(--card);color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none">
           <button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button>
           <div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button>
         </div>
@@ -9297,7 +9297,7 @@ function addToGallery1(type, b64, typeLabel) {
         <button class="btn bor bsm" onclick="dlImg('${uid}','sheet_${idx+1}.png')">⬇ 저장</button>
         <button class="btn bbl bsm" onclick="goStep(2)">STEP 2로 이동 →</button>
       </div>
-      <div class="refine-wrap" data-imgb64="${b64}" data-imgmime="image/png" style="margin-top:8px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:#fff;color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>
+      <div class="refine-wrap" data-imgb64="${b64}" data-imgmime="image/png" style="margin-top:8px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:var(--card);color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
       <div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);letter-spacing:1px;margin-bottom:7px">부분 수정</div>
@@ -10058,7 +10058,7 @@ ${ratioHint}${resHint}` + _dnaBlock + _mbStyle;
               </div>
               <div id="ref2-out-${scnUid}" style="margin-top:8px;display:none"></div>
             </div>
-            <div class="refine-wrap" data-imgb64="${imgB64}" data-imgmime="image/png" style="margin-top:8px;padding:0 12px 10px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:#fff;color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>`;
+            <div class="refine-wrap" data-imgb64="${imgB64}" data-imgmime="image/png" style="margin-top:8px;padding:0 12px 10px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:var(--card);color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>`;
         } else {
           card.innerHTML=`<div class="img-card-hdr"><div class="img-card-lbl">#${i+1} · 오류</div></div><div class="var-card-pending" style="aspect-ratio:16/9">이미지 미반환</div>`;
         }
@@ -10338,7 +10338,7 @@ CHARACTER IDENTITY LOCK:
               <div class="var-card-actions">
                 <button class="cb pu" onclick="dlB64('${imgB64}','${lt.dataset.lens}_${s.textContent}_${a.textContent}.png')" style="font-size:8px;padding:2px 8px">⬇</button>
               </div>
-              <div class="refine-wrap" data-imgb64="${imgB64}" data-imgmime="image/png" style="margin-top:8px;padding:0 10px 10px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:#fff;color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>`;
+              <div class="refine-wrap" data-imgb64="${imgB64}" data-imgmime="image/png" style="margin-top:8px;padding:0 10px 10px"><div style="display:flex;gap:6px;align-items:center"><input type="text" class="refine-input" placeholder="이미지 수정 지시..." style="flex:1;padding:8px 12px;border:1.5px solid var(--bl);background:var(--card);color:var(--tx);font-family:var(--font-body);font-size:13px;border-radius:6px;outline:none"><button onclick="refineImage(this)" class="btn bbl bsm" style="white-space:nowrap;padding:8px 14px;font-size:12px">⟳ 수정</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)">편집 도구 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button onclick="openVideoOverlay(this.closest('.refine-wrap').dataset.imgb64,this.closest('.refine-wrap').dataset.imgmime)" class="vid-btn">VIDEO</button></div></div>`;
           } else {
             card.innerHTML=`<div class="var-card-label"><span>${s.textContent}/${a.textContent}</span><span style="color:var(--or)">✗</span></div><div class="var-card-pending">이미지 없음</div>`;
           }

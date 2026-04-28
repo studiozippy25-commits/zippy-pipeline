@@ -912,7 +912,7 @@ input[type=file]{display:none}
 <div class="snav">
   <button class="stab a1" id="tab1" onclick="goStep(1)">캐릭터 시트</button>
   <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
-  <button class="stab" id="tabMB" onclick="goStep('mb')">무드보드</button>
+  <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
@@ -1022,90 +1022,160 @@ input[type=file]{display:none}
   </div>
 </div>
 
-<!-- ═══════════════ MOODBOARD ═══════════════ -->
+<!-- ═══════════════ IMAGE GENERATOR ═══════════════ -->
 <div class="panel" id="pMB">
-  <div class="slbl" style="color:var(--or)">무드보드 — 스타일 레퍼런스 & AI 추출</div>
+  <div class="slbl" style="color:var(--or)">이미지 생성 — 프롬프트 + 레퍼런스</div>
   <div style="padding:12px 16px;background:rgba(232,93,4,.06);border:1px solid rgba(232,93,4,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--or);line-height:1.7">
-    레퍼런스 이미지를 모아놓고, AI가 공통 스타일·무드·색감을 분석하여 프롬프트로 변환합니다.<br>
-    <span style="font-size:11px;color:var(--mu)">Pinterest에서 저장한 이미지를 여기에 업로드하세요.</span>
+    프롬프트를 입력하고 레퍼런스 이미지(선택)를 업로드한 후 생성하세요.<br>
+    <span style="font-size:11px;color:var(--mu)">상단 API 바의 이미지 모드 (Nano Banana Pro / GPT Image 2)에 따라 동작합니다.</span>
   </div>
 
-  <!-- Google 이미지 검색 제거됨 -->
-
-  <!-- Unsplash 이미지 검색 -->
-  <div class="mb-wrap">
-    <div class="mb-header">
-      <div style="font-family:var(--font-mono);font-size:13px;color:var(--bl);font-weight:700">Unsplash 검색</div>
-    </div>
+  <!-- 프롬프트 입력 -->
+  <div class="mb-wrap" style="margin-bottom:14px">
+    <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--or);font-weight:700">프롬프트</div></div>
     <div style="padding:14px">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <input type="text" class="ci" id="unsplashQuery" placeholder="검색어 (예: korean alley morning, small restaurant warm light, minimalist popup store...)" style="flex:1;margin-bottom:0;font-size:13px" onkeydown="if(event.key==='Enter')searchUnsplash()">
-        <button class="btn bbl bsm" onclick="searchUnsplash()" id="unsplashSearchBtn" style="white-space:nowrap">검색</button>
+      <textarea id="igPrompt" class="ci" placeholder="생성하고 싶은 이미지를 자세히 설명하세요. 예: cinematic film still of a small Korean restaurant interior at golden hour, warm window light, wooden table, vintage audio speaker on counter, off-white walls, photorealistic" style="width:100%;min-height:110px;font-size:13px;font-family:var(--font-body);line-height:1.6;resize:vertical"></textarea>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:10px;margin-bottom:4px">▸ 스타일 / 카메라</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='cinematic film still, ARRI ALEXA 35, Kodak Vision3 500T color science, natural skin texture, visible pores, photorealistic, '">+ 시네마틱</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='documentary photography, raw photographic capture, candid moment, '">+ 다큐멘터리</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='editorial fashion photography, Vogue style, dramatic composition, '">+ 에디토리얼</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='product photography, clean isolated subject, soft studio light, '">+ 제품샷</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='35mm film grain, vintage analog look, slight light leak, '">+ 필름 그레인</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='shallow depth of field, f/2.8, bokeh background, '">+ 얕은 심도</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='wide angle 24mm, deep focus f/8, environmental context, '">+ 와이드 24mm</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='telephoto 85mm portrait compression, creamy bokeh, '">+ 망원 85mm</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='macro extreme close-up, fine surface detail, '">+ 매크로 ECU</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='low angle hero shot, looking up, dramatic perspective, '">+ 로우앵글</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='top-down flat lay composition, symmetrical, '">+ 탑다운</button>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='korean alley morning light';searchUnsplash()">한국 골목</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='small restaurant interior warm cozy';searchUnsplash()">작은 식당</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='minimalist popup store display';searchUnsplash()">팝업 공간</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='film noir lighting portrait';searchUnsplash()">느와르 조명</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='cinematic golden hour urban';searchUnsplash()">골든아워</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='handwritten card paper texture';searchUnsplash()">종이 질감</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='seoul street night ambient';searchUnsplash()">서울 야간</button>
-        <button class="ca-pre" onclick="document.getElementById('unsplashQuery').value='perfume bottle minimal display';searchUnsplash()">향수 디스플레이</button>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:6px;margin-bottom:4px">▸ 조명</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='soft diffused window light, golden hour, warm color palette, '">+ 따뜻한 조명</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='hard directional sunlight, sharp shadows, high contrast, '">+ 강한 햇빛</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='blue hour twilight, ambient cool light, neon accents, '">+ 블루아워</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='neon nightlife, magenta and cyan signage glow, urban night, '">+ 네온 야경</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='single overhead practical, deep moody shadows, film noir, '">+ 느와르 조명</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='backlight rim light, silhouette edges, atmospheric haze, '">+ 백라이트</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='overcast diffused daylight, soft even illumination, '">+ 흐린 낮</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='candlelight warm tungsten, intimate low key, '">+ 촛불 톤</button>
       </div>
-      <div id="unsplashResults" style="display:none">
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:6px" id="unsplashResultCount">0 results</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px" id="unsplashGrid"></div>
-        <div style="display:flex;justify-content:center;gap:8px;margin-top:10px" id="unsplashPaging"></div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:6px;margin-bottom:4px">▸ 무드 / 색감</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='muted earth tones, beige and charcoal palette, '">+ 어스톤</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='pastel palette, soft cream and dusty pink, dreamy, '">+ 파스텔</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='monochrome black and white, classic high contrast, '">+ 흑백</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='teal and orange grading, cinematic complementary colors, '">+ 틸&오렌지</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='melancholic quiet mood, contemplative atmosphere, '">+ 적막함</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='nostalgic 1990s aesthetic, faded colors, '">+ 90년대 향수</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='clean minimalist, negative space, white background, '">+ 미니멀</button>
       </div>
-      <div id="unsplashLoading" style="display:none;text-align:center;padding:20px;font-family:var(--font-mono);font-size:12px;color:var(--cy)">검색 중...</div>
-      <div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-top:8px;text-align:right">Powered by <a href="https://unsplash.com" target="_blank" style="color:var(--mu)">Unsplash</a></div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:6px;margin-bottom:4px">▸ 디테일 / 품질</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='visible pores, follicle micro-shadows, natural skin oils, capillary flush, '">+ 피부 디테일</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='dust accumulation, paint micro-peeling, weathered surface, '">+ 웨더링</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='subtle lens vignetting, micro chromatic aberration, '">+ 렌즈 수차</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='atmospheric haze, particles in light beam, '">+ 공기감</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='ultra-realistic 8K, refined textile detail, tonal harmony, '">+ 8K 고품질</button>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:6px;margin-bottom:4px">▸ 장소 / 환경</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='Korean alley in Seongsu district, low-rise buildings, life-worn texture, '">+ 한국 골목</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='small Korean restaurant interior, wooden tables, warm window light, '">+ 작은 식당</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='minimalist popup retail space, refined display, '">+ 팝업 공간</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='Seoul night street, neon signs, after-hours mood, '">+ 서울 야간</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='cozy independent cafe, paper books, ceramic cups, '">+ 카페</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px dashed var(--bd);padding-top:8px">
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value=''" style="border-color:var(--er);color:var(--er)">↻ 프롬프트 초기화</button>
+      </div>
     </div>
   </div>
 
-  <!-- 무드보드 이미지 -->
+  <!-- 레퍼런스 이미지 -->
   <div class="mb-wrap">
     <div class="mb-header">
-      <div style="font-family:var(--font-mono);font-size:13px;color:var(--or);font-weight:700">레퍼런스 이미지</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--or);font-weight:700">레퍼런스 이미지 (선택)</div>
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="mbCount">0장</div>
     </div>
     <div style="padding:14px">
       <div class="mb-drop" id="mbDrop" onclick="document.getElementById('mbFileInput').click()">
         <div style="font-size:20px;margin-bottom:6px;color:var(--s2);font-weight:300">+</div>
         <div style="font-family:var(--font-mono);font-size:13px;color:var(--mu)"><strong style="color:var(--or)">클릭 또는 드래그</strong>하여 이미지 업로드</div>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-top:4px">Pinterest 저장 이미지, 참고 사진, 무드 레퍼런스 등</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-top:4px">스타일·캐릭터·구도 레퍼런스 등 (생성 시 함께 전달)</div>
         <input type="file" id="mbFileInput" accept="image/*" multiple style="display:none" onchange="addMBImages(this.files)">
       </div>
       <div class="mb-grid" id="mbGrid"></div>
     </div>
   </div>
 
-  <!-- 프롬프트 추출 -->
+  <!-- 생성 옵션 -->
+  <div class="mb-wrap" style="margin-bottom:14px">
+    <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--bl);font-weight:700">생성 옵션</div></div>
+    <div style="padding:14px;display:flex;gap:14px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:4px">비율</div>
+        <select class="msel" id="igRatio">
+          <option value="16:9" selected>16:9 가로</option>
+          <option value="9:16">9:16 세로</option>
+          <option value="1:1">1:1 정사각</option>
+          <option value="4:3">4:3</option>
+          <option value="3:4">3:4</option>
+          <option value="2:3">2:3</option>
+          <option value="3:2">3:2</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:4px">해상도</div>
+        <select class="msel" id="igRes">
+          <option value="1K" selected>1K (빠름)</option>
+          <option value="2K">2K</option>
+          <option value="4K">4K (고품질)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 생성 버튼 -->
   <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
-    <button class="btn bor" onclick="extractMBStyle()" id="mbExtractBtn">프롬프트 추출</button>
-    <button class="btn bgh" onclick="applyMBStyle()">→ Look Creator에 적용</button>
-    <button class="btn bgh" onclick="clearMoodboard()" style="border-color:var(--er);color:var(--er)">초기화</button>
+    <button class="btn bor" onclick="generateIGImage()" id="igGenBtn">▶ 이미지 생성</button>
+    <button class="btn bgh" onclick="clearMoodboard()" style="border-color:var(--er);color:var(--er)">레퍼런스 초기화</button>
   </div>
 
-  <div id="mbExtractResult" style="display:none">
-    <div class="mb-extract">
-      <div class="mb-extract-title">추출된 스타일 프롬프트</div>
-      <div class="mb-extract-text" id="mbStyleText">추출 결과가 여기에 표시됩니다.</div>
-    </div>
-    <div style="margin-top:10px;display:flex;gap:6px">
-      <button class="btn bgh bsm" onclick="copyMBStyle()">복사</button>
-      <button class="btn bgh bsm" onclick="applyMBToScene()">→ 씬 설명에 적용</button>
+  <!-- 결과 -->
+  <div id="igStatus" style="display:none;padding:12px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);border-radius:8px;margin-bottom:14px;font-family:var(--font-mono);font-size:12px;color:var(--bl)"></div>
+  <div id="igResultWrap" style="display:none">
+    <div class="mb-wrap">
+      <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--gr);font-weight:700">생성 결과</div></div>
+      <div style="padding:14px">
+        <img id="igResult" src="" style="max-width:100%;border-radius:8px;cursor:pointer" onclick="window.open(this.src)">
+        <!-- 수정 (Refine) -->
+        <div style="margin-top:12px;padding:10px;background:rgba(14,165,233,.04);border:1px solid rgba(14,165,233,.15);border-radius:6px">
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--bl);font-weight:700;margin-bottom:6px">↻ 결과 수정</div>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="igRefineInput" class="ci" placeholder="예: 따뜻한 톤으로 / 배경을 흐리게 / 의상을 검은색으로" style="flex:1;margin-bottom:0;font-size:12px" onkeydown="if(event.key==='Enter')refineIGImage()">
+            <button class="btn bbl bsm" onclick="refineIGImage()" id="igRefineBtn" style="white-space:nowrap">수정 생성</button>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='따뜻한 톤으로 변경, 황금시간대 분위기'">따뜻하게</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='차갑고 푸른 톤으로 변경, blue hour'">차갑게</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='배경 흐리게, 얕은 심도, f/2.0'">배경 흐리게</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='피부 디테일 강화, visible pores, natural skin texture'">피부 디테일</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='흑백으로 변경, monochrome high contrast'">흑백</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='필름 그레인 추가, Kodak Vision3 500T'">필름룩</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='더 어둡게, 그림자 깊게, low key lighting'">어둡게</button>
+            <button class="ca-pre" onclick="document.getElementById('igRefineInput').value='더 밝게, 부드러운 빛, high key lighting'">밝게</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn bgh bsm" onclick="downloadIGImage()">⬇ 다운로드</button>
+          <button class="btn bgh bsm" onclick="reuseIGAsRef()">↻ 결과를 레퍼런스로 재사용</button>
+          <button class="btn bgh bsm" onclick="sendIGToStoryboard()" style="border-color:var(--pu);color:var(--pu)">→ 스토리보드 슬롯에 전송</button>
+        </div>
+      </div>
     </div>
   </div>
-
-  <!-- 무드보드를 레퍼런스로 사용 -->
-  <div style="margin-top:18px;padding:14px;background:rgba(14,165,233,.04);border:1px solid rgba(14,165,233,.15);border-radius:8px">
-    <div style="font-family:var(--font-mono);font-size:12px;color:var(--bl);font-weight:700;margin-bottom:6px">활용 팁</div>
-    <div style="font-size:12px;color:var(--mu);line-height:1.6">
-      • <strong>스타일 추출</strong> → 추출된 프롬프트가 씬 생성 시 자동 반영됩니다<br>
-      • <strong>Look Creator 적용</strong> → 추출 결과를 Look Creator의 커스텀 프리셋으로 저장<br>
-      • <strong>이미지 레퍼런스</strong> → 무드보드 이미지가 Step 2 생성 시 스타일 참고로 전달됩니다
-    </div>
-  </div>
+  <div id="igHistoryWrap" style="margin-top:14px"></div>
 </div>
 
 <!-- ═══════════════ STORYBOARD ═══════════════ -->
@@ -6839,6 +6909,127 @@ function embedPinterest() {
   if (!embed) return;
   // Pinterest widget embed
   embed.innerHTML = '<iframe src="' + url + '" style="width:100%;height:400px;border:none;border-radius:6px;background:var(--s2)" sandbox="allow-scripts allow-same-origin allow-popups"></iframe><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:4px">※ Pinterest 로그인 상태에서만 볼 수 있을 수 있습니다. 이미지는 수동으로 저장 후 위에 업로드하세요.</div>';
+}
+
+// ═══ 이미지 생성 (구 무드보드 패널) ═══════════
+const igHistory = [];
+let igLastB64 = null;
+let igLastMime = 'image/png';
+
+async function generateIGImage() {
+  const prompt = (document.getElementById('igPrompt')?.value || '').trim();
+  if (!prompt) { alert('프롬프트를 입력하세요'); document.getElementById('igPrompt')?.focus(); return; }
+  const ratio = document.getElementById('igRatio')?.value || '16:9';
+  const resVal = document.getElementById('igRes')?.value || '1K';
+
+  const btn = document.getElementById('igGenBtn');
+  const status = document.getElementById('igStatus');
+  const resultWrap = document.getElementById('igResultWrap');
+  btn.disabled = true; btn.textContent = '생성 중...';
+  status.style.display = 'block';
+  status.textContent = '이미지 생성 요청 중...';
+
+  // 레퍼런스 이미지 (업로드된 무드보드 이미지)
+  const refs = (typeof mbImages !== 'undefined' ? mbImages : []).map(im => ({b64: im.b64, mime: im.mime}));
+
+  // Aspect ratio hint 추가
+  const ratioMap = {'16:9':'wide cinematic 16:9 aspect ratio','9:16':'vertical 9:16 portrait aspect ratio','1:1':'square 1:1 aspect ratio','4:3':'4:3 aspect ratio','3:4':'3:4 portrait aspect ratio','2:3':'2:3 portrait aspect ratio','3:2':'3:2 landscape aspect ratio'};
+  const fullPrompt = prompt + '\n\nFRAME: ' + (ratioMap[ratio] || ratio) + '. Single complete frame, no border, no watermark.';
+
+  try {
+    const { imgB64 } = await callImageGen({
+      images: refs,
+      prompt: fullPrompt,
+      resVal: resVal,
+      onProgress: function(msg){ status.textContent = msg; }
+    });
+    if (!imgB64) throw new Error('이미지 없음');
+    igLastB64 = imgB64; igLastMime = 'image/png';
+    document.getElementById('igResult').src = 'data:image/png;base64,' + imgB64;
+    resultWrap.style.display = 'block';
+    status.style.display = 'none';
+    igHistory.unshift({b64: imgB64, prompt: prompt, time: new Date().toLocaleTimeString()});
+    renderIGHistory();
+    if (typeof saveToHistory === 'function') saveToHistory(imgB64, 'ImageGen', prompt.slice(0, 50));
+  } catch(e) {
+    status.textContent = '실패: ' + e.message;
+    status.style.background = 'rgba(239,68,68,.06)'; status.style.color = 'var(--er)';
+  } finally {
+    btn.disabled = false; btn.textContent = '▶ 이미지 생성';
+  }
+}
+
+function renderIGHistory() {
+  const wrap = document.getElementById('igHistoryWrap');
+  if (!wrap) return;
+  if (igHistory.length === 0) { wrap.innerHTML = ''; return; }
+  let html = '<div class="mb-wrap"><div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700">최근 생성 (' + igHistory.length + ')</div></div><div style="padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
+  igHistory.slice(0, 12).forEach(function(h, i) {
+    html += '<div style="border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:#fff"><img src="data:image/png;base64,' + h.b64 + '" style="width:100%;display:block;cursor:pointer" onclick="window.open(this.src)"><div style="padding:4px 6px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + h.time + '</div></div>';
+  });
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
+function downloadIGImage() {
+  if (!igLastB64) return;
+  const a = document.createElement('a');
+  a.href = 'data:image/png;base64,' + igLastB64;
+  a.download = 'imagegen_' + Date.now() + '.png';
+  a.click();
+}
+
+function reuseIGAsRef() {
+  if (!igLastB64) return;
+  if (typeof mbImages === 'undefined') return;
+  mbImages.push({b64: igLastB64, mime: igLastMime, name: 'generated_' + Date.now() + '.png', dataUrl: 'data:image/png;base64,' + igLastB64});
+  if (typeof renderMBGrid === 'function') renderMBGrid();
+  alert('생성된 이미지를 레퍼런스에 추가했습니다.');
+}
+
+async function refineIGImage() {
+  if (!igLastB64) { alert('먼저 이미지를 생성하세요'); return; }
+  const refineText = (document.getElementById('igRefineInput')?.value || '').trim();
+  if (!refineText) { alert('수정 지시를 입력하세요'); return; }
+  const btn = document.getElementById('igRefineBtn');
+  const status = document.getElementById('igStatus');
+  btn.disabled = true; btn.textContent = '수정 중...';
+  status.style.display = 'block';
+  status.style.background = 'rgba(14,165,233,.06)'; status.style.color = 'var(--bl)';
+  status.textContent = '이미지 수정 요청 중...';
+
+  const ratio = document.getElementById('igRatio')?.value || '16:9';
+  const ratioMap = {'16:9':'wide cinematic 16:9 aspect ratio','9:16':'vertical 9:16 portrait aspect ratio','1:1':'square 1:1 aspect ratio','4:3':'4:3 aspect ratio','3:4':'3:4 portrait aspect ratio','2:3':'2:3 portrait aspect ratio','3:2':'3:2 landscape aspect ratio'};
+  const refinePrompt = 'Apply the following modification to this image while preserving identity, composition, and overall structure: ' + refineText + '\n\nFRAME: ' + (ratioMap[ratio] || ratio) + '. Single complete frame, no border, no watermark.';
+
+  try {
+    const { imgB64 } = await callImageGen({
+      images: [{b64: igLastB64, mime: igLastMime}],
+      prompt: refinePrompt,
+      resVal: document.getElementById('igRes')?.value || '1K',
+      onProgress: function(msg){ status.textContent = msg; }
+    });
+    if (!imgB64) throw new Error('이미지 없음');
+    igLastB64 = imgB64;
+    document.getElementById('igResult').src = 'data:image/png;base64,' + imgB64;
+    igHistory.unshift({b64: imgB64, prompt: '[수정] ' + refineText, time: new Date().toLocaleTimeString()});
+    renderIGHistory();
+    status.style.display = 'none';
+    document.getElementById('igRefineInput').value = '';
+    if (typeof saveToHistory === 'function') saveToHistory(imgB64, 'ImageGen-Refine', refineText.slice(0, 50));
+  } catch(e) {
+    status.textContent = '수정 실패: ' + e.message;
+    status.style.background = 'rgba(239,68,68,.06)'; status.style.color = 'var(--er)';
+  } finally {
+    btn.disabled = false; btn.textContent = '수정 생성';
+  }
+}
+
+function sendIGToStoryboard() {
+  if (!igLastB64) return;
+  if (typeof goStep === 'function') goStep('sb');
+  alert('스토리보드 패널로 이동했습니다. 원하는 레퍼런스 슬롯에 붙여넣으세요.\n\n(생성된 이미지는 클립보드/다운로드로 저장 후 사용)');
+  downloadIGImage();
 }
 
 async function extractMBStyle() {

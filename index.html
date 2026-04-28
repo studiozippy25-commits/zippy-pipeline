@@ -962,6 +962,20 @@ input[type=file]{display:none}
     </div>
   </div>
 
+  <!-- 의상 에셋 (캐릭터별) -->
+  <div style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-mono);font-size:14px;color:var(--pu);letter-spacing:1.5px;font-weight:700">COSTUME ASSETS</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-costume-count">0개 등록</div>
+    </div>
+    <div style="padding:14px">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">캐릭터별 의상 시트 — 인물 슬롯과 1:1 대응 (프로젝트 선택 시 자동 로드)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px" id="asset-costume-container">
+        <!-- 프로젝트별 동적 생성 -->
+      </div>
+    </div>
+  </div>
+
   <!-- 사물 에셋 (종류별) -->
   <div style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
@@ -2841,10 +2855,12 @@ const PROJECTS = {
     defaultCharRefs: {
       '정우': 'assets/proof-of-taste/C01_유정우.png',
       '하윤': 'assets/proof-of-taste/C02_서하윤.png',
-      '박준': 'assets/proof-of-taste/C03_박준.png',
-      '이나경': 'assets/proof-of-taste/C04_이나경.png'
+      '오준': 'assets/proof-of-taste/C05_오준.png',
+      '이나경': 'assets/proof-of-taste/C04_이나경.png',
+      '박준': 'assets/proof-of-taste/C03_박준.png'
     },
     defaultCostumeRefs: {
+      '오준': 'assets/proof-of-taste/W03_오준_의상시트.png',
       '이나경': 'assets/proof-of-taste/W04_이나경_의상시트.png',
       '박준': 'assets/proof-of-taste/W05_박준_의상시트.png'
     },
@@ -4657,16 +4673,35 @@ function selectProject(key) {
 
   // Render character assets dynamically (per-character slots)
   const charContainer = document.getElementById('asset-char-container');
+  const charNames = currentProject.characterPresets
+    ? Object.keys(currentProject.characterPresets)
+    : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
   if (charContainer) {
-    const charNames = currentProject.characterPresets
-      ? Object.keys(currentProject.characterPresets)
-      : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
     charContainer.innerHTML = charNames.map(function(name, i) {
       const baseKey = 'char-' + (i + 1);
       const displayName = name.split(/[\s(（]/)[0];
       if (typeof assetLib !== 'undefined' && !assetLib[baseKey]) assetLib[baseKey] = [];
       return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
         '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--or);font-weight:700">' + name + '</div>' +
+        '<div style="padding:10px">' +
+        '<div class="muz" onclick="document.getElementById(\'asset-' + baseKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
+        '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
+        '<input type="file" id="asset-' + baseKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + baseKey + '\',this.files)">' +
+        '</div>' +
+        '<div class="tgrid" id="asset-' + baseKey + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:10px">—</div></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  // Render costume assets dynamically (per-character costume slots)
+  const costContainer2 = document.getElementById('asset-costume-container');
+  if (costContainer2) {
+    costContainer2.innerHTML = charNames.map(function(name, i) {
+      const baseKey = 'costume-' + (i + 1);
+      const displayName = name.split(/[\s(（]/)[0];
+      if (typeof assetLib !== 'undefined' && !assetLib[baseKey]) assetLib[baseKey] = [];
+      return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
+        '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + displayName + ' 의상</div>' +
         '<div style="padding:10px">' +
         '<div class="muz" onclick="document.getElementById(\'asset-' + baseKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
         '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
@@ -4736,13 +4771,7 @@ function genVideoPrompt(shotId) {
         charDna += currentProject.characterDNA[name] + '\n';
       }
     });
-    if (!charDna && preset.scene) {
-      Object.keys(currentProject.characterDNA).forEach(function(name) {
-        if (preset.scene.indexOf(name) !== -1) {
-          charDna += currentProject.characterDNA[name] + '\n';
-        }
-      });
-    }
+    // (preset.scene narrative 사용 안 함 — 쇼트별 매칭만)
   }
   // Camera movement detection
   var camMove = 'static, locked tripod';
@@ -4763,7 +4792,7 @@ function genVideoPrompt(shotId) {
   var imgPrompt = '';
   imgPrompt += '── IMAGE PROMPT (ZIPPY 시네마틱 + BAENE 리얼리티) ──\n\n';
   // Reference manifest
-  const _ms = (typeof getSBRefMatchSummary === 'function') ? getSBRefMatchSummary(shot.scene) : null;
+  const _ms = (typeof getSBRefMatchSummary === 'function') ? getSBRefMatchSummary(shot.scene, shot.id) : null;
   if (_ms && _ms.labels.length > 0) {
     imgPrompt += '── 매칭 레퍼런스 (자동 매칭) ──\n';
     imgPrompt += '인물(' + _ms.character + ') · 의상(' + _ms.costume + ') · 배경(' + _ms.background + ') · 소품(' + _ms.prop + ')\n';
@@ -4772,7 +4801,7 @@ function genVideoPrompt(shotId) {
   }
   imgPrompt += 'CINEMATIC STORYBOARD FRAME — SHOT ' + shotId + '\n\n';
   imgPrompt += 'CAMERA: ' + frame + ', ' + (preset.angle || 'eye level') + ', ARRI Signature Prime ' + (preset.lens || '35mm') + ' at ' + fStop + '\n';
-  imgPrompt += 'SCENE: ' + (preset.scene || desc) + '\n';
+  imgPrompt += 'LOCATION: ' + (preset.loc || '') + ' · TIME: ' + (preset.time || '') + '\n';
   imgPrompt += 'ACTION: ' + desc + '\n';
   imgPrompt += 'FUNCTION: ' + (shot.func || '') + '\n\n';
   imgPrompt += 'SUBJECT DNA:\n';
@@ -4992,21 +5021,34 @@ async function loadDefaultCostumeRefs() {
   let loadedCount = 0;
   for (let i = 0; i < charNames.length; i++) {
     const sbKey = 'cos' + (i + 1);
+    const alKey = 'costume-' + (i + 1);
     const fullName = charNames[i];
     const baseName = fullName.split(/[\s(（]/)[0];
     const url = currentProject.defaultCostumeRefs[fullName] || currentProject.defaultCostumeRefs[baseName];
     if (!url) continue;
-    if (sbRefs[sbKey]) continue;
     const img = await fetchImageAsB64(url);
     if (!img) continue;
-    sbRefs[sbKey] = img.b64;
-    sbRefMimes[sbKey] = img.mime;
-    const cap = sbKey.charAt(0).toUpperCase() + sbKey.slice(1);
-    const el = document.getElementById('sbRef' + cap);
-    if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    // 스토리보드 의상 슬롯
+    if (!sbRefs[sbKey]) {
+      sbRefs[sbKey] = img.b64;
+      sbRefMimes[sbKey] = img.mime;
+      const cap = sbKey.charAt(0).toUpperCase() + sbKey.slice(1);
+      const el = document.getElementById('sbRef' + cap);
+      if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    // Asset Library 의상 슬롯
+    if (typeof assetLib !== 'undefined' && assetLib[alKey]) {
+      if (!assetLib[alKey].some(a => a.name === baseName)) {
+        assetLib[alKey].push({b64: img.b64, mime: img.mime, name: baseName + ' 의상', source: 'default'});
+      }
+      if (typeof renderAssetGrid === 'function') renderAssetGrid(alKey);
+    }
     loadedCount++;
   }
-  if (loadedCount > 0 && typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  if (loadedCount > 0) {
+    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
+  }
   console.log('[loadDefaultCostumeRefs] Loaded:', loadedCount);
 }
 
@@ -5239,8 +5281,8 @@ function importAssetToSB(type) {
   }
 }
 
-function getSBRefMatchSummary(sceneNum) {
-  const refs = getSBRefsForShot(sceneNum);
+function getSBRefMatchSummary(sceneNum, shotId) {
+  const refs = getSBRefsForShot(sceneNum, shotId);
   const summary = {character:0, costume:0, background:0, prop:0, labels:[]};
   refs.forEach(r => {
     if (r._type && summary[r._type] !== undefined) summary[r._type]++;
@@ -5249,17 +5291,29 @@ function getSBRefMatchSummary(sceneNum) {
   return summary;
 }
 
-function getSBRefsForShot(sceneNum) {
+function getSBRefsForShot(sceneNum, shotId) {
   const refs = [];
   const preset = SCENE_PRESETS[String(sceneNum)] || {};
-  const sceneText = ((preset.scene || '') + ' ' + (preset.desc || '')).toLowerCase();
-  let shotsText = '';
-  if (typeof SB_SHOTS !== 'undefined') {
-    SB_SHOTS.filter(s => s.scene === sceneNum).forEach(s => { shotsText += ' ' + (s.desc || '') + ' ' + (s.frame || ''); });
+  // 쇼트가 지정되면 그 쇼트의 desc/frame만 사용 — 씬 전체 narrative 사용 X
+  let matchText = '';
+  if (shotId && typeof SB_SHOTS !== 'undefined') {
+    const targetShot = SB_SHOTS.find(s => s.id === shotId);
+    if (targetShot) {
+      matchText = ((targetShot.desc || '') + ' ' + (targetShot.frame || '')).toLowerCase();
+    }
   }
-  const sceneFullText = (sceneText + ' ' + shotsText).toLowerCase();
+  // Fallback: 쇼트 정보가 없을 때만 씬 narrative 사용
+  if (!matchText) {
+    const sceneText = ((preset.scene || '') + ' ' + (preset.desc || '')).toLowerCase();
+    let shotsText = '';
+    if (typeof SB_SHOTS !== 'undefined') {
+      SB_SHOTS.filter(s => s.scene === sceneNum).forEach(s => { shotsText += ' ' + (s.desc || '') + ' ' + (s.frame || ''); });
+    }
+    matchText = (sceneText + ' ' + shotsText).toLowerCase();
+  }
+  const sceneFullText = matchText;
 
-  // ── 인물: 씬에 등장하는 캐릭터만 ──
+  // ── 인물: 쇼트에 등장하는 캐릭터만 ──
   const charNames = (currentProject && currentProject.characterPresets)
     ? Object.keys(currentProject.characterPresets)
     : (currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
@@ -5438,7 +5492,7 @@ CONTEXT:
 - Project: ${currentProject.name}
 - Scene location: ${preset.loc || ''}
 - Scene time: ${preset.time || ''}
-- Scene narrative (full scene context): ${preset.scene || ''}
+- (씬 전체 narrative 사용 안 함 — 쇼트별 디테일만)
 - Available characters: ${charDNAList}
 
 CURRENT SHOT (${shot.id}):
@@ -5481,7 +5535,7 @@ function deleteSBImage(shotId) {
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
   const hasImg = sbGenImages[imgKey];
-  const ms = getSBRefMatchSummary(shot.scene);
+  const ms = getSBRefMatchSummary(shot.scene, shot.id);
   const badge = '<span title="' + ms.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
     (ms.character ? '<span style="color:var(--or)">👤'+ms.character+'</span>' : '') +
     (ms.costume ? '<span style="color:var(--pu)">👗'+ms.costume+'</span>' : '') +
@@ -5572,7 +5626,7 @@ function buildStoryboardTimeline() {
     shots.forEach(shot => {
       const imgKey = shot.id;
       const hasImg = sbGenImages[imgKey];
-      const ms2 = getSBRefMatchSummary(shot.scene);
+      const ms2 = getSBRefMatchSummary(shot.scene, shot.id);
       const badge2 = '<span title="' + ms2.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
         (ms2.character ? '<span style="color:var(--or)">👤'+ms2.character+'</span>' : '') +
         (ms2.costume ? '<span style="color:var(--pu)">👗'+ms2.costume+'</span>' : '') +
@@ -5626,7 +5680,7 @@ async function generateSBShot(shotId) {
   const preset = SCENE_PRESETS[String(shot.scene)] || {};
   const spaceDna = (currentProject && currentProject.spaceDNA && currentProject.spaceDNA[preset.loc]) || SPACE_DNA[preset.loc] || '';
   const costumeDna = (currentProject && currentProject.costumes && currentProject.costumes[preset.costume]) || COSTUME_DNA[preset.costume] || '';
-  const rawRefs = getSBRefsForShot(shot.scene);
+  const rawRefs = getSBRefsForShot(shot.scene, shot.id);
   const images = rawRefs.map(r => r.inline_data
     ? {b64: r.inline_data.data, mime: r.inline_data.mime_type, _type: r._type, _label: r._label}
     : r);
@@ -5645,7 +5699,7 @@ async function generateSBShot(shotId) {
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
     Object.keys(currentProject.characterDNA).forEach(function(name) {
-      if ((shot.desc && shot.desc.indexOf(name) !== -1) || (preset.scene && preset.scene.indexOf(name) !== -1)) {
+      if (shot.desc && shot.desc.indexOf(name) !== -1) {
         charDnaBlock += currentProject.characterDNA[name] + '\n';
       }
     });

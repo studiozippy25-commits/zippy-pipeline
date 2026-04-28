@@ -4973,10 +4973,11 @@ async function loadDefaultSpaceRefs() {
   }
   if (loadedCount > 0) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
-    // Refresh asset library space previews
+    // Refresh asset library space previews + counts
     if (typeof renderAssetGrid === 'function') {
       ['space-a','space-b','space-c','space-d'].forEach(cat => renderAssetGrid(cat));
     }
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
 }
 

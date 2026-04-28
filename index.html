@@ -2836,8 +2836,8 @@ const PROJECTS = {
     name: '취향의 증거', nameEn: 'Proof of Taste', icon: '🍚', sbEpLabel: 'SCENE',
     desc: '7분 AI 단편영화 · 로맨스',
     defaultRatio: '16:9',
-    spaceNames: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', 'LATEN 팝업', '편집숍·인쇄소 주변'],
-    locations: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', 'LATEN 팝업', '편집숍·인쇄소 주변'],
+    spaceNames: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', '여밀 주방', 'LATEN 팝업', '편집숍·인쇄소 주변', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '503 대형 패션 팝업'],
+    locations: ['성수 생활형 골목', '여밀 식당 (외부)', '여밀 식당 (내부)', '여밀 주방', 'LATEN 팝업', '편집숍·인쇄소 주변', '레트로 리스닝 카페', '서울숲 산책길', '서하윤 VMD 작업실', '서하윤의 집', '유정우의 집', '유정우 식재료 동선', '서하윤 리서치 동선', '503 대형 패션 팝업'],
     customEmotions: ['미세한 혼란','재확인','반복 관찰','정확한 인지','능동적 신호','선택','감정의 첫 발생','기억','보관함','궁금함','알아봄','응답함','놓치고 싶지 않음','마지막에 멈춤','무심함','조용한 확신','자기 검열','숨긴 관심','종료 예감','저항 극복'],
     customLights: ['자연 윈도우 확산광','따뜻한 저녁 실내조명','오전 자연광','LATEN 소프트 디퓨즈','골목 가로등 앰버','마감 시간 단일 오버헤드'],
     hasStoryboard: true, hasCostumes: true,
@@ -6934,7 +6934,13 @@ async function generateIGImage() {
 
   // Aspect ratio hint 추가
   const ratioMap = {'16:9':'wide cinematic 16:9 aspect ratio','9:16':'vertical 9:16 portrait aspect ratio','1:1':'square 1:1 aspect ratio','4:3':'4:3 aspect ratio','3:4':'3:4 portrait aspect ratio','2:3':'2:3 portrait aspect ratio','3:2':'3:2 landscape aspect ratio'};
-  const fullPrompt = prompt + '\n\nFRAME: ' + (ratioMap[ratio] || ratio) + '. Single complete frame, no border, no watermark.';
+  // Moodboard safety guide (적용: 레퍼런스가 있을 때)
+  const moodGuide = refs.length > 0 ?
+    '\n\nREFERENCE HANDLING:\nReference images may include concept moodboards or grid sheets containing multiple sample photos with text labels. ' +
+    'CRITICAL — Do NOT replicate any grid/collage layout from references. Do NOT reproduce any text, captions, or labels visible in references. ' +
+    'Extract ONLY: overall mood, color palette, lighting quality, material/texture characteristics, and atmospheric tone. ' +
+    'Generate a SINGLE complete cinematic frame, NOT a collage or multi-panel image.\n' : '';
+  const fullPrompt = prompt + moodGuide + '\n\nFRAME: ' + (ratioMap[ratio] || ratio) + '. Single complete frame, no border, no watermark, no text overlay.';
 
   try {
     const { imgB64 } = await callImageGen({
@@ -8243,7 +8249,16 @@ const SPACE_DNA = {
 '여밀 식당 (외부)':'Yeomil restaurant exterior facade in Seongsu alley, small understated entrance, weathered wooden door with simple metal lock and old-style key, narrow signage with subtle Korean typography, low-profile front window allowing partial interior glimpse, life-worn texture, mixed natural and warm artificial light, NOT trendy storefront NOT modern minimalist cafe.',
 '여밀 식당 (내부)':'Yeomil restaurant interior, small 10-14 seat Korean seasonal meal restaurant in Seongsu alley, off-white walls #F5F2EC, charcoal furniture #3D3D3D, dark wood table grain #6B4F3A, matte ceramic tableware, wooden tray, handwritten season card "오늘의 작은 변주" displayed near register, small vintage audio speaker on counter, life-worn natural texture, NOT brunch cafe NOT Instagram food, NOT luxury restaurant.',
 'LATEN 팝업':'LATEN independent fragrance brand temporary popup space, refined minimal luxury, fragrance bottles in row, blotter cards on brushed metal tray, show-cards with minimal Korean typography "오래 남는 향은 대개 뒤에 온다", small QR-embedded card, color chip swatches, sparse display arrangement, stone white #E8E2D8, smoke grey #8C8680, soft sage #9EA897, amber beige #B87333, NOT department store cosmetics, NOT photo-zone backdrop.',
-'편집숍·인쇄소 주변':'Small Seongsu concept shop and print studio surroundings, paper goods shelf, indie magazine rack, mixed natural and warm artificial light, warm wooden shelves, life-scale casual retail.'
+'편집숍·인쇄소 주변':'Small Seongsu concept shop and print studio surroundings, paper goods shelf, indie magazine rack, mixed natural and warm artificial light, warm wooden shelves, life-scale casual retail.',
+'여밀 주방':'Yeomil restaurant kitchen, single-operator chef space, stainless steel work surfaces, oak wood cutting boards, ceramic bowls and tools, knives mounted on wall rail, seasonal ingredients in wooden trays, oat-beige and warm grey palette, natural side window light, focused intimate workspace, NOT industrial commercial kitchen.',
+'레트로 리스닝 카페':'Retro listening cafe and loft shop hybrid space, vintage hi-fi audio equipment, vinyl records, mid-century furniture mix, warm tungsten practical lighting, deep wood and brass tones, eclectic curated objects, jazz-bar atmosphere, character-rich layered textures, NOT modern minimalist cafe.',
+'서울숲 산책길':'Seoul Forest walking path, lush green canopy, wide tree-lined avenue, dappled sunlight through leaves, natural stone path, occasional bench, urban park calm, soft afternoon light, relaxed contemplative mood, recognizable Seoul Forest signage, deep park environment.',
+'서하윤 VMD 작업실':'Hayoon VMD work studio and popup backstage, large workshop hall, professional racks of clothing, mood board walls, color chip swatches, sample boxes, ladder, stainless steel work tables, industrial concrete floors, drafting tools, neutral grey palette with material accents, focused creative environment.',
+'서하윤의 집':'Hayoon residence, modern chic apartment, urban sophisticated interior, dark wood and warm metal accents, layered styling shelf, designer chair (Eames-style), curated objects, mood lighting, evening warm tone, professional dweller aesthetic, refined personal space.',
+'유정우의 집':'Jungwoo residence, small old urban dwelling, low-key intimate space, neutral oak floor, low-profile sofa, simple wooden coffee table with single cup of coffee, books stacked, plant near window, narrow kitchen with worn enameled cookware, quiet contemplative atmosphere, warm low light, life-worn texture.',
+'유정우 식재료 동선':'Jungwoo ingredient sourcing route, Seoul Forest local market vicinity, fresh seasonal vegetables, root vegetables, mushrooms, herbs in wooden crates, hanging herbs, traditional Korean produce shop, warm natural daylight, earthy palette, real working market not staged, basket of fresh ingredients in hand.',
+'서하윤 리서치 동선':'Hayoon research route, Seongsu select shop and curated retail, contemporary art gallery interior, design-forward furniture, polished stone displays, framed editorial covers, curated mood pages, sleek mirror sphere objects, minimalist gallery lighting, sophisticated design culture environment.',
+'503 대형 패션 팝업':'503 Seongsu large-scale fashion popup and main VMD space, vast warehouse-converted retail floor, brick walls, brushed metal display fixtures, blue painted metal cubes, hanging garments on extended racks, large red sphere art object, bauhaus-style framed graphics, dramatic spot lighting, industrial-scale popup retail, premium experiential environment.'
 };
 const COSTUME_DNA = {
 '식당 기본 (차콜 티셔츠+올리브 앞치마)':'charcoal cotton t-shirt, olive work apron over muted cotton shirt, dark straight-leg trousers, minimal silver ring, worn leather sneakers, slightly calloused hands from kitchen work, no visible logo, muted earth tones',

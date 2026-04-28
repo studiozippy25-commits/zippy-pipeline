@@ -1099,6 +1099,9 @@ input[type=file]{display:none}
   <!-- 생성 버튼 -->
   <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
     <button class="btn bor" onclick="generateIGImage()" id="igGenBtn">▶ 이미지 생성</button>
+    <button class="btn bgh" onclick="window.__igAborted=true" id="igStopBtn" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
+    <button class="btn bgh" onclick="suggestIGPrompt()" id="igSuggestBtn" style="border-color:var(--cy);color:var(--cy)">✨ AI 추천</button>
+    <button class="btn bgh" onclick="autoLoopIG()" id="igAutoBtn" style="border-color:var(--pu);color:var(--pu)">🔁 자동 루프</button>
     <button class="btn bgh" onclick="clearMoodboard()" style="border-color:var(--er);color:var(--er)">레퍼런스 초기화</button>
   </div>
 
@@ -1211,6 +1214,7 @@ input[type=file]{display:none}
   </div>
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
     <button class="btn bor" onclick="generateAllStoryboard()" id="btnSBAll">전체 생성 (필수 쇼트)</button>
+    <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
     <button class="btn bgh" onclick="clearStoryboard()">초기화</button>
     <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu);align-self:center" id="sbProgress">0 / 0</span>
   </div>
@@ -2369,6 +2373,7 @@ input[type=file]{display:none}
         </div>
       </div>
       <button class="btn bpu" onclick="generateAngles2()" id="angles2Btn">▶ 9앵글 생성</button>
+      <button class="btn bgh" onclick="window.__angles2Aborted=true" id="angles2StopBtn" style="display:none;border-color:var(--er);color:var(--er);margin-left:6px">■ 중단</button>
       <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-left:8px" id="angles2Status"></span>
       <div id="angles2Result" style="display:none;margin-top:14px">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="angles2Grid"></div>
@@ -5379,6 +5384,12 @@ OUTPUT: A single Korean paragraph (3-5 sentences, max 250 characters) that anoth
   }
 }
 
+function deleteSBImage(shotId) {
+  if (!confirm('이 쇼트의 생성된 이미지를 삭제할까요?')) return;
+  delete sbGenImages[shotId];
+  buildStoryboardTimeline();
+}
+
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
   const hasImg = sbGenImages[imgKey];
@@ -5392,7 +5403,7 @@ function renderShotCard(shot, sceneVal) {
   html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
   if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button></div></div>`;
+    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
   }
@@ -5483,7 +5494,7 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
       if (hasImg) {
         html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button></div></div>`;
+        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
       } else {
         html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
       }
@@ -5626,15 +5637,21 @@ async function generateAllStoryboard() {
   const remaining = mustShots.filter(s=>!sbGenImages[s.id]);
   if(remaining.length===0){alert('모든 필수 쇼트가 이미 생성되었습니다.');return;}
   const btn = document.getElementById('btnSBAll');
+  const stopBtn = document.getElementById('btnSBStop');
   btn.disabled = true;
+  if (stopBtn) stopBtn.style.display = 'inline-block';
+  window.__sbAllAborted = false;
   document.getElementById('sbLoadingWrap').style.display = 'block';
   for(let i=0; i<remaining.length; i++){
+    if (window.__sbAllAborted) break;
     document.getElementById('sbLoadStatus').textContent = `${remaining[i].id} 생성 중... (${i+1}/${remaining.length})`;
     await generateSBShot(remaining[i].id);
     await new Promise(r=>setTimeout(r,500));
   }
-  document.getElementById('sbLoadStatus').textContent = '전체 생성 완료!';
+  document.getElementById('sbLoadStatus').textContent = window.__sbAllAborted ? '중단됨' : '전체 생성 완료!';
   btn.disabled = false;
+  if (stopBtn) stopBtn.style.display = 'none';
+  window.__sbAllAborted = false;
   setTimeout(()=>{document.getElementById('sbLoadingWrap').style.display='none';},2000);
 }
 function clearStoryboard() {
@@ -5848,6 +5865,9 @@ async function generateAngles2() {
   const grid = document.getElementById('angles2Grid');
 
   btn.disabled = true;
+  window.__angles2Aborted = false;
+  const stopBtn = document.getElementById('angles2StopBtn');
+  if (stopBtn) stopBtn.style.display = 'inline-block';
   result.style.display = 'block';
   grid.innerHTML = ANGLES2_VIEWS.map((v,i) => '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)"><div style="padding:6px 8px;background:var(--s2);font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">' + v.label + '</div><div id="a2card-'+i+'" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--mu)">대기 중</div></div>').join('');
 
@@ -5861,15 +5881,16 @@ async function generateAngles2() {
       continue;
     }
 
+    if (window.__angles2Aborted) { document.getElementById('a2card-'+i).innerHTML = '<div style="padding:10px;font-size:10px;color:var(--mu)">중단됨</div>'; continue; }
     try {
-      const prompt = 'Recreate this exact same subject from a different camera angle.\n\nNEW CAMERA ANGLE: ' + v.en + '\n\nCRITICAL RULES:\n- Maintain 100% identity of the subject (same face, same clothes, same objects)\n- Change ONLY the camera viewpoint\n- Keep the same lighting mood and color palette\n- Photorealistic quality, ARRI Alexa 35\n- Single image output, no text overlay';
+      const prompt = 'ARC SHOT — Recreate the entire scene (subject AND environment together) from a new camera position.\n\nNEW CAMERA ANGLE: ' + v.en + '\n\nCRITICAL RULES:\n- Treat this as a PHYSICAL ARC CAMERA MOVEMENT around the subject. The background MUST also rotate to show the same location from the new viewpoint (NOT a fixed flat backdrop).\n- Maintain 100% identity of the subject (same face, same clothes, same body, same objects in hand)\n- Maintain 100% identity of the environment (same walls, furniture, props, lighting fixtures) — but seen from the new angle.\n- Change ONLY the camera viewpoint, not the scene contents.\n- Lighting direction must update to match the new camera angle (consistent global light source).\n- Photorealistic quality, ARRI Alexa 35, same color grading as source.\n- Single image output, no text overlay, no border.';
       const { imgB64 } = await callImageGen({
         images: [{b64: angles2SrcB64, mime: angles2SrcMime}],
         prompt, task: 'angle',
         onProgress: (msg) => { document.getElementById('a2card-'+i).innerHTML = '<div style="padding:20px;font-family:var(--font-mono);font-size:10px;color:var(--cy)">'+msg+'</div>'; }
       });
       if(imgB64) {
-        document.getElementById('a2card-'+i).innerHTML = '<img src="data:image/png;base64,'+imgB64+'" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="dlB64(\''+imgB64.substring(0,50)+'...\',\'angle_'+i+'.png\')">';
+        document.getElementById('a2card-'+i).innerHTML = '<img src="data:image/png;base64,'+imgB64+'" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openLightbox(\'data:image/png;base64,\'+this.src.split(\',\')[1])">';
         if(typeof saveToHistory==='function') saveToHistory(imgB64, 'Angles2.0', v.label);
       } else {
         document.getElementById('a2card-'+i).innerHTML = '<div style="padding:10px;font-size:10px;color:var(--er)">실패</div>';
@@ -5879,8 +5900,11 @@ async function generateAngles2() {
     }
     await new Promise(r=>setTimeout(r,300));
   }
-  status.textContent = '완료!';
+  status.textContent = window.__angles2Aborted ? '중단됨' : '완료!';
   btn.disabled = false;
+  const stopBtn2 = document.getElementById('angles2StopBtn');
+  if (stopBtn2) stopBtn2.style.display = 'none';
+  window.__angles2Aborted = false;
 }
 
 /* ═══ SHOTS 2.0 ═══ */
@@ -7069,9 +7093,13 @@ async function generateIGImage() {
   const resVal = document.getElementById('igRes')?.value || '1K';
 
   const btn = document.getElementById('igGenBtn');
+  const stopBtn = document.getElementById('igStopBtn');
   const status = document.getElementById('igStatus');
   const resultWrap = document.getElementById('igResultWrap');
   btn.disabled = true; btn.textContent = '생성 중...';
+  if (stopBtn) stopBtn.style.display = 'inline-block';
+  window.__igAborted = false;
+  window.__igAbortController = new AbortController();
   status.style.display = 'block';
   status.textContent = '이미지 생성 요청 중...';
 
@@ -7108,7 +7136,41 @@ async function generateIGImage() {
     status.style.background = 'rgba(239,68,68,.06)'; status.style.color = 'var(--er)';
   } finally {
     btn.disabled = false; btn.textContent = '▶ 이미지 생성';
+    if (stopBtn) stopBtn.style.display = 'none';
+    window.__igAborted = false;
   }
+}
+
+async function suggestIGPrompt() {
+  const seedTopics = ['Korean Seongsu alley sunset', 'small Korean restaurant interior intimate', 'fragrance popup space minimal', 'Seoul night cafe', 'editorial fashion in alley', 'product macro on linen', 'bookshop morning light', 'rooftop golden hour silhouette', 'indie record store vintage', 'misty park morning runner'];
+  const seed = seedTopics[Math.floor(Math.random()*seedTopics.length)];
+  const llmPrompt = `Generate a single creative cinematic image prompt for AI image generation, inspired loosely by: "${seed}". Output a detailed English prompt (60-120 words) including subject, composition, camera, lens, lighting, color palette, mood, and key visual details. ANTI-CG: real photography style. No grid, no text, no labels. Output ONLY the prompt text, nothing else.`;
+  const btn = document.getElementById('igSuggestBtn');
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = '추천 중...';
+  try {
+    const { textOut } = await callGeminiTextOnly(llmPrompt);
+    if (textOut) document.getElementById('igPrompt').value = textOut.trim();
+  } catch(e) { alert('추천 실패: ' + e.message); }
+  btn.disabled = false; btn.textContent = orig;
+}
+
+async function autoLoopIG() {
+  if (window.__igAutoLoop) {
+    window.__igAutoLoop = false;
+    document.getElementById('igAutoBtn').textContent = '🔁 자동 루프';
+    return;
+  }
+  window.__igAutoLoop = true;
+  const btn = document.getElementById('igAutoBtn');
+  btn.textContent = '⏸ 루프 중단';
+  while (window.__igAutoLoop) {
+    await suggestIGPrompt();
+    if (!window.__igAutoLoop) break;
+    await generateIGImage();
+    if (!window.__igAutoLoop) break;
+    await new Promise(r=>setTimeout(r, 1500));
+  }
+  btn.textContent = '🔁 자동 루프';
 }
 
 function renderIGHistory() {
@@ -7131,25 +7193,30 @@ function downloadIGImage() {
   a.click();
 }
 
-function openIGLightbox(b64) {
-  if (!b64) return;
-  let lb = document.getElementById('igLightbox');
+// ═══ 전역 통합 라이트박스 ═══
+function openLightbox(b64OrSrc) {
+  if (!b64OrSrc) return;
+  const src = (typeof b64OrSrc === 'string' && b64OrSrc.startsWith('data:')) ? b64OrSrc : ('data:image/png;base64,' + b64OrSrc);
+  let lb = document.getElementById('globalLightbox');
   if (!lb) {
     lb = document.createElement('div');
-    lb.id = 'igLightbox';
-    lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
+    lb.id = 'globalLightbox';
+    lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:10001;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
     lb.onclick = function(e){ if(e.target===lb) lb.style.display='none'; };
     lb.innerHTML =
-      '<img id="igLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
+      '<img id="globalLbImg" style="max-width:94vw;max-height:84vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
       '<div style="display:flex;gap:10px">' +
-        '<button onclick="(function(){var b=document.getElementById(\'igLbImg\').src;var a=document.createElement(\'a\');a.href=b;a.download=\'imagegen_\'+Date.now()+\'.png\';a.click();})()" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
-        '<button onclick="document.getElementById(\'igLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
+        '<button onclick="(function(){var b=document.getElementById(\'globalLbImg\').src;var a=document.createElement(\'a\');a.href=b;a.download=\'image_\'+Date.now()+\'.png\';a.click();})()" style="padding:8px 20px;background:#fff;color:#000;border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+        '<button onclick="document.getElementById(\'globalLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기 (ESC)</button>' +
       '</div>';
     document.body.appendChild(lb);
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') { const g=document.getElementById('globalLightbox'); if(g && g.style.display!=='none') g.style.display='none'; } });
   }
-  document.getElementById('igLbImg').src = 'data:image/png;base64,' + b64;
+  document.getElementById('globalLbImg').src = src;
   lb.style.display = 'flex';
 }
+// 호환: 기존 호출도 통합 라이트박스 사용
+function openIGLightbox(b64) { openLightbox(b64); }
 
 function reuseIGAsRef() {
   if (!igLastB64) return;
@@ -9287,7 +9354,7 @@ function addToGallery1(type, b64, typeLabel) {
       <button class="cb" onclick="dlImg('${uid}','sheet_${idx+1}.png')">DOWNLOAD</button>
     </div>
     <div class="giw">
-      <img id="${uid}" class="gi" src="data:image/png;base64,${b64}" alt=""
+      <img id="${uid}" class="gi" onclick="openLightbox(this.src)" style="cursor:pointer" src="data:image/png;base64,${b64}" alt=""
         style="cursor:pointer;transition:opacity .15s"
         title="클릭하면 STEP 2에서 이 시트를 사용합니다"
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'"

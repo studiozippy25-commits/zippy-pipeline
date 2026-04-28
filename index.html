@@ -4949,15 +4949,17 @@ async function loadDefaultSpaceRefs() {
   // Build dynamic asset library slots first
   buildAssetSpaceSlots();
   const locNames = currentProject.spaceNames || currentProject.locations || [];
+  console.log('[loadDefaultSpaceRefs] Starting. Locations:', locNames.length, 'Refs:', Object.keys(currentProject.defaultSpaceRefs).length);
   let loadedCount = 0;
+  let failedCount = 0;
   for (let i = 0; i < locNames.length; i++) {
     const sbKey = 'loc' + (i + 1);
     const alKey = 'space-' + (i + 1);
     const name = locNames[i];
     const url = currentProject.defaultSpaceRefs[name];
-    if (!url) continue;
+    if (!url) { console.log('[skip] no url for:', name); continue; }
     const img = await fetchImageAsB64(url);
-    if (!img) continue;
+    if (!img) { console.warn('[fail] fetch returned null:', name, url); failedCount++; continue; }
     // Storyboard ref slot
     if (!sbRefs[sbKey]) {
       sbRefs[sbKey] = img.b64;
@@ -4974,6 +4976,7 @@ async function loadDefaultSpaceRefs() {
     }
     loadedCount++;
   }
+  console.log('[loadDefaultSpaceRefs] Done. Loaded:', loadedCount, 'Failed:', failedCount);
   if (loadedCount > 0) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();

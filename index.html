@@ -4840,16 +4840,24 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'SPACE DNA: ' + (spaceDna || preset.loc || '') + '\n\n';
   imgPrompt += 'MOOD: ' + (emoDna || '') + '\n';
   imgPrompt += 'LIGHTING: ' + (lightDna || '') + ' ' + (preset.time || '') + '\n\n';
-  imgPrompt += 'STYLE: Cinematic film photography, shot on ARRI ALEXA 35.\n';
-  imgPrompt += 'Kodak Vision3 500T color science, film grain, RAW photographic capture.\n';
+  imgPrompt += 'CAMERA POSITION (precise, anti-textbook):\n';
+  imgPrompt += 'Specify exact camera placement (height in cm, distance, tilt °). Avoid average angles. Consider: hip-level, foreground obstruction (30%), asymmetric framing (rule-of-thirds violation), slight Dutch tilt 5-12°, handheld organic sway. Capture 0.3s before action.\n\n';
+  imgPrompt += 'VISUAL LANGUAGE: Roger Deakins / Lubezki / Wong Kar-wai / Bong Joon-ho frame composition. Real cinematic, NOT magazine cover, NOT Instagram.\n\n';
+  imgPrompt += 'STYLE: Cinematic film photography, ARRI ALEXA 35, Kodak Vision3 500T color science. Natural film grain, slight halation around highlights, organic color bleed.\n';
   if (projQuality) imgPrompt += projQuality + '\n';
   imgPrompt += '\n';
+  imgPrompt += 'COLOR & CONTRAST (anti-AI grading):\n';
+  imgPrompt += 'Lifted blacks, milky shadows, rolled-off highlights. NO crushed shadows. Desaturated muted palette, soft film contrast curve. Flat log-style base before grading. NO orange-teal grading, NO HDR, NO oversaturation, NO digital clean look. Natural-light approach of Roma / In the Mood for Love.\n\n';
   imgPrompt += 'ANTI-CG REALITY MANDATE:\n';
   imgPrompt += 'Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush.\n';
   imgPrompt += 'All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture.\n';
   imgPrompt += 'Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.\n\n';
   imgPrompt += 'NEGATIVE: ' + projNegative + '\n';
-  imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n';
+  imgPrompt += 'no high contrast, no oversaturated, no digital clean look, no HDR, no Instagram filter, no textbook angle, no perfectly centered composition.\n';
+  imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n\n';
+  imgPrompt += '── ZIPPY v1.0 검수 체크리스트 ──\n';
+  imgPrompt += '□ 카메라 위치 좌표·높이·기울기 명시  □ 전경 오브젝트 가림  □ 참조 감독 명시  □ 0.3초 직전 순간\n';
+  imgPrompt += '□ 필름 스톡/DI 톤  □ 광원 온도(K)  □ 부정 키워드 포함  □ 후반 LUT 계획\n';
   // === 8-Layer Stack 영상 프롬프트 ===
   var vidPrompt = '';
   vidPrompt += '\n\n── VIDEO PROMPT (ZIPPY 8-Layer Stack · Kling 3.0) ──\n\n';
@@ -5979,13 +5987,23 @@ SPACE DNA: ${spaceDna || preset.loc || ''}
 MOOD: ${emoDna || ''}
 LIGHTING: ${lightDna || ''} ${preset.time || ''}
 
-STYLE: Cinematic film photography, shot on ARRI ALEXA 35. Kodak Vision3 500T color science, film grain, RAW photographic capture.
+CAMERA POSITION (precise, not generic):
+Specify exact camera placement (height in cm, distance from subject, tilt angle in degrees). Avoid average/textbook angles. Consider: hip-level placement, foreground obstruction (30% frame coverage), asymmetric framing (subject pushed to thirds), slight dutch tilt 5-12°, handheld organic sway. Capture the 0.3-second moment BEFORE the action.
+
+VISUAL LANGUAGE REFERENCE:
+In the frame composition style of Roger Deakins / Emmanuel Lubezki / Wong Kar-wai / Bong Joon-ho. Reference film: real cinematic photography, NOT magazine cover, NOT Instagram aesthetic.
+
+STYLE: Cinematic film photography, shot on ARRI ALEXA 35. Kodak Vision3 500T color science with natural film grain, slight halation around highlights, organic color bleed.
 ${projQuality}
+
+COLOR & CONTRAST (anti-AI grading):
+Lifted blacks with milky shadows, rolled-off highlights, NO crushed shadows, desaturated muted palette, soft film contrast curve. Flat log-style base before grading. NO orange-and-teal grading, NO HDR look, NO oversaturation, NO digital clean look. Color graded in the natural-light approach of Roma (2018) or In the Mood for Love.
 
 ANTI-CG REALITY MANDATE:
 Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush. All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture. Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.
 
 NEGATIVE: ${projNegative}
+no high contrast, no oversaturated colors, no digital clean look, no HDR look, no Instagram filter aesthetic, no average textbook angles, no perfectly centered composition.
 Single frame, no text overlay, no border, no watermark. Photorealistic film still.`;
   const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}

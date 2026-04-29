@@ -2895,6 +2895,24 @@ const PROJECTS = {
       '이나경': 'assets/proof-of-taste/W04_이나경_의상시트.png',
       '박준': 'assets/proof-of-taste/W05_박준_의상시트.png'
     },
+    defaultObjRefs: {
+      'obj-banchan': 'assets/proof-of-taste/props/P10_여밀반상_나물밥미역국.png',
+      'obj-recipe': 'assets/proof-of-taste/props/R03_유정우_레시피노트_글씨그림펼침.png',
+      'obj-moodboard': 'assets/proof-of-taste/props/M12_서하윤_메인무드보드_P02A.png',
+      'obj-colorchip': 'assets/proof-of-taste/props/M07_서하윤_컬러칩샘플향샘플.png',
+      'obj-fabric': 'assets/proof-of-taste/props/M03_서하윤_무드보드_P02B_샤넬판톤.png',
+      'obj-perfume': 'assets/proof-of-taste/props/M10_서하윤_향샘플병세트_P04A.png',
+      'obj-blot': 'assets/proof-of-taste/props/M05_서하윤_향샘플세트_P04A_ScentAsMemory.png',
+      'obj-show': 'assets/proof-of-taste/props/M11_서하윤_인쇄샘플_P02E_SEOHAYOON.png',
+      'obj-lp': 'assets/proof-of-taste/props/C03_교집합카페_P05A_LP책머그빈티지.png',
+      'obj-book': 'assets/proof-of-taste/props/C04_교집합카페_P05B_책머그영수증.png',
+      'obj-mug': 'assets/proof-of-taste/props/C04_교집합카페_P05B_책머그영수증.png',
+      'obj-veggie': 'assets/proof-of-taste/props/P09_여밀_제철식재료_나물두부새우.png',
+      'obj-knife': 'assets/proof-of-taste/props/P09_여밀_제철식재료_나물두부새우.png',
+      'obj-memo': 'assets/proof-of-taste/props/R09_유정우_메모지펜클립.png',
+      'obj-blueprint': 'assets/proof-of-taste/props/M08_서하윤_벽면무드보드_P02D_디스플레이.png',
+      'obj-tape': 'assets/proof-of-taste/props/M09_서하윤_인쇄샘플패키지_P02E.png'
+    },
     defaultSpaceRefs: {
       '성수 생활형 골목': 'assets/proof-of-taste/S04a_성수골목_거리.png',
       '편집숍·인쇄소 주변': 'assets/proof-of-taste/S04b_성수골목_거리.png',
@@ -5054,6 +5072,39 @@ function buildAssetSpaceSlots() {
   container.innerHTML = html;
 }
 
+async function loadDefaultObjRefs() {
+  if (!currentProject || !currentProject.defaultObjRefs) return;
+  const objAssets = currentProject.objectAssets || [];
+  let loadedCount = 0;
+  for (const obj of objAssets) {
+    const url = currentProject.defaultObjRefs[obj.key];
+    if (!url) continue;
+    const img = await fetchImageAsB64(url);
+    if (!img) continue;
+    // 스토리보드 소품 슬롯
+    if (!sbRefs[obj.key]) {
+      sbRefs[obj.key] = img.b64;
+      sbRefMimes[obj.key] = img.mime;
+      const cap = obj.key.charAt(0).toUpperCase() + obj.key.slice(1);
+      const el = document.getElementById('sbRef' + cap);
+      if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    // Asset Library 소품 슬롯
+    if (typeof assetLib !== 'undefined' && assetLib[obj.key]) {
+      if (!assetLib[obj.key].some(a => a.name === obj.name)) {
+        assetLib[obj.key].push({b64: img.b64, mime: img.mime, name: obj.name, source: 'default'});
+      }
+      if (typeof renderAssetGrid === 'function') renderAssetGrid(obj.key);
+    }
+    loadedCount++;
+  }
+  if (loadedCount > 0) {
+    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
+  }
+  console.log('[loadDefaultObjRefs] Loaded:', loadedCount);
+}
+
 async function loadDefaultFaceRefs() {
   if (!currentProject || !currentProject.defaultFaceRefs) return;
   const charNames = currentProject.characterPresets
@@ -5321,6 +5372,10 @@ function buildSBRefUI() {
   // Auto-load default costume references (의상 자동 등록)
   if (currentProject.defaultCostumeRefs) {
     loadDefaultCostumeRefs();
+  }
+  // Auto-load default object references (소품 자동 등록)
+  if (currentProject.defaultObjRefs) {
+    loadDefaultObjRefs();
   }
   // Auto-load default space references from repo (if defined)
   if (currentProject.defaultSpaceRefs) {

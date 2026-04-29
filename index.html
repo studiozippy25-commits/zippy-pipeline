@@ -1254,12 +1254,11 @@ input[type=file]{display:none}
       편집 단계에서 메인 컷 사이에 삽입.
     </div>
     <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
-      <button class="btn bgh" onclick="filterInsCat('all', this)" id="insFilterAll">전체</button>
-      <button class="btn bgh" onclick="filterInsCat('jungwoo', this)">유정우 (8)</button>
-      <button class="btn bgh" onclick="filterInsCat('hayoon', this)">서하윤 (8)</button>
-      <button class="btn bgh" onclick="filterInsCat('cafe', this)">교집합 카페 (6)</button>
-      <button class="btn bgh" onclick="filterInsCat('night', this)">밤 감정 (4)</button>
-      <button class="btn bgh" onclick="filterInsCat('prop', this)">소품 디테일</button>
+      <button class="btn bgh" onclick="filterInsCat('all', this)" id="insFilterAll">전체 (44)</button>
+      <button class="btn bgh" onclick="filterInsCat('jungwoo', this)">유정우 (19)</button>
+      <button class="btn bgh" onclick="filterInsCat('hayoon', this)">서하윤 (13)</button>
+      <button class="btn bgh" onclick="filterInsCat('cafe', this)">교집합 카페 (8)</button>
+      <button class="btn bgh" onclick="filterInsCat('closing', this)">팝업 철수 (4)</button>
     </div>
     <div id="insGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
   </div>
@@ -2890,6 +2889,8 @@ const PROJECTS = {
       '오준': 'assets/proof-of-taste/F05_오준_얼굴6각도.png'
     },
     defaultCostumeRefs: {
+      '정우': 'assets/proof-of-taste/W01_유정우_의상시트.png',
+      '하윤': 'assets/proof-of-taste/W02_서하윤_의상시트.png',
       '오준': 'assets/proof-of-taste/W03_오준_의상시트.png',
       '이나경': 'assets/proof-of-taste/W04_이나경_의상시트.png',
       '박준': 'assets/proof-of-taste/W05_박준_의상시트.png'
@@ -5511,8 +5512,63 @@ function getSBRefsForShot(sceneNum, shotId) {
 }
 
 /* ═══ STORYBOARD DATA & FUNCTIONS ═══ */
-// ═══ 인서트 라이브러리 (스토리보드와 별개) ═══
+// ═══ 인서트 라이브러리 (44개 원본 소스 기반) ═══
 const INSERT_CUTS = [
+  // ───────── 유정우 (P + R) — 19개 ─────────
+  {id:'INS-P01', cat:'jungwoo', label:'반상 - 조림+나물+밥', frame:'INS / 부감', desc:'여밀 한식 반상. 조림·나물·밥·미역국. 도자 그릇, 나무 테이블', src:'P01_여밀반상_조림나물밥미역국.png', propKey:'obj-banchan'},
+  {id:'INS-P02', cat:'jungwoo', label:'반상 - 갈비찜', frame:'INS / 부감', desc:'갈비찜 + 나물 5종. 풍성한 한 상 차림', src:'P02_여밀반상_갈비찜나물5종.png', propKey:'obj-banchan'},
+  {id:'INS-P03', cat:'jungwoo', label:'단품 - 생선+채소 CU', frame:'CU / 단품', desc:'생선 단품 + 채소 + 그린 소스 클로즈업', src:'P03_여밀단품_생선채소소스CU.png'},
+  {id:'INS-P04', cat:'jungwoo', label:'반상 - 계란말이', frame:'INS / 부감', desc:'계란말이 + 나물 7종 풍성한 반상', src:'P04_여밀반상_계란말이나물7종.png', propKey:'obj-banchan'},
+  {id:'INS-P05', cat:'jungwoo', label:'솥밥 - 나물 송송', frame:'INS / 솥밥', desc:'나물 송송 솥밥 + 된장국. 따뜻한 김 서림', src:'P05_여밀솥밥_나물송송된장국.png'},
+  {id:'INS-P06', cat:'jungwoo', label:'반상 - 생선구이', frame:'INS / 부감', desc:'생선구이 + 미역국 + 나물 4종', src:'P06_여밀반상_생선구이미역국.png', propKey:'obj-banchan'},
+  {id:'INS-P07', cat:'jungwoo', label:'식사 후 빈 그릇', frame:'INS / 마감', desc:'식사 후 비워진 그릇들. 마감 후 정적, 잔향', src:'P07_여밀_식사후빈그릇.png'},
+  {id:'INS-P08', cat:'jungwoo', label:'단품 - 생선+그린소스', frame:'CU / 단품', desc:'생선 단품 + 그린 소스. 플레이팅 디테일', src:'P08_여밀단품_생선채소그린소스.png'},
+  {id:'INS-P09', cat:'jungwoo', label:'제철 식재료', frame:'INS / 부감', desc:'제철 나물·두부·새우·채소. 시장 직후 손질 전', src:'P09_여밀_제철식재료_나물두부새우.png', propKey:'obj-veggie'},
+  {id:'INS-P10', cat:'jungwoo', label:'반상 - 나물 풀세트', frame:'INS / 부감', desc:'나물·밥·미역국 + 사이드 7종. 늦은 오후 자연광', src:'P10_여밀반상_나물밥미역국.png', propKey:'obj-banchan'},
+  {id:'INS-R01', cat:'jungwoo', label:'정적 정물 - 책+컵+린넨', frame:'INS / 정물', desc:'유정우 사적 공간 정적 정물. 책 더미·도자 컵·린넨 행주', src:'R01_유정우_정적정물_책컵린넨.png'},
+  {id:'INS-R02', cat:'jungwoo', label:'레시피 노트 + 포스트잇', frame:'CU / 노트', desc:'유정우 레시피 노트 펼침면. 포스트잇·영수증 끼워진', src:'R02_유정우_레시피노트_포스트잇영수증.png', propKey:'obj-recipe'},
+  {id:'INS-R03', cat:'jungwoo', label:'레시피 노트 - 글씨+그림', frame:'CU / 노트', desc:'레시피 노트 펼침면. 손글씨와 그림이 함께. 따뜻한 자연광', src:'R03_유정우_레시피노트_글씨그림펼침.png', propKey:'obj-recipe'},
+  {id:'INS-R04', cat:'jungwoo', label:'닫힌 노트 + 펜', frame:'CU / 정물', desc:'닫힌 레시피 노트 + 만년필 + 메모지. 작업 완료 직후', src:'R04_유정우_닫힌노트_펜메모.png', propKey:'obj-recipe'},
+  {id:'INS-R05', cat:'jungwoo', label:'노트 - 재료 리스트', frame:'ECU / 페이지', desc:'레시피 노트 재료 리스트 페이지 ECU. 정밀한 손글씨', src:'R05_유정우_레시피노트_재료리스트.png', propKey:'obj-recipe'},
+  {id:'INS-R06', cat:'jungwoo', label:'노트 - 그림 메모', frame:'CU / 펼침', desc:'레시피 노트 펼침. 음식 그림 + 손글씨 메모', src:'R06_유정우_레시피노트_그림메모.png', propKey:'obj-recipe'},
+  {id:'INS-R07', cat:'jungwoo', label:'정적 정물 v2', frame:'INS / 정물', desc:'책 더미 + 도자 컵 + 린넨. 책 제목 보임 (사색의 단서)', src:'R07_유정우_정적정물_책컵린넨v2.png'},
+  {id:'INS-R08', cat:'jungwoo', label:'노트 - 자연광', frame:'CU / 펼침', desc:'레시피 노트 펼침면 + 도자 컵 + 차. 자연광 비스듬', src:'R08_유정우_레시피노트_자연광.png', propKey:'obj-recipe'},
+  {id:'INS-R09', cat:'jungwoo', label:'메모지 + 펜 + 클립', frame:'CU / 정물', desc:'노트 옆 메모지 더미 + 만년필 + 연필 + 클립', src:'R09_유정우_메모지펜클립.png'},
+  // ───────── 서하윤 (M) — 13개 ─────────
+  {id:'INS-M01', cat:'hayoon', label:'컨셉 보드 (검정)', frame:'INS / 보드', desc:'P-02-C 컨셉 스케치+키워드 메모. 검정 배경, 향 팝업 컨셉 정리', src:'M01_서하윤_컨셉보드_P02C_검정.png', propKey:'obj-moodboard'},
+  {id:'INS-M02', cat:'hayoon', label:'무드보드 - 블랙', frame:'INS / 보드', desc:'P-02-B 컬러칩+패브릭 스와치+투명 소재 샘플. 블랙 배경', src:'M02_서하윤_무드보드_P02B_블랙.png', propKey:'obj-moodboard'},
+  {id:'INS-M03', cat:'hayoon', label:'무드보드 - 샤넬+판톤', frame:'INS / 보드', desc:'P-02-B 무드보드. 샤넬 패키지+판톤 컬러칩 레퍼런스', src:'M03_서하윤_무드보드_P02B_샤넬판톤.png', propKey:'obj-moodboard'},
+  {id:'INS-M04', cat:'hayoon', label:'작업 데스크 무드보드', frame:'WS / 데스크', desc:'서하윤 작업 데스크 위 펼쳐진 컬러칩+사진+패브릭+스케치', src:'M04_서하윤_작업데스크무드보드.png', propKey:'obj-moodboard'},
+  {id:'INS-M05', cat:'hayoon', label:'향 샘플 세트 ScentAsMemory', frame:'INS / 향수', desc:'P-04-A 향 샘플 5병 세트 (Scent as Memory 라벨). 시그니처 디스플레이', src:'M05_서하윤_향샘플세트_P04A_ScentAsMemory.png', propKey:'obj-perfume'},
+  {id:'INS-M06', cat:'hayoon', label:'무드보드 - 자연광', frame:'INS / 보드', desc:'P-02-B 무드보드. 자연광, 패브릭+컬러칩+향 샘플', src:'M06_서하윤_무드보드_P02B_자연광.png', propKey:'obj-moodboard'},
+  {id:'INS-M07', cat:'hayoon', label:'컬러칩+샘플+향', frame:'INS / 정물', desc:'컬러칩 부채꼴+패브릭 샘플+향 샘플 정물', src:'M07_서하윤_컬러칩샘플향샘플.png', propKey:'obj-colorchip'},
+  {id:'INS-M08', cat:'hayoon', label:'벽면 무드보드 - 디스플레이', frame:'WS / 벽', desc:'P-02-D 벽면 무드보드 클로즈업. 디스플레이 키워드+레이아웃 스터디', src:'M08_서하윤_벽면무드보드_P02D_디스플레이.png', propKey:'obj-moodboard'},
+  {id:'INS-M09', cat:'hayoon', label:'인쇄 샘플 패키지', frame:'INS / 인쇄', desc:'P-02-E 인쇄 샘플+패키지 라벨+테스트 타이포', src:'M09_서하윤_인쇄샘플패키지_P02E.png'},
+  {id:'INS-M10', cat:'hayoon', label:'향 샘플 병 세트 P04A', frame:'INS / 향수', desc:'P-04-A 팝업 메인 시향 병 + 라인업 + 오브제형 샘플 구성', src:'M10_서하윤_향샘플병세트_P04A.png', propKey:'obj-perfume'},
+  {id:'INS-M11', cat:'hayoon', label:'인쇄 샘플 SEO HAYOON', frame:'INS / 인쇄', desc:'P-02-E 인쇄 샘플. SEO HAYOON 패키지+라벨 시스템+타이포 테스트', src:'M11_서하윤_인쇄샘플_P02E_SEOHAYOON.png'},
+  {id:'INS-M12', cat:'hayoon', label:'메인 무드보드 P02A', frame:'WS / 데스크', desc:'P-02-A 메인 무드보드. 사진+컬러칩+패브릭+스케치 종합', src:'M12_서하윤_메인무드보드_P02A.png', propKey:'obj-moodboard'},
+  {id:'INS-M13', cat:'hayoon', label:'투명 유리·아크릴 오브제', frame:'INS / 오브제', desc:'P-04-B 팝업 디스플레이용 투명 유리·아크릴 블록. 메탈 포인트', src:'M13_서하윤_투명유리아크릴_P04B.png'},
+  // ───────── 교집합 카페 (C) — 8개 ─────────
+  {id:'INS-C01', cat:'cafe', label:'책+밤풍경+오브제', frame:'INS / 카페', desc:'P-06-A 카페 한구석. 책 펼침+커피잔+밤 풍경 조명', src:'C01_교집합카페_P06A_책밤풍경오브제.png', propKey:'obj-book'},
+  {id:'INS-C02', cat:'cafe', label:'리스닝 코너 - 턴테이블', frame:'WS / 리스닝코너', desc:'P-05-C 카페 리스닝 코너. 턴테이블+JBL 스피커+레코드 선반+NOW PLAYING', src:'C02_교집합카페_P05C_리스닝코너_턴테이블레코드.png', propKey:'obj-lp'},
+  {id:'INS-C03', cat:'cafe', label:'LP+책+머그+빈티지', frame:'INS / 정물', desc:'P-05-A LP+책+머그+빈티지 오브제 정물 보드', src:'C03_교집합카페_P05A_LP책머그빈티지.png', propKey:'obj-lp'},
+  {id:'INS-C04', cat:'cafe', label:'책+머그+영수증', frame:'INS / 테이블', desc:'P-05-B 카페 테이블 위 책 2권+머그 2개+영수증 메모. 두 사람 흔적', src:'C04_교집합카페_P05B_책머그영수증.png', propKey:'obj-mug'},
+  {id:'INS-C05', cat:'cafe', label:'리스닝 코너 - 사진', frame:'WS / 리스닝코너', desc:'P-05-C 리스닝 코너 + 사진 액자. 따뜻한 우드+빈티지', src:'C05_교집합카페_P05C_리스닝코너_사진.png', propKey:'obj-lp'},
+  {id:'INS-C06', cat:'cafe', label:'빈티지 오브제+책장', frame:'INS / 책장', desc:'P-05-D 빈티지 오브제+책장 디테일. 플로어 램프+카메라+포스터', src:'C06_교집합카페_P05D_빈티지오브제책장.png', propKey:'obj-book'},
+  {id:'INS-C07', cat:'cafe', label:'한 사람 떠난 자리', frame:'INS / 빈자리', desc:'P-05-E 한 사람이 먼저 떠난 뒤 남은 자리. 크림 머그+펼쳐진 책+LP 슬리브+빈 의자. 잔향', src:'C07_교집합카페_P05E_한사람떠난자리.png'},
+  {id:'INS-C08', cat:'cafe', label:'LP+책+머그 (밤)', frame:'INS / 정물', desc:'P-05-A LP+책+머그 정물. 밤 분위기, 턴테이블 옆 정적', src:'C08_교집합카페_P05A_LP책머그_밤.png', propKey:'obj-lp'},
+  // ───────── 팝업 철수/종료 (S) — 4개 ─────────
+  {id:'INS-S01', cat:'closing', label:'팝업 종료 후 소품', frame:'INS / 정리', desc:'P-07-C 팝업 종료 후 정리된 소품 인서트. 박스+포장재+낱장 시향지', src:'S01_팝업철수_P07C_종료후소품인서트.png'},
+  {id:'INS-S02', cat:'closing', label:'시향지+롱긴 라벨', frame:'INS / 잔존', desc:'P-07-A 남겨진 시향지+롱긴 라벨 인서트. 팝업 직후 마룻바닥', src:'S02_팝업철수_P07A_시향지롱긴라벨.png'},
+  {id:'INS-S03', cat:'closing', label:'보강 조명+시향지', frame:'INS / 잔존', desc:'P-07-B 팝업 철수 후 보강 조명 아래 남은 시향지', src:'S03_팝업철수_P07B_보강조정시향지.png'},
+  {id:'INS-S04', cat:'closing', label:'체크리스트 + 잔존 소품', frame:'INS / 정리', desc:'P-07-A 새벽 팝업 철수 후 구겨진 체크리스트+낱개 시향지', src:'S04_팝업철수_P07A_체크리스트.png'}
+];
+const INSERT_CUTS_OLD = [
+  // (구버전 — 호환성 유지용 placeholder)
+  {id:'INS-J01-OLD', cat:'_old', label:'(구버전 - 사용 안 함)', frame:'', desc:''}
+];
+// (구버전 데이터는 무시 — 위의 INSERT_CUTS만 사용)
+const _UNUSED_OLD_INSERTS = [
   // 유정우 인서트 (8)
   {id:'INS-J01', cat:'jungwoo', label:'레시피 노트 메모', frame:'ECU / 손 + 종이', desc:'유정우의 손이 레시피 노트에 짧게 메모하는 컷. 만년필 끝이 종이결에 닿기 직전. 따뜻한 자연광. 종이 텍스처 강조'},
   {id:'INS-J02', cat:'jungwoo', label:'펜 끝 정지', frame:'ECU / 펜 끝', desc:'펜 끝이 종이 표면에 닿기 직전, 망설임의 0.5초. 손가락 미세 떨림'},
@@ -5565,12 +5621,18 @@ function renderInsertLibrary() {
   if (!grid) return;
   const filtered = insCurrentFilter === 'all' ? INSERT_CUTS : INSERT_CUTS.filter(i => i.cat === insCurrentFilter);
   grid.innerHTML = filtered.map(function(ins) {
-    const hasImg = insGenImages[ins.id];
+    const genImg = insGenImages[ins.id];
+    const srcUrl = ins.src ? 'assets/proof-of-taste/inserts/' + ins.src.split('/').map(s => encodeURIComponent(s)).join('/') : '';
     let html = '<div class="sb-shot" id="ins-' + ins.id + '">';
     html += '<div class="sb-shot-hdr"><span class="sb-shot-id">' + ins.id + '</span><span class="sb-shot-pri opt" style="background:rgba(8,145,178,.15);color:var(--cy)">' + ins.cat + '</span></div>';
-    if (hasImg) {
-      html += '<img class="sb-shot-img" src="data:image/png;base64,' + hasImg + '" onclick="openLightbox(\'' + hasImg + '\')">';
-      html += '<div style="display:flex;gap:4px;margin-top:6px"><button class="hist-card-btn" onclick="dlInsImg(\'' + ins.id + '\')">↓</button><button class="hist-card-btn" onclick="delInsImg(\'' + ins.id + '\')" style="border-color:var(--er);color:var(--er)">✕</button></div>';
+    if (genImg) {
+      // AI 재생성 결과
+      html += '<img class="sb-shot-img" src="data:image/png;base64,' + genImg + '" onclick="openLightbox(\'' + genImg + '\')">';
+      html += '<div style="display:flex;gap:4px;margin-top:6px"><button class="hist-card-btn" onclick="dlInsImg(\'' + ins.id + '\')">↓</button><button class="hist-card-btn" onclick="generateInsCut(\'' + ins.id + '\')" style="border-color:var(--cy);color:var(--cy)">↻ 재생성</button><button class="hist-card-btn" onclick="delInsImg(\'' + ins.id + '\')" style="border-color:var(--er);color:var(--er)">✕</button></div>';
+    } else if (srcUrl) {
+      // 원본 소스 이미지 표시 (AI 미생성 상태)
+      html += '<img class="sb-shot-img" src="' + srcUrl + '" onclick="openLightbox(this.src)" style="cursor:pointer">';
+      html += '<div style="display:flex;gap:4px;margin-top:6px"><button class="hist-card-btn" onclick="generateInsCut(\'' + ins.id + '\')" style="border-color:var(--cy);color:var(--cy)">✨ AI 변형</button></div>';
     } else {
       html += '<div class="sb-shot-empty" onclick="generateInsCut(\'' + ins.id + '\')">+ 생성</div>';
     }
@@ -5596,11 +5658,17 @@ async function generateInsCut(insId) {
   const empty = card?.querySelector('.sb-shot-empty');
   if (empty) { empty.textContent = '생성 중...'; empty.style.cursor = 'wait'; }
   try {
+    // 원본 소스 이미지를 1순위 레퍼런스로 추가
+    const refs = [];
+    if (ins.src) {
+      const srcUrl = 'assets/proof-of-taste/inserts/' + ins.src;
+      const srcImg = await fetchImageAsB64(srcUrl);
+      if (srcImg) refs.push({b64: srcImg.b64, mime: srcImg.mime, _type:'reference', _label: ins.label + ' 원본'});
+    }
     // 인물 ref 자동 매칭 (cat 기반)
     const charNames = currentProject && currentProject.characterPresets ? Object.keys(currentProject.characterPresets) : [];
     const catCharMap = {jungwoo: '정우', hayoon: '하윤'};
     const targetChar = catCharMap[ins.cat];
-    const refs = [];
     if (targetChar) {
       const idx = charNames.findIndex(n => n.startsWith(targetChar));
       if (idx >= 0 && sbRefs['char' + (idx+1)]) {

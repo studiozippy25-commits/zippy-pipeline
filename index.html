@@ -6017,6 +6017,38 @@ async function generateSBShot(shotId) {
   const hasFaceRef = Object.keys(sbRefs).some(k => k.startsWith('face') && sbRefs[k]);
   const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
   const hasBgRef = Object.keys(sbRefs).some(k => k.startsWith('loc') && sbRefs[k]);
+
+  // 의상 시트 없는 캐릭터 — 강제 텍스트 의상 락 (컷 간 통일성)
+  let missingCostumeLock = '';
+  const charNamesAll = currentProject && currentProject.characterPresets
+    ? Object.keys(currentProject.characterPresets)
+    : (currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+  const sceneFullText2 = ((shot.desc||'') + ' ' + (shot.frame||'')).toLowerCase();
+  const lockedCostumes = [];
+  charNamesAll.forEach(function(name, i) {
+    const baseName = name.split(/[\s(（]/)[0];
+    if (sceneFullText2.indexOf(baseName.toLowerCase()) === -1) return; // 씬에 등장 안 하면 스킵
+    const cosKey = 'cos' + (i + 1);
+    if (sbRefs[cosKey]) return; // 의상 시트 있으면 락 불필요
+    // 시트 없는 캐릭터 — characterDNA outfit + preset.costume 추출
+    const dna = currentProject && currentProject.characterDNA ? (currentProject.characterDNA[baseName] || currentProject.characterDNA[name]) : '';
+    let outfit = '';
+    if (dna) {
+      // DNA 텍스트에서 의상 관련 구문 추출
+      const dnaLower = dna.toLowerCase();
+      const m = dna.match(/([^,\.]*?(?:t-shirt|shirt|jacket|apron|jeans|slacks|coat|dress|sweater|knit|pants|trousers|tee|벨트|토트|니트|블레이저|셔츠|티셔츠|앞치마|팬츠|슬랙스|재킷)[^,\.]*)/gi);
+      if (m) outfit = m.slice(0, 3).join(', ');
+    }
+    const presetCostume = preset.costume || '';
+    if (outfit || presetCostume) {
+      lockedCostumes.push('• ' + baseName + ': ' + [outfit, presetCostume].filter(Boolean).join(' / '));
+    }
+  });
+  if (lockedCostumes.length > 0) {
+    missingCostumeLock = 'COSTUME CONSISTENCY LOCK (no sheet provided — enforce by text):\n' +
+      lockedCostumes.join('\n') + '\n' +
+      'These outfits MUST appear EXACTLY as described above. Do NOT improvise variations. Same fit, same color, same texture, same accessories across all shots.\n\n';
+  }
   const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' +
     (hasFaceRef ? 'FACE LOCK: A separate face turnaround sheet (6 angles) is provided for facial identity. PRIORITIZE the face sheet for facial features (eyes, nose, mouth, jawline, hairline). Use the body/outfit sheet ONLY for body proportions and clothing. DO NOT blend multiple angles — render ONE consistent angle matching the SHOT description below.\n' : '') : '';
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, text).\n' : '';
@@ -6026,7 +6058,7 @@ async function generateSBShot(shotId) {
     'CRITICAL — Do NOT replicate any grid/collage layout. Do NOT reproduce any visible text, captions, numbers, or labels from references. ' +
     'Extract ONLY: mood, color palette, lighting quality, material/texture, atmospheric tone. ' +
     'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
-  const prompt = `${lockHeader}${objLockHeader}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA: ${shot.frame}, ${preset.angle || 'eye level'}, ARRI Signature Prime ${preset.lens || '35mm'} at ${fStop}
 LOCATION: ${preset.loc || ''} · TIME: ${preset.time || ''}

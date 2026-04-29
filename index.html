@@ -1180,6 +1180,11 @@ input[type=file]{display:none}
       <div id="sbCharRefContainer" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
         <!-- 프로젝트별 동적 생성 -->
       </div>
+      <!-- 얼굴 레퍼런스 (얼굴 6전도 — 정체성 강화) -->
+      <div id="sbFaceRefHeader" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--cy);font-weight:700;margin-bottom:8px">얼굴 6전도 <span style="font-weight:400;color:var(--mu);font-size:11px">— 얼굴 정체성 락 강화 (인물과 함께 전송)</span></div>
+      <div id="sbFaceRefContainer" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+        <!-- 프로젝트별 동적 생성 -->
+      </div>
       <!-- 의상 레퍼런스 (동적) -->
       <div id="sbCostumeRefHeader" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700;margin-bottom:8px">의상 레퍼런스 <span style="font-weight:400;color:var(--mu);font-size:11px">— 씬 프리셋의 의상 키와 자동 매칭</span></div>
       <div id="sbCostumeRefContainer" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
@@ -2876,6 +2881,13 @@ const PROJECTS = {
       '오준': 'assets/proof-of-taste/C05_오준.png',
       '이나경': 'assets/proof-of-taste/C04_이나경.png',
       '박준': 'assets/proof-of-taste/C03_박준.png'
+    },
+    defaultFaceRefs: {
+      '정우': 'assets/proof-of-taste/F01_유정우_얼굴6각도.png',
+      '하윤': 'assets/proof-of-taste/F02_서하윤_얼굴6각도.png',
+      '박준': 'assets/proof-of-taste/F03_박준_얼굴6각도.png',
+      '이나경': 'assets/proof-of-taste/F04_이나경_얼굴6각도.png',
+      '오준': 'assets/proof-of-taste/F05_오준_얼굴6각도.png'
     },
     defaultCostumeRefs: {
       '오준': 'assets/proof-of-taste/W03_오준_의상시트.png',
@@ -5031,6 +5043,33 @@ function buildAssetSpaceSlots() {
   container.innerHTML = html;
 }
 
+async function loadDefaultFaceRefs() {
+  if (!currentProject || !currentProject.defaultFaceRefs) return;
+  const charNames = currentProject.characterPresets
+    ? Object.keys(currentProject.characterPresets)
+    : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+  let loadedCount = 0;
+  for (let i = 0; i < charNames.length; i++) {
+    const sbKey = 'face' + (i + 1);
+    const fullName = charNames[i];
+    const baseName = fullName.split(/[\s(（]/)[0];
+    const url = currentProject.defaultFaceRefs[fullName] || currentProject.defaultFaceRefs[baseName];
+    if (!url) continue;
+    const img = await fetchImageAsB64(url);
+    if (!img) continue;
+    if (!sbRefs[sbKey]) {
+      sbRefs[sbKey] = img.b64;
+      sbRefMimes[sbKey] = img.mime;
+      const cap = sbKey.charAt(0).toUpperCase() + sbKey.slice(1);
+      const el = document.getElementById('sbRef' + cap);
+      if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    loadedCount++;
+  }
+  if (loadedCount > 0 && typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  console.log('[loadDefaultFaceRefs] Loaded:', loadedCount);
+}
+
 async function loadDefaultCostumeRefs() {
   if (!currentProject || !currentProject.defaultCostumeRefs) return;
   const charNames = currentProject.characterPresets
@@ -5212,6 +5251,30 @@ function buildSBRefUI() {
     }
   }
 
+  // Face refs — 캐릭터별 5명 얼굴 6전도 슬롯
+  const faceContainer = document.getElementById('sbFaceRefContainer');
+  const faceHeader = document.getElementById('sbFaceRefHeader');
+  if (faceContainer) {
+    const charNames2 = currentProject.characterPresets
+      ? Object.keys(currentProject.characterPresets)
+      : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
+    if (charNames2.length === 0) {
+      faceContainer.innerHTML = '';
+      if (faceHeader) faceHeader.style.display = 'none';
+    } else {
+      if (faceHeader) faceHeader.style.display = 'block';
+      let html = '';
+      charNames2.forEach(function(name, i) {
+        const baseName = name.split(/[\s(（]/)[0];
+        const key = 'face' + (i + 1);
+        const cap = key.charAt(0).toUpperCase() + key.slice(1);
+        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 얼굴">' + baseName + ' 얼굴</div><div id="sbRef' + cap + '" style="width:120px;height:90px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
+        if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
+      });
+      faceContainer.innerHTML = html;
+    }
+  }
+
   // Costume refs — 캐릭터별 5명 슬롯 (인물 슬롯과 1:1 대응)
   const costContainer = document.getElementById('sbCostumeRefContainer');
   const costHeader = document.getElementById('sbCostumeRefHeader');
@@ -5239,6 +5302,10 @@ function buildSBRefUI() {
   // Auto-load default character references (인물 자동 등록)
   if (currentProject.defaultCharRefs) {
     loadDefaultCharRefs();
+  }
+  // Auto-load default face references (얼굴 6전도 자동 등록)
+  if (currentProject.defaultFaceRefs) {
+    loadDefaultFaceRefs();
   }
   // Auto-load default costume references (의상 자동 등록)
   if (currentProject.defaultCostumeRefs) {
@@ -5301,7 +5368,7 @@ function importAssetToSB(type) {
 
 function getSBRefMatchSummary(sceneNum, shotId) {
   const refs = getSBRefsForShot(sceneNum, shotId);
-  const summary = {character:0, costume:0, background:0, prop:0, labels:[]};
+  const summary = {character:0, face:0, costume:0, background:0, prop:0, labels:[]};
   refs.forEach(r => {
     if (r._type && summary[r._type] !== undefined) summary[r._type]++;
     if (r._label) summary.labels.push((r._type||'?') + ':' + r._label);
@@ -5344,8 +5411,14 @@ function getSBRefsForShot(sceneNum, shotId) {
   const charIdxToInclude = matchedCharIndices;
   charIdxToInclude.forEach(function(i) {
     const k = 'char' + (i + 1);
+    const fk = 'face' + (i + 1);
+    const label = (charNames[i] || ('Character ' + (i+1))).split(/[\s(（]/)[0];
+    // 얼굴 6전도 먼저 (정체성 락 우선)
+    if (sbRefs[fk]) {
+      refs.push({inline_data: {mime_type: sbRefMimes[fk], data: sbRefs[fk]}, _type:'face', _label: label + ' 얼굴'});
+    }
+    // 캐릭터 종합 시트
     if (sbRefs[k]) {
-      const label = (charNames[i] || ('Character ' + (i+1))).split(/[\s(（]/)[0];
       refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}, _type:'character', _label: label});
     }
   });
@@ -5846,7 +5919,7 @@ async function generateSBShot(shotId) {
   if (images.length > 0) {
     refManifest = '\nREFERENCE IMAGES (in order):\n';
     images.forEach((img, idx) => {
-      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background/Location)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : 'Reference';
+      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background/Location)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : img._type === 'face' ? '얼굴 (Face)' : 'Reference';
       // (label list)
       refManifest += `  ${idx+1}. ${typeLabel}: ${img._label || ''}\n`;
     });
@@ -5877,9 +5950,11 @@ async function generateSBShot(shotId) {
   // BAENE Anatomy + ZIPPY DNA prompt
   const fStop = shot.frame.indexOf('CU') !== -1 ? 'f/2.8' : shot.frame.indexOf('WIDE') !== -1 ? 'f/8' : 'f/4';
   const hasCharRef = Object.keys(sbRefs).some(k => k.startsWith('char') && sbRefs[k]) || assetLib.char.length > 0;
+  const hasFaceRef = Object.keys(sbRefs).some(k => k.startsWith('face') && sbRefs[k]);
   const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
   const hasBgRef = Object.keys(sbRefs).some(k => k.startsWith('loc') && sbRefs[k]);
-  const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' : '';
+  const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' +
+    (hasFaceRef ? 'FACE LOCK: A separate face turnaround sheet (6 angles) is provided for facial identity. PRIORITIZE the face sheet for facial features (eyes, nose, mouth, jawline, hairline). Use the body/outfit sheet ONLY for body proportions and clothing. DO NOT blend multiple angles — render ONE consistent angle matching the SHOT description below.\n' : '') : '';
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, text).\n' : '';
   // Moodboard safety guide — references may be 12-photo concept sheets
   const moodGuideHeader = (hasBgRef || images.length > 0) ?
@@ -8596,7 +8671,7 @@ async function callGemini({images, prompt, textOnly=false, resVal='1K', signal=n
   const parts=[];
   images.forEach(img => {
     if (img._type && img._label) {
-      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : 'Reference';
+      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : img._type === 'face' ? '얼굴 (Face)' : 'Reference';
       parts.push({text: `[REF] ${typeLabel}: ${img._label}`});
     }
     parts.push({inline_data:{mime_type:img.mime,data:img.b64}});

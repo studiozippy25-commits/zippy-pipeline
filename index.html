@@ -5929,6 +5929,8 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
       html += `<div class="sb-shot-desc">${shot.desc}</div>`;
       html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func}</div>`;
+      const camPos2 = (typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) || '';
+      html += `<input type="text" value="${camPos2.replace(/"/g,'&quot;')}" onchange="setShotCameraPos('${shot.id}', this.value)" placeholder="📷 카메라 위치 (예: 부츠 옆 바닥, 25° 위 기울임, 전경 30% 가림)" style="margin-top:6px;width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(34,211,238,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">`;
       html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
       html += `</div>`;

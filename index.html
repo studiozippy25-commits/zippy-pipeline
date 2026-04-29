@@ -4859,10 +4859,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.\n\n';
   imgPrompt += 'NEGATIVE: ' + projNegative + '\n';
   imgPrompt += 'no high contrast, no oversaturated, no digital clean look, no HDR, no Instagram filter, no textbook angle, no perfectly centered composition.\n';
-  imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n\n';
-  imgPrompt += '── ZIPPY v1.0 검수 체크리스트 ──\n';
-  imgPrompt += '□ 카메라 위치 좌표·높이·기울기 명시  □ 전경 오브젝트 가림  □ 참조 감독 명시  □ 0.3초 직전 순간\n';
-  imgPrompt += '□ 필름 스톡/DI 톤  □ 광원 온도(K)  □ 부정 키워드 포함  □ 후반 LUT 계획\n';
+  imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n';
   // === 8-Layer Stack 영상 프롬프트 ===
   var vidPrompt = '';
   vidPrompt += '\n\n── VIDEO PROMPT (ZIPPY 8-Layer Stack · Kling 3.0) ──\n\n';

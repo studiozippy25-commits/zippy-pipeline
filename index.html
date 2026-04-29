@@ -4840,11 +4840,13 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'SPACE DNA: ' + (spaceDna || preset.loc || '') + '\n\n';
   imgPrompt += 'MOOD: ' + (emoDna || '') + '\n';
   imgPrompt += 'LIGHTING: ' + (lightDna || '') + ' ' + (preset.time || '') + '\n\n';
-  imgPrompt += 'CAMERA POSITION (precise, anti-textbook):\n';
+  imgPrompt += 'CAMERA POSITION (concrete, anti-textbook):\n';
   if (typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shotId]) {
     imgPrompt += '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shotId] + '\n';
+  } else if (typeof autoCameraPos === 'function') {
+    imgPrompt += '🎬 AUTO-DERIVED: ' + autoCameraPos(shot) + '\n';
   }
-  imgPrompt += 'Specify exact camera placement (height in cm, distance, tilt °). Avoid average angles. Consider: hip-level, foreground obstruction (30%), asymmetric framing (rule-of-thirds violation), slight Dutch tilt 5-12°, handheld organic sway. Capture 0.3s before action.\n\n';
+  imgPrompt += 'Capture 0.3s before action. Avoid perfectly centered composition.\n\n';
   imgPrompt += 'VISUAL LANGUAGE: Roger Deakins / Lubezki / Wong Kar-wai / Bong Joon-ho frame composition. Real cinematic, NOT magazine cover, NOT Instagram.\n\n';
   imgPrompt += 'STYLE: Cinematic film photography, ARRI ALEXA 35, Kodak Vision3 500T color science. Natural film grain, slight halation around highlights, organic color bleed.\n';
   if (projQuality) imgPrompt += projQuality + '\n';
@@ -5807,6 +5809,43 @@ const sbCameraPositions = {};
 function setShotCameraPos(shotId, val) {
   sbCameraPositions[shotId] = val.trim();
 }
+
+// 📷 쇼트 프레임 정보 기반 자동 카메라 포지션 생성 (사용자 미입력 시)
+function autoCameraPos(shot) {
+  const frame = (shot.frame || '').toUpperCase();
+  const desc = (shot.desc || '').toLowerCase();
+  const variants = [];
+  // 프레임 타입 → 구체 위치
+  if (frame.indexOf('ECU') !== -1 || frame.indexOf('CU') === 0) {
+    variants.push('macro lens 100mm at object level, 30cm distance, slight downward tilt 8°, foreground bokeh from adjacent surface');
+    variants.push('100mm at hand-height, 25cm from subject, hard side-light grazing the surface, 5° dutch tilt');
+  } else if (frame.indexOf('INS') !== -1) {
+    variants.push('top-down 85mm at 60cm above subject, perfectly perpendicular, soft window light from upper-left 11 o\'clock');
+    variants.push('45° angled top view, 85mm at 50cm, table edge visible in foreground');
+  } else if (frame.indexOf('MS') !== -1) {
+    variants.push('50mm at chest level, 1.5m distance, subject pushed to right third, slight Dutch tilt 6°, foreground obstruction (30% — wall edge or doorframe)');
+    variants.push('50mm at hip-height, 1.8m distance, low-angle looking up 12°, handheld organic sway');
+  } else if (frame.indexOf('WS') !== -1 || frame.indexOf('FS') !== -1) {
+    variants.push('24mm wide at standing eye-level (165cm), 4m from subject, slight low angle 8°, environment fills 70% of frame');
+    variants.push('35mm at floor-level (knee-height 50cm), 3m distance, looking up 15°, foreground architecture obstruction');
+  } else if (frame.indexOf('POV') !== -1) {
+    variants.push('first-person POV, 35mm at eye-level (165cm), handheld micro-tremor, slight forward lean');
+  } else {
+    variants.push('35mm at hip-level (90cm), 1.5m distance, asymmetric framing (subject lower-right third), slight Dutch tilt 5°');
+  }
+  // 동작 키워드 보강
+  if (desc.indexOf('손') !== -1 || desc.indexOf('hand') !== -1) {
+    variants.push(' + emphasize hand action with shallow DOF f/2.0');
+  }
+  if (desc.indexOf('걸음') !== -1 || desc.indexOf('이동') !== -1 || desc.indexOf('지나간') !== -1) {
+    variants.push(' + tracking parallel to subject motion, dolly speed matched to walk');
+  }
+  if (desc.indexOf('멈춤') !== -1 || desc.indexOf('정지') !== -1) {
+    variants.push(' + locked tripod, no camera movement, capture micro-stillness');
+  }
+  // 첫 변형 + 추가 키워드
+  return variants[0] + (variants.length > 1 && variants[variants.length-1].startsWith(' + ') ? variants[variants.length-1] : '');
+}
 function buildStoryboardTimeline() {
   const inner = document.getElementById('sbTimelineInner');
   if (!inner) return;
@@ -5999,8 +6038,9 @@ SPACE DNA: ${spaceDna || preset.loc || ''}
 MOOD: ${emoDna || ''}
 LIGHTING: ${lightDna || ''} ${preset.time || ''}
 
-CAMERA POSITION (precise, not generic):
-${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] + '\n' : ''}Specify exact camera placement (height in cm, distance from subject, tilt angle in degrees). Avoid average/textbook angles. Consider: hip-level placement, foreground obstruction (30% frame coverage), asymmetric framing (subject pushed to thirds), slight dutch tilt 5-12°, handheld organic sway. Capture the 0.3-second moment BEFORE the action.
+CAMERA POSITION (concrete, anti-textbook):
+${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
+Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
 
 VISUAL LANGUAGE REFERENCE:
 In the frame composition style of Roger Deakins / Emmanuel Lubezki / Wong Kar-wai / Bong Joon-ho. Reference film: real cinematic photography, NOT magazine cover, NOT Instagram aesthetic.

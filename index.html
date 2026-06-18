@@ -4841,7 +4841,8 @@ function selectProject(key) {
     if (currentProject.storyboardShots && currentProject.storyboardShots.length > 0) {
       currentProject.storyboardShots.forEach(function(s) { SB_SHOTS.push(s); });
     } else {
-      // Restore default (proof-of-taste hardcoded shots)
+      // No project-specific shots → fall back to the built-in legacy sample
+      // (구형 8분판 스토리보드, 1~16씬). 특정 프로젝트 데이터가 아님.
       window.__SB_SHOTS_DEFAULT.forEach(function(s) { SB_SHOTS.push(s); });
     }
   }

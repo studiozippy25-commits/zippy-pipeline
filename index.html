@@ -5728,7 +5728,7 @@ function getSBRefsForShot(sceneNum, shotId) {
   const objAssets = (currentProject && currentProject.objectAssets) || [];
   if (objAssets.length > 0) {
     objAssets.forEach(function(obj, i) {
-      const key = 'obj' + (i + 1);
+      const key = obj.key; // 소품 ref는 obj.key로 저장됨 (loadDefaultObjRefs와 키 일치)
       const name = (obj.name || '').toLowerCase();
       const tokens = name.split(/[\s·,\-/]+/).filter(t => t.length >= 2);
       const matched = tokens.some(t => sceneFullText.includes(t)) || (name && sceneFullText.includes(name));

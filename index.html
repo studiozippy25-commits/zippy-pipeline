@@ -1254,11 +1254,12 @@ input[type=file]{display:none}
       편집 단계에서 메인 컷 사이에 삽입.
     </div>
     <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
-      <button class="btn bgh" onclick="filterInsCat('all', this)" id="insFilterAll">전체 (44)</button>
+      <button class="btn bgh" onclick="filterInsCat('all', this)" id="insFilterAll">전체 (65)</button>
       <button class="btn bgh" onclick="filterInsCat('jungwoo', this)">유정우 (19)</button>
       <button class="btn bgh" onclick="filterInsCat('hayoon', this)">서하윤 (13)</button>
       <button class="btn bgh" onclick="filterInsCat('cafe', this)">교집합 카페 (8)</button>
       <button class="btn bgh" onclick="filterInsCat('closing', this)">팝업 철수 (4)</button>
+      <button class="btn bgh" onclick="filterInsCat('slot40', this)">40분판 신규 (21)</button>
     </div>
     <div id="insGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
   </div>
@@ -2911,7 +2912,16 @@ const PROJECTS = {
       'obj-knife': 'assets/proof-of-taste/props/P09_여밀_제철식재료_나물두부새우.png',
       'obj-memo': 'assets/proof-of-taste/props/R09_유정우_메모지펜클립.png',
       'obj-blueprint': 'assets/proof-of-taste/props/M08_서하윤_벽면무드보드_P02D_디스플레이.png',
-      'obj-tape': 'assets/proof-of-taste/props/M09_서하윤_인쇄샘플패키지_P02E.png'
+      'obj-tape': 'assets/proof-of-taste/props/M09_서하윤_인쇄샘플패키지_P02E.png',
+      'obj-card': 'assets/proof-of-taste/props/OBJ_시즌카드_앞면_QR.png',
+      'obj-menu': 'assets/proof-of-taste/props/OBJ_메뉴보드_오늘의작은변주.png',
+      'obj-phone': 'assets/proof-of-taste/props/OBJ_휴대폰_플레이리스트.png',
+      'obj-drip': 'assets/proof-of-taste/props/OBJ_드립커피도구.png',
+      'obj-audio': 'assets/proof-of-taste/props/OBJ_소형오디오스피커.png',
+      'obj-file': 'assets/proof-of-taste/props/OBJ_파일폴더클립보드.png',
+      'obj-umbrella': 'assets/proof-of-taste/props/OBJ_젖은우산.png',
+      'obj-lock': 'assets/proof-of-taste/props/OBJ_자물쇠.png',
+      'obj-tote': 'assets/proof-of-taste/props/OBJ_캔버스토트백.png'
     },
     defaultSpaceRefs: {
       '성수 생활형 골목': 'assets/proof-of-taste/S04a_성수골목_거리.png',
@@ -2932,7 +2942,8 @@ const PROJECTS = {
       '성수 생활동선 교차지점': 'assets/proof-of-taste/S13_성수생활동선_교차지점.png',
       '팝업 백오브하우스': 'assets/proof-of-taste/S13b_팝업백오브하우스_VMD준비실.png',
       '503 대형 패션 팝업': 'assets/proof-of-taste/S503_성수_대형패션팝업_VMD메인.png',
-      '하윤의 임시 숙소': 'assets/proof-of-taste/S14_하윤_임시숙소.png'
+      '하윤의 임시 숙소': 'assets/proof-of-taste/S14_하윤_임시숙소.png',
+      '새벽 시장': 'assets/proof-of-taste/S15_새벽시장.png'
     },
     costumeAssets: [
       {key:'식당 기본', name:'식당 기본', desc:'차콜 티셔츠+올리브 앞치마. 정우 식당 근무 (씬 1·2·5·7)'},
@@ -5884,7 +5895,28 @@ const INSERT_CUTS = [
   {id:'INS-S01', cat:'closing', label:'팝업 종료 후 소품', frame:'INS / 정리', desc:'P-07-C 팝업 종료 후 정리된 소품 인서트. 박스+포장재+낱장 시향지', src:'S01_팝업철수_P07C_종료후소품인서트.png'},
   {id:'INS-S02', cat:'closing', label:'시향지+롱긴 라벨', frame:'INS / 잔존', desc:'P-07-A 남겨진 시향지+롱긴 라벨 인서트. 팝업 직후 마룻바닥', src:'S02_팝업철수_P07A_시향지롱긴라벨.png'},
   {id:'INS-S03', cat:'closing', label:'보강 조명+시향지', frame:'INS / 잔존', desc:'P-07-B 팝업 철수 후 보강 조명 아래 남은 시향지', src:'S03_팝업철수_P07B_보강조정시향지.png'},
-  {id:'INS-S04', cat:'closing', label:'체크리스트 + 잔존 소품', frame:'INS / 정리', desc:'P-07-A 새벽 팝업 철수 후 구겨진 체크리스트+낱개 시향지', src:'S04_팝업철수_P07A_체크리스트.png'}
+  {id:'INS-S04', cat:'closing', label:'체크리스트 + 잔존 소품', frame:'INS / 정리', desc:'P-07-A 새벽 팝업 철수 후 구겨진 체크리스트+낱개 시향지', src:'S04_팝업철수_P07A_체크리스트.png'},
+  {id:'T01', cat:'slot40', label:'시즌카드 앞면 (오늘의 작은 변주+QR)', frame:'ECU / 텍스트', desc:'[S5-2] 시즌 카드 앞면 기본형, 명조 문장 + 하단 QR. obj-card 대표', src:'T01_시즌카드_앞면_QR.png', propKey:'obj-card'},
+  {id:'T02', cat:'slot40', label:'시즌카드 뒷면 빈 카드', frame:'ECU / base', desc:'[S6 base] 뒷면 빈 카드. 6-3/6-4 손글씨 합성용 베이스', src:'T02_시즌카드_뒷면빈카드.png', propKey:'obj-card'},
+  {id:'T03', cat:'slot40', label:'하윤 첫 메모 "이 곡을 두 번째에…"', frame:'ECU / 손글씨', desc:'[PT-1 / S6-4] 반쯤 쓰인 손글씨. 미완성 문장', src:'T03_시즌카드_하윤첫메모.png', propKey:'obj-card'},
+  {id:'T04', cat:'slot40', label:'정우 응답 카드 "알아보는 사람은…"', frame:'ECU / 손글씨', desc:'[S21-1 / S30-4] 정우 응답 문구 카드', src:'T04_시즌카드_정우응답카드.png', propKey:'obj-card'},
+  {id:'T05', cat:'slot40', label:'여밀 카운터 위 시즌카드', frame:'CU / 정물', desc:'[S5-1 / S7] 카운터에 놓인 시즌 카드', src:'T05_시즌카드_카운터위.png', propKey:'obj-card'},
+  {id:'T06', cat:'slot40', label:'하윤 손에 들린 시즌카드', frame:'CU / 손', desc:'[S15-1 / S29-7] 하윤 손에 들린 카드, 뒷면 쓸기', src:'T06_시즌카드_하윤손에들린.png', propKey:'obj-card'},
+  {id:'T07', cat:'slot40', label:'서랍 속 오래된 카드 묶음', frame:'INS / 서랍', desc:'[PT-3 / S7-4 / S23-2] 정우 저항의 기원. 색바랜 카드·메모 더미', src:'T07_시즌카드_서랍속카드묶음.png', propKey:'obj-card'},
+  {id:'T08', cat:'slot40', label:'에필로그 새 시즌 카드 묶음', frame:'INS macro', desc:'[S32-2] 새 시즌 카드 묶음 "두 번째에 두는 것들"', src:'T08_시즌카드_에필로그새카드묶음.png', propKey:'obj-card'},
+  {id:'T09', cat:'slot40', label:'메뉴보드 "오늘의 작은 변주"', frame:'CU / 텍스트', desc:'[S6-1 / S10-1] 메뉴 보드 기본 문장. obj-menu 대표', src:'T09_메뉴보드_오늘의작은변주.png', propKey:'obj-menu'},
+  {id:'T10', cat:'slot40', label:'메뉴보드 "두 번째에 두는 것들"', frame:'CU / 텍스트', desc:'[S32-1] 에필로그 새 시즌 보드 문장', src:'T10_메뉴보드_두번째에두는것들.png', propKey:'obj-menu'},
+  {id:'T11', cat:'slot40', label:'메뉴보드 지우기 전', frame:'CU / 텍스트', desc:'[S27] 오준이 지울까 묻는 컷. 문장 그대로 남음', src:'T11_메뉴보드_지우기전.png', propKey:'obj-menu'},
+  {id:'T12', cat:'slot40', label:'메뉴보드 종이 택', frame:'INS macro', desc:'[S10-2] 보드 하단 종이 택, 시즌 카드와 같은 코튼 페이퍼', src:'T12_메뉴보드_종이텍.png', propKey:'obj-menu'},
+  {id:'T13', cat:'slot40', label:'메뉴보드 문장 CU', frame:'CU / 텍스트', desc:'[S6-1] "오늘의 작은 변주" 문장 클로즈업', src:'T13_메뉴보드_문장CU.png', propKey:'obj-menu'},
+  {id:'T14', cat:'slot40', label:'메뉴 카드', frame:'CU / 텍스트', desc:'여밀 메뉴 카드. 시즌 카드와 동일 종이결', src:'T14_메뉴카드.png', propKey:'obj-menu'},
+  {id:'T15', cat:'slot40', label:'폰 — 플레이리스트', frame:'CU / 화면', desc:'[S8-2] 플레이리스트 앱 4번째 트랙. obj-phone 대표', src:'T15_휴대폰_플레이리스트.png', propKey:'obj-phone'},
+  {id:'T16', cat:'slot40', label:'폰 — 플레이리스트 정지', frame:'ECU / 화면', desc:'[S8-3] 정지 버튼 누르는 엄지', src:'T16_휴대폰_플레이리스트정지.png', propKey:'obj-phone'},
+  {id:'T17', cat:'slot40', label:'폰 — 부산 제안 메시지', frame:'CU / 화면', desc:'[S18-1] 부산 플래그십 제안 메신저 알림', src:'T17_휴대폰_부산제안.png', propKey:'obj-phone'},
+  {id:'T18', cat:'slot40', label:'폰 — 답장 입력', frame:'CU / 화면', desc:'[S26-1] 입력창 "네, 진행하겠습니다."', src:'T18_휴대폰_답장입력.png', propKey:'obj-phone'},
+  {id:'T19', cat:'slot40', label:'폰 — 전송 직전', frame:'ECU / 화면', desc:'[S26-2] 전송 버튼 위 멈춘 엄지', src:'T19_휴대폰_전송직전.png', propKey:'obj-phone'},
+  {id:'T20', cat:'slot40', label:'폰 — QR 스캔', frame:'CU / 화면', desc:'[S5-3] 시즌 카드 QR 스캔 순간', src:'T20_휴대폰_QR스캔.png', propKey:'obj-phone'},
+  {id:'T21', cat:'slot40', label:'새벽 시장 저울', frame:'INS macro', desc:'[S9-3] 낡은 기계식 저울 바늘, 검은 봉투 채소', src:'T21_새벽시장_저울.png', propKey:'obj-veggie'}
 ];
 const INSERT_CUTS_OLD = [
   // (구버전 — 호환성 유지용 placeholder)

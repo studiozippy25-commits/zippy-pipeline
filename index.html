@@ -2943,11 +2943,64 @@ const PROJECTS = {
       {key:'브랜드미팅', name:'브랜드미팅', desc:'블랙 슬리브리스+오프화이트 재킷. 이나경 사무용'}
     ],
     characterDNA: {
-      '정우': '[DNA JUNGWOO Z7-JW30] Korean male early 30s, chef-owner of small seasonal restaurant Yeomil in Seongsu, charcoal cotton t-shirt olive work apron, slightly calloused hands from kitchen work, warm steady gaze, short natural black hair, medium build, quiet confidence, muted earth tones',
-      '하윤': '[DNA HAYOON Z7-HY28] Korean female late 20s, fragrance brand planner, cream structured cotton shirt wide-leg grey slacks, canvas tote bag with color chips, thin silver earrings, observant precise eyes, shoulder-length dark hair, slim elegant posture',
+      '정우': '[DNA JUNGWOO Z7-JW30] Korean male early 30s, chef-owner of small seasonal restaurant Yeomil in Seongsu, charcoal cotton t-shirt olive work apron, slightly calloused hands from kitchen work, warm steady gaze, short natural black hair, medium build, quiet confidence, muted earth tones. CAMERA LOCK Signature Prime 85mm f/1.8. RESISTANCE CUES (hands/feet ECU only, NO facial expression): hand lingering on drawer handle, hand moving toward trash then stopping, 0.5s freeze before reacting, hand resting on card then slowly releasing, one step in passing direction then halting',
+      '하윤': '[DNA HAYOON Z7-HY28] Korean female late 20s, fragrance brand planner, cream structured cotton shirt wide-leg grey slacks, canvas tote bag with color chips, thin silver earrings, observant precise eyes, shoulder-length dark hair, slim elegant posture. CAMERA LOCK Signature Prime 50mm f/1.8. RESISTANCE CUES (CU/ECU only, NO big facial change): pen tip touching card then stopping, half-written sentence, card taken out and put back repeatedly, show-card lifted then re-placed precisely, feet halting mid-stride',
       '오준': '[DNA OJUN Z7-OJ32] Korean male early 30s, Jungwoo best friend, casual streetwear, easygoing smile, slightly messy hair, relaxed posture',
       '이나경': '[DNA INAGYEONG Z7-IN27] Korean female late 20s, Hayoon colleague, neat professional attire, warm friendly expression',
       '박준': '[DNA BAKJUN Z7-BJ55] Korean male mid 50s, Yeomil regular customer, weathered kind face, reading glasses, simple comfortable clothing'
+    },
+    spaceDNA: {
+      '성수 생활형 골목': 'Seongsu residential side-alley one or two blocks off the main commercial strip, 1-2 old factory shutters, small printing-shop signage, low one-room building walls, tidy paving blocks, lived-in not touristy. PALETTE dusty grey concrete #8C8A86, warm concrete #C4B9A8, blue-grey iron shutter, ink-navy signage, worn asphalt. AVOID tourist crowds, main-street density, graffiti excess, retro-fetish styling, over-saturated palette',
+      '여밀 식당 (외부)': 'Exterior of Yeomil, a small 10-14 seat seasonal-Korean restaurant tucked inside the Seongsu alley, wooden entrance door with a brass padlock, paper menu board, lived-in facade. PALETTE off-white #F5F2EC, charcoal #3D3D3D, dark wood grain #6B4F3A against alley grey #8C8A86. AVOID brunch cafe aesthetic, luxury restaurant front, retro excess',
+      '여밀 메인 다이닝': 'Yeomil main dining room, 10-14 seats, small wooden tables, minimal ceramic tableware, menu board, small vintage audio on the counter, season card near the register, a small drawer under the counter, tidy not hip. PALETTE off-white walls #F5F2EC, charcoal furniture #3D3D3D, dark wood #6B4F3A, matte ceramic, brushed steel. AVOID brunch cafe aesthetic, Instagram food lighting, luxury interior, retro excess',
+      '여밀 내부 디테일': 'Yeomil interior detail / counter close range — small vintage audio speaker, handwritten season card, wooden tray, minimal ceramic dishes, the small under-counter drawer. PALETTE off-white #F5F2EC + charcoal #3D3D3D + warm wood #6B4F3A, matte ceramic and brushed steel. AVOID food-photography excess, luxury staging',
+      'LATEN 팝업': 'LATEN independent fragrance and object pop-up, refined minimal luxury, a row of fragrance bottles, show-cards with minimal Korean typography, blotter cards on a brushed-metal tray, a small QR card, sparse display, a temporary project space not a department store. PALETTE stone white #E8E2D8, smoke grey #8C8680, soft sage #9EA897, amber beige #B87333, matte glass, raw linen. AVOID department-store cosmetics display, floral excess, photo-zone backdrop, black-gold luxury excess',
+      '편집숍·인쇄소 주변': 'Seongsu select-shop and printing-shop strip near the alley, small indie print goods and objects on display, a working storefront. PALETTE the same dusty grey #8C8A86 and warm concrete #C4B9A8 alley language, off-white shop interior. AVOID tourist aesthetic, main-street density, over-saturated palette',
+      '새벽 시장': 'Pre-dawn produce market alley, rows of bare incandescent bulbs strung overhead, stacked wooden crates of seasonal vegetables, faint breath vapor in cold air, wet concrete floor, vendor tarps, no crowd. PALETTE cool pre-dawn blue-white mixed with warm bulb pools, muted dusty greys, metal and rust detail. AVOID tourists, festival aesthetic, neon, over-saturation',
+      '하윤의 임시 숙소': 'Hayoon temporary studio room at night, a narrow space, a packed work bag by the door, a single warm lamp, the edge of a bed, minimal and temporary not cozy. PALETTE warm lamp amber over muted neutrals, soft phone-screen glow as accent. AVOID cozy styling, decorated home aesthetic, fairy-light excess'
+    },
+    lightMap: {
+      '오전 자연광': 'soft morning natural light, cool-neutral color temperature, long soft shadows, no harsh direct sun',
+      '자연 윈도우 확산광': 'neutral afternoon window light from the side, soft diffused shadows, warm but not yellow, renders material texture',
+      '따뜻한 저녁 실내조명': 'warm but restrained interior lighting, quiet closing-time atmosphere, deep shadows in corners',
+      '마감 시간 단일 오버헤드': 'single warm overhead light source, deep corner shadows, closing-time stillness',
+      'LATEN 소프트 디퓨즈': 'soft diffused even indoor light, no harsh spotlights, renders matte glass and paper, quiet-luxury atmosphere',
+      '골목 가로등 앰버': 'quiet residential street lighting, warm amber shopfront spill, dark sky, no neon, no bright advertising',
+      '비 오는 낮 확산광': 'overcast diffuse daylight, desaturated one step, wet surface reflections',
+      '새벽 시장 청백광': 'pre-dawn cool blue-white light mixed with warm bare-bulb pools',
+      '임시 숙소 밤 조명': 'single warm lamp in a dim small room, soft phone-screen glow as key accent'
+    },
+    emoMap: {
+      '무심함': 'detached, unbothered, neutral surface',
+      '미세한 혼란': 'subtle inner confusion held beneath a still face',
+      '반복 관찰': 'quiet repeated observation, reading the space',
+      '재확인': 'reconfirming, checking again',
+      '정확한 인지': 'precise recognition',
+      '능동적 신호': 'an active deliberate signal',
+      '선택': 'a quiet act of choosing',
+      '감정의 첫 발생': 'the first faint stir of feeling',
+      '기억': 'a held memory surfacing',
+      '보관함': 'the impulse to keep rather than discard',
+      '궁금함': 'restrained curiosity',
+      '알아봄': 'recognition, the feeling of being truly seen',
+      '응답함': 'responding in kind',
+      '놓치고 싶지 않음': 'not wanting to miss this',
+      '마지막에 멈춤': 'stopping at the very last moment',
+      '조용한 확신': 'quiet certainty',
+      '자기 검열': 'self-censoring, second-guessing the impulse',
+      '숨긴 관심': 'concealed interest leaking through the hands',
+      '종료 예감': 'the sense of an ending approaching',
+      '저항 극복': 'overcoming inner resistance',
+      '후퇴': 'a half-step back, retreat after exposure',
+      '패턴 자각': 'awareness of a personal pattern',
+      '전송 보류': 'holding back from sending, finger frozen',
+      '잔향': 'lingering resonance, afterglow'
+    },
+    costumes: {
+      '식당 기본': 'Yeomil work look — charcoal cotton t-shirt, olive work apron, dark straight-leg jeans, black low sneakers, thin silver ring, no logo',
+      '현장설치': 'VMD field-install look — cream structured cotton shirt, wide-leg grey slacks, black minimal loafers, large canvas tote with sample cards and color chips, thin silver earrings',
+      '브레이크타임': 'casual break look — relaxed knit or tee, simple trousers, minimal accessories',
+      '다크네이비 니트': 'night look — dark navy fine-knit top, charcoal wide trousers (Jungwoo adds a short jacket; Hayoon adds silver mini hoops)'
     },
     characterPresets: {
       '정우 (주연)': {eth:['Korean'],gender:'male',age:'adult (30s)',height:'average height (165-175cm)',build:'slim, lean build',head:'8-head proportion, ideal human figure',face:'oval face shape',eyes:'soft gentle eyes',iris:'very dark brown eyes',skin:'natural medium-light skin',hcol:'jet black hair',hlen:'medium length hair reaching mid-back',hstyle:'center part, hair divided evenly down the middle',extra:'slightly calloused hands from kitchen work, minimal silver ring on one finger, no visible logo, muted earth tones, life-worn texture'},
@@ -5024,6 +5077,7 @@ function genVideoPrompt(shotId) {
   var fStop = frame.indexOf('CU') !== -1 ? 'f/2.8' : frame.indexOf('WIDE') !== -1 ? 'f/8' : 'f/4';
   var projQuality = currentProject.quality || (typeof POT_QUALITY !== 'undefined' ? POT_QUALITY : '');
   var projNegative = currentProject.negative || (typeof POT_NEGATIVE !== 'undefined' ? POT_NEGATIVE : '');
+  var projStability = currentProject.stability || (typeof POT_STABILITY !== 'undefined' ? POT_STABILITY : '');
   var imgPrompt = '';
   imgPrompt += '── IMAGE PROMPT (ZIPPY 시네마틱 + BAENE 리얼리티) ──\n\n';
   // Reference manifest
@@ -5062,6 +5116,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush.\n';
   imgPrompt += 'All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture.\n';
   imgPrompt += 'Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.\n\n';
+  imgPrompt += 'STABILITY: ' + projStability + '\n\n';
   imgPrompt += 'NEGATIVE: ' + projNegative + '\n';
   imgPrompt += 'no high contrast, no oversaturated, no digital clean look, no HDR, no Instagram filter, no textbook angle, no perfectly centered composition.\n';
   imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n';
@@ -5096,7 +5151,14 @@ function genVideoPrompt(shotId) {
   if (desc.indexOf('시계') !== -1) vidPrompt += 'Second hand ticking. ';
   if (desc.indexOf('캔') !== -1 && desc.indexOf('놓') !== -1) vidPrompt += 'Can placed down gently, metallic tap. ';
   vidPrompt += '\n\n';
-  vidPrompt += '[L8-NEGATIVE] ' + (currentProject.negative || '') + '\n';
+  vidPrompt += '[L7B-STABILITY] ' + projStability + '\n\n';
+  vidPrompt += '[L8-NEGATIVE] ' + projNegative + '\n';
+  // ── 바이블 한영 레이어 (Kling / Nano Banana Pro 붙여넣기용) ──
+  vidPrompt += '\n── 바이블 한영 레이어 (붙여넣기용) ──\n';
+  vidPrompt += '[KR] ' + (preset.loc || '') + ' · ' + (preset.time || '') + '. ' + desc + '\n';
+  vidPrompt += '[EN] ARRI Alexa 35, Signature Prime ' + (preset.lens || '35mm') + ', ' + (preset.angle || 'eye level') + ', ' + camMove + '. ' + projQuality + '\n';
+  vidPrompt += '[STABILITY] ' + projStability + '\n';
+  vidPrompt += '[NEG] ' + projNegative + '\n';
   var fullPrompt = imgPrompt + vidPrompt;
   // Show modal
   var modal = document.getElementById('vidPromptModal');
@@ -9308,6 +9370,7 @@ const COSTUME_DNA = {
 };
 const POT_NEGATIVE = 'no cartoon, no anime, no plastic skin, no CGI look, no distortion, no extra fingers, no blurry, no low quality, no watermark, no morphing, no floating objects, no neon excess, no tourist aesthetic, no fashion editorial excess, no Instagram food photography, no fine dining staging, no brunch cafe aesthetic, no department store cosmetics, no over-saturated palette';
 const POT_QUALITY = '8K UHD, photorealistic, ARRI Alexa 35, Signature Prime lens, HDR, cinematic color grading, ultra-detailed, film grain, natural skin texture, visible pores, subsurface scattering, fabric folds, seam details, brushed metal texture, metallic sheen, realistic reflection';
+const POT_STABILITY = 'background locked to reference image, no reinterpretation, no background morphing, object maintains exact shape throughout, rigid body physics applied, consistent screen direction maintained, right-hand traffic rule applied';
 function applyScenePreset(v){
   if(!v) return;
   const p = SCENE_PRESETS[v];

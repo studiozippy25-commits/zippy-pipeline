@@ -1247,7 +1247,7 @@ input[type=file]{display:none}
   </div>
 
   <!-- ═══ 인서트 라이브러리 (스토리보드 하단) ═══ -->
-  <div style="margin-top:32px;padding-top:24px;border-top:2px solid var(--bd)">
+  <div id="insLibSection" style="margin-top:32px;padding-top:24px;border-top:2px solid var(--bd)">
     <div class="slbl" style="color:var(--cy);font-size:16px">인서트 라이브러리 — 감정·디테일·소품 인서트 컷</div>
     <div style="padding:12px 16px;background:rgba(8,145,178,.06);border:1px solid rgba(8,145,178,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--cy);line-height:1.7">
       스토리보드 메인 컷과 별개로 운용. 감정 전환·디테일 보강·핵심 소품 클로즈업용.<br>
@@ -5011,6 +5011,10 @@ let insCurrentFilter = 'all';
 function renderInsertLibrary() {
   const grid = document.getElementById('insGrid');
   if (!grid) return;
+  var _insSec = document.getElementById('insLibSection');
+  var _isPoT = (typeof currentProject !== 'undefined') && currentProject && currentProject.name === '취향의 증거';
+  if (_insSec) _insSec.style.display = _isPoT ? '' : 'none';
+  if (!_isPoT) { grid.innerHTML = ''; return; }
   const filtered = insCurrentFilter === 'all' ? INSERT_CUTS : INSERT_CUTS.filter(i => i.cat === insCurrentFilter);
   grid.innerHTML = filtered.map(function(ins) {
     const genImg = insGenImages[ins.id];

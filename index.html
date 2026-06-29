@@ -854,6 +854,9 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="llmMode" value="cloud" checked onchange="onLLMModeChange()"> ☁ Gemini
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="radio" name="llmMode" value="gpt" onchange="onLLMModeChange()"> ✦ GPT
+    </label>
   </div>
   <div class="ar" style="margin-top:8px">
     <span class="al" style="color:var(--pu)">이미지</span>
@@ -8494,10 +8497,27 @@ async function callOllama({prompt, images=[], model=null, signal=null, options={
   return { textOut: content, imgB64: null, thinking: data?.message?.thinking || '' };
 }
 /* 통합 텍스트 호출 래퍼 — 모드에 따라 Gemini 또는 Ollama */
+async function callGPTChat({images=[], prompt, signal=null, options={}}) {
+  const mdl = (document.getElementById('gptLlmModel') && document.getElementById('gptLlmModel').value) || 'gpt-5.4';
+  let content = prompt;
+  if (images && images.length) {
+    content = [{type:'text', text: prompt}];
+    images.forEach(function(img){ var url = (typeof img==='string') ? img : ('data:'+(img.mime||'image/png')+';base64,'+img.b64); content.push({type:'image_url', image_url:{url: url}}); });
+  }
+  const fetchOpts = {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({model: mdl, messages:[{role:'user', content: content}]})};
+  if (signal) fetchOpts.signal = signal;
+  const res = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/openai/chat/completions', fetchOpts);
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error((e&&e.error&&e.error.message) || ('OpenAI HTTP ' + res.status)); }
+  const data = await res.json();
+  return { imgB64: null, textOut: (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '' };
+}
 async function callLLM({images=[], prompt, signal=null, options={}}) {
   const mode = getLLMMode();
   if (mode === 'local') {
     return await callOllama({prompt, images, signal, options});
+  }
+  if (mode === 'gpt') {
+    return await callGPTChat({images, prompt, signal, options});
   }
   // cloud: Gemini 호출 (텍스트 전용)
   return await callGemini({images, prompt, textOnly: true, signal});

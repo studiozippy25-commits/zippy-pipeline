@@ -864,6 +864,13 @@ input[type=file]{display:none}
       <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image (Codex/gti)
     </label>
   </div>
+  <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
+    <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
+    <span id="gtiBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
+    <span id="gtiBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
+    <button class="btn bgh bsm" onclick="checkGtiBridge()" style="font-size:11px;padding:3px 10px">상태 확인</button>
+    <span style="font-family:var(--font-mono);font-size:10px;color:var(--mu)">꺼져있으면 바탕화면 <b>gti-브리지-켜기.command</b> 더블클릭</span>
+  </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
     <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
@@ -7934,6 +7941,7 @@ function getLocalModel(type) {
   return 'zimage-turbo';
 }
 function onImgModeChange() {
+  try { if (getImgMode()==='gpt' && typeof checkGtiBridge==='function') setTimeout(checkGtiBridge,50); } catch(e){}
   const mode = getImgMode();
   try { localStorage.setItem('zippy_img_mode', mode); } catch(e){}
   const gptRow = document.getElementById('gptModelRow');
@@ -7961,6 +7969,19 @@ function chkOpenAIKey() {
   }
 }
 const GTI_BRIDGE_URL = (function(){ try { return localStorage.getItem('zippy_gti_bridge') || 'http://localhost:8799'; } catch(e){ return 'http://localhost:8799'; } })();
+async function checkGtiBridge() {
+  var dot=document.getElementById('gtiBridgeDot'), st=document.getElementById('gtiBridgeStatus');
+  if(st) st.textContent='확인 중...';
+  try {
+    var r=await fetch(GTI_BRIDGE_URL+'/health',{method:'GET'});
+    var d=await r.json();
+    if(dot) dot.style.background='#16a34a';
+    if(st) st.textContent='연결됨 · '+((d&&d.model)||'')+' / '+((d&&d.provider)||'');
+  } catch(e) {
+    if(dot) dot.style.background='#DC2626';
+    if(st) st.textContent='꺼짐 — 바탕화면 런처 더블클릭';
+  }
+}
 async function callGtiBridge({images=[], prompt, signal=null}) {
   const size = document.getElementById('gptImgSize')?.value || 'auto';
   // 레퍼런스 매니페스트 주입 (callGPTImage와 동일 규칙)

@@ -863,6 +863,9 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image (Codex/gti)
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
+    </label>
   </div>
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
@@ -7945,7 +7948,9 @@ function onImgModeChange() {
   const mode = getImgMode();
   try { localStorage.setItem('zippy_img_mode', mode); } catch(e){}
   const gptRow = document.getElementById('gptModelRow');
-  if (gptRow) gptRow.style.display = (mode === 'gpt') ? '' : 'none';
+  if (gptRow) gptRow.style.display = (mode === 'gpt' || mode === 'gptapi') ? '' : 'none';
+  const gtiRow = document.getElementById('gtiBridgeRow');
+  if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
 }
 function chkImgKey() {
   const mode = getImgMode();
@@ -8361,6 +8366,9 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
   }
   if (mode === 'gpt') {
     return await callGtiBridge({images, prompt, signal});
+  }
+  if (mode === 'gptapi') {
+    return await callGPTImage({images, prompt, signal});
   }
   // LOCAL: ComfyUI 경로
   const taskType = (task === 'txt2img') ? 'txt2img'

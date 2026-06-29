@@ -4492,8 +4492,11 @@ function filterSBEp(epNum, btn) {
 
 async function fetchImageAsB64(url) {
   try {
-    // URL-encode each path segment (handles Korean filenames)
-    const encoded = url.split('/').map(s => s.indexOf(':') !== -1 ? s : encodeURIComponent(s)).join('/');
+    // URL-encode each path segment (handles Korean filenames); preserve ?query (cache-bust)
+    const _qi = url.indexOf('?');
+    const _path = _qi === -1 ? url : url.slice(0, _qi);
+    const _query = _qi === -1 ? '' : url.slice(_qi);
+    const encoded = _path.split('/').map(s => s.indexOf(':') !== -1 ? s : encodeURIComponent(s)).join('/') + _query;
     const res = await fetch(encoded);
     if (!res.ok) { console.warn('Fetch HTTP error:', res.status, encoded); return null; }
     const blob = await res.blob();

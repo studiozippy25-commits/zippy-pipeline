@@ -4916,6 +4916,22 @@ function getSBRefMatchSummary(sceneNum, shotId) {
   return summary;
 }
 
+var SB_CHAR_ALIAS = {
+  '\uC6E8\uC2A4\uD130\uB178\uC774\uB4DC': ['\uD734\uBA38\uB178\uC774\uB4DC','\uD654\uC790','\uB0B4\uB808\uC774\uD130','narrator','\uC11C\uBE59 \uB85C\uBD07','\uC11C\uBE59\uB85C\uBD07','\uBC14\uD150\uB354 \uC548\uB4DC\uB85C\uC774\uB4DC','\uC548\uB4DC\uB85C\uC774\uB4DC \uBC14\uD150\uB354','\uAD6C\uD615 \uC548\uB4DC\uB85C\uC774\uB4DC','\uC11C\uBE59 \uD734\uBA38\uB178\uC774\uB4DC'],
+  '\uBC15\uAD00\uB9AC\uC790': ['\uB85C\uBD07 \uC0C1\uC0AC','\uC548\uB4DC\uB85C\uC774\uB4DC \uC0C1\uC0AC','\uAD00\uB9AC\uC790 \uB85C\uBD07'],
+  '\uB3C5\uACE0\uD558\uC740': ['\uD558\uC740'],
+  'ARCHE': ['\uC544\uB974\uCF00','arche']
+};
+function sbCharReal(presetKey){
+  var real = presetKey.indexOf('\u00B7')!==-1 ? presetKey.split('\u00B7').pop() : presetKey;
+  return real.split('(')[0].split('\uFF08')[0].trim();
+}
+function sbCharKeywords(presetKey){
+  var real = sbCharReal(presetKey);
+  var kws=[real];
+  if (SB_CHAR_ALIAS[real]) kws=kws.concat(SB_CHAR_ALIAS[real]);
+  return kws.map(function(k){return (k||'').toLowerCase();}).filter(function(k){return k.length>=2;});
+}
 function getSBRefsForShot(sceneNum, shotId) {
   const refs = [];
   const preset = SCENE_PRESETS[String(sceneNum)] || {};
@@ -4943,11 +4959,16 @@ function getSBRefsForShot(sceneNum, shotId) {
   const charNames = (currentProject && currentProject.characterPresets)
     ? Object.keys(currentProject.characterPresets)
     : (currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
-  const matchedCharIndices = [];
+  const _matchedByReal = {};
   charNames.forEach(function(name, i) {
-    const baseName = name.split(/[\s(（]/)[0].toLowerCase();
-    if (baseName && sceneFullText.indexOf(baseName) !== -1) matchedCharIndices.push(i);
+    const kws = sbCharKeywords(name);
+    if (!kws.some(function(k){ return sceneFullText.indexOf(k) !== -1; })) return;
+    const real = sbCharReal(name);
+    if (!(real in _matchedByReal)) { _matchedByReal[real] = i; return; }
+    const mm = name.match(/[\(（]([^\)）]+)[\)）]/);
+    if (mm) { const toks = mm[1].toLowerCase().split(/[\s·,]+/).filter(function(t){return t.length>=1;}); if (toks.some(function(t){return sceneFullText.indexOf(t)!==-1;})) _matchedByReal[real] = i; }
   });
+  const matchedCharIndices = Object.keys(_matchedByReal).map(function(r){ return _matchedByReal[r]; });
   // 매칭된 캐릭터가 없으면 0명 (establishing 쇼트 등)
   const charIdxToInclude = matchedCharIndices;
   charIdxToInclude.forEach(function(i) {

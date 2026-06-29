@@ -4014,6 +4014,7 @@ function selectProject(key) {
 
   // Build storyboard reference UI dynamically
   buildSBRefUI();
+  if (typeof buildAssetSpaceSlots === 'function') buildAssetSpaceSlots();
 
   // Load DNA constants
   if (typeof SPACE_DNA !== 'undefined' && currentProject.spaceDNA) {

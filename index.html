@@ -963,7 +963,7 @@ input[type=file]{display:none}
   </div>
 
   <!-- 의상 에셋 (캐릭터별) -->
-  <div style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+  <div id="costumeAssetSection" style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
       <div style="font-family:var(--font-mono);font-size:14px;color:var(--pu);letter-spacing:1.5px;font-weight:700">COSTUME ASSETS</div>
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-costume-count">0개 등록</div>
@@ -4060,7 +4060,8 @@ function selectProject(key) {
 
   // Render costume assets dynamically (per-character costume slots)
   const costContainer2 = document.getElementById('asset-costume-container');
-  if (costContainer2) {
+  var _csSec = document.getElementById('costumeAssetSection'); if (_csSec) _csSec.style.display = (currentProject && currentProject.hasCostumes === false) ? 'none' : '';
+  if (costContainer2 && !(currentProject && currentProject.hasCostumes === false)) {
     costContainer2.innerHTML = charNames.map(function(name, i) {
       const baseKey = 'costume-' + (i + 1);
       const displayName = name.split(/[\s(（]/)[0];
@@ -4650,7 +4651,7 @@ function buildSBRefUI() {
     const charNames2 = currentProject.characterPresets
       ? Object.keys(currentProject.characterPresets)
       : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
-    if (charNames2.length === 0) {
+    if (charNames2.length === 0 || (currentProject && currentProject.hasCostumes === false)) {
       faceContainer.innerHTML = '';
       if (faceHeader) faceHeader.style.display = 'none';
     } else {
@@ -4674,7 +4675,7 @@ function buildSBRefUI() {
     const charNames = currentProject.characterPresets
       ? Object.keys(currentProject.characterPresets)
       : (currentProject.characterDNA ? Object.keys(currentProject.characterDNA) : []);
-    if (charNames.length === 0) {
+    if (charNames.length === 0 || (currentProject && currentProject.hasCostumes === false)) {
       costContainer.innerHTML = '';
       if (costHeader) costHeader.style.display = 'none';
     } else {

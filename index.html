@@ -861,7 +861,7 @@ input[type=file]{display:none}
       <input type="radio" name="imgMode" value="cloud" onchange="onImgModeChange()"> ☁ Nano Banana
     </label>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image 2
+      <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image (Codex/gti)
     </label>
   </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
@@ -7934,6 +7934,38 @@ function chkOpenAIKey() {
     stat.className = 'ast sno'; stat.textContent = '미입력';
   }
 }
+const GTI_BRIDGE_URL = (function(){ try { return localStorage.getItem('zippy_gti_bridge') || 'http://localhost:8799'; } catch(e){ return 'http://localhost:8799'; } })();
+async function callGtiBridge({images=[], prompt, signal=null}) {
+  const size = document.getElementById('gptImgSize')?.value || 'auto';
+  // 레퍼런스 매니페스트 주입 (callGPTImage와 동일 규칙)
+  let manifestPrefix = '';
+  if (images.some(im => im._type && im._label)) {
+    manifestPrefix = 'REFERENCE IMAGES (in order):\n';
+    images.forEach((im, idx) => {
+      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
+      manifestPrefix += `  ${idx+1}. ${t}: ${im._label || ''}\n`;
+    });
+    manifestPrefix += '\n';
+  }
+  const payload = {
+    prompt: manifestPrefix + prompt,
+    size: size,
+    images: (images || []).slice(0, 16).map(im => ({ b64: im.b64, mime: im.mime || 'image/png' }))
+  };
+  let res;
+  try {
+    res = await fetch(GTI_BRIDGE_URL + '/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), signal });
+  } catch(e) {
+    throw new Error('gti \uBE0C\uB9AC\uC9C0 \uC5F0\uACB0 \uC2E4\uD328 (' + GTI_BRIDGE_URL + '). \uB85C\uCEEC \uBE0C\uB9AC\uC9C0 \uC11C\uBC84(npm start)\uAC00 \uCF1C\uC838 \uC788\uB098\uC694? \u00B7 ' + (e.message||e));
+  }
+  if (!res.ok) {
+    const er = await res.json().catch(()=>({}));
+    throw new Error('gti \uC0DD\uC131 \uC2E4\uD328: ' + (er.error || ('HTTP ' + res.status)));
+  }
+  const data = await res.json();
+  if (!data.imgB64) throw new Error('gti \uC751\uB2F5\uC5D0 \uC774\uBBF8\uC9C0 \uC5C6\uC74C');
+  return { imgB64: data.imgB64 };
+}
 async function callGPTImage({images=[], prompt, signal=null}) {
   const model = document.getElementById('gptImgModel')?.value || 'gpt-image-1';
   const quality = document.getElementById('gptImgQuality')?.value || 'auto';
@@ -8281,7 +8313,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
     return await callGemini({images, prompt, textOnly: false, resVal, signal});
   }
   if (mode === 'gpt') {
-    return await callGPTImage({images, prompt, signal});
+    return await callGtiBridge({images, prompt, signal});
   }
   // LOCAL: ComfyUI 경로
   const taskType = (task === 'txt2img') ? 'txt2img'

@@ -961,6 +961,18 @@ input[type=file]{display:none}
     </div>
   </div>
 
+  <!-- 얼굴 에셋 (FACE LOCK) -->
+  <div style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-mono);font-size:14px;color:var(--pu);letter-spacing:1.5px;font-weight:700">FACE ASSETS · 얼굴 정체성 락</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-face-count">0개</div>
+    </div>
+    <div style="padding:14px">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">얼굴 6전도 / 다각도 — 생성 시 이목구비 고정 기준 (FACE LOCK, 프로젝트 선택 시 자동 로드)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px" id="asset-face-container"><!-- 동적 --></div>
+    </div>
+  </div>
+
   <!-- 공간 에셋 -->
   <div style="margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
@@ -4243,6 +4255,24 @@ function selectProject(key) {
     }).join('');
   }
 
+  // Render FACE assets (per-character face-lock slots)
+  const faceContainer2 = document.getElementById('asset-face-container');
+  if (faceContainer2) {
+    faceContainer2.innerHTML = charNames.map(function(name, i) {
+      const fKey = 'face-' + (i + 1);
+      if (typeof assetLib !== 'undefined' && !assetLib[fKey]) assetLib[fKey] = [];
+      return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
+        '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + name + '</div>' +
+        '<div style="padding:10px">' +
+        '<div class="muz" onclick="document.getElementById(\'asset-' + fKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
+        '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
+        '<input type="file" id="asset-' + fKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + fKey + '\',this.files)">' +
+        '</div>' +
+        '<div class="tgrid" id="asset-' + fKey + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:10px">—</div></div>' +
+        '</div></div>';
+    }).join('');
+  }
+
   // Render costume assets dynamically (per-character costume slots)
   const costContainer2 = document.getElementById('asset-costume-container');
   var _csSec = document.getElementById('costumeAssetSection'); if (_csSec) _csSec.style.display = (currentProject && currentProject.hasCostumes === false) ? 'none' : '';
@@ -4659,6 +4689,14 @@ async function loadDefaultFaceRefs() {
       const cap = sbKey.charAt(0).toUpperCase() + sbKey.slice(1);
       const el = document.getElementById('sbRef' + cap);
       if (el) el.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    }
+    var _alKey = 'face-' + (i + 1);
+    if (typeof assetLib !== 'undefined') {
+      if (!assetLib[_alKey]) assetLib[_alKey] = [];
+      if (!assetLib[_alKey].some(function(a){ return a.source === 'default'; })) {
+        assetLib[_alKey].push({b64: img.b64, mime: img.mime, name: baseName + ' 얼굴', source: 'default'});
+        if (typeof renderAssetGrid === 'function') renderAssetGrid(_alKey);
+      }
     }
     loadedCount++;
   }

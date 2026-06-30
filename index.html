@@ -5409,6 +5409,7 @@ const SB_SHOTS = [
   {scene:16,id:'16-2',frame:'INS / 마지막 잔상',desc:'골목 바닥의 마지막 잔상 인서트. 잔향. F.O.',func:'잔향',pri:'opt'}
 ];
 const sbGenImages = {};
+const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
 async function expandSBShot(shotId) {
   const shot = SB_SHOTS.find(s => s.id === shotId);
   if (!shot) return;
@@ -5488,6 +5489,12 @@ function renderShotCard(shot, sceneVal) {
   const camPosShow = camPosCustom || camPosAuto;
   const camPosTag = camPosCustom ? '⭐' : '🎬';
   html += `<div style="margin-top:6px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-bottom:2px">${camPosTag} 카메라 위치 (수정 가능)</div><textarea onchange="setShotCameraPos('${shot.id}', this.value)" rows="2" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(34,211,238,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none;resize:vertical;line-height:1.4">${camPosShow.replace(/</g,'&lt;')}</textarea></div>`;
+  var _seq = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shot.id] : null;
+  if (_seq && _seq.length) {
+    html += '<div style="display:flex;gap:3px;margin-top:5px">' + _seq.map(function(b,bi){ return '<img src="data:image/png;base64,'+b+'" style="width:32%;border-radius:3px;cursor:pointer;border:1px solid var(--bd)" onclick="openSBLightbox(\''+shot.id+'\')" title="\uD750\uB984 '+(bi+1)+'/3">'; }).join('') + '</div>';
+    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-top:2px">\uD750\uB984 3\uCEF7 (\uC2DC\uC791\u2192\uC815\uC810\u2192\uC9C1\uD6C4) \u00B7 \uB3D9\uC77C \uACF5\uAC04</div>';
+  }
+  html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
   html += `</div>`;
@@ -5656,7 +5663,13 @@ function buildStoryboardTimeline() {
       const camPosShow2 = camPosCustom2 || camPosAuto2;
       const camPosTag2 = camPosCustom2 ? '⭐' : '🎬';
       html += `<div style="margin-top:6px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-bottom:2px">${camPosTag2} 카메라 위치 (수정 가능)</div><textarea onchange="setShotCameraPos('${shot.id}', this.value)" rows="2" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(34,211,238,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none;resize:vertical;line-height:1.4">${camPosShow2.replace(/</g,'&lt;')}</textarea></div>`;
-      html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+      var _seq = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shot.id] : null;
+  if (_seq && _seq.length) {
+    html += '<div style="display:flex;gap:3px;margin-top:5px">' + _seq.map(function(b,bi){ return '<img src="data:image/png;base64,'+b+'" style="width:32%;border-radius:3px;cursor:pointer;border:1px solid var(--bd)" onclick="openSBLightbox(\''+shot.id+'\')" title="\uD750\uB984 '+(bi+1)+'/3">'; }).join('') + '</div>';
+    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-top:2px">\uD750\uB984 3\uCEF7 (\uC2DC\uC791\u2192\uC815\uC810\u2192\uC9C1\uD6C4) \u00B7 \uB3D9\uC77C \uACF5\uAC04</div>';
+  }
+  html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
+  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
       html += `</div>`;
     });
@@ -5684,7 +5697,7 @@ function updateSBProgress() {
   const el = document.getElementById('sbProgress');
   if(el) el.textContent = done + ' / ' + total + ' 필수 쇼트';
 }
-async function generateSBShot(shotId) {
+async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return;
   // 모드별 프리체크
@@ -5822,18 +5835,54 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     const imgInputs = (imgMode === 'zimage') ? [] : [...images];
+    if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
+    let _finalPrompt = prompt;
+    if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
     const { imgB64 } = await callImageGen({
       images: imgInputs,
-      prompt: prompt,
+      prompt: _finalPrompt,
       resVal: '1K',
       onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg; }
     });
     if(!imgB64) throw new Error('이미지 없음');
+    if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
     buildStoryboardTimeline();
   } catch(e) {
     alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
+  }
+}
+async function generateSBSequence(shotId) {
+  const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
+  if (!shot) return;
+  const phases = [
+    'FRAME 1 of 3 — BEGINNING: the setup instant just before the main action begins. Establish the space.',
+    'FRAME 2 of 3 — PEAK: the single decisive instant of the action at its height.',
+    'FRAME 3 of 3 — AFTERMATH: the immediate result / reaction right after the action, same spot.'
+  ];
+  const cardSel = '#sb-shot-' + shot.id.replace(/[^a-z0-9]/gi,'-');
+  const emptyEl = document.querySelector(cardSel + ' .sb-shot-empty');
+  if (emptyEl) { emptyEl.textContent = '흐름 3컷 생성 중...'; emptyEl.style.cursor='wait'; }
+  const seq = []; let cont = [];
+  try {
+    for (let i = 0; i < 3; i++) {
+      if (emptyEl) emptyEl.textContent = '흐름 ' + (i+1) + '/3 생성 중...';
+      const b64 = await generateSBShot(shotId, { phase: phases[i], cont: cont, returnOnly: true });
+      if (!b64) break;
+      seq.push(b64);
+      if (i === 0) cont = [{ b64: b64, mime: 'image/png', _type: 'background', _label: '이전 프레임 — 동일 공간/셋 그대로 유지' }];
+    }
+    if (seq.length) {
+      sbSeqImages[shotId] = seq;
+      sbGenImages[shotId] = seq[0];
+      buildStoryboardTimeline();
+    } else {
+      throw new Error('생성 결과 없음');
+    }
+  } catch(e) {
+    alert('흐름 3컷 생성 실패 (' + shotId + '): ' + e.message);
+    if (emptyEl) { emptyEl.textContent = '+ 생성'; emptyEl.style.cursor='pointer'; }
   }
 }
 async function generateAllStoryboard() {

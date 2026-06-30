@@ -541,6 +541,11 @@ input[type=file]{display:none}
 /* 부드러운 전환 */
 .panel { animation:fadeIn .25s ease; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+.sb-shot{position:relative}
+.sb-loading-ov{position:absolute;inset:0;background:rgba(10,12,16,.80);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:6;border-radius:8px;backdrop-filter:blur(1px)}
+.sb-spin{width:34px;height:34px;border:3px solid rgba(255,255,255,.18);border-top-color:var(--or);border-radius:50%;animation:sbspin .8s linear infinite}
+@keyframes sbspin{to{transform:rotate(360deg)}}
+.sb-load-txt{font-family:var(--font-mono);font-size:11px;color:#fff;font-weight:700;text-align:center;padding:0 8px}
 
 /* ═══ STORYBOARD ═══ */
 .sb-scene{min-width:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)}
@@ -5768,6 +5773,19 @@ function updateSBProgress() {
   const el = document.getElementById('sbProgress');
   if(el) el.textContent = done + ' / ' + total + ' 필수 쇼트';
 }
+function sbShowLoading(shotId, text){
+  var card=document.getElementById('sb-shot-'+String(shotId).replace(/[^a-z0-9]/gi,'-'));
+  if(!card) return;
+  if(getComputedStyle(card).position==='static') card.style.position='relative';
+  var ov=card.querySelector('.sb-loading-ov');
+  if(!ov){ ov=document.createElement('div'); ov.className='sb-loading-ov'; card.appendChild(ov); }
+  ov.innerHTML='<div class="sb-spin"></div><div class="sb-load-txt">'+(text||'생성 중...')+'</div>';
+  ov.style.display='flex';
+}
+function sbHideLoading(shotId){
+  var card=document.getElementById('sb-shot-'+String(shotId).replace(/[^a-z0-9]/gi,'-'));
+  if(!card) return; var ov=card.querySelector('.sb-loading-ov'); if(ov) ov.remove();
+}
 async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return;
@@ -5903,6 +5921,7 @@ no high contrast, no oversaturated colors, no digital clean look, no HDR look, n
 Single frame, no text overlay, no border, no watermark. Photorealistic film still.`;
   const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}
+  if(!(_seq)) sbShowLoading(shotId, '생성 중...');
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     const imgInputs = (imgMode === 'zimage') ? [] : [...images];
@@ -5913,7 +5932,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
       images: imgInputs,
       prompt: _finalPrompt,
       resVal: '1K',
-      onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg; }
+      onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); }
     });
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
@@ -5922,6 +5941,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
   } catch(e) {
     alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
+    sbHideLoading(shotId);
   }
 }
 async function generateSBSequence(shotId) {
@@ -5935,7 +5955,7 @@ async function generateSBSequence(shotId) {
   const _idc = shot.id.replace(/[^a-z0-9]/gi,'-');
   const emptyEl = document.querySelector('#sb-shot-' + _idc + ' .sb-shot-empty');
   const statusEl = document.getElementById('sbseq-' + _idc);
-  function _setStat(m){ if(statusEl) statusEl.textContent=m; if(emptyEl){ emptyEl.textContent=m; emptyEl.style.cursor='wait'; } }
+  function _setStat(m){ if(statusEl) statusEl.textContent=m; if(emptyEl){ emptyEl.textContent=m; emptyEl.style.cursor='wait'; } sbShowLoading(shotId, m); }
   _setStat('🎞 흐름 3컷 생성 시작...');
   const seq = []; let cont = [];
   try {
@@ -5956,6 +5976,7 @@ async function generateSBSequence(shotId) {
   } catch(e) {
     alert('흐름 3컷 생성 실패 (' + shotId + '): ' + e.message);
     if (emptyEl) { emptyEl.textContent = '+ 생성'; emptyEl.style.cursor='pointer'; }
+    sbHideLoading(shotId);
   }
 }
 async function generateAllStoryboard() {

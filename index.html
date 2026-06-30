@@ -6101,11 +6101,10 @@ function seq3up(imgKey){
   var arr = (typeof sbSeqImages!=='undefined') ? sbSeqImages[imgKey] : null;
   if(!arr || !arr.length) return '';
   var lab=['시작','정점','직후'];
-  var h='<div style="display:flex;gap:4px;margin-bottom:4px">';
+  var h='';
   for(var i=0;i<arr.length;i++){
-    h+='<div style="flex:1;text-align:center"><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:4px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"><div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);margin-top:1px">'+(i+1)+'. '+(lab[i]||'')+'</div></div>';
+    h+='<div style="margin-bottom:6px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700;margin-bottom:2px">'+(i+1)+'. '+(lab[i]||'')+'</div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
   }
-  h+='</div>';
   h+='<div style="display:flex;gap:4px;margin-bottom:6px"><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo(\''+imgKey+'\')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
   return h;
 }

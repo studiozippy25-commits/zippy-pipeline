@@ -5479,6 +5479,7 @@ function renderShotCard(shot, sceneVal) {
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
   }
+  html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
   html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
   html += `<div class="sb-shot-desc">${shot.desc}</div>`;
   html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func||''}</div>`;
@@ -5655,7 +5656,8 @@ function buildStoryboardTimeline() {
       } else {
         html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
       }
-      html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
+      html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
+  html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
       html += `<div class="sb-shot-desc">${shot.desc}</div>`;
       html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func}</div>`;
       const camPosCustom2 = (typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) || '';
@@ -5861,13 +5863,15 @@ async function generateSBSequence(shotId) {
     'FRAME 2 of 3 — PEAK: the single decisive instant of the action at its height.',
     'FRAME 3 of 3 — AFTERMATH: the immediate result / reaction right after the action, same spot.'
   ];
-  const cardSel = '#sb-shot-' + shot.id.replace(/[^a-z0-9]/gi,'-');
-  const emptyEl = document.querySelector(cardSel + ' .sb-shot-empty');
-  if (emptyEl) { emptyEl.textContent = '흐름 3컷 생성 중...'; emptyEl.style.cursor='wait'; }
+  const _idc = shot.id.replace(/[^a-z0-9]/gi,'-');
+  const emptyEl = document.querySelector('#sb-shot-' + _idc + ' .sb-shot-empty');
+  const statusEl = document.getElementById('sbseq-' + _idc);
+  function _setStat(m){ if(statusEl) statusEl.textContent=m; if(emptyEl){ emptyEl.textContent=m; emptyEl.style.cursor='wait'; } }
+  _setStat('🎞 흐름 3컷 생성 시작...');
   const seq = []; let cont = [];
   try {
     for (let i = 0; i < 3; i++) {
-      if (emptyEl) emptyEl.textContent = '흐름 ' + (i+1) + '/3 생성 중...';
+      _setStat('🎞 흐름 ' + (i+1) + '/3 생성 중... (동일 공간 유지)');
       const b64 = await generateSBShot(shotId, { phase: phases[i], cont: cont, returnOnly: true });
       if (!b64) break;
       seq.push(b64);

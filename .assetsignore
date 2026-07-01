@@ -11,3 +11,4 @@ node_modules
 wrangler.jsonc
 studioZIPPY_Pipeline_v1.html
 STUDIO_ZIPPY_AI_LIMITATIONS_v1.0.md
+DEPLOY.md

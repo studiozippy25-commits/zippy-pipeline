@@ -18,7 +18,9 @@
 | 인증 | `~/.git-credentials` (chmod 600)에 PAT 저장됨. **토큰 값을 출력/로그하지 말 것** |
 | 커밋 푸터 | `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` |
 
-- `wrangler`로 수동 배포하지 않는다. **push가 곧 배포**다.
+- `wrangler`로 수동 배포하지 않는다. **push가 곧 배포**다. `wrangler`/Pages 배포 흔적은 홈페이지(`studiozippy-site`) 쪽일 수 있으므로 파이프라인 배포에 쓰지 않는다.
+- 이 repo에는 `wrangler.toml`/`wrangler.jsonc`가 없다. 수동 Wrangler 배포를 시도하지 말고 GitHub 연동 자동배포만 사용한다.
+- 강제 재배포가 필요해도 빈 커밋(`--allow-empty`)에 의존하지 않는다. Cloudflare GitHub 연동이 트리 변경 없는 커밋을 새 HTML 게시로 처리하지 않을 수 있으므로, `index.html`에 무해한 고유 marker/meta 같은 **실제 바이트 변경**을 넣고 push한다.
 - 데이터 구조: `index.html` 안 `const PROJECTS = { ... }` 객체에 프로젝트별로 들어있음. N시 = `ncity` 프로젝트.
 
 ---
@@ -93,6 +95,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 git push origin main
 ```
 - **push는 반드시 foreground.** (백그라운드 push가 origin에 안 닿은 사고 있었음)
+- 강제 재배포 목적이면 빈 커밋 금지. `index.html`에 실제 바이트 변화가 있어야 한다.
 - 기본 브랜치가 `main`이고 여기에 직접 push해 배포한다.
 
 ### STEP 4 — 라이브 검증 (자동배포 폴링)
@@ -131,6 +134,7 @@ done
 - [ ] 이미지 추가 시 **파일 자체를 `git add`** 했나?
 - [ ] 같은 파일명 교체면 `?v=N` 올렸나?
 - [ ] push를 foreground로 했나? `git log origin/main --oneline -1`로 반영 확인.
+- [ ] 강제 재배포라면 빈 커밋이 아니라 `index.html` 실제 delta를 넣었나?
 - [ ] 라이브 curl 폴링으로 실제 반영 확인했나?
 
 ---

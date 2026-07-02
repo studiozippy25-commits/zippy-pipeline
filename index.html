@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="storyboard-download-20260702-185919">
+<meta name="zippy-deploy-marker" content="storyboard-density-final-20260702-192346">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -577,10 +577,10 @@ input[type=file]{display:none}
 .sb-shot-pri.opt{background:rgba(100,116,139,.1);color:var(--mu)}
 .sb-shot-img{width:176px;height:99px;border-radius:6px;border:1px solid var(--bd);object-fit:cover;display:block;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);background:#111820}
 .sb-shot-empty{width:176px;height:99px;border-radius:6px;border:1.5px dashed var(--bd);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--mu);cursor:pointer;transition:all .15s;margin-bottom:8px}
-#sbTimelineInner .sb-shot-img{width:100%;height:auto;min-height:170px}
-#sbTimelineInner .sb-shot-empty{width:100%;height:auto;aspect-ratio:16/9;min-height:170px}
-#sbTimelineInner.sb-compact .sb-shot-img{min-height:99px}
-#sbTimelineInner.sb-compact .sb-shot-empty{min-height:99px}
+#sbTimelineInner .sb-shot-img{width:100%;height:170px;min-height:0}
+#sbTimelineInner .sb-shot-empty{width:100%;height:170px;min-height:0;aspect-ratio:auto}
+#sbTimelineInner.single-ep-view .sb-shot-img,#sbTimelineInner.single-ep-view .sb-shot-empty{height:175px}
+#sbTimelineInner.sb-compact .sb-shot-img,#sbTimelineInner.sb-compact .sb-shot-empty{height:99px!important;min-height:0!important}
 .sb-shot-empty:hover{border-color:var(--or);color:var(--or);background:rgba(232,93,4,.03)}
 .sb-shot-info{font-size:12px;color:var(--mu);line-height:1.6}
 .sb-shot-info strong{color:var(--tx);font-weight:600}
@@ -15848,7 +15848,18 @@ function setSBViewDensity(mode) {
   try { localStorage.setItem('zippy-sb-view-density', mode); } catch(e) {}
 
   var timeline = document.getElementById('sbTimelineInner');
-  if (timeline) timeline.classList.toggle('sb-compact', mode === 'compact');
+  if (timeline) {
+    timeline.classList.toggle('sb-compact', mode === 'compact');
+    timeline.querySelectorAll('.sb-shot-img,.sb-shot-empty').forEach(function(el) {
+      if (mode === 'compact') {
+        el.style.setProperty('height', '99px', 'important');
+        el.style.setProperty('max-height', '99px', 'important');
+      } else {
+        el.style.removeProperty('height');
+        el.style.removeProperty('max-height');
+      }
+    });
+  }
 
   var largeBtn = document.getElementById('sbViewLarge');
   var compactBtn = document.getElementById('sbViewCompact');

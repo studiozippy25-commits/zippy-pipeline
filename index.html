@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="missingcuts-20260702-182915">
+<meta name="zippy-deploy-marker" content="storyboard-download-20260702-185919">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -549,34 +549,47 @@ input[type=file]{display:none}
 .sb-load-txt{font-family:var(--font-mono);font-size:11px;color:#fff;font-weight:700;text-align:center;padding:0 8px}
 
 /* ═══ STORYBOARD ═══ */
+.app:has(#pSB.active){max-width:1440px}
 .sb-scene{min-width:0;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)}
 .sb-scene:last-child{}
-#sbTimelineInner{display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;gap:12px !important;min-width:0 !important}
-@media (max-width:1400px){#sbTimelineInner{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
-@media (max-width:900px){#sbTimelineInner{grid-template-columns:repeat(2,minmax(0,1fr)) !important}}
+#sbTimelineInner{display:grid !important;grid-template-columns:repeat(auto-fill,minmax(320px,1fr)) !important;gap:16px !important;min-width:0 !important}
+#sbTimelineInner.sb-compact{grid-template-columns:repeat(auto-fill,minmax(220px,1fr)) !important;gap:10px !important}
+@media (max-width:1400px){#sbTimelineInner{grid-template-columns:repeat(auto-fill,minmax(300px,1fr)) !important}}
+@media (max-width:900px){#sbTimelineInner{grid-template-columns:1fr !important}}
 .sb-scene-hdr{padding:10px 14px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;color:var(--or);font-weight:700;letter-spacing:.8px;position:sticky;top:0;z-index:1;line-height:1.5}
 /* Sub-scene header (씬 단위 구분선) — 에피소드 내부에서 씬별 분할 */
 .sb-subscene-hdr{width:100%;flex:0 0 100% !important;padding:10px 14px;background:linear-gradient(90deg,rgba(8,145,178,.1),transparent);border-top:1px solid rgba(8,145,178,.2);border-bottom:1px solid rgba(8,145,178,.15);font-family:var(--font-mono);font-size:12px;color:var(--cy);font-weight:700;letter-spacing:.5px;box-sizing:border-box}
 .sb-subscene-hdr .cnt{opacity:.6;font-weight:400;font-size:10px;margin-left:6px}
-/* 단일 에피소드 뷰 — 그리드로 펼쳐 세로 길이 축소 */
+/* 단일 에피소드 뷰 — 라지 기본값, 필요하면 컴팩트로 축소 */
 #sbTimelineInner.single-ep-view{display:block !important;min-width:0 !important;width:100%}
 #sbTimelineInner.single-ep-view .sb-scene{width:100%;min-width:0;border-right:none;border-bottom:2px solid var(--bd);display:flex;flex-wrap:wrap;align-content:flex-start}
 #sbTimelineInner.single-ep-view .sb-scene-hdr{width:100%;flex:0 0 100%;position:sticky;top:0;z-index:2}
-#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 220px;width:220px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 340px;width:340px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+#sbTimelineInner.single-ep-view.sb-compact .sb-shot{flex-basis:220px;width:220px}
 #sbTimelineInner.single-ep-view .sb-subscene-hdr{position:sticky;top:52px;z-index:1}
+@media (max-width:760px){#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 100%;width:100%}}
 .sb-shot{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.06);transition:background .15s}
 .sb-shot:hover{background:rgba(0,0,0,.02)}
-.sb-shot-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sb-shot-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
 .sb-shot-id{font-family:var(--font-mono);font-size:12px;color:var(--bl);font-weight:700;letter-spacing:.5px}
-.sb-shot-pri{font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:600}
+.sb-shot-pri{font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:600;white-space:nowrap}
 .sb-shot-pri.must{background:rgba(232,93,4,.12);color:var(--or)}
 .sb-shot-pri.opt{background:rgba(100,116,139,.1);color:var(--mu)}
-.sb-shot-img{width:176px;height:99px;border-radius:6px;border:1px solid var(--bd);object-fit:cover;display:block;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sb-shot-img{width:176px;height:99px;border-radius:6px;border:1px solid var(--bd);object-fit:cover;display:block;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);background:#111820}
 .sb-shot-empty{width:176px;height:99px;border-radius:6px;border:1.5px dashed var(--bd);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--mu);cursor:pointer;transition:all .15s;margin-bottom:8px}
+#sbTimelineInner .sb-shot-img{width:100%;height:auto;min-height:170px}
+#sbTimelineInner .sb-shot-empty{width:100%;height:auto;aspect-ratio:16/9;min-height:170px}
+#sbTimelineInner.sb-compact .sb-shot-img{min-height:99px}
+#sbTimelineInner.sb-compact .sb-shot-empty{min-height:99px}
 .sb-shot-empty:hover{border-color:var(--or);color:var(--or);background:rgba(232,93,4,.03)}
 .sb-shot-info{font-size:12px;color:var(--mu);line-height:1.6}
 .sb-shot-info strong{color:var(--tx);font-weight:600}
 .sb-shot-desc{font-size:12px;color:var(--tx);line-height:1.5;margin-top:5px;max-width:176px}
+#sbTimelineInner .sb-shot-desc{max-width:none}
+.sb-density-toggle{display:inline-flex;align-items:center;border:1px solid var(--bd);border-radius:7px;overflow:hidden;background:var(--card);align-self:center}
+.sb-density-btn{border:0;border-right:1px solid var(--bd);background:transparent;color:var(--mu);font-family:var(--font-mono);font-size:11px;font-weight:700;padding:7px 10px;cursor:pointer;line-height:1}
+.sb-density-btn:last-child{border-right:0}
+.sb-density-btn.on{background:rgba(245,158,11,.14);color:var(--or)}
 
 /* ═══ VIDEO MODE ═══ */
 .vid-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1.5px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .12s;letter-spacing:.3px}
@@ -672,6 +685,11 @@ input[type=file]{display:none}
 .hist-card-btn{padding:3px 8px;border:1px solid var(--bd);background:var(--s2);color:var(--mu);font-family:var(--font-mono);font-size:9px;border-radius:4px;cursor:pointer;transition:all .12s}
 .hist-card-btn:hover{border-color:var(--bl);color:var(--bl)}
 .hist-card-btn.del:hover{border-color:var(--er);color:var(--er)}
+.sb-card-actions{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
+.sb-dl-btn{border-color:var(--bd)!important;color:var(--mu)!important;opacity:.45;cursor:not-allowed!important}
+.sb-dl-btn.active{border-color:var(--ok)!important;color:var(--ok)!important;background:rgba(52,211,153,.10)!important;opacity:1;cursor:pointer!important}
+.sb-dl-btn.active:hover{background:rgba(52,211,153,.18)!important;box-shadow:0 0 0 1px rgba(52,211,153,.16)}
+.sb-dl-btn:disabled{pointer-events:none}
 .hist-empty{text-align:center;padding:40px 20px;font-family:var(--font-mono);font-size:14px;color:var(--mu)}
 .hist-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
 .hist-modal img{max-width:90vw;max-height:85vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
@@ -1283,6 +1301,10 @@ input[type=file]{display:none}
     <button class="btn bor" onclick="generateAllStoryboard()" id="btnSBAll">전체 생성 (필수 쇼트)</button>
     <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
     <button class="btn bgh" onclick="clearStoryboard()">초기화</button>
+    <div class="sb-density-toggle" role="group" aria-label="스토리보드 보기 크기">
+      <button class="sb-density-btn on" id="sbViewLarge" onclick="setSBViewDensity('large')" title="큰 카드 보기">라지</button>
+      <button class="sb-density-btn" id="sbViewCompact" onclick="setSBViewDensity('compact')" title="촘촘한 카드 보기">컴팩트</button>
+    </div>
     <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu);align-self:center" id="sbProgress">0 / 0</span>
   </div>
   <div id="sbTimeline" style="padding-bottom:16px">
@@ -4241,24 +4263,18 @@ const PROJECTS = {
           "어린 이든": "assets/love/avatar/EDN_young_character_sheet.png?v=1"
       },
       "defaultFaceRefs": {
-          "이루리": "assets/love/char/IRU_iruri_character_sheet.png?v=1",
-          "정이든": "assets/love/char/EDN_eden_character_sheet.png?v=1",
-          "한소담": "assets/love/char/DAM_sodam_character_sheet.png?v=1",
-          "최나온": "assets/love/char/NAON_naon_character_sheet.png?v=1",
-          "윤세하": "assets/love/char/SEHA_seha_character_sheet.png?v=1",
-          "강도윤": "assets/love/char/DOY_doyun_character_sheet.png?v=1",
-          "백하린": "assets/love/char/HRN_harin_character_sheet.png?v=1",
-          "오태경": "assets/love/char/TAE_taekyung_character_sheet.png?v=1",
-          "서단아": "assets/love/char/DANAH_danah_character_sheet.png?v=1",
-          "황도경 코치": "assets/love/char/HWANG_hwang_coach_character_sheet.png?v=1",
-          "노현성 선생님": "assets/love/char/NOH_noh_teacher_character_sheet.png?v=1",
-          "쿠레나이": "assets/love/avatar/KURE_character_sheet.png?v=1",
-          "키이로": "assets/love/avatar/KIIRO_character_sheet.png?v=1",
-          "점수의 기사 이든": "assets/love/avatar/EDN_knight_character_sheet.png?v=1",
-          "거울검객 나온": "assets/love/avatar/NAON_mirror_character_sheet.png?v=1",
-          "시스템 보스 도윤": "assets/love/avatar/DOY_system_character_sheet.png?v=1",
-          "어린 이든": "assets/love/avatar/EDN_young_character_sheet.png?v=1"
-      },
+          "이루리": "assets/love/face/6view/IRU_iruri_6view.png?v=1",
+          "정이든": "assets/love/face/6view/EDN_eden_6view.png?v=1",
+          "한소담": "assets/love/face/6view/DAM_sodam_6view.png?v=1",
+          "최나온": "assets/love/face/6view/NAON_naon_6view.png?v=1",
+          "윤세하": "assets/love/face/6view/SEHA_seha_6view.png?v=1",
+          "강도윤": "assets/love/face/6view/DOY_doyun_6view.png?v=1",
+          "백하린": "assets/love/face/6view/HRN_harin_6view.png?v=1",
+          "오태경": "assets/love/face/6view/TAE_taekyung_6view.png?v=1",
+          "서단아": "assets/love/face/6view/DANAH_danah_6view.png?v=1",
+          "황도경 코치": "assets/love/face/6view/HWANG_hwang_coach_6view.png?v=1",
+          "노현성 선생님": "assets/love/face/6view/NOH_noh_teacher_6view.png?v=1"
+},
       "defaultCostumeRefs": {
           "이루리": "assets/love/char/IRU_iruri_character_sheet.png?v=1",
           "정이든": "assets/love/char/EDN_eden_character_sheet.png?v=1",
@@ -15525,6 +15541,10 @@ function selectProject(key) {
   if (faceContainer2) {
     faceContainer2.innerHTML = charNames.map(function(name, i) {
       const fKey = 'face-' + (i + 1);
+      const faceUrl = currentProject.defaultFaceRefs && currentProject.defaultFaceRefs[name];
+      const faceGrid = faceUrl
+        ? '<div class="titem"><img src="' + faceUrl + '" alt="' + name + ' 얼굴 6전도"><div class="tlbl">' + name + ' 얼굴 6전도</div></div>'
+        : '<div class="tg-empty" style="font-size:10px">—</div>';
       if (typeof assetLib !== 'undefined' && !assetLib[fKey]) assetLib[fKey] = [];
       return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
         '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + name + '</div>' +
@@ -15533,7 +15553,7 @@ function selectProject(key) {
         '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
         '<input type="file" id="asset-' + fKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + fKey + '\',this.files)">' +
         '</div>' +
-        '<div class="tgrid" id="asset-' + fKey + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:10px">—</div></div>' +
+        '<div class="tgrid" id="asset-' + fKey + '-grid" style="margin-top:6px;min-height:30px">' + faceGrid + '</div>' +
         '</div></div>';
     }).join('');
   }
@@ -15814,6 +15834,32 @@ function refreshEpSelector() {
   }
 }
 
+function getSBViewDensity() {
+  try {
+    return localStorage.getItem('zippy-sb-view-density') || 'large';
+  } catch(e) {
+    return 'large';
+  }
+}
+
+function setSBViewDensity(mode) {
+  mode = mode === 'compact' ? 'compact' : 'large';
+  window.__sbViewDensity = mode;
+  try { localStorage.setItem('zippy-sb-view-density', mode); } catch(e) {}
+
+  var timeline = document.getElementById('sbTimelineInner');
+  if (timeline) timeline.classList.toggle('sb-compact', mode === 'compact');
+
+  var largeBtn = document.getElementById('sbViewLarge');
+  var compactBtn = document.getElementById('sbViewCompact');
+  if (largeBtn) largeBtn.classList.toggle('on', mode !== 'compact');
+  if (compactBtn) compactBtn.classList.toggle('on', mode === 'compact');
+}
+
+function applySBViewDensity() {
+  setSBViewDensity(window.__sbViewDensity || getSBViewDensity());
+}
+
 function filterSBEp(epNum, btn) {
   // Toggle chip active state
   var chips = document.querySelectorAll('#sbEpChips .chip');
@@ -15829,6 +15875,7 @@ function filterSBEp(epNum, btn) {
   } else {
     timeline.classList.add('single-ep-view');
   }
+  applySBViewDensity();
   // data-ep 우선, 없으면 data-scene 사용 (하위 호환)
   var epGroups = timeline.querySelectorAll('.sb-scene[data-ep]');
   if (epGroups.length === 0) epGroups = timeline.querySelectorAll('.sb-scene[data-scene]');
@@ -16841,6 +16888,24 @@ function deleteSBImage(shotId) {
   buildStoryboardTimeline();
 }
 
+function sbQuoteAttr(v) {
+  return String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function sbQuoteJs(v) {
+  return String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function renderSBDownloadButton(shotId) {
+  const ready = !!(typeof sbGenImages !== 'undefined' && sbGenImages[shotId]);
+  const safeId = sbQuoteJs(shotId);
+  const cls = 'hist-card-btn sb-dl-btn' + (ready ? ' active' : '');
+  const disabled = ready ? '' : ' disabled aria-disabled="true"';
+  const title = ready ? '이미지 바로 다운로드' : '이미지 생성 후 다운로드 가능';
+  const onClick = ready ? "event.stopPropagation();downloadSBImg('" + safeId + "')" : 'event.stopPropagation()';
+  return '<button class="' + cls + '" onclick="' + onClick + '"' + disabled + ' title="' + sbQuoteAttr(title) + '">⬇ 저장</button>';
+}
+
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
   const hasImg = sbGenImages[imgKey];
@@ -16856,9 +16921,10 @@ function renderShotCard(shot, sceneVal) {
     html += seq3up(imgKey);
   } else if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
+    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
+    html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
   }
   html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
   html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
@@ -17185,6 +17251,7 @@ function buildStoryboardTimeline() {
     });
     inner.innerHTML = html;
     updateSBProgress();
+    applySBViewDensity();
     // 대용량 기본 필터
     if (SB_SHOTS.length >= 100 && epNums.length > 1) {
       const firstEp = epNums[0];
@@ -17220,9 +17287,10 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
       if (hasImg) {
         html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
+        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo('${imgKey}')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
       } else {
         html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
+        html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
       }
       html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
   html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
@@ -17238,6 +17306,7 @@ function buildStoryboardTimeline() {
   });
   inner.innerHTML = html;
   updateSBProgress();
+  applySBViewDensity();
 
   // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
   if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
@@ -17654,7 +17723,7 @@ function seq3up(imgKey){
   for(var i=0;i<arr.length;i++){
     h+='<div style="margin-bottom:6px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700;margin-bottom:2px">'+(i+1)+'. '+(lab[i]||'')+'</div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
   }
-  h+='<div style="display:flex;gap:4px;margin-bottom:6px"><button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo(\''+imgKey+'\')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
+  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+'<button class="hist-card-btn" onclick="event.stopPropagation();sendSBToVideo(\''+imgKey+'\')" style="border-color:var(--pu);color:var(--pu)">→ 영상</button><button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
   return h;
 }
 function deleteSBSeq(imgKey){ if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey]; if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey]; if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); }

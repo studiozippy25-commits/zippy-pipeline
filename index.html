@@ -15565,6 +15565,10 @@ function selectProject(key) {
       if (typeof assetLib !== 'undefined' && !assetLib[o.key]) assetLib[o.key] = [];
     });
     objContainer.innerHTML = currentProject.objectAssets.map(function(o) {
+      const defaultObjUrl = currentProject.defaultObjRefs && currentProject.defaultObjRefs[o.key];
+      const defaultObjGrid = defaultObjUrl
+        ? '<div class="titem"><img src="' + defaultObjUrl + '" alt="' + o.name + '"><div class="tlbl">' + o.name + '</div></div>'
+        : '<div class="tg-empty" style="font-size:10px">—</div>';
       return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
         '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + o.name + '</div>' +
         '<div style="padding:10px">' +
@@ -15573,7 +15577,7 @@ function selectProject(key) {
         '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
         '<input type="file" id="asset-' + o.key + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + o.key + '\',this.files)">' +
         '</div>' +
-        '<div class="tgrid" id="asset-' + o.key + '-grid" style="margin-top:6px;min-height:30px"><div class="tg-empty" style="font-size:10px">—</div></div>' +
+        '<div class="tgrid" id="asset-' + o.key + '-grid" style="margin-top:6px;min-height:30px">' + defaultObjGrid + '</div>' +
         '</div></div>';
     }).join('');
   }
@@ -19418,7 +19422,12 @@ function updateAssetCounts() {
   Object.keys(assetLib).forEach(k => {
     if (k === 'obj' || k.indexOf('obj-') === 0) objTotal += (assetLib[k]||[]).length;
   });
-  if(oe) oe.textContent = objTotal + '개 등록';
+  if(oe) {
+    const defaultObjTotal = currentProject && currentProject.defaultObjRefs
+      ? Object.keys(currentProject.defaultObjRefs).filter(k => (currentProject.objectAssets || []).some(o => o.key === k)).length
+      : 0;
+    oe.textContent = Math.max(objTotal, defaultObjTotal) + '개 등록';
+  }
 }
 function getAssetImages(category) {
   if (category === 'space') {

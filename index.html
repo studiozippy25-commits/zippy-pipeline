@@ -21199,10 +21199,21 @@ function formatGrokBuildError(e) {
 function showGrokBuildVideoResult(videoUrl, prompt, model, fileName) {
   vidTabVideos.unshift({url:videoUrl, model:model || 'Grok Build CLI', prompt, time:new Date().toLocaleTimeString(), fileName:fileName || ''});
   renderVidTabHistory();
+  showVidTabLargeVideo(videoUrl, prompt, model || 'Grok Build CLI', fileName || ('grok_build_' + Date.now() + '.mp4'));
+}
+
+function showVidTabLargeVideo(videoUrl, prompt, model, fileName) {
   const result = document.getElementById('vidTabResult');
   const content = document.getElementById('vidTabResultContent');
   if (result) result.style.display = 'block';
-  if (content) content.innerHTML = '<video controls autoplay loop style="max-width:100%;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15)" src="' + escAttr(videoUrl) + '"></video><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a href="' + escAttr(videoUrl) + '" download="' + escAttr(fileName || ('grok_build_' + Date.now() + '.mp4')) + '" class="btn bpu bsm" style="text-decoration:none">다운로드</a></div>';
+  if (content) content.innerHTML = '<video controls autoplay loop style="width:min(100%,920px);max-height:72vh;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);background:#000" src="' + escAttr(videoUrl) + '"></video><div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-top:10px">' + escAttr(model || 'Grok Build CLI') + '</div><div style="display:flex;gap:8px;justify-content:center;margin-top:12px"><a href="' + escAttr(videoUrl) + '" download="' + escAttr(fileName || ('video_' + Date.now() + '.mp4')) + '" class="btn bpu bsm" style="text-decoration:none">다운로드</a></div>';
+  if (result) result.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function openVidTabHistoryVideo(index) {
+  const v = vidTabVideos[index];
+  if (!v) return;
+  showVidTabLargeVideo(v.url, v.prompt, v.model, v.fileName || ('video_' + index + '.mp4'));
 }
 
 function receiveGrokBuildVideo(files) {
@@ -21292,12 +21303,12 @@ function renderVidTabHistory() {
   const el = document.getElementById('vidTabHistory');
   if (!el || vidTabVideos.length === 0) return;
   el.innerHTML = vidTabVideos.map((v, i) => `
-    <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)">
-      <video src="${v.url}" style="width:100%;aspect-ratio:16/9;object-fit:cover" muted loop onmouseenter="this.play()" onmouseleave="this.pause()"></video>
+    <div onclick="openVidTabHistoryVideo(${i})" title="생성 결과에서 크게 재생" style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card);cursor:pointer;transition:border-color .12s, transform .12s" onmouseover="this.style.borderColor='var(--pu)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <video src="${escAttr(v.url)}" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" muted loop onmouseenter="this.play()" onmouseleave="this.pause()"></video>
       <div style="padding:8px 10px">
-        <div style="font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">${v.model} · ${v.time}</div>
-        <div style="font-size:11px;color:var(--mu);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.prompt}</div>
-        <a href="${v.url}" download class="hist-card-btn" style="display:inline-block;margin-top:4px;text-decoration:none">⬇ 저장</a>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">${escAttr(v.model)} · ${escAttr(v.time)}</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escAttr(v.prompt)}</div>
+        <a href="${escAttr(v.url)}" download class="hist-card-btn" onclick="event.stopPropagation()" style="display:inline-block;margin-top:4px;text-decoration:none">⬇ 저장</a>
       </div>
     </div>
   `).join('');

@@ -2932,12 +2932,12 @@ input[type=file]{display:none}
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">영상 설정</div>
     <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
       <div>
-        <div class="cfg-lbl">로컬 워크플로우</div>
+        <div class="cfg-lbl">5080 Gateway 워크플로우</div>
         <div class="chips">
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 기본 <span style="font-size:9px;opacity:.5">ComfyUI</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 고품질 <span style="font-size:9px;opacity:.5">5080</span></button>
-          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 빠른 <span style="font-size:9px;opacity:.5">local</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 커스텀 <span style="font-size:9px;opacity:.5">workflow</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 기본 <span style="font-size:9px;opacity:.5">i2v_api</span></button>
+          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 고품질 <span style="font-size:9px;opacity:.5">5080</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 빠른 <span style="font-size:9px;opacity:.5">std</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">커스텀 API <span style="font-size:9px;opacity:.5">Export</span></button>
         </div>
       </div>
       <div>
@@ -21253,10 +21253,13 @@ async function executeVideoTab() {
   vidTabAbortController = new AbortController();
 
   const prompt = getVidTabPromptForGeneration();
+  const workflowPreset = getSelected('vmodel') || 'Gateway 고품질 5080';
   const dur = getSelected('vdur') || '5초';
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
+  const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
+  const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
   const btn = document.getElementById('vidTabExecBtn');
   const status = document.getElementById('vidTabStatus');
@@ -21266,13 +21269,14 @@ async function executeVideoTab() {
   btn.textContent = '생성 중...';
   setAbortButtonEnabled('vidTabAbortBtn', true);
   status.style.display = 'block';
-  status.textContent = 'Local 5080 Gateway 전송 중...';
+  status.textContent = 'Local 5080 Gateway 전송 중...' + (localGatewayProxied ? ' · 로컬 프록시 경유' : ' · 직접 호출');
 
   try {
     const refs = [];
     if (vidEndB64) refs.push({ name:'end_frame.png', mime:vidEndMime, b64:vidEndB64 });
     const videoUrl = await requestLocalVideo({
       model: modelName,
+      workflow_preset: workflowPreset,
       image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
       images: refs,
       prompt,

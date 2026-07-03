@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="storyboard-density-final-20260702-192346">
+<meta name="zippy-deploy-marker" content="instagram-grok-git-20260703-110000">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -751,6 +751,46 @@ input[type=file]{display:none}
 .cfg-sec + .cfg-sec { padding-top:14px; border-top:1px solid rgba(0,0,0,.04); }
 .cfg-left .cfg-sec:first-child { padding-top:0; border-top:none; }
 
+<!-- zippy-instagram-module -->
+/* Instagram Persona module */
+.project-card.ip-card{grid-column:span 2;border-color:#2563EB;background:linear-gradient(180deg,rgba(37,99,235,.12),var(--card));box-shadow:0 0 0 1px rgba(37,99,235,.35),0 18px 44px rgba(37,99,235,.12)}
+.project-card.ip-card::after{content:'NEW';position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:4px 8px;border-radius:999px;background:#EF4444;color:white;font-family:var(--font-mono);font-size:9px;font-weight:800;letter-spacing:1px}
+@media(max-width:900px){.project-card.ip-card{grid-column:auto}}
+.ip-panel{display:none}
+.ip-panel.active{display:block}
+.ip-note{padding:12px 14px;margin-bottom:16px;border:1px solid rgba(244,114,182,.25);border-radius:8px;background:rgba(244,114,182,.07);font-family:var(--font-mono);font-size:12px;color:#F9A8D4;line-height:1.7}
+.ip-top-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.ip-box{border:1px solid var(--bd);border-radius:10px;background:var(--card);padding:14px}
+.ip-box-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+.ip-box-head b{display:block;color:var(--tx);font-size:15px}
+.ip-box-head span{display:block;margin-top:2px;color:var(--mu);font-family:var(--font-mono);font-size:11px}
+.ip-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.ip-thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;min-height:104px;padding:10px;border:1px dashed var(--bd);border-radius:8px;background:rgba(255,255,255,.02);margin-bottom:10px}
+.ip-thumb-grid>span{align-self:center;color:var(--mu);font-family:var(--font-mono);font-size:11px}
+.ip-thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--sf)}
+.ip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ip-thumb small{position:absolute;left:4px;right:4px;bottom:4px;padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.62);color:white;font-family:var(--font-mono);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ip-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.ip-controls label{display:grid;gap:4px;color:var(--mu);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.8px}
+.ip-controls select,.ip-controls input,.ip-textarea{width:100%;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);padding:8px;font-family:var(--font-body)}
+.ip-textarea{min-height:70px;resize:vertical;margin-bottom:10px}
+.ip-pre{min-height:120px;margin:10px 0;padding:10px;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;color:#CBD5E1;font-family:var(--font-mono);font-size:11px;line-height:1.65}
+.ip-output{min-height:180px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);color:var(--mu);font-family:var(--font-mono);font-size:11px;overflow:hidden}
+.ip-output img{max-width:100%;max-height:520px;display:block}
+.ip-status{padding:8px 10px;border-radius:6px;background:rgba(96,165,250,.08);color:#93C5FD;font-family:var(--font-mono);font-size:12px;margin-bottom:10px}
+.ip-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.ip-card-result{border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--sf)}
+.ip-card-result img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0b0f14}
+.ip-card-result .meta{padding:8px 10px;color:var(--mu);font-family:var(--font-mono);font-size:10px;display:flex;justify-content:space-between;gap:8px}
+.ip-card-result .tools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--bd)}
+.ip-card-result video{width:100%;display:block;border-top:1px solid var(--bd)}
+.gv-panel .ip-box{border-color:rgba(251,146,60,.25)}
+.gv-note{border-color:rgba(251,146,60,.25);background:rgba(251,146,60,.07);color:#FDBA74}
+.gv-pre{min-height:180px}
+.gv-image,.gv-video{min-height:360px}
+.gv-image img{width:100%;height:100%;max-height:520px;object-fit:contain;display:block}
+.gv-video video{width:100%;max-height:720px;display:block}
+@media(max-width:760px){.ip-top-grid{grid-template-columns:1fr}.ip-box-head{flex-direction:column}.ip-results{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -830,6 +870,17 @@ input[type=file]{display:none}
       <div class="pc-desc">자유 프로젝트<br>모든 장르 · 모든 포맷</div>
       <div style="margin-top:16px;display:flex;gap:6px;justify-content:center">
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">커스텀</span>
+      </div>
+    </div>
+<!-- zippy-instagram-module -->
+    <div class="project-card ip-card" onclick="openInstagramPersonaPipeline()">
+      <div class="pc-name">INSTAGRAM PERSONA</div>
+      <div class="pc-name-en">Virtual Creator Reel</div>
+      <div class="pc-desc">인물 6전도 · 의상 레퍼런스<br>랜드마크 배경 · 10컷 이미지릴</div>
+      <div style="margin-top:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">6시트</span>
+        <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">10이미지</span>
+        <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">I2V</span>
       </div>
     </div>
   </div>
@@ -960,7 +1011,135 @@ input[type=file]{display:none}
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
+  <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
+  <button class="stab" id="tabGrokVid" onclick="goStep('grokvid')" style="border-bottom-color:#FB923C;color:#FB923C">Grok 영상</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
+</div>
+
+<!-- zippy-instagram-module -->
+<!-- ═══════════════ INSTAGRAM PERSONA MODULE ═══════════════ -->
+<div class="panel ip-panel" id="pInsta">
+  <div class="slbl" style="color:#F472B6">INSTAGRAM PERSONA · 부캐 이미지릴 생성</div>
+  <div class="ip-note">기존 이미지/LLM/영상 프록시 설정을 그대로 사용합니다. 인물 사진, 의상 레퍼런스, 랜드마크를 고르면 6전도 시트와 10컷 이미지릴을 생성합니다.</div>
+
+  <div class="ip-top-grid">
+    <div class="ip-box">
+      <div class="ip-box-head">
+        <div><b>01 인물 고정</b><span>원본 인물 사진 / 폴더</span></div>
+        <div class="ip-actions">
+          <button class="btn bgh bsm" onclick="document.getElementById('ipPersonInput').click()">사진 추가</button>
+          <button class="btn bgh bsm" onclick="document.getElementById('ipPersonFolder').click()">폴더 추가</button>
+        </div>
+      </div>
+      <input id="ipPersonInput" type="file" accept="image/*" multiple style="display:none" onchange="ipAddFiles('person', this.files)">
+      <input id="ipPersonFolder" type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="ipAddFiles('person', this.files)">
+      <div class="ip-thumb-grid" id="ipPersonGrid"><span>인물 이미지 대기</span></div>
+      <div class="ip-actions">
+        <button class="btn bor bsm" id="ipIdentityBtn" onclick="ipExtractIdentity()">인물 DNA 추출</button>
+        <button class="btn bbl bsm" id="ipSheetBtn" onclick="ipGenerateIdentitySheet()">6전도 시트 생성</button>
+      </div>
+      <pre class="ip-pre" id="ipIdentityDna">인물 고정값이 여기에 표시됩니다.</pre>
+      <div class="ip-output" id="ipSheetOutput"><span>6전도 시트 대기</span></div>
+    </div>
+
+    <div class="ip-box">
+      <div class="ip-box-head">
+        <div><b>02 의상 적용</b><span>레퍼런스 의상 업로드</span></div>
+        <div class="ip-actions">
+          <button class="btn bgh bsm" onclick="document.getElementById('ipOutfitInput').click()">사진 추가</button>
+          <button class="btn bgh bsm" onclick="document.getElementById('ipOutfitFolder').click()">폴더 추가</button>
+        </div>
+      </div>
+      <input id="ipOutfitInput" type="file" accept="image/*" multiple style="display:none" onchange="ipAddFiles('outfit', this.files)">
+      <input id="ipOutfitFolder" type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="ipAddFiles('outfit', this.files)">
+      <div class="ip-thumb-grid" id="ipOutfitGrid"><span>의상 이미지 대기</span></div>
+      <div class="ip-controls">
+        <label>의상 반영<select id="ipOutfitStrength"><option value="standard">표준</option><option value="strict">정확</option><option value="loose">느슨</option></select></label>
+        <button class="btn bor bsm" id="ipOutfitBtn" onclick="ipExtractOutfit()">의상 DNA 추출</button>
+      </div>
+      <pre class="ip-pre" id="ipOutfitDna">의상 분석값이 여기에 표시됩니다.</pre>
+    </div>
+  </div>
+
+  <div class="ip-box">
+    <div class="ip-box-head">
+      <div><b>03 랜드마크 + 04 이미지릴</b><span>한국/세계 랜드마크 선택 후 10컷 생성</span></div>
+      <div class="ip-actions">
+        <button class="btn bpu bsm" id="ipBatchBtn" onclick="ipGenerateBatch()">10컷 생성</button>
+        <button class="btn bgh bsm" onclick="ipDownloadManifest()">매니페스트 저장</button>
+      </div>
+    </div>
+    <div class="ip-controls">
+      <label>지역<select id="ipLocMode" onchange="ipSetLocationMode(this.value)"><option value="korea">대한민국</option><option value="world">세계</option></select></label>
+      <label>랜드마크<select id="ipLocation"></select></label>
+      <label>무드<select id="ipVibe"><option value="daily">데일리</option><option value="travel">여행</option><option value="street">스트릿</option><option value="cafe">카페</option><option value="brand">브랜드협업</option></select></label>
+      <label>생성 수<input id="ipCount" type="number" min="1" max="20" value="10"></label>
+      <label>I2V 제공자<select id="ipVideoProvider"><option value="kling">Kling Proxy</option><option value="local">Local 5080 Gateway</option></select></label>
+      <label>Local 5080 URL<input id="ipLocalVideoUrl" type="url" placeholder="https://5080-pc.example.trycloudflare.com"></label>
+      <label>Local Key<input id="ipLocalVideoKey" type="password" placeholder="선택"></label>
+    </div>
+    <textarea class="ip-textarea" id="ipCustomPrompt" placeholder="추가 지시: 계절, 헤어, 소품, 계정 톤, 피해야 할 것 등"></textarea>
+    <div class="ip-status" id="ipStatus">대기</div>
+    <div class="ip-results" id="ipResults"></div>
+  </div>
+</div>
+
+<!-- zippy-instagram-module -->
+<!-- ═══════════════ GROK VIDEO MODULE ═══════════════ -->
+<div class="panel ip-panel gv-panel" id="pGrokVid">
+  <div class="slbl" style="color:#FB923C">GROK VIDEO · 이미지 투 영상</div>
+  <div class="ip-note gv-note">SuperGrok/Grok Build 계정 로그인은 로컬 Grok 브릿지로 연결합니다. 이미지 업로드 후 프롬프트를 만들고, 공식 xAI 비디오 API 키가 브릿지에 있으면 바로 생성합니다.</div>
+
+  <div class="ip-top-grid">
+    <div class="ip-box">
+      <div class="ip-box-head">
+        <div><b>01 Grok 로그인</b><span>로컬 Grok CLI 브릿지</span></div>
+        <div class="ip-actions">
+          <button class="btn bor bsm" onclick="gvCheckLogin()">상태 확인</button>
+          <button class="btn bpu bsm" onclick="gvStartLogin()">로그인 시작</button>
+          <button class="btn bgh bsm" onclick="gvLogout()">로그아웃</button>
+        </div>
+      </div>
+      <div class="ip-controls">
+        <label>Bridge URL<input id="gvBridgeUrl" type="url" value="http://127.0.0.1:8790"></label>
+      </div>
+      <div class="ip-actions" style="margin-bottom:10px">
+        <button class="btn bgh bsm" onclick="window.open('https://grok.com/build','_blank')">Grok Build 열기</button>
+        <button class="btn bgh bsm" onclick="window.open('https://console.x.ai/','_blank')">xAI Console</button>
+      </div>
+      <pre class="ip-pre gv-pre" id="gvLoginStatus">브릿지를 켜고 상태 확인을 눌러주세요. 실행: node grok-login-bridge/server.mjs</pre>
+    </div>
+
+    <div class="ip-box">
+      <div class="ip-box-head">
+        <div><b>02 소스 이미지</b><span>I2V 시작 프레임</span></div>
+        <div class="ip-actions">
+          <button class="btn bgh bsm" onclick="document.getElementById('gvImageInput').click()">이미지 업로드</button>
+        </div>
+      </div>
+      <input id="gvImageInput" type="file" accept="image/*" style="display:none" onchange="gvAddImage(this.files)">
+      <div class="ip-output gv-image" id="gvImagePreview"><span>이미지 대기</span></div>
+    </div>
+  </div>
+
+  <div class="ip-box">
+    <div class="ip-box-head">
+      <div><b>03 Grok I2V 생성</b><span>업로드 이미지 + 모션 프롬프트</span></div>
+      <div class="ip-actions">
+        <button class="btn bpu bsm" id="gvGenerateBtn" onclick="gvGenerateVideo()">Grok 영상 생성</button>
+        <button class="btn bgh bsm" onclick="gvCopyPrompt()">프롬프트 복사</button>
+      </div>
+    </div>
+    <div class="ip-controls">
+      <label>Model<select id="gvModel"><option value="grok-imagine-video-1.5">grok-imagine-video-1.5</option><option value="grok-imagine-video">grok-imagine-video</option></select></label>
+      <label>Duration<select id="gvDuration"><option value="5">5s</option><option value="10">10s</option><option value="12">12s</option></select></label>
+      <label>Ratio<select id="gvRatio"><option value="9:16">9:16</option><option value="16:9">16:9</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="3:4">3:4</option></select></label>
+      <label>Quality<select id="gvResolution"><option value="720p">720p</option><option value="480p">480p</option><option value="1080p">1080p</option></select></label>
+    </div>
+    <textarea class="ip-textarea gv-textarea" id="gvPrompt" placeholder="예: subtle handheld vertical Instagram reel, gentle push-in, natural hair and fabric motion, keep face and outfit unchanged"></textarea>
+    <div class="ip-status" id="gvStatus">대기</div>
+    <div class="ip-output gv-video" id="gvVideoOutput"><span>영상 결과 대기</span></div>
+  </div>
 </div>
 
 <!-- ═══════════════ STEP 0: ASSET LIBRARY ═══════════════ -->
@@ -25288,6 +25467,366 @@ function updatePromptPreview() {
   document.getElementById('promptPreviewBody').textContent = parts.join('\n\n') || '설정이 없습니다.';
   document.getElementById('promptPreviewBody').style.display = 'block';
 }
+<!-- zippy-instagram-module -->
+(function(){
+  const state={person:[],outfit:[],identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',grokVideo:{image:null,loginId:null,videoUrl:null,authUrlOpened:''}};
+  const KR=[
+    ['서울 · 경복궁','Gyeongbokgung Palace in Seoul, stone courtyard, palace gates and traditional rooflines visible but not postcard-like'],
+    ['서울 · 북촌한옥마을','Bukchon Hanok Village in Seoul, narrow hanok alley, tiled roofs, quiet residential morning'],
+    ['서울 · 한강 반포대교','Banpo Hangang Park by the Han River, bridge and skyline in the distance, relaxed riverside walk'],
+    ['서울 · DDP','Dongdaemun Design Plaza, silver curved architecture, clean plaza, modern Seoul creator photo'],
+    ['서울 · 성수동','Seongsu brick cafe street, renovated warehouse facade, quiet boutique storefronts'],
+    ['경기 · 수원화성','Suwon Hwaseong Fortress, stone wall and traditional gate, natural daylight, casual travel post'],
+    ['경기 · 광교호수공원','Gwanggyo Lake Park, calm water, modern apartment skyline, evening promenade'],
+    ['인천 · 송도 센트럴파크','Songdo Central Park, canal, glass towers, clean modern city park'],
+    ['부산 · 광안리','Gwangalli Beach, Gwangan Bridge in distance, ocean wind, realistic Korean beach street'],
+    ['제주 · 성산일출봉','Seongsan Ilchulbong volcanic tuff cone, coastal grass, windy Jeju travel look'],
+    ['경주 · 월정교','Woljeonggyo Bridge in Gyeongju, warm wooden architecture, twilight reflection'],
+    ['전주 · 한옥마을','Jeonju Hanok Village, traditional roofline street, quiet cultural travel post'],
+    ['강릉 · 안목해변','Anmok coffee street by the sea, cafe windows and ocean light'],
+    ['여수 · 밤바다','Yeosu night sea, harbor lights, cable car glow, restrained night mood']
+  ];
+  const WORLD=[
+    ['프랑스','Paris near the Eiffel Tower, elegant street, iron landmark visible in the background'],
+    ['이탈리아','Rome near the Colosseum, warm stone street, historic arches in the distance'],
+    ['영국','London near Westminster and Big Ben, cloudy daylight, classic city crosswalk'],
+    ['미국','New York City, Manhattan street with skyline and yellow cabs, realistic creator snapshot'],
+    ['일본','Tokyo Shibuya crossing or Kyoto street, dense urban detail, clean Japanese city light'],
+    ['중국','Shanghai Bund skyline, river promenade, modern high-rise background'],
+    ['싱가포르','Marina Bay, clean waterfront, futuristic skyline and soft haze'],
+    ['아랍에미리트','Dubai near Burj Khalifa, polished urban plaza, desert city light'],
+    ['호주','Sydney Harbour, Opera House shape visible, waterfront wind'],
+    ['브라질','Rio de Janeiro with Sugarloaf Mountain in distance, coastal city energy'],
+    ['이집트','Cairo with pyramids visible in warm desert haze, realistic travel photo'],
+    ['인도','Agra with Taj Mahal silhouette in the distance, bright marble and garden path'],
+    ['인도네시아','Bali temple gate and tropical greenery, travel creator mood'],
+    ['그리스','Santorini white village, blue sea, narrow stair street']
+  ];
+  const VIBES={
+    daily:'casual Korean Instagram daily outfit post, natural pose, friend-taken photo, polished but not studio',
+    travel:'travel creator snapshot, landmark context, relaxed walking pose, clean vertical composition',
+    street:'urban street fashion post, confident walk, storefront texture, candid phone-camera realism',
+    cafe:'quiet cafe-adjacent creator photo, coffee in hand, soft window light, realistic social feed tone',
+    brand:'soft branded-campaign feeling, outfit and location clear, natural influencer collaboration tone'
+  };
+  const POSES=[
+    'walking naturally, one foot mid-step, shoulders relaxed',
+    'full body standing pose, outfit readable head to toe',
+    'seated casually, knees angled, natural hand placement',
+    'holding an iced drink casually, not covering the face',
+    'upper body close-up, face and texture clear',
+    'slight back view turning toward camera, hair and outfit silhouette visible'
+  ];
+
+	  function init(){
+	    renderLocs();
+	    const originalGoStep=window.goStep;
+	    window.goStep=function(n){
+	      const pInsta=document.getElementById('pInsta');
+	      const pGrokVid=document.getElementById('pGrokVid');
+	      const tabInsta=document.getElementById('tabInsta');
+	      const tabGrokVid=document.getElementById('tabGrokVid');
+	      if(n==='insta'||n==='grokvid'){
+	        ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        if(pInsta) pInsta.classList.toggle('active',n==='insta');
+	        if(pGrokVid) pGrokVid.classList.toggle('active',n==='grokvid');
+	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
+	        if(tabInsta&&n==='insta') tabInsta.className='stab a1';
+	        if(tabGrokVid&&n==='grokvid') tabGrokVid.className='stab a1';
+	        return;
+	      }
+	      if(pInsta) pInsta.classList.remove('active');
+	      if(pGrokVid) pGrokVid.classList.remove('active');
+	      if(typeof originalGoStep==='function') originalGoStep(n);
+	      if(tabInsta && n!=='insta') tabInsta.className='stab';
+	      if(tabGrokVid && n!=='grokvid') tabGrokVid.className='stab';
+	    };
+	  }
+
+  window.openInstagramPersonaPipeline=function(){
+    const landing=document.getElementById('landingPage');
+    const workspace=document.getElementById('workspace');
+    if(landing) landing.style.display='none';
+    if(workspace) workspace.classList.add('active');
+    const name=document.getElementById('wsProjectName');
+    if(name) name.textContent='📱 Instagram Persona';
+    const h=document.querySelector('.hdr h1');
+	    if(h) h.textContent='Instagram Persona';
+	    goStep('insta');
+	  };
+
+	  window.openGrokVideoPipeline=function(){
+	    const landing=document.getElementById('landingPage');
+	    const workspace=document.getElementById('workspace');
+	    if(landing) landing.style.display='none';
+	    if(workspace) workspace.classList.add('active');
+	    const name=document.getElementById('wsProjectName');
+	    if(name) name.textContent='Grok Video';
+	    const h=document.querySelector('.hdr h1');
+	    if(h) h.textContent='Grok Video';
+	    goStep('grokvid');
+	  };
+
+	  window.gvAddImage=async function(files){
+	    const file=Array.from(files||[]).find(function(f){return f.type&&f.type.startsWith('image/');});
+	    if(!file) return setGvStatus('이미지 파일을 넣어주세요');
+	    const data=await readFile(file);
+	    state.grokVideo.image={name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data};
+	    const preview=document.getElementById('gvImagePreview');
+	    if(preview) preview.innerHTML='<img src="'+data+'" alt="">';
+	    setGvStatus('이미지 준비 완료');
+	  };
+
+	  window.gvCheckLogin=async function(){
+	    setGvLogin('Grok 로그인 상태 확인 중...');
+	    try{
+	      const data=await requestGrok('/v1/grok/status');
+	      renderGrokLogin(data);
+	    }catch(e){setGvLogin('브릿지 연결 실패: '+e.message+'\n실행: node grok-login-bridge/server.mjs');}
+	  };
+
+	  window.gvStartLogin=async function(){
+	    setGvLogin('Grok device login 시작 중...');
+	    try{
+	      const data=await requestGrok('/v1/grok/login/device',{method:'POST'});
+	      state.grokVideo.loginId=data.id;
+	      renderGrokLogin(data);
+	      pollGrokLogin(data.id);
+	    }catch(e){setGvLogin('로그인 시작 실패: '+e.message);}
+	  };
+
+	  window.gvLogout=async function(){
+	    setGvLogin('Grok 로그아웃 중...');
+	    try{
+	      const data=await requestGrok('/v1/grok/logout',{method:'POST'});
+	      setGvLogin((data.ok?'로그아웃 완료':'로그아웃 확인 필요')+'\n'+(data.output||''));
+	    }catch(e){setGvLogin('로그아웃 실패: '+e.message);}
+	  };
+
+	  window.gvCopyPrompt=async function(){
+	    const text=getGrokPrompt();
+	    try{
+	      await navigator.clipboard.writeText(text);
+	      setGvStatus('프롬프트 복사 완료');
+	    }catch(e){
+	      const area=document.getElementById('gvPrompt');
+	      if(area){area.value=text;area.focus();area.select();}
+	      setGvStatus('클립보드 권한이 없어 프롬프트 창에 선택했습니다');
+	    }
+	  };
+
+	  window.gvGenerateVideo=async function(){
+	    if(!state.grokVideo.image) return setGvStatus('소스 이미지를 먼저 업로드해주세요');
+	    const out=document.getElementById('gvVideoOutput');
+	    busy('gvGenerateBtn',true,'생성 중...');
+	    setGvStatus('Grok 영상 요청 중...');
+	    if(out) out.innerHTML='<span>Grok 영상 생성 중...</span>';
+	    try{
+	      const img=state.grokVideo.image;
+	      const data=await requestGrok('/v1/grok/videos/generations',{
+	        method:'POST',
+	        headers:{'Content-Type':'application/json'},
+	        body:JSON.stringify({
+	          model:document.getElementById('gvModel').value,
+	          image:'data:'+img.mime+';base64,'+img.b64,
+	          prompt:getGrokPrompt(),
+	          duration:Number(document.getElementById('gvDuration').value||5),
+	          aspect_ratio:document.getElementById('gvRatio').value||'9:16',
+	          resolution:document.getElementById('gvResolution').value||'720p'
+	        })
+	      });
+	      const videoUrl=data.video_url||(data.video&&data.video.url);
+	      if(!videoUrl) throw new Error('영상 URL 없음');
+	      state.grokVideo.videoUrl=videoUrl;
+	      if(out) out.innerHTML='<video controls autoplay loop src="'+esc(videoUrl)+'"></video>';
+	      setGvStatus('Grok 영상 완료');
+	    }catch(e){
+	      const msg=e.detail||e.message||String(e);
+	      if(out) out.innerHTML='<pre class="ip-pre">'+esc(msg)+'\n\nAPI 키 없이 SuperGrok 로그인만 쓰는 경우에는 프롬프트 복사 후 Grok Build/Imagine에서 수동 생성 루트로 넘겨야 합니다.</pre>';
+	      setGvStatus('생성 실패: '+msg);
+	    }
+	    busy('gvGenerateBtn',false,'Grok 영상 생성');
+	  };
+
+	  async function pollGrokLogin(id){
+	    for(let i=0;i<300;i++){
+	      await sleep(2000);
+	      try{
+	        const data=await requestGrok('/v1/grok/login/'+encodeURIComponent(id));
+	        renderGrokLogin(data);
+	        if(data.status==='done'||data.status==='failed'||data.status==='timeout') return;
+	      }catch(e){setGvLogin('로그인 폴링 실패: '+e.message);return;}
+	    }
+	  }
+
+	  async function requestGrok(path,options){
+	    const res=await fetch(grokBase()+path,options||{});
+	    const data=await res.json().catch(function(){return{};});
+	    if(!res.ok){const err=new Error(data.error||data.message||('HTTP '+res.status)); err.detail=data.detail; throw err;}
+	    return data;
+	  }
+
+	  function grokBase(){return (document.getElementById('gvBridgeUrl')&&document.getElementById('gvBridgeUrl').value||'http://127.0.0.1:8790').trim().replace(/\/+$/,'');}
+	  function getGrokPrompt(){return (document.getElementById('gvPrompt').value||'').trim()||'Create a vertical Instagram reel from the uploaded image. Keep the same person, face, outfit, background, lighting, and composition. Subtle handheld camera, gentle push-in, natural hair and fabric movement, realistic motion, no face morph, no outfit change, no extra people, no text overlay.';}
+	  function setGvStatus(text){const el=document.getElementById('gvStatus'); if(el) el.textContent=text;}
+	  function setGvLogin(text){const el=document.getElementById('gvLoginStatus'); if(el) el.textContent=text;}
+	  function renderGrokLogin(data){
+	    const lines=[];
+	    if(Object.prototype.hasOwnProperty.call(data,'authenticated')) lines.push(data.authenticated?'로그인됨':'로그인 필요');
+	    if(data.status) lines.push('status: '+data.status);
+	    if(data.url) lines.push('auth url: '+data.url);
+	    if(data.code) lines.push('code: '+data.code);
+	    if(data.output) lines.push('\n'+data.output);
+	    setGvLogin(lines.join('\n')||JSON.stringify(data,null,2));
+	    if(data.url&&data.status==='running'&&state.grokVideo.authUrlOpened!==data.url){state.grokVideo.authUrlOpened=data.url; window.open(data.url,'_blank');}
+	  }
+
+	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();};
+  window.ipAddFiles=async function(kind,files){
+    const bucket=kind==='person'?state.person:state.outfit;
+    for(const file of Array.from(files||[])){
+      if(!file.type.startsWith('image/')) continue;
+      const data=await readFile(file);
+      bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:kind==='person'?'character':'costume',_label:file.name});
+    }
+    renderThumbs(kind);
+  };
+
+  window.ipExtractIdentity=async function(){
+    if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
+    busy('ipIdentityBtn',true,'분석 중...');
+    try{
+      const prompt='Analyze these person references for consistent AI generation. Do not identify the person. Return Korean sections: FACE_LOCK, HAIR_LOCK, BODY_LOCK, SKIN_LIGHT, STYLE_BASE, DO_NOT_CHANGE, NEGATIVE_DRIFT.';
+      const r=await callLLM({images:state.person.slice(0,12),prompt:prompt});
+      state.identityDna=(r.textOut||'').trim();
+      document.getElementById('ipIdentityDna').textContent=state.identityDna||'분석 결과 없음';
+      setStatus('인물 DNA 완료');
+    }catch(e){setStatus('실패: '+e.message);}
+    busy('ipIdentityBtn',false,'인물 DNA 추출');
+  };
+
+  window.ipExtractOutfit=async function(){
+    if(!state.outfit.length) return setStatus('의상 레퍼런스를 먼저 넣어주세요');
+    busy('ipOutfitBtn',true,'분석 중...');
+    try{
+      const prompt='Analyze these outfit references for a virtual Instagram creator. Return Korean sections: OUTFIT_LOCK, MATERIAL_COLOR, SILHOUETTE, SWAP_RULE, NEGATIVE.';
+      const r=await callLLM({images:state.outfit.slice(0,8),prompt:prompt});
+      state.outfitDna=(r.textOut||'').trim();
+      document.getElementById('ipOutfitDna').textContent=state.outfitDna||'분석 결과 없음';
+      setStatus('의상 DNA 완료');
+    }catch(e){setStatus('실패: '+e.message);}
+    busy('ipOutfitBtn',false,'의상 DNA 추출');
+  };
+
+  window.ipGenerateIdentitySheet=async function(){
+    if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
+    busy('ipSheetBtn',true,'생성 중...');
+    const out=document.getElementById('ipSheetOutput');
+    out.innerHTML='<span>6전도 시트 생성 중...</span>';
+    try{
+      if(!state.identityDna) await ipExtractIdentity();
+      const prompt='Create a production-ready identity lock sheet for the exact same person in the reference images. Layout: clean 6-view turnaround sheet, 3 columns x 2 rows, neutral studio background. Views: front, 45-degree left, left profile, back, right profile, 45-degree right. Keep same face, hair silhouette, body proportions, skin tone. No text labels. IDENTITY DNA:\n'+(state.identityDna||'Use visible traits from references.')+'\nRealistic, not anime, no face drift, no extra limbs.';
+      const r=await callImageGen({images:state.person.slice(0,12),prompt:prompt,resVal:'1K'});
+      if(!r.imgB64) throw new Error('이미지 응답 없음');
+      state.identitySheet={name:'identity_6view.png',mime:'image/png',b64:r.imgB64,_type:'character',_label:'Instagram identity 6-view sheet'};
+      out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="">';
+      setStatus('6전도 시트 완료');
+    }catch(e){out.innerHTML='<span>생성 실패</span>';setStatus('실패: '+e.message);}
+    busy('ipSheetBtn',false,'6전도 시트 생성');
+  };
+
+  window.ipGenerateBatch=async function(){
+    const identity=state.identitySheet?[state.identitySheet]:state.person.slice(0,12);
+    if(!identity.length) return setStatus('인물 사진 또는 6전도 시트가 필요합니다');
+    const count=Math.max(1,Math.min(20,parseInt(document.getElementById('ipCount').value,10)||10));
+    const loc=getCurrentLoc();
+    const vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
+    const refs=identity.concat(state.outfit.slice(0,8)).slice(0,16);
+    state.results=[];
+    renderResults();
+    busy('ipBatchBtn',true,'생성 중...');
+    for(let i=0;i<count;i++){
+      setStatus((i+1)+' / '+count+' 생성 중...');
+      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length]);
+      try{
+        const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
+        if(!r.imgB64) throw new Error('이미지 응답 없음');
+        state.results.push({b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1});
+      }catch(e){
+        state.results.push({error:e.message,prompt:prompt,loc:loc[0],idx:i+1});
+      }
+      renderResults();
+    }
+    busy('ipBatchBtn',false,'10컷 생성');
+    setStatus('이미지릴 생성 완료');
+  };
+
+  window.ipGenerateI2V=async function(index){
+    const item=state.results[index];
+    if(!item||item.error) return;
+    const provider=document.getElementById('ipVideoProvider').value;
+    const status=document.getElementById('ipVideoStatus'+index);
+    const box=document.getElementById('ipVideoBox'+index);
+    const prompt='9:16 vertical image-to-video, 5-second Instagram reel. Keep the exact person, face, outfit, landmark background, lighting, and composition from the source image. Subtle handheld phone camera, gentle push-in, natural hair and fabric movement. No face morph, no outfit change, no extra people.';
+    status.textContent='I2V 요청 중...';
+    try{
+      let videoUrl=null;
+      if(provider==='local'){
+        videoUrl=await runLocalVideo(item,prompt,status);
+      }else{
+        videoUrl=await runKlingVideo(item,prompt,status);
+      }
+      status.textContent='완료';
+      box.innerHTML='<video controls autoplay loop src="'+videoUrl+'"></video>';
+    }catch(e){status.textContent='실패: '+e.message;}
+  };
+
+  window.ipDownloadManifest=function(){
+    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='zippy_instagram_manifest_'+Date.now()+'.json'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
+  };
+
+  function buildPrompt(index,total,loc,vibe,pose){
+    const custom=(document.getElementById('ipCustomPrompt').value||'').trim();
+    const strength=document.getElementById('ipOutfitStrength').value;
+    const outfitRule=state.outfit.length?({strict:'Dress the subject in the exact referenced outfit. Transfer cut, fabric, color, fit, shoes, bag, and accessories as accurately as possible.',standard:'Dress the subject in the referenced outfit, preserving key silhouette, colors, materials, and accessories.',loose:'Use the referenced outfit as style direction, keeping main color and silhouette while adapting naturally.'}[strength]+'\nOUTFIT DNA:\n'+(state.outfitDna||'Use visible clothing references directly.')):'Use a coherent Korean influencer casual outfit.';
+    return 'Create ONE ultra-realistic vertical Instagram creator photo.\n\nImage '+index+' of '+total+', each output must feel like a different post in the same account.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\nSUBJECT: same exact person from identity references. Preserve face, hair, body proportions, skin undertone, and personal aura.\nIDENTITY DNA:\n'+(state.identityDna||'Use identity references as lock.')+'\n\nWARDROBE:\n'+outfitRule+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, landmark present but not tourist postcard.\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: no different person, no face drift, no plastic beauty filter, no CGI, no anime, no editorial over-posing, no deformed hands, no extra limbs, no fake logos, no text overlay.';
+  }
+
+  async function runKlingVideo(item,prompt,status){
+    const createRes=await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model_name:(typeof getKlingModelName==='function'?getKlingModelName():'kling-v3'),image:'data:'+item.mime+';base64,'+item.b64,prompt:prompt,cfg_scale:0.5,mode:'std',duration:'5',aspect_ratio:'9:16'})});
+    if(!createRes.ok){const e=await createRes.json().catch(function(){return{};});throw new Error(e.message||('HTTP '+createRes.status));}
+    const data=await createRes.json(); const taskId=data&&data.data&&data.data.task_id; if(!taskId) throw new Error('task_id 없음');
+    for(let i=0;i<60;i++){await sleep(5000); const r=await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video/'+taskId); if(!r.ok) continue; const p=await r.json(); const st=p&&p.data&&p.data.task_status; if(st==='succeed') return p.data.task_result.videos[0].url; if(st==='failed') throw new Error(p.data.task_status_msg||'영상 실패'); status.textContent='렌더링 중 '+((i+1)*5)+'초';}
+    throw new Error('시간 초과');
+  }
+
+  async function runLocalVideo(item,prompt,status){
+    const base=(document.getElementById('ipLocalVideoUrl').value||'').trim().replace(/\/+$/,'');
+    if(!base) throw new Error('Local 5080 URL 필요');
+    const key=(document.getElementById('ipLocalVideoKey').value||'').trim();
+    const headers={'Content-Type':'application/json'}; if(key){headers.Authorization='Bearer '+key; headers['X-Zippy-Gateway-Key']=key;}
+    const res=await fetch(base+'/v1/videos/generations',{method:'POST',headers:headers,body:JSON.stringify({model:'local-5080-i2v',image:'data:'+item.mime+';base64,'+item.b64,prompt:prompt,duration:5,mode:'std',aspect_ratio:'9:16'})});
+    if(!res.ok){const e=await res.json().catch(function(){return{};});throw new Error(e.error||e.message||('HTTP '+res.status));}
+    const data=await res.json(); if(data.video_url||(data.video&&data.video.url)) return data.video_url||(data.video&&data.video.url);
+    const id=data.request_id||data.id; if(!id) throw new Error('request_id 없음');
+    for(let i=0;i<120;i++){await sleep(5000); const r=await fetch(base+'/v1/videos/'+encodeURIComponent(id),{headers:headers}); if(!r.ok) continue; const p=await r.json(); if(p.status==='done'||p.status==='succeeded'||p.status==='success') return p.video_url||(p.video&&p.video.url); if(p.status==='failed'||p.status==='error') throw new Error(p.error||'로컬 영상 실패'); status.textContent='로컬 렌더링 중 '+((i+1)*5)+'초';}
+    throw new Error('로컬 시간 초과');
+  }
+
+  function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML=list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join('');}
+  function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const idx=parseInt(document.getElementById('ipLocation').value,10)||0; return list[idx]||list[0];}
+  function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x){return '<div class="ip-thumb"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small></div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
+  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt=""><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bpu bsm" onclick="ipGenerateI2V('+i+')">I2V</button></div><div class="ip-status" id="ipVideoStatus'+i+'">영상 대기</div><div id="ipVideoBox'+i+'"></div></div>';}).join('');}
+  window.ipDownloadOne=function(i){const r=state.results[i]; if(!r||r.error)return; const a=document.createElement('a'); a.href='data:'+r.mime+';base64,'+r.b64; a.download='zippy_instagram_'+String(r.idx).padStart(2,'0')+'.png'; document.body.appendChild(a); a.click(); a.remove();};
+  function readFile(file){return new Promise(function(res,rej){const fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.onerror=rej; fr.readAsDataURL(file);});}
+  function busy(id,on,text){const el=document.getElementById(id); if(!el)return; el.disabled=on; el.textContent=text;}
+  function setStatus(text){const el=document.getElementById('ipStatus'); if(el) el.textContent=text;}
+  function sleep(ms){return new Promise(function(res){setTimeout(res,ms);});}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
 </script>
 </body>
 </html>

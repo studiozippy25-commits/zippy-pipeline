@@ -2880,9 +2880,12 @@ input[type=file]{display:none}
         <button class="btn bgh bsm" onclick="document.getElementById('grokBuildResultInput').click()">결과 파일 추가</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,.45fr) auto;gap:10px;align-items:end;margin-bottom:10px">
       <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Grok CLI Bridge URL
         <input id="grokBuildBridgeUrl" type="url" value="http://127.0.0.1:8790" placeholder="http://127.0.0.1:8790" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+      </label>
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Bridge Key
+        <input id="grokBuildBridgeKey" type="password" placeholder="외부 브릿지 보호 키" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
       </label>
       <button class="btn bgh bsm" onclick="checkGrokBuildBridge()">브릿지 확인</button>
     </div>
@@ -20683,6 +20686,7 @@ async function generateRelight() {
 /* ═══ VIDEO MODE (Local 5080 Gateway) ═══ */
 const DEFAULT_LOCAL_VIDEO_GATEWAY = 'https://zippy-5080.studiozippy.co.kr';
 const DEFAULT_GROK_BUILD_BRIDGE = 'http://127.0.0.1:8790';
+const DEFAULT_LOCAL_5080_PROXY_PATH = '/proxy/local5080';
 let vidSourceB64 = null;
 let vidSourceMime = 'image/png';
 
@@ -20690,7 +20694,17 @@ function getLocalVideoGatewayBase() {
   const el = document.getElementById('vidLocalGatewayUrl');
   const value = (el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY;
   try { localStorage.setItem('zippy_local_video_gateway', value); } catch(e) {}
+  if (shouldProxyLocal5080(value)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH;
   return value.replace(/\/+$/, '');
+}
+function shouldProxyLocal5080(value) {
+  try {
+    const localPage = ['127.0.0.1', 'localhost', '::1'].includes(location.hostname);
+    const target = new URL(value || DEFAULT_LOCAL_VIDEO_GATEWAY);
+    return localPage && target.hostname === 'zippy-5080.studiozippy.co.kr';
+  } catch(e) {
+    return false;
+  }
 }
 function getLocalVideoGatewayHeaders() {
   const keyEl = document.getElementById('vidLocalGatewayKey');
@@ -20698,6 +20712,11 @@ function getLocalVideoGatewayHeaders() {
   try { if (key) localStorage.setItem('zippy_local_video_gateway_key', key); } catch(e) {}
   const headers = {'Content-Type':'application/json'};
   if (key) { headers.Authorization = 'Bearer ' + key; headers['X-Zippy-Gateway-Key'] = key; }
+  const urlValue = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
+  if (shouldProxyLocal5080(urlValue)) {
+    const grokKey = getGrokBuildBridgeKey();
+    if (grokKey) headers['X-Zippy-Grok-Key'] = grokKey;
+  }
   return headers;
 }
 function getGrokBuildBridgeBase() {
@@ -20706,19 +20725,35 @@ function getGrokBuildBridgeBase() {
   try { localStorage.setItem('zippy_grok_build_bridge', value); } catch(e) {}
   return value.replace(/\/+$/, '');
 }
+function getGrokBuildBridgeKey() {
+  const el = document.getElementById('grokBuildBridgeKey');
+  const key = (el?.value || '').trim();
+  try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
+  return key;
+}
+function getGrokBuildBridgeHeaders(json) {
+  const headers = {};
+  if (json) headers['Content-Type'] = 'application/json';
+  const key = getGrokBuildBridgeKey();
+  if (key) headers['X-Zippy-Grok-Key'] = key;
+  return headers;
+}
 function initLocalVideoGatewayFields() {
   const urlEl = document.getElementById('vidLocalGatewayUrl');
   const keyEl = document.getElementById('vidLocalGatewayKey');
   const sbUrlEl = document.getElementById('sbVideoGatewayUrl');
   const grokBridgeEl = document.getElementById('grokBuildBridgeUrl');
+  const grokBridgeKeyEl = document.getElementById('grokBuildBridgeKey');
   try {
     const savedUrl = localStorage.getItem('zippy_local_video_gateway') || DEFAULT_LOCAL_VIDEO_GATEWAY;
     const savedKey = localStorage.getItem('zippy_local_video_gateway_key') || '';
     const savedGrokBridge = localStorage.getItem('zippy_grok_build_bridge') || DEFAULT_GROK_BUILD_BRIDGE;
+    const savedGrokBridgeKey = localStorage.getItem('zippy_grok_build_bridge_key') || '';
     if (urlEl) urlEl.value = savedUrl;
     if (sbUrlEl) sbUrlEl.value = savedUrl;
     if (keyEl) keyEl.value = savedKey;
     if (grokBridgeEl) grokBridgeEl.value = savedGrokBridge;
+    if (grokBridgeKeyEl) grokBridgeKeyEl.value = savedGrokBridgeKey;
   } catch(e) {
     if (urlEl) urlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
     if (sbUrlEl) sbUrlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
@@ -20735,6 +20770,10 @@ function initLocalVideoGatewayFields() {
   if (grokBridgeEl && !grokBridgeEl.dataset.boundSave) {
     grokBridgeEl.dataset.boundSave = '1';
     grokBridgeEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge', this.value.trim() || DEFAULT_GROK_BUILD_BRIDGE);}catch(e){}});
+  }
+  if (grokBridgeKeyEl && !grokBridgeKeyEl.dataset.boundSave) {
+    grokBridgeKeyEl.dataset.boundSave = '1';
+    grokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}});
   }
 }
 async function requestLocalVideo(payload, onProgress) {
@@ -20770,10 +20809,11 @@ async function checkLocalVideoGateway() {
   const el = document.getElementById('vidLocalGatewayStatus');
   if (el) el.textContent = '확인 중...';
   try {
-    const res = await fetch(getLocalVideoGatewayBase() + '/health');
+    const res = await fetch(getLocalVideoGatewayBase() + '/health', { headers: getLocalVideoGatewayHeaders() });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI'); el.style.color = 'var(--ok)'; }
+    const proxied = shouldProxyLocal5080(document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY);
+    if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI') + (proxied ? ' · 로컬 프록시 경유' : ''); el.style.color = 'var(--ok)'; }
   } catch(e) {
     if (el) { el.textContent = '연결 실패 · ' + formatLocalGatewayError(e); el.style.color = 'var(--er)'; }
   }
@@ -20960,7 +21000,7 @@ async function sendVideoToGrokBuild() {
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: getGrokBuildBridgeHeaders(true),
       body: JSON.stringify({
         image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
         prompt,
@@ -20988,7 +21028,7 @@ async function checkGrokBuildBridge() {
   const status = document.getElementById('grokBuildStatus');
   if (status) status.textContent = 'Grok CLI 브릿지 확인 중...';
   try {
-    const res = await fetch(getGrokBuildBridgeBase() + '/health');
+    const res = await fetch(getGrokBuildBridgeBase() + '/health', { headers: getGrokBuildBridgeHeaders(false) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     if (status) status.textContent = '브릿지 연결됨 · ' + (data.grok_build_model || 'grok-build') + ' · ' + (data.grok_bin || '');

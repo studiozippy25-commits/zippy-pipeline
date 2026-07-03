@@ -1487,24 +1487,27 @@ input[type=file]{display:none}
         <div class="sb-video-preview" id="sbVideoPreview"><span>생성된 스토리보드 컷을 선택하세요</span></div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="btn bor bsm" onclick="sbSendSelectedToMainVideoTab()">메인 영상 탭으로 보내기</button>
-          <button class="btn bgh bsm" onclick="checkLocalVideoGateway()">Local 상태 확인</button>
+          <button class="btn bgh bsm" onclick="checkGrokBuildBridge('sbVideoStatus','sbGrokBuildBridgeUrl','sbGrokBuildBridgeKey')">Grok 브릿지 확인</button>
         </div>
         <div id="sbVideoShotMeta" style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:10px"></div>
       </div>
       <div class="sb-video-panel">
         <div class="ip-box-head" style="margin-bottom:10px">
-          <div><b>Local 5080 I2V</b><span>선택 쇼트를 바로 영상으로 생성</span></div>
-          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">영상 생성</button><button class="btn bor bsm" id="sbVideoAbortBtn" onclick="abortSBVideoGeneration()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button></div>
+          <div><b>Grok Build I2V</b><span>선택 쇼트를 Grok으로 영상 생성</span></div>
+          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">Grok 영상 생성</button><button class="btn bor bsm" id="sbVideoAbortBtn" onclick="abortSBVideoGeneration()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway URL
-            <input id="sbVideoGatewayUrl" type="url" value="https://zippy-5080.studiozippy.co.kr" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Grok Bridge URL
+            <input id="sbGrokBuildBridgeUrl" type="url" value="http://127.0.0.1:8790" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Bridge Key
+            <input id="sbGrokBuildBridgeKey" type="password" placeholder="외부 브릿지 보호 키" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">길이
             <select id="sbVideoDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="5">5초</option><option value="10">10초</option></select>
           </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">모드
-            <select id="sbVideoMode" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="std">표준</option><option value="pro">전문가</option></select>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">품질
+            <select id="sbVideoQuality" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="720p">720p</option><option value="1080p">1080p</option></select>
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
             <select id="sbVideoRatio" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
@@ -1512,7 +1515,7 @@ input[type=file]{display:none}
         </div>
         <textarea id="sbVideoPrompt" class="cfg-ta" style="min-height:116px;margin-bottom:10px" placeholder="선택 쇼트의 카메라 움직임/액션 프롬프트가 자동으로 들어갑니다"></textarea>
         <div id="sbVideoStatus" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--cy);margin-bottom:10px"></div>
-        <div class="sb-video-preview" id="sbVideoOutput"><span>영상 결과 대기</span></div>
+        <div class="sb-video-preview" id="sbVideoOutput"><span>Grok 결과 대기</span></div>
       </div>
     </div>
     <div style="margin-top:16px">
@@ -20629,6 +20632,7 @@ function buildSBVideoPrompt(shot) {
   const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
   const camera = spec && spec.video ? spec.video : (shot.frame || 'storyboard-defined camera');
   return [
+    '100% photorealistic live-action cinema footage from this exact source frame, not CGI, not animation, not illustration',
     'cinematic storyboard image-to-video from this exact generated frame',
     'SHOT ID: ' + (shot.id || ''),
     'CAMERA: ' + camera,
@@ -20640,9 +20644,12 @@ function buildSBVideoPrompt(shot) {
   ].filter(Boolean).join('\n');
 }
 function syncSBVideoGateway() {
-  const sb = document.getElementById('sbVideoGatewayUrl');
-  const main = document.getElementById('vidLocalGatewayUrl');
-  if (sb && main) main.value = sb.value || 'http://127.0.0.1:8788';
+  const sb = document.getElementById('sbGrokBuildBridgeUrl');
+  const main = document.getElementById('grokBuildBridgeUrl');
+  const sbKey = document.getElementById('sbGrokBuildBridgeKey');
+  const mainKey = document.getElementById('grokBuildBridgeKey');
+  if (sb && main) main.value = sb.value || DEFAULT_GROK_BUILD_BRIDGE;
+  if (sbKey && mainKey) mainKey.value = sbKey.value || mainKey.value || '';
 }
 function sbSendSelectedToMainVideoTab() {
   const shotId = document.getElementById('sbVideoShotSelect')?.value;
@@ -20657,31 +20664,58 @@ async function sbGenerateSelectedVideo() {
   sbVideoAbortController = new AbortController();
   syncSBVideoGateway();
   const prompt = (document.getElementById('sbVideoPrompt')?.value || '').trim() || buildSBVideoPrompt(shot);
+  const storyboardMeta = {
+    shot_id: shotId,
+    frame: shot.frame || '',
+    description: shot.desc || '',
+    function: shot.func || '',
+    video_prompt: prompt
+  };
   const btn = document.getElementById('sbVideoGenerateBtn');
   const status = document.getElementById('sbVideoStatus');
   const output = document.getElementById('sbVideoOutput');
-  if (btn) { btn.disabled = true; btn.textContent = '생성 중...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Grok 전송 중...'; }
   setAbortButtonEnabled('sbVideoAbortBtn', true);
-  if (status) { status.style.display = 'block'; status.textContent = 'Local 5080 Gateway 전송 중...'; }
+  if (status) { status.style.display = 'block'; status.style.color = 'var(--cy)'; status.textContent = 'Grok CLI 브릿지로 스토리보드 컷과 프롬프트 전송 중...'; }
   try {
-    const videoUrl = await requestLocalVideo({
-      model: 'local-5080-i2v',
-      image: 'data:image/png;base64,' + b64,
-      prompt,
-      duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
-      mode: document.getElementById('sbVideoMode')?.value || 'std',
-      aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9'
-    }, msg => { if (status) status.textContent = msg; }, { signal: sbVideoAbortController.signal });
-    if (status) status.textContent = '완료';
-    if (output) output.innerHTML = '<video controls autoplay loop src="' + videoUrl + '"></video>';
-    sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, time: new Date().toLocaleTimeString() });
+    const res = await fetch(getGrokBuildBridgeBase('sbGrokBuildBridgeUrl') + '/v1/grok/build/video', {
+      method: 'POST',
+      headers: getGrokBuildBridgeHeaders(true, 'sbGrokBuildBridgeKey'),
+      body: JSON.stringify({
+        image: 'data:image/png;base64,' + b64,
+        prompt,
+        metadata: {
+          source: 'storyboard',
+          prompt_source: 'storyboard_i2v_prompt',
+          storyboard: storyboardMeta
+        },
+        storyboard: storyboardMeta,
+        duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
+        aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9',
+        resolution: document.getElementById('sbVideoQuality')?.value || '720p'
+      }),
+      signal: sbVideoAbortController.signal
+    });
+    const data = await res.json().catch(() => ({}));
+    const videoUrl = data.video_url || data?.video?.url;
+    if (!res.ok || !videoUrl) {
+      const tail = data.output ? '\n\nCLI 출력:\n' + String(data.output).slice(-1600) : '';
+      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + tail);
+    }
+    if (status) { status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || ''); status.style.color = 'var(--ok)'; }
+    if (output) output.innerHTML = '<video controls autoplay loop src="' + escAttr(videoUrl) + '"></video><div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><a href="' + escAttr(videoUrl) + '" download="storyboard_grok_' + escSBAttr(shotId) + '.mp4" class="btn bpu bsm" style="text-decoration:none">다운로드</a></div>';
+    sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, model: data.model || 'Grok Build CLI', time: new Date().toLocaleTimeString() });
+    if (typeof vidTabVideos !== 'undefined') {
+      vidTabVideos.unshift({url: videoUrl, model: data.model || 'Grok Build CLI', prompt, time: new Date().toLocaleTimeString(), fileName: 'storyboard_grok_' + shotId + '.mp4'});
+      if (typeof renderVidTabHistory === 'function') renderVidTabHistory();
+    }
     renderSBVideoHistory();
   } catch(e) {
-    if (status) status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
+    if (status) { status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatGrokBuildError(e); status.style.color = isVideoAbortError(e) ? 'var(--mu)' : 'var(--er)'; }
   } finally {
     sbVideoAbortController = null;
     setAbortButtonEnabled('sbVideoAbortBtn', false);
-    if (btn) { btn.disabled = false; btn.textContent = '영상 생성'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Grok 영상 생성'; }
   }
 }
 function renderSBVideoHistory() {
@@ -21103,22 +21137,30 @@ function getLocalVideoGatewayHeaders() {
   }
   return headers;
 }
-function getGrokBuildBridgeBase() {
-  const el = document.getElementById('grokBuildBridgeUrl');
+function getGrokBuildBridgeBase(sourceId) {
+  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeUrl') || document.getElementById('sbGrokBuildBridgeUrl');
   const value = (el && el.value.trim()) || DEFAULT_GROK_BUILD_BRIDGE;
   try { localStorage.setItem('zippy_grok_build_bridge', value); } catch(e) {}
+  const main = document.getElementById('grokBuildBridgeUrl');
+  const sb = document.getElementById('sbGrokBuildBridgeUrl');
+  if (main && main !== el) main.value = value;
+  if (sb && sb !== el) sb.value = value;
   return value.replace(/\/+$/, '');
 }
-function getGrokBuildBridgeKey() {
-  const el = document.getElementById('grokBuildBridgeKey');
+function getGrokBuildBridgeKey(sourceId) {
+  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey');
   const key = (el?.value || '').trim();
   try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
+  const main = document.getElementById('grokBuildBridgeKey');
+  const sb = document.getElementById('sbGrokBuildBridgeKey');
+  if (key && main && main !== el) main.value = key;
+  if (key && sb && sb !== el) sb.value = key;
   return key;
 }
-function getGrokBuildBridgeHeaders(json) {
+function getGrokBuildBridgeHeaders(json, keySourceId) {
   const headers = {};
   if (json) headers['Content-Type'] = 'application/json';
-  const key = getGrokBuildBridgeKey();
+  const key = getGrokBuildBridgeKey(keySourceId);
   if (key) headers['X-Zippy-Grok-Key'] = key;
   return headers;
 }
@@ -21137,6 +21179,8 @@ function initLocalVideoGatewayFields() {
   const sbUrlEl = document.getElementById('sbVideoGatewayUrl');
   const grokBridgeEl = document.getElementById('grokBuildBridgeUrl');
   const grokBridgeKeyEl = document.getElementById('grokBuildBridgeKey');
+  const sbGrokBridgeEl = document.getElementById('sbGrokBuildBridgeUrl');
+  const sbGrokBridgeKeyEl = document.getElementById('sbGrokBuildBridgeKey');
   try {
     const savedUrl = localStorage.getItem('zippy_local_video_gateway') || DEFAULT_LOCAL_VIDEO_GATEWAY;
     const savedKey = localStorage.getItem('zippy_local_video_gateway_key') || '';
@@ -21147,10 +21191,13 @@ function initLocalVideoGatewayFields() {
     if (keyEl) keyEl.value = savedKey;
     if (grokBridgeEl) grokBridgeEl.value = savedGrokBridge;
     if (grokBridgeKeyEl) grokBridgeKeyEl.value = savedGrokBridgeKey;
+    if (sbGrokBridgeEl) sbGrokBridgeEl.value = savedGrokBridge;
+    if (sbGrokBridgeKeyEl) sbGrokBridgeKeyEl.value = savedGrokBridgeKey;
   } catch(e) {
     if (urlEl) urlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
     if (sbUrlEl) sbUrlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
     if (grokBridgeEl) grokBridgeEl.value = DEFAULT_GROK_BUILD_BRIDGE;
+    if (sbGrokBridgeEl) sbGrokBridgeEl.value = DEFAULT_GROK_BUILD_BRIDGE;
   }
   if (urlEl && !urlEl.dataset.boundSave) {
     urlEl.dataset.boundSave = '1';
@@ -21167,6 +21214,14 @@ function initLocalVideoGatewayFields() {
   if (grokBridgeKeyEl && !grokBridgeKeyEl.dataset.boundSave) {
     grokBridgeKeyEl.dataset.boundSave = '1';
     grokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}});
+  }
+  if (sbGrokBridgeEl && !sbGrokBridgeEl.dataset.boundSave) {
+    sbGrokBridgeEl.dataset.boundSave = '1';
+    sbGrokBridgeEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge', this.value.trim() || DEFAULT_GROK_BUILD_BRIDGE);}catch(e){}; const main=document.getElementById('grokBuildBridgeUrl'); if(main) main.value=this.value.trim() || DEFAULT_GROK_BUILD_BRIDGE;});
+  }
+  if (sbGrokBridgeKeyEl && !sbGrokBridgeKeyEl.dataset.boundSave) {
+    sbGrokBridgeKeyEl.dataset.boundSave = '1';
+    sbGrokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}; const main=document.getElementById('grokBuildBridgeKey'); if(main && this.value.trim()) main.value=this.value.trim();});
   }
 }
 async function requestLocalVideo(payload, onProgress, options) {
@@ -21522,16 +21577,17 @@ async function sendVideoToGrokBuild() {
   }
 }
 
-async function checkGrokBuildBridge() {
-  const status = document.getElementById('grokBuildStatus');
+async function checkGrokBuildBridge(statusId, urlSourceId, keySourceId) {
+  const status = document.getElementById(statusId || 'grokBuildStatus');
   if (status) status.textContent = 'Grok CLI 브릿지 확인 중...';
   try {
-    const res = await fetch(getGrokBuildBridgeBase() + '/health', { headers: getGrokBuildBridgeHeaders(false) });
+    if (status) status.style.display = 'block';
+    const res = await fetch(getGrokBuildBridgeBase(urlSourceId) + '/health', { headers: getGrokBuildBridgeHeaders(false, keySourceId) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    if (status) status.textContent = '브릿지 연결됨 · ' + (data.grok_build_model || 'grok-build') + ' · ' + (data.grok_bin || '');
+    if (status) { status.textContent = '브릿지 연결됨 · ' + (data.grok_build_model || 'grok-build') + ' · ' + (data.grok_bin || ''); status.style.color = 'var(--ok)'; }
   } catch(e) {
-    if (status) status.textContent = '브릿지 연결 실패 · ' + formatGrokBuildError(e);
+    if (status) { status.textContent = '브릿지 연결 실패 · ' + formatGrokBuildError(e); status.style.color = 'var(--er)'; }
   }
 }
 

@@ -19321,6 +19321,124 @@ const SB_SHOTS = [
 ];
 const sbGenImages = {};
 const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
+const SB_STATE_DB_VER = 1;
+const SB_STATE_STORE = 'state';
+let sbStateDB = null;
+let sbStateDBNameOpen = '';
+let sbStateRestored = false;
+
+function sbStateProjectKey() {
+  let key = 'default';
+  try {
+    key = (typeof currentProjectKey !== 'undefined' && currentProjectKey) ||
+      (window.currentProjectKey) ||
+      (currentProject && currentProject.name) ||
+      'default';
+  } catch(e) {}
+  return String(key || 'default').replace(/[^\w-]+/g, '_');
+}
+function sbStateDBName() {
+  return 'studioZIPPY_' + sbStateProjectKey() + '_StoryboardState';
+}
+function openSBStateDB() {
+  return new Promise(function(resolve, reject) {
+    const name = sbStateDBName();
+    if (sbStateDB && sbStateDBNameOpen === name) { resolve(sbStateDB); return; }
+    if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
+    const req = indexedDB.open(name, SB_STATE_DB_VER);
+    req.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(SB_STATE_STORE)) db.createObjectStore(SB_STATE_STORE, {keyPath: 'key'});
+    };
+    req.onsuccess = function(e) {
+      sbStateDB = e.target.result;
+      sbStateDBNameOpen = name;
+      sbStateDB.onversionchange = function() {
+        try { sbStateDB.close(); } catch(err) {}
+        sbStateDB = null;
+        sbStateDBNameOpen = '';
+      };
+      resolve(sbStateDB);
+    };
+    req.onerror = function() { reject(req.error); };
+  });
+}
+function sbPlainMap(src) {
+  const out = {};
+  Object.keys(src || {}).forEach(function(k) {
+    if (src[k] != null && src[k] !== '') out[k] = src[k];
+  });
+  return out;
+}
+function sbStoryboardSnapshot() {
+  return {
+    genImages: sbPlainMap(sbGenImages),
+    seqImages: sbPlainMap(sbSeqImages),
+    cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
+    cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
+    shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
+    savedAt: new Date().toISOString()
+  };
+}
+async function saveStoryboardState(reason) {
+  try {
+    const db = await openSBStateDB();
+    const tx = db.transaction(SB_STATE_STORE, 'readwrite');
+    tx.objectStore(SB_STATE_STORE).put({
+      key: 'current',
+      reason: reason || '',
+      savedAt: new Date().toISOString(),
+      snapshot: sbStoryboardSnapshot()
+    });
+  } catch(e) {
+    console.warn('Storyboard state save failed:', e);
+  }
+}
+async function restoreStoryboardState() {
+  try {
+    const db = await openSBStateDB();
+    const snap = await new Promise(function(resolve, reject) {
+      const tx = db.transaction(SB_STATE_STORE, 'readonly');
+      const req = tx.objectStore(SB_STATE_STORE).get('current');
+      req.onsuccess = function() { resolve(req.result && req.result.snapshot); };
+      req.onerror = function() { reject(req.error); };
+    });
+    if (!snap) return;
+    Object.keys(sbGenImages).forEach(function(k) { delete sbGenImages[k]; });
+    Object.assign(sbGenImages, snap.genImages || {});
+    Object.keys(sbSeqImages).forEach(function(k) { delete sbSeqImages[k]; });
+    Object.assign(sbSeqImages, snap.seqImages || {});
+    if (typeof sbCameraPositions !== 'undefined') {
+      Object.keys(sbCameraPositions).forEach(function(k) { delete sbCameraPositions[k]; });
+      Object.assign(sbCameraPositions, snap.cameraPositions || {});
+    }
+    if (typeof sbCameraControls !== 'undefined') {
+      Object.keys(sbCameraControls).forEach(function(k) { delete sbCameraControls[k]; });
+      Object.assign(sbCameraControls, snap.cameraControls || {});
+    }
+    if (typeof SB_SHOTS !== 'undefined' && Array.isArray(snap.shotLocations)) {
+      snap.shotLocations.forEach(function(item) {
+        const shot = SB_SHOTS.find(function(s) { return s.id === item.id; });
+        if (shot) shot.loc = item.loc || '';
+      });
+    }
+    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
+  } catch(e) {
+    console.warn('Storyboard state restore failed:', e);
+  }
+}
+function ensureStoryboardStateRestored() {
+  if (sbStateRestored) return;
+  sbStateRestored = true;
+  restoreStoryboardState();
+}
+function bindStoryboardStatePersistence() {
+  if (window.__zippyStoryboardPersistBound) return;
+  window.__zippyStoryboardPersistBound = true;
+  window.addEventListener('pagehide', function() { saveStoryboardState('pagehide'); });
+}
+bindStoryboardStatePersistence();
 async function expandSBShot(shotId) {
   const shot = SB_SHOTS.find(s => s.id === shotId);
   if (!shot) return;
@@ -19371,6 +19489,7 @@ function deleteSBImage(shotId) {
   if (!confirm('이 쇼트의 생성된 이미지를 삭제할까요?')) return;
   delete sbGenImages[shotId];
   buildStoryboardTimeline();
+  saveStoryboardState('shot-image-deleted');
 }
 
 function sbQuoteAttr(v) {
@@ -19496,6 +19615,7 @@ function setShotCameraControl(shotId, key, val) {
   if (!sbCameraControls[shotId]) sbCameraControls[shotId] = {};
   if (val) sbCameraControls[shotId][key] = val;
   else delete sbCameraControls[shotId][key];
+  saveStoryboardState('camera-control');
 }
 function describeSBCameraControls(shotId) {
   const c = sbCameraControls[shotId] || {};
@@ -19537,6 +19657,7 @@ function renderSBCameraControl(shot) {
 
 function setShotCameraPos(shotId, val) {
   sbCameraPositions[shotId] = val.trim();
+  saveStoryboardState('camera-position');
 }
 function sbLocOptions(sel) {
   var names = (currentProject && (currentProject.spaceNames || currentProject.locations)) || [];
@@ -19547,7 +19668,7 @@ function sbLocOptions(sel) {
 function setShotLoc(shotId, val) {
   if (typeof SB_SHOTS === 'undefined') return;
   var s = SB_SHOTS.find(function(x){ return x.id === shotId; });
-  if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); }
+  if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); saveStoryboardState('shot-location'); }
 }
 var SB_SP_MAP = {'SP-ALLEY':'SP-POLY','SP-ALLEY43':'SP-POLY','SP-BAR':'SP-LS-BAR','SP-LS':'SP-LS-BAR','SP-FAC-IN':'SP-FACIN','SP-FAC-OUT':'SP-FACOUT','SP-BORDER':'SP-BORDER-CHK','SP-WASTE':'SP-GRAY'};
 function sbCodeOf(s){ var m=(s||'').match(/\[(SP-[A-Z0-9-]+|\uC5F4\uCC28)\]/i); return m?m[1].toUpperCase():''; }
@@ -19988,6 +20109,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
     buildStoryboardTimeline();
+    saveStoryboardState('shot-generated');
   } catch(e) {
     alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
@@ -20020,6 +20142,7 @@ async function generateSBSequence(shotId) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
       buildStoryboardTimeline();
+      saveStoryboardState('sequence-generated');
     } else {
       throw new Error('생성 결과 없음');
     }
@@ -20053,7 +20176,9 @@ async function generateAllStoryboard() {
 }
 function clearStoryboard() {
   Object.keys(sbGenImages).forEach(k=>delete sbGenImages[k]);
+  Object.keys(sbSeqImages).forEach(k=>delete sbSeqImages[k]);
   buildStoryboardTimeline();
+  saveStoryboardState('storyboard-cleared');
 }
 /* ═══ STORYBOARD EDITOR ═══ */
 function toggleSBEditor() {
@@ -20225,7 +20350,12 @@ function seq3up(imgKey){
   h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
   return h;
 }
-function deleteSBSeq(imgKey){ if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey]; if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey]; if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); }
+function deleteSBSeq(imgKey){
+  if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey];
+  if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey];
+  if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline();
+  saveStoryboardState('sequence-deleted');
+}
 function openSeqFrame(shotId, idx){ var arr=(typeof sbSeqImages!=='undefined')?sbSeqImages[shotId]:null; if(!arr||!arr[idx]) return; openSBLightbox(shotId); var im=document.getElementById('sbLbImg'); if(im) im.src='data:image/png;base64,'+arr[idx]; }
 function downloadSBImg(shotId) {
   const b64 = sbGenImages[shotId];
@@ -24012,7 +24142,7 @@ function goStep(n){
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
-  if(n==='sb') { buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
+  if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
   if(n==='hist') refreshHistory();
 }
 function setSt(pfx,idx){
@@ -25993,9 +26123,18 @@ function updatePromptPreview() {
     'upper body close-up, face and texture clear',
     'slight back view turning toward camera, hair and outfit silhouette visible'
   ];
+  const IP_STATE_DB_VER=1;
+  const IP_STATE_STORE='state';
+  let ipStateDB=null;
 
 	  function init(){
 	    renderLocs();
+	    restoreInstagramState();
+	    bindInstagramControlPersistence();
+	    if(!window.__zippyIpPersistBound){
+	      window.__zippyIpPersistBound=true;
+	      window.addEventListener('pagehide',function(){saveInstagramState('pagehide');});
+	    }
 	    const originalGoStep=window.goStep;
 	    window.goStep=function(n){
 	      const pInsta=document.getElementById('pInsta');
@@ -26025,7 +26164,7 @@ function updatePromptPreview() {
 	    goStep('insta');
 	  };
 
-	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();};
+	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();saveInstagramState('location-mode');};
   window.ipAddFiles=async function(kind,files){
     const bucket=kind==='person'?state.person:state.outfit;
     for(const file of Array.from(files||[])){
@@ -26037,6 +26176,7 @@ function updatePromptPreview() {
       resetOutfitSheet('의상 레퍼런스가 변경되었습니다. GTI 의상 6전도 분리를 다시 수행합니다.');
     }
     renderThumbs(kind);
+    saveInstagramState('refs-added');
     if(kind==='outfit'&&bucket.length) window.ipGenerateOutfitSheet();
   };
 
@@ -26049,6 +26189,7 @@ function updatePromptPreview() {
       state.identityDna=(r.textOut||'').trim();
       document.getElementById('ipIdentityDna').textContent=state.identityDna||'분석 결과 없음';
       setStatus('인물 DNA 완료');
+      saveInstagramState('identity-dna');
     }catch(e){setStatus('실패: '+e.message);}
     busy('ipIdentityBtn',false,'인물 DNA 추출');
   };
@@ -26063,6 +26204,7 @@ function updatePromptPreview() {
       state.outfitDna=(r.textOut||'').trim();
       document.getElementById('ipOutfitDna').textContent=state.outfitDna||'분석 결과 없음';
       setStatus('의상 6전도 기반 DNA 완료');
+      saveInstagramState('outfit-dna');
     }catch(e){setStatus('실패: '+e.message);}
     busy('ipOutfitBtn',false,'의상 DNA 추출');
   };
@@ -26094,6 +26236,7 @@ function updatePromptPreview() {
         state.outfitSheet={name:'outfit_6view_sheet.png',mime:'image/png',b64:r.imgB64,url:'data:image/png;base64,'+r.imgB64,_type:'costume',_label:'Instagram clothing-only 6-view outfit sheet'};
         renderOutfitSheet();
         setStatus('의상 6전도 분리 완료. 최종 생성에는 이 의상 시트만 사용합니다.');
+        saveInstagramState('outfit-sheet');
         return [state.outfitSheet];
       }catch(e){
         if(version===state.outfitVersion&&out&&!state.outfitSheet) out.innerHTML='<span>의상 6전도 실패: '+esc(e.message||e)+'</span>';
@@ -26123,6 +26266,7 @@ function updatePromptPreview() {
       state.identitySheet={name:'identity_6view.png',mime:'image/png',b64:r.imgB64,_type:'character',_label:'Instagram identity 6-view sheet'};
       out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
       setStatus('6전도 시트 완료');
+      saveInstagramState('identity-sheet');
     }catch(e){out.innerHTML='<span>생성 실패</span>';setStatus('실패: '+e.message);}
     busy('ipSheetBtn',false,'6전도 시트 생성');
   };
@@ -26153,6 +26297,7 @@ function updatePromptPreview() {
       state.sessionSeed=buildSessionSeed(loc,vibe);
       state.results=Array.from({length:count},function(_,i){return {pending:true,prompt:'',loc:loc[0],idx:i+1};});
       renderResults();
+      saveInstagramState('batch-start');
       focusResults();
     }catch(e){
       busy('ipBatchBtn',false,'GTI 설정 컷 생성');
@@ -26171,6 +26316,7 @@ function updatePromptPreview() {
         state.results[i]={error:e.message,prompt:prompt,loc:loc[0],idx:i+1};
       }
       renderResults();
+      saveInstagramState('batch-progress');
     }
     busy('ipBatchBtn',false,'GTI 설정 컷 생성');
     setStatus('GTI '+count+'컷 이미지릴 완료. 각 컷은 영상 제작 탭으로 넘겨 I2V 처리하세요.');
@@ -26204,6 +26350,7 @@ function updatePromptPreview() {
     const resultIndex=state.results.length;
     state.results.push({pending:true,prompt:'',loc:loc[0],idx:idx});
     renderResults();
+    saveInstagramState('single-start');
     focusResults();
     busy('ipSingleBtn',true,'생성 중...');
     setStatus('GTI 1장 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용');
@@ -26219,6 +26366,7 @@ function updatePromptPreview() {
       setStatus('GTI 1장 생성 실패: '+e.message);
     }
     renderResults();
+    saveInstagramState('single-finish');
     busy('ipSingleBtn',false,'GTI 1장 생성');
   };
 
@@ -26284,6 +26432,7 @@ function updatePromptPreview() {
       setStatus('인물 레퍼런스를 삭제했습니다. 필요하면 인물 DNA/6전도 시트를 다시 생성하세요.');
     }
     renderThumbs(kind);
+    saveInstagramState('ref-removed');
   };
   function resetOutfitSheet(message){
     state.outfitVersion++;
@@ -26294,6 +26443,165 @@ function updatePromptPreview() {
     if(dna) dna.textContent='의상 분석값이 여기에 표시됩니다.';
     renderOutfitSheet();
     if(message) setStatus(message);
+  }
+  function ipStateDBName(){
+    let key='default';
+    try{
+      key=(typeof currentProjectKey!=='undefined'&&currentProjectKey)||window.currentProjectKey||'default';
+    }catch(e){}
+    key=String(key||'default').replace(/[^\w-]+/g,'_');
+    return 'studioZIPPY_'+key+'_InstagramPersonaState';
+  }
+  function openIPStateDB(){
+    return new Promise(function(resolve,reject){
+      if(ipStateDB){resolve(ipStateDB);return;}
+      if(!window.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
+      const req=indexedDB.open(ipStateDBName(),IP_STATE_DB_VER);
+      req.onupgradeneeded=function(e){
+        const db=e.target.result;
+        if(!db.objectStoreNames.contains(IP_STATE_STORE)) db.createObjectStore(IP_STATE_STORE,{keyPath:'key'});
+      };
+      req.onsuccess=function(e){
+        ipStateDB=e.target.result;
+        ipStateDB.onversionchange=function(){try{ipStateDB.close();}catch(err){} ipStateDB=null;};
+        resolve(ipStateDB);
+      };
+      req.onerror=function(){reject(req.error);};
+    });
+  }
+  function ipImageForPersist(img){
+    if(!img) return null;
+    return {
+      name:img.name||'',
+      mime:img.mime||'image/png',
+      b64:img.b64||'',
+      url:img.url||((img.b64)?('data:'+(img.mime||'image/png')+';base64,'+img.b64):''),
+      _type:img._type||'',
+      _label:img._label||img.name||''
+    };
+  }
+  function ipNormalizeImage(img){
+    if(!img||!img.b64) return null;
+    const mime=img.mime||'image/png';
+    return {
+      name:img.name||'image.png',
+      mime:mime,
+      b64:img.b64,
+      url:img.url||('data:'+mime+';base64,'+img.b64),
+      _type:img._type||'',
+      _label:img._label||img.name||''
+    };
+  }
+  function ipReadControls(){
+    return {
+      locMode:document.getElementById('ipLocMode')?.value||state.locMode,
+      location:document.getElementById('ipLocation')?.value||'0',
+      vibe:document.getElementById('ipVibe')?.value||'daily',
+      outfitStrength:document.getElementById('ipOutfitStrength')?.value||'standard',
+      count:document.getElementById('ipCount')?.value||'10',
+      customPrompt:document.getElementById('ipCustomPrompt')?.value||''
+    };
+  }
+  function ipApplyControls(ctrl){
+    if(!ctrl) return;
+    const locMode=document.getElementById('ipLocMode');
+    if(locMode&&ctrl.locMode){locMode.value=ctrl.locMode;state.locMode=ctrl.locMode;renderLocs();}
+    const loc=document.getElementById('ipLocation');
+    if(loc&&ctrl.location!=null) loc.value=String(ctrl.location);
+    const vibe=document.getElementById('ipVibe');
+    if(vibe&&ctrl.vibe) vibe.value=ctrl.vibe;
+    const strength=document.getElementById('ipOutfitStrength');
+    if(strength&&ctrl.outfitStrength) strength.value=ctrl.outfitStrength;
+    const count=document.getElementById('ipCount');
+    if(count&&ctrl.count!=null) count.value=String(ctrl.count);
+    const custom=document.getElementById('ipCustomPrompt');
+    if(custom&&ctrl.customPrompt!=null) custom.value=ctrl.customPrompt;
+  }
+  function bindInstagramControlPersistence(){
+    if(window.__zippyIpControlPersistBound) return;
+    window.__zippyIpControlPersistBound=true;
+    ['ipLocMode','ipLocation','ipVibe','ipOutfitStrength','ipCount','ipCustomPrompt'].forEach(function(id){
+      const el=document.getElementById(id);
+      if(!el) return;
+      let timer=null;
+      const ev=id==='ipCustomPrompt'?'input':'change';
+      el.addEventListener(ev,function(){
+        clearTimeout(timer);
+        timer=setTimeout(function(){saveInstagramState('control-change');},250);
+      });
+    });
+  }
+  function ipSnapshot(){
+    const results=(state.results||[]).map(function(r){
+      if(r&&r.pending) return {idx:r.idx,loc:r.loc||'',prompt:r.prompt||'',error:'페이지 이동으로 생성 상태가 중단됨'};
+      return {
+        idx:r?.idx,
+        loc:r?.loc||'',
+        prompt:r?.prompt||'',
+        mime:r?.mime||'image/png',
+        b64:r?.b64||'',
+        error:r?.error||null
+      };
+    });
+    return {
+      person:state.person.map(ipImageForPersist).filter(Boolean),
+      outfit:state.outfit.map(ipImageForPersist).filter(Boolean),
+      identitySheet:ipImageForPersist(state.identitySheet),
+      outfitSheet:ipImageForPersist(state.outfitSheet),
+      identityDna:state.identityDna||'',
+      outfitDna:state.outfitDna||'',
+      outfitVersion:state.outfitVersion||0,
+      results:results,
+      locMode:state.locMode||'korea',
+      sessionSeed:state.sessionSeed||'',
+      controls:ipReadControls(),
+      savedAt:new Date().toISOString()
+    };
+  }
+  async function saveInstagramState(reason){
+    try{
+      const db=await openIPStateDB();
+      const tx=db.transaction(IP_STATE_STORE,'readwrite');
+      tx.objectStore(IP_STATE_STORE).put({key:'current',reason:reason||'',savedAt:new Date().toISOString(),snapshot:ipSnapshot()});
+    }catch(e){
+      console.warn('Instagram state save failed:',e);
+    }
+  }
+  async function restoreInstagramState(){
+    try{
+      const db=await openIPStateDB();
+      const snap=await new Promise(function(resolve,reject){
+        const tx=db.transaction(IP_STATE_STORE,'readonly');
+        const req=tx.objectStore(IP_STATE_STORE).get('current');
+        req.onsuccess=function(){resolve(req.result&&req.result.snapshot);};
+        req.onerror=function(){reject(req.error);};
+      });
+      if(!snap) return;
+      state.person=(snap.person||[]).map(ipNormalizeImage).filter(Boolean);
+      state.outfit=(snap.outfit||[]).map(ipNormalizeImage).filter(Boolean);
+      state.identitySheet=ipNormalizeImage(snap.identitySheet);
+      state.outfitSheet=ipNormalizeImage(snap.outfitSheet);
+      state.identityDna=snap.identityDna||'';
+      state.outfitDna=snap.outfitDna||'';
+      state.outfitVersion=snap.outfitVersion||0;
+      state.results=(snap.results||[]).map(function(r){return {...r,pending:false};});
+      state.locMode=snap.locMode||snap.controls?.locMode||'korea';
+      state.sessionSeed=snap.sessionSeed||'';
+      ipApplyControls(snap.controls);
+      renderThumbs('person');
+      renderThumbs('outfit');
+      renderOutfitSheet();
+      renderResults();
+      const idDna=document.getElementById('ipIdentityDna');
+      const outfitDna=document.getElementById('ipOutfitDna');
+      const sheetOut=document.getElementById('ipSheetOutput');
+      if(idDna&&state.identityDna) idDna.textContent=state.identityDna;
+      if(outfitDna&&state.outfitDna) outfitDna.textContent=state.outfitDna;
+      if(sheetOut&&state.identitySheet) sheetOut.innerHTML='<img src="'+state.identitySheet.url+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
+      if((state.results&&state.results.length)||state.person.length||state.outfit.length) setStatus('이전 인스타 작업을 복원했습니다 · '+(snap.savedAt||''));
+    }catch(e){
+      console.warn('Instagram state restore failed:',e);
+    }
   }
   function renderOutfitSheet(){
     const out=document.getElementById('ipOutfitSheetOutput');

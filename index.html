@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="instagram-gti-10cut-noapi-20260703-121500">
+<meta name="zippy-deploy-marker" content="nas-sync-20260703-184435">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -967,6 +967,18 @@ input[type=file]{display:none}
     <span id="gtiBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
     <button class="btn bgh bsm" onclick="checkGtiBridge()" style="font-size:11px;padding:3px 10px">상태 확인</button>
     <span style="font-family:var(--font-mono);font-size:10px;color:var(--mu)">꺼져있으면 바탕화면 <b>gti-브리지-켜기.command</b> 더블클릭</span>
+  </div>
+  <div class="ar" id="nasBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px dashed var(--bd)">
+    <span class="al" style="color:var(--ok);font-size:11px">NAS 저장</span>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:4px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="checkbox" id="nasAutoSync" onchange="zippyNasSaveSettings()"> 자동 저장
+    </label>
+    <input type="text" class="api-inp" id="nasBridgeUrl" value="http://localhost:8788" placeholder="NAS 브리지 URL" style="flex:0 1 220px;min-width:180px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
+    <input type="text" class="api-inp" id="nasProjectSlug" placeholder="프로젝트 폴더 자동" style="flex:0 1 170px;min-width:140px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
+    <input type="password" class="api-inp" id="nasBridgeToken" placeholder="브리지 토큰(선택)" style="flex:0 1 150px;min-width:120px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
+    <span id="nasBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
+    <span id="nasBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
+    <button class="btn bgh bsm" onclick="zippyNasCheck()" style="font-size:11px;padding:3px 10px">연결 확인</button>
   </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
@@ -2915,6 +2927,11 @@ input[type=file]{display:none}
       </label>
       <button class="btn bgh bsm" onclick="checkGrokBuildBridge()">브릿지 확인</button>
     </div>
+    <div style="margin:10px 0 12px">
+      <div class="cfg-lbl">Grok 전송 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">인스타그램/스토리보드 이미지와 함께 전송</span></div>
+      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 예: subtle handheld vertical Instagram reel, gentle push-in, natural hair and fabric motion, keep face/outfit/location unchanged..." style="min-height:96px"></textarea>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:6px">인스타그램 탭에서 넘어온 컷은 이 입력값과 함께 Grok Build로 전송됩니다. 필요하면 여기서 바로 수정한 뒤 전송하세요.</div>
+    </div>
     <input id="grokBuildResultInput" type="file" accept="video/*" style="display:none" onchange="receiveGrokBuildVideo(this.files)">
     <div id="grokBuildStatus" style="font-family:var(--font-mono);font-size:12px;color:#FDBA74;line-height:1.7">대기</div>
   </div>
@@ -2949,7 +2966,7 @@ input[type=file]{display:none}
 
   <!-- 영상 설정 -->
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">영상 설정</div>
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">Grok 영상 설정</div>
     <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
       <div>
         <div class="cfg-lbl">5080 Gateway 워크플로우</div>
@@ -2982,10 +2999,6 @@ input[type=file]{display:none}
           <button class="chip" data-g="vratio" onclick="pickSingle(this,'vratio')">1:1</button>
         </div>
       </div>
-    </div>
-    <div style="padding:0 16px 16px">
-      <div class="cfg-lbl">카메라/액션 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">실사화 기본 프롬프트 자동 포함</span></div>
-      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 추가 지시만 적어도 됩니다. 예: slow dolly forward, 인물이 천천히 고개를 돌린다, gentle zoom into face..." style="min-height:60px"></textarea>
     </div>
   </div>
 
@@ -19465,6 +19478,146 @@ const SB_SHOTS = [
   {scene:16,id:'16-1',frame:'WS / 뒷모습 와이드',desc:'골목 끝에서 두 사람의 뒷모습. 같은 방향으로 움직일 수 있는 상태.',func:'엔딩 여운',pri:'must'},
   {scene:16,id:'16-2',frame:'INS / 마지막 잔상',desc:'골목 바닥의 마지막 잔상 인서트. 잔향. F.O.',func:'잔향',pri:'opt'}
 ];
+
+/* ═══ NAS BRIDGE AUTOSAVE ═══ */
+const ZIPPY_NAS_DEFAULT_URL = 'http://localhost:8788';
+function zippyNasStorageGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v == null || v === '' ? fallback : v; } catch(e) { return fallback; }
+}
+function zippyNasStorageSet(key, value) {
+  try { localStorage.setItem(key, value == null ? '' : String(value)); } catch(e) {}
+}
+function zippyNasEnabled() {
+  return zippyNasStorageGet('zippy_nas_auto', '0') === '1';
+}
+function zippyNasUrl() {
+  return (zippyNasStorageGet('zippy_nas_url', ZIPPY_NAS_DEFAULT_URL) || ZIPPY_NAS_DEFAULT_URL).replace(/\/+$/, '');
+}
+function zippyNasToken() {
+  return zippyNasStorageGet('zippy_nas_token', '');
+}
+function zippyNasSafePart(v, fallback) {
+  return String(v || fallback || 'default').normalize('NFKC').replace(/[\\/:*?"<>|#%{}$!`'@+=~]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').slice(0, 100) || (fallback || 'default');
+}
+function zippyNasProjectSlug() {
+  const manual = zippyNasStorageGet('zippy_nas_project', '');
+  if (manual) return zippyNasSafePart(manual, 'project');
+  let key = 'default';
+  try { key = currentProjectKey || (currentProject && currentProject.name) || 'default'; } catch(e) {}
+  return zippyNasSafePart(key, 'project');
+}
+function zippyNasSetStatus(text, ok) {
+  const st = document.getElementById('nasBridgeStatus');
+  const dot = document.getElementById('nasBridgeDot');
+  if (st) { st.textContent = text; st.style.color = ok ? 'var(--ok)' : 'var(--mu)'; }
+  if (dot) dot.style.background = ok ? 'var(--ok)' : '#9CA3AF';
+}
+function zippyNasSaveSettings() {
+  const url = document.getElementById('nasBridgeUrl');
+  const auto = document.getElementById('nasAutoSync');
+  const project = document.getElementById('nasProjectSlug');
+  const token = document.getElementById('nasBridgeToken');
+  if (url) zippyNasStorageSet('zippy_nas_url', url.value.trim() || ZIPPY_NAS_DEFAULT_URL);
+  if (auto) zippyNasStorageSet('zippy_nas_auto', auto.checked ? '1' : '0');
+  if (project) zippyNasStorageSet('zippy_nas_project', project.value.trim());
+  if (token) zippyNasStorageSet('zippy_nas_token', token.value.trim());
+  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
+}
+function zippyNasInit() {
+  const url = document.getElementById('nasBridgeUrl');
+  const auto = document.getElementById('nasAutoSync');
+  const project = document.getElementById('nasProjectSlug');
+  const token = document.getElementById('nasBridgeToken');
+  if (url) url.value = zippyNasUrl();
+  if (auto) auto.checked = zippyNasEnabled();
+  if (project) project.value = zippyNasStorageGet('zippy_nas_project', '');
+  if (token) token.value = zippyNasToken();
+  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
+  if (zippyNasEnabled()) setTimeout(zippyNasCheck, 300);
+}
+function zippyNasBaseMeta(extra) {
+  let projectName = '';
+  try { projectName = (currentProject && currentProject.name) || ''; } catch(e) {}
+  return Object.assign({
+    projectKey: (typeof currentProjectKey !== 'undefined' && currentProjectKey) || '',
+    projectName: projectName,
+    clientSavedAt: new Date().toISOString(),
+    page: location.href
+  }, extra || {});
+}
+function zippyNasStripB64(value, depth) {
+  if (value == null || depth > 8) return value;
+  if (typeof value === 'string') return value.length > 240 && /^[A-Za-z0-9+/=]+$/.test(value.slice(0, 240)) ? '[base64 omitted: ' + value.length + ' chars]' : value;
+  if (Array.isArray(value)) return value.map(function(v) { return zippyNasStripB64(v, (depth || 0) + 1); });
+  if (typeof value === 'object') {
+    const out = {};
+    Object.keys(value).forEach(function(k) {
+      if (/^(b64|imgB64|genImages|seqImages)$/i.test(k)) {
+        if (typeof value[k] === 'string') out[k] = '[base64 omitted: ' + value[k].length + ' chars]';
+        else if (value[k] && typeof value[k] === 'object') out[k] = Object.keys(value[k]);
+        else out[k] = value[k];
+      } else {
+        out[k] = zippyNasStripB64(value[k], (depth || 0) + 1);
+      }
+    });
+    return out;
+  }
+  return value;
+}
+async function zippyNasCheck() {
+  zippyNasSaveSettings();
+  try {
+    const res = await fetch(zippyNasUrl() + '/health', { headers: zippyNasToken() ? {'X-Zippy-NAS-Token': zippyNasToken()} : {} });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    zippyNasSetStatus('연결됨 · ' + (data.mode || 'bridge'), true);
+    return true;
+  } catch(e) {
+    zippyNasSetStatus('연결 실패', false);
+    console.warn('NAS bridge check failed:', e);
+    return false;
+  }
+}
+async function zippyNasPost(endpoint, payload) {
+  if (!zippyNasEnabled()) return null;
+  const headers = {'Content-Type': 'application/json'};
+  const token = zippyNasToken();
+  if (token) headers['X-Zippy-NAS-Token'] = token;
+  const res = await fetch(zippyNasUrl() + endpoint, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+  const data = await res.json().catch(function(){ return {}; });
+  if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  zippyNasSetStatus('저장됨 · ' + (payload.kind || payload.type || 'file'), true);
+  return data;
+}
+function zippyNasSaveImage(kind, id, b64, mime, meta) {
+  if (!b64 || !zippyNasEnabled()) return;
+  zippyNasPost('/save-image', {
+    project: zippyNasProjectSlug(),
+    kind: zippyNasSafePart(kind, 'image'),
+    id: zippyNasSafePart(id, 'image'),
+    mime: mime || 'image/png',
+    b64: b64,
+    meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
+  }).catch(function(e) {
+    zippyNasSetStatus('저장 실패', false);
+    console.warn('NAS image save failed:', e);
+  });
+}
+function zippyNasSaveJson(kind, id, data, meta) {
+  if (!zippyNasEnabled()) return;
+  zippyNasPost('/save-json', {
+    project: zippyNasProjectSlug(),
+    kind: zippyNasSafePart(kind, 'state'),
+    id: zippyNasSafePart(id, 'state'),
+    data: zippyNasStripB64(data, 0),
+    meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
+  }).catch(function(e) {
+    zippyNasSetStatus('저장 실패', false);
+    console.warn('NAS JSON save failed:', e);
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
+
 const sbGenImages = {};
 const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
 const SB_STATE_DB_VER = 1;
@@ -19530,12 +19683,15 @@ async function saveStoryboardState(reason) {
   try {
     const db = await openSBStateDB();
     const tx = db.transaction(SB_STATE_STORE, 'readwrite');
-    tx.objectStore(SB_STATE_STORE).put({
-      key: 'current',
-      reason: reason || '',
-      savedAt: new Date().toISOString(),
-      snapshot: sbStoryboardSnapshot()
-    });
+    const snapshot = sbStoryboardSnapshot();
+    const payload = {
+        key: 'current',
+        reason: reason || '',
+        savedAt: new Date().toISOString(),
+        snapshot: snapshot
+      };
+    tx.objectStore(SB_STATE_STORE).put(payload);
+    zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason || ''});
   } catch(e) {
     console.warn('Storyboard state save failed:', e);
   }
@@ -20265,6 +20421,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
+    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
     buildStoryboardTimeline();
     saveStoryboardState('shot-generated');
   } catch(e) {
@@ -20298,6 +20455,9 @@ async function generateSBSequence(shotId) {
     if (seq.length) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
+      seq.forEach(function(b64, i) {
+        zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (i + 1), b64, 'image/png', {shotId: shotId, frameIndex: i + 1, reason: 'sequence-generated'});
+      });
       buildStoryboardTimeline();
       saveStoryboardState('sequence-generated');
     } else {
@@ -21611,15 +21771,22 @@ function updateVidCost() {
 function getVideoStartPayloadMeta(prompt) {
   const meta = vidStartMeta || {};
   const isStoryboard = meta.source === 'storyboard';
+  const isInstagram = meta.source === 'instagram';
   return {
-    source: isStoryboard ? 'storyboard' : 'video_tab',
-    prompt_source: isStoryboard ? 'storyboard_i2v_prompt' : 'video_tab_prompt',
+    source: isStoryboard ? 'storyboard' : (isInstagram ? 'instagram' : 'video_tab'),
+    prompt_source: isStoryboard ? 'storyboard_i2v_prompt' : (isInstagram ? 'instagram_video_prompt' : 'video_tab_prompt'),
     prompt,
     storyboard: isStoryboard ? {
       shot_id: meta.shotId || '',
       frame: meta.frame || '',
       description: meta.desc || '',
       function: meta.func || '',
+      video_prompt: meta.videoPrompt || prompt
+    } : null,
+    instagram: isInstagram ? {
+      index: meta.index || '',
+      location: meta.location || '',
+      image_prompt: meta.imagePrompt || '',
       video_prompt: meta.videoPrompt || prompt
     } : null
   };
@@ -21637,7 +21804,8 @@ async function sendVideoToGrokBuild() {
   const ratio = getSelected('vratio') || '9:16';
   if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
   setAbortButtonEnabled('grokBuildAbortBtn', true);
-  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + (payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : '');
+  const sourceNote = payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : (payloadMeta.source === 'instagram' ? ' · 인스타그램 이미지/영상 프롬프트 포함' : '');
+  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + sourceNote;
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
       method: 'POST',
@@ -21647,6 +21815,7 @@ async function sendVideoToGrokBuild() {
         prompt,
         metadata: payloadMeta,
         storyboard: payloadMeta.storyboard,
+        instagram: payloadMeta.instagram,
         duration: Number(String(dur).replace(/[^0-9.]/g, '')) || 5,
         aspect_ratio: ratio,
         resolution: '720p'
@@ -22674,7 +22843,7 @@ async function saveToHistory(imgB64, step, desc) {
     const tx = db.transaction(HIST_STORE, 'readwrite');
     const store = tx.objectStore(HIST_STORE);
     const now = new Date();
-    store.add({
+    const record = {
       b64: imgB64,
       mime: 'image/png',
       step: step,
@@ -22682,7 +22851,9 @@ async function saveToHistory(imgB64, step, desc) {
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0].substring(0,5),
       timestamp: now.getTime()
-    });
+    };
+    store.add(record);
+    zippyNasSaveImage('history_' + (step || 'image'), (step || 'image') + '_' + record.timestamp, imgB64, 'image/png', record);
   } catch(e) { console.warn('History save failed:', e); }
 }
 
@@ -27214,7 +27385,7 @@ function updatePromptPreview() {
       try{
         const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
-        const item={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1}; state.results[i]=item; if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI','#'+(i+1)+' '+loc[0]);
+        const item={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1}; state.results[i]=item; if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI','#'+(i+1)+' '+loc[0]); zippyNasSaveImage('instagram', 'reel_' + String(i+1).padStart(2,'0'), r.imgB64, 'image/png', {idx:i+1, loc:loc[0], prompt:prompt, reason:'batch'});
       }catch(e){
         state.results[i]={error:e.message,prompt:prompt,loc:loc[0],idx:i+1};
       }
@@ -27264,6 +27435,7 @@ function updatePromptPreview() {
       if(!r.imgB64) throw new Error('이미지 응답 없음');
       state.results[resultIndex]={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:idx};
       if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI-1','#'+idx+' '+loc[0]);
+      zippyNasSaveImage('instagram', 'single_' + String(idx).padStart(2,'0'), r.imgB64, 'image/png', {idx:idx, loc:loc[0], prompt:prompt, reason:'single'});
       setStatus('GTI 1장 생성 완료. 결과 그리드에 표시했습니다.');
     }catch(e){
       state.results[resultIndex]={error:e.message,prompt:prompt,loc:loc[0],idx:idx};
@@ -27277,10 +27449,11 @@ function updatePromptPreview() {
   window.ipSendToVideoTab=function(index){
     const item=state.results[index];
     if(!item||item.error) return;
-    const prompt='vertical Instagram reel, subtle handheld phone camera, gentle push-in, natural hair and fabric motion, keep the exact same person, face, outfit, landmark background, lighting, and composition from the source image';
+    const prompt='vertical Instagram reel, subtle handheld phone camera, gentle push-in, natural hair and fabric motion, keep the exact same person, face, outfit, location background, lighting, and composition from the source image';
+    const meta={source:'instagram',index:item.idx,location:item.loc||'',imagePrompt:item.prompt||'',videoPrompt:prompt};
     if(typeof window.zippySendImageToVideoTab==='function'){
-      window.zippySendImageToVideoTab(item.b64,item.mime||'image/png',prompt);
-      setStatus('#'+item.idx+' 컷을 로컬 영상 생성 탭 START 프레임으로 보냈습니다.');
+      window.zippySendImageToVideoTab(item.b64,item.mime||'image/png',prompt,meta);
+      setStatus('#'+item.idx+' 컷을 영상 제작 탭 START 프레임으로 보냈습니다. Grok 전송 프롬프트를 확인하세요.');
     }else{
       setStatus('영상 탭 연결 함수를 찾지 못했습니다.');
     }
@@ -27476,7 +27649,10 @@ function updatePromptPreview() {
     try{
       const db=await openIPStateDB();
       const tx=db.transaction(IP_STATE_STORE,'readwrite');
-      tx.objectStore(IP_STATE_STORE).put({key:'current',reason:reason||'',savedAt:new Date().toISOString(),snapshot:ipSnapshot()});
+      const snapshot = ipSnapshot();
+      const payload = {key:'current',reason:reason||'',savedAt:new Date().toISOString(),snapshot:snapshot};
+      tx.objectStore(IP_STATE_STORE).put(payload);
+      zippyNasSaveJson('state_instagram', 'current', payload, {reason:reason||''});
     }catch(e){
       console.warn('Instagram state save failed:',e);
     }

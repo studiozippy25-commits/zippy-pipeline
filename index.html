@@ -20779,17 +20779,33 @@ function initLocalVideoGatewayFields() {
 async function requestLocalVideo(payload, onProgress) {
   const base = getLocalVideoGatewayBase();
   const headers = getLocalVideoGatewayHeaders();
-  if (onProgress) onProgress('Local 5080 Gateway 전송 중...');
-  const createRes = await fetch(base + '/v1/videos/generations', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload)
-  });
-  if (!createRes.ok) {
-    const errData = await createRes.json().catch(() => ({}));
-    throw new Error(errData.error || errData.message || ('HTTP ' + createRes.status));
+  if (onProgress) onProgress('ComfyUI 연결 확인 중...');
+  const healthRes = await fetch(base + '/health', { headers });
+  const healthData = await healthRes.json().catch(() => ({}));
+  if (!healthRes.ok || healthData.comfy_ok === false) {
+    throw new Error(healthData.comfy_error || healthData.error || healthData.hint || ('ComfyUI 연결 실패: HTTP ' + healthRes.status));
   }
-  const createData = await createRes.json();
+  if (onProgress) onProgress('Local 5080 Gateway 전송 중... ComfyUI 응답 대기');
+  let waitSeconds = 0;
+  const ticker = onProgress ? setInterval(function(){
+    waitSeconds += 5;
+    onProgress('ComfyUI 처리 대기 중... (' + waitSeconds + '초) · ComfyUI 큐/콘솔을 확인하세요');
+  }, 5000) : null;
+  let createData;
+  try {
+    const createRes = await fetch(base + '/v1/videos/generations', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    if (!createRes.ok) {
+      const errData = await createRes.json().catch(() => ({}));
+      throw new Error([errData.stage, errData.error || errData.message || ('HTTP ' + createRes.status), errData.hint].filter(Boolean).join(' · '));
+    }
+    createData = await createRes.json();
+  } finally {
+    if (ticker) clearInterval(ticker);
+  }
   if (createData.video_url || createData?.video?.url) return createData.video_url || createData.video.url;
   const requestId = createData.request_id || createData.id;
   if (!requestId) throw new Error('로컬 게이트웨이 응답에 video_url/request_id가 없습니다');

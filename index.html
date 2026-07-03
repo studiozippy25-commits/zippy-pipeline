@@ -20336,11 +20336,20 @@ function sendSBToVideo(shotId) {
   if (!b64) { alert('먼저 이미지를 생성하세요'); return; }
   const shot = SB_SHOTS.find(s => s.id === shotId) || { id: shotId, frame:'', desc:'', func:'' };
   const prompt = buildSBVideoPrompt(shot);
+  const meta = {
+    source: 'storyboard',
+    shotId: shot.id || shotId,
+    frame: shot.frame || '',
+    desc: shot.desc || '',
+    func: shot.func || '',
+    videoPrompt: prompt
+  };
   if (typeof window.zippySendImageToVideoTab === 'function') {
-    window.zippySendImageToVideoTab(b64, 'image/png', prompt);
+    window.zippySendImageToVideoTab(b64, 'image/png', prompt, meta);
   } else {
     vidStartB64 = b64;
     vidStartMime = 'image/png';
+    vidStartMeta = meta;
     const el = document.getElementById('vidStartFrame');
     if (el) el.innerHTML = '<img src="data:image/png;base64,' + b64 + '" style="width:100%;height:100%;object-fit:cover">';
     const promptEl = document.getElementById('vidTabPrompt');
@@ -20872,9 +20881,10 @@ function formatLocalGatewayError(e) {
   }
   return msg;
 }
-function zippySendImageToVideoTab(imgB64, mime, prompt) {
+function zippySendImageToVideoTab(imgB64, mime, prompt, meta) {
   vidStartB64 = imgB64;
   vidStartMime = mime || 'image/png';
+  vidStartMeta = meta || null;
   const frame = document.getElementById('vidStartFrame');
   if (frame) frame.innerHTML = '<img src="data:' + vidStartMime + ';base64,' + imgB64 + '" style="width:100%;height:100%;object-fit:cover">';
   const promptEl = document.getElementById('vidTabPrompt');
@@ -20980,6 +20990,7 @@ async function executeVideo() {
 /* ═══ VIDEO PRODUCTION TAB ═══ */
 let vidStartB64 = null, vidEndB64 = null;
 let vidStartMime = 'image/png', vidEndMime = 'image/png';
+let vidStartMeta = null;
 const vidTabVideos = [];
 
 function loadVidFrame(type, files) {
@@ -20988,7 +20999,7 @@ function loadVidFrame(type, files) {
   reader.onload = function(e) {
     const b64 = e.target.result.split(',')[1];
     const mime = files[0].type || 'image/png';
-    if (type === 'start') { vidStartB64 = b64; vidStartMime = mime; }
+    if (type === 'start') { vidStartB64 = b64; vidStartMime = mime; vidStartMeta = null; }
     else { vidEndB64 = b64; vidEndMime = mime; }
     const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
     el.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
@@ -21024,7 +21035,7 @@ async function selectHistForVideo(type, imgId) {
   const items = await loadHistory();
   const img = items.find(i => i.id === imgId);
   if (!img) return;
-  if (type === 'start') { vidStartB64 = img.b64; vidStartMime = img.mime || 'image/png'; }
+  if (type === 'start') { vidStartB64 = img.b64; vidStartMime = img.mime || 'image/png'; vidStartMeta = null; }
   else { vidEndB64 = img.b64; vidEndMime = img.mime || 'image/png'; }
   const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
   if (el) el.innerHTML = '<img src="data:' + (img.mime||'image/png') + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
@@ -21035,15 +21046,33 @@ function updateVidCost() {
   if (el) el.textContent = '로컬 5080 렌더링 · API 비용 없음';
 }
 
+function getVideoStartPayloadMeta(prompt) {
+  const meta = vidStartMeta || {};
+  const isStoryboard = meta.source === 'storyboard';
+  return {
+    source: isStoryboard ? 'storyboard' : 'video_tab',
+    prompt_source: isStoryboard ? 'storyboard_i2v_prompt' : 'video_tab_prompt',
+    prompt,
+    storyboard: isStoryboard ? {
+      shot_id: meta.shotId || '',
+      frame: meta.frame || '',
+      description: meta.desc || '',
+      function: meta.func || '',
+      video_prompt: meta.videoPrompt || prompt
+    } : null
+  };
+}
+
 async function sendVideoToGrokBuild() {
   if (!vidStartB64) { alert('Grok Build로 보낼 START 프레임을 먼저 넣어주세요'); return; }
   const prompt = getVidTabPromptForGeneration();
+  const payloadMeta = getVideoStartPayloadMeta(prompt);
   const status = document.getElementById('grokBuildStatus');
   const btn = document.getElementById('grokBuildSendBtn');
   const dur = getSelected('vdur') || '5초';
   const ratio = getSelected('vratio') || '9:16';
   if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
-  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...';
+  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + (payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : '');
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
       method: 'POST',
@@ -21051,6 +21080,8 @@ async function sendVideoToGrokBuild() {
       body: JSON.stringify({
         image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
         prompt,
+        metadata: payloadMeta,
+        storyboard: payloadMeta.storyboard,
         duration: Number(String(dur).replace(/[^0-9.]/g, '')) || 5,
         aspect_ratio: ratio,
         resolution: '720p'

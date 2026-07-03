@@ -2958,8 +2958,8 @@ input[type=file]{display:none}
       </div>
     </div>
     <div style="padding:0 16px 16px">
-      <div class="cfg-lbl">카메라/액션 프롬프트</div>
-      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="카메라 움직임이나 인물 액션을 설명하세요 (예: slow dolly forward, 인물이 천천히 고개를 돌린다, gentle zoom into face...)" style="min-height:60px"></textarea>
+      <div class="cfg-lbl">카메라/액션 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">실사화 기본 프롬프트 자동 포함</span></div>
+      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 추가 지시만 적어도 됩니다. 예: slow dolly forward, 인물이 천천히 고개를 돌린다, gentle zoom into face..." style="min-height:60px"></textarea>
     </div>
   </div>
 
@@ -20687,6 +20687,7 @@ async function generateRelight() {
 const DEFAULT_LOCAL_VIDEO_GATEWAY = 'https://zippy-5080.studiozippy.co.kr';
 const DEFAULT_GROK_BUILD_BRIDGE = 'http://127.0.0.1:8790';
 const DEFAULT_LOCAL_5080_PROXY_PATH = '/proxy/local5080';
+const DEFAULT_VIDEO_REALISM_PROMPT = 'Photorealistic live-action Instagram reel from this exact source frame. Keep the same person, face identity, body shape, outfit, hairstyle, background, lighting, colors, camera angle, and composition unchanged. Subtle handheld camera movement, gentle push-in, natural breathing, tiny eye/head movement, realistic hair and fabric micro-motion, real smartphone/ARRI-style footage, natural motion blur. No face morphing, no outfit change, no background change, no extra people, no text, no logo, no AI/CG look.';
 let vidSourceB64 = null;
 let vidSourceMime = 'image/png';
 
@@ -20738,6 +20739,15 @@ function getGrokBuildBridgeHeaders(json) {
   if (key) headers['X-Zippy-Grok-Key'] = key;
   return headers;
 }
+function composeVideoRealismPrompt(motionPrompt) {
+  const motion = String(motionPrompt || '').trim();
+  if (!motion) return DEFAULT_VIDEO_REALISM_PROMPT;
+  if (/Photorealistic live-action Instagram reel|Keep the same person, face identity/i.test(motion)) return motion;
+  return DEFAULT_VIDEO_REALISM_PROMPT + '\n\nMotion direction: ' + motion;
+}
+function getVidTabPromptForGeneration() {
+  return composeVideoRealismPrompt(document.getElementById('vidTabPrompt')?.value?.trim() || '');
+}
 function initLocalVideoGatewayFields() {
   const urlEl = document.getElementById('vidLocalGatewayUrl');
   const keyEl = document.getElementById('vidLocalGatewayKey');
@@ -20782,7 +20792,10 @@ async function requestLocalVideo(payload, onProgress) {
   if (onProgress) onProgress('ComfyUI 연결 확인 중...');
   const healthRes = await fetch(base + '/health', { headers });
   const healthData = await healthRes.json().catch(() => ({}));
-  if (!healthRes.ok || healthData.comfy_ok === false) {
+  if (!healthRes.ok || healthData.comfy_ok !== true) {
+    if (healthRes.ok && healthData.comfy_ok == null) {
+      throw new Error('Local 5080 Gateway가 구버전입니다. Windows의 local-5080-gateway/server.mjs를 새 버전으로 교체해야 ComfyUI 큐 진입 여부를 확인할 수 있습니다.');
+    }
     throw new Error(healthData.comfy_error || healthData.error || healthData.hint || ('ComfyUI 연결 실패: HTTP ' + healthRes.status));
   }
   if (onProgress) onProgress('Local 5080 Gateway 전송 중... ComfyUI 응답 대기');
@@ -20828,6 +20841,8 @@ async function checkLocalVideoGateway() {
     const res = await fetch(getLocalVideoGatewayBase() + '/health', { headers: getLocalVideoGatewayHeaders() });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (data.comfy_ok == null) throw new Error('게이트웨이 구버전 · Windows local-5080-gateway/server.mjs 교체 필요');
+    if (data.comfy_ok === false) throw new Error(data.comfy_error || data.hint || 'ComfyUI 연결 실패');
     const proxied = shouldProxyLocal5080(document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY);
     if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI') + (proxied ? ' · 로컬 프록시 경유' : ''); el.style.color = 'var(--ok)'; }
   } catch(e) {
@@ -20857,7 +20872,7 @@ function zippySendImageToVideoTab(imgB64, mime, prompt) {
 window.zippySendImageToVideoTab = zippySendImageToVideoTab;
 
 function openVideoOverlay(imgB64, mime) {
-  zippySendImageToVideoTab(imgB64, mime || 'image/png', 'cinematic camera movement, subtle natural motion, preserve the exact same subject, face, outfit, lighting, and composition');
+  zippySendImageToVideoTab(imgB64, mime || 'image/png', 'subtle handheld camera movement, gentle push-in, natural hair and fabric motion');
 }
 function closeVidOverlay() {
   const overlay = document.getElementById('vidOverlay');
@@ -20906,7 +20921,7 @@ async function generateKlingJWT() {
 async function executeVideo() {
   if (!vidSourceB64) { alert('이미지가 없습니다'); return; }
   const cfg = getVidConfig();
-  const prompt = document.getElementById('vidPrompt').value.trim() || 'cinematic camera movement, subtle motion';
+  const prompt = composeVideoRealismPrompt(document.getElementById('vidPrompt').value.trim() || 'subtle handheld camera movement, gentle push-in');
   const btn = document.getElementById('vidExecBtn');
   const status = document.getElementById('vidStatus');
   const result = document.getElementById('vidResult');
@@ -21006,7 +21021,7 @@ function updateVidCost() {
 
 async function sendVideoToGrokBuild() {
   if (!vidStartB64) { alert('Grok Build로 보낼 START 프레임을 먼저 넣어주세요'); return; }
-  const prompt = document.getElementById('vidTabPrompt')?.value?.trim() || 'Create a vertical Instagram reel from the uploaded image. Keep the same person, face, outfit, background, lighting, and composition. Subtle handheld camera, gentle push-in, natural hair and fabric movement, realistic motion, no face morph, no outfit change, no extra people, no text overlay.';
+  const prompt = getVidTabPromptForGeneration();
   const status = document.getElementById('grokBuildStatus');
   const btn = document.getElementById('grokBuildSendBtn');
   const dur = getSelected('vdur') || '5초';
@@ -21102,7 +21117,7 @@ function getKlingModelName() {
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
 
-  const prompt = document.getElementById('vidTabPrompt')?.value?.trim() || 'cinematic camera movement, subtle natural motion';
+  const prompt = getVidTabPromptForGeneration();
   const dur = getSelected('vdur') || '5초';
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';

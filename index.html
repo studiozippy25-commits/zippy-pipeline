@@ -22971,7 +22971,8 @@ function downloadIGImage() {
 // ═══ 전역 통합 라이트박스 ═══
 function openLightbox(b64OrSrc) {
   if (!b64OrSrc) return;
-  const src = (typeof b64OrSrc === 'string' && b64OrSrc.startsWith('data:')) ? b64OrSrc : ('data:image/png;base64,' + b64OrSrc);
+  const value = String(b64OrSrc);
+  const src = /^(data:|https?:|blob:|\.\/|\.\.\/|assets\/)/.test(value) ? value : ('data:image/png;base64,' + value);
   let lb = document.getElementById('globalLightbox');
   if (!lb) {
     lb = document.createElement('div');
@@ -22992,6 +22993,42 @@ function openLightbox(b64OrSrc) {
 }
 // 호환: 기존 호출도 통합 라이트박스 사용
 function openIGLightbox(b64) { openLightbox(b64); }
+
+function shouldGlobalZoomImage(img) {
+  if (!img || !img.src) return false;
+  if (['globalLbImg','sbLbImg','histModalImg','ipImageViewerImg'].includes(img.id)) return false;
+  if (img.closest('#globalLightbox,#sbLightbox,#histModal,#ipImageViewer,.hist-modal')) return false;
+  if (img.closest('button,a,label,input,textarea,select')) return false;
+  if (img.getAttribute('onclick')) return false;
+  const clickableParent = img.closest('[onclick]');
+  if (clickableParent) {
+    const code = clickableParent.getAttribute('onclick') || '';
+    if (/open(?:SB)?Lightbox|openLightbox|openIGLightbox|openHistModal|ipOpenImageViewer/i.test(code)) return false;
+  }
+  return true;
+}
+
+function installGlobalImageZoom() {
+  if (window.__zippyGlobalImageZoomBound) return;
+  window.__zippyGlobalImageZoomBound = true;
+  document.addEventListener('click', function(e) {
+    const img = e.target && e.target.closest ? e.target.closest('img') : null;
+    if (!shouldGlobalZoomImage(img)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openLightbox(img.currentSrc || img.src);
+  }, true);
+  document.addEventListener('mouseover', function(e) {
+    const img = e.target && e.target.closest ? e.target.closest('img') : null;
+    if (shouldGlobalZoomImage(img)) img.style.cursor = 'zoom-in';
+  }, true);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', installGlobalImageZoom);
+} else {
+  installGlobalImageZoom();
+}
 
 function reuseIGAsRef() {
   if (!igLastB64) return;

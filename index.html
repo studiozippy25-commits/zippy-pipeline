@@ -775,7 +775,7 @@ input[type=file]{display:none}
 .ip-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .ip-thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;min-height:104px;padding:10px;border:1px dashed var(--bd);border-radius:8px;background:rgba(255,255,255,.02);margin-bottom:10px}
 .ip-thumb-grid>span{align-self:center;color:var(--mu);font-family:var(--font-mono);font-size:11px}
-.ip-thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--sf)}
+.ip-thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--sf);cursor:pointer}
 .ip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ip-thumb small{position:absolute;left:4px;right:4px;bottom:4px;padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.62);color:white;font-family:var(--font-mono);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ip-thumb-del{position:absolute;top:4px;right:4px;padding:3px 6px;border:1px solid rgba(248,113,113,.75);border-radius:4px;background:rgba(127,29,29,.82);color:#FECACA;font-family:var(--font-mono);font-size:8px;font-weight:800;cursor:pointer}
@@ -786,11 +786,11 @@ input[type=file]{display:none}
 .ip-textarea{min-height:70px;resize:vertical;margin-bottom:10px}
 .ip-pre{min-height:120px;margin:10px 0;padding:10px;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;color:#CBD5E1;font-family:var(--font-mono);font-size:11px;line-height:1.65}
 .ip-output{min-height:180px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);color:var(--mu);font-family:var(--font-mono);font-size:11px;overflow:hidden}
-.ip-output img{max-width:100%;max-height:520px;display:block}
+.ip-output img{max-width:100%;max-height:520px;display:block;cursor:pointer}
 .ip-status{padding:8px 10px;border-radius:6px;background:rgba(96,165,250,.08);color:#93C5FD;font-family:var(--font-mono);font-size:12px;margin-bottom:10px}
 .ip-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .ip-card-result{border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--sf)}
-.ip-card-result img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0b0f14}
+.ip-card-result img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0b0f14;cursor:pointer}
 .ip-card-result .meta{padding:8px 10px;color:var(--mu);font-family:var(--font-mono);font-size:10px;display:flex;justify-content:space-between;gap:8px}
 .ip-card-result .tools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--bd)}
 .ip-card-result video{width:100%;display:block;border-top:1px solid var(--bd)}
@@ -1029,7 +1029,7 @@ input[type=file]{display:none}
 <!-- ═══════════════ INSTAGRAM PERSONA MODULE ═══════════════ -->
 <div class="panel ip-panel" id="pInsta">
   <div class="slbl" style="color:#F472B6">INSTAGRAM PERSONA · 부캐 이미지릴 생성</div>
-  <div class="ip-note">인스타 이미지는 GTI 브릿지로만 생성합니다. 인물/의상 업로드 이미지를 실제 레퍼런스 입력으로 넣고, 여러 컷 생성은 같은 시간대에 한 번에 찍은 사진 세트처럼 맞춥니다. I2V는 생성 후 영상 제작 탭으로 넘겨 처리합니다.</div>
+  <div class="ip-note">인스타 이미지는 GTI 브릿지로만 생성합니다. 의상 사진은 먼저 GTI로 사람을 제거한 의상 6전도 시트로 분리하고, 최종 생성에는 인물 레퍼런스 + 의상 시트만 넣어 같은 시간대에 찍은 이미지릴처럼 맞춥니다. I2V는 생성 후 영상 제작 탭으로 넘겨 처리합니다.</div>
 
   <div class="ip-top-grid">
     <div class="ip-box">
@@ -1064,9 +1064,11 @@ input[type=file]{display:none}
       <div class="ip-thumb-grid" id="ipOutfitGrid"><span>의상 이미지 대기</span></div>
       <div class="ip-controls">
         <label>의상 반영<select id="ipOutfitStrength"><option value="standard">표준</option><option value="strict">정확</option><option value="loose">느슨</option></select></label>
+        <button class="btn bbl bsm" id="ipOutfitSheetBtn" onclick="ipGenerateOutfitSheet()">GTI 의상 6전도 분리</button>
         <button class="btn bor bsm" id="ipOutfitBtn" onclick="ipExtractOutfit()">의상 DNA 추출</button>
       </div>
       <pre class="ip-pre" id="ipOutfitDna">의상 분석값이 여기에 표시됩니다.</pre>
+      <div class="ip-output" id="ipOutfitSheetOutput"><span>의상 6전도 시트 대기</span></div>
     </div>
   </div>
 
@@ -25939,7 +25941,7 @@ function updatePromptPreview() {
 }
 <!-- zippy-instagram-module -->
 (function(){
-  const state={person:[],outfit:[],identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
+  const state={person:[],outfit:[],outfitSheet:null,outfitSheetPromise:null,outfitVersion:0,identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
   const KR=[
     ['서울 · 경복궁','Gyeongbokgung Palace in Seoul, stone courtyard, palace gates and traditional rooflines visible but not postcard-like'],
     ['서울 · 북촌한옥마을','Bukchon Hanok Village in Seoul, narrow hanok alley, tiled roofs, quiet residential morning'],
@@ -26027,7 +26029,11 @@ function updatePromptPreview() {
       const data=await readFile(file);
       bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:kind==='person'?'character':'costume',_label:file.name});
     }
+    if(kind==='outfit'){
+      resetOutfitSheet('의상 레퍼런스가 변경되었습니다. GTI 의상 6전도 분리를 다시 수행합니다.');
+    }
     renderThumbs(kind);
+    if(kind==='outfit'&&bucket.length) window.ipGenerateOutfitSheet();
   };
 
   window.ipExtractIdentity=async function(){
@@ -26047,14 +26053,57 @@ function updatePromptPreview() {
     if(!state.outfit.length) return setStatus('의상 레퍼런스를 먼저 넣어주세요');
     busy('ipOutfitBtn',true,'분석 중...');
     try{
-      const prompt='Analyze these outfit references for a virtual Instagram creator. Return Korean sections: OUTFIT_LOCK, MATERIAL_COLOR, SILHOUETTE, SWAP_RULE, NEGATIVE.';
-      const r=await callLLM({images:state.outfit.slice(0,8),prompt:prompt});
+      const outfitRefs=await ensureOutfitSheet(false);
+      const prompt='Analyze these clothing-only outfit sheet references for a virtual Instagram creator. Ignore any human identity if accidentally visible. Return Korean sections: OUTFIT_LOCK, MATERIAL_COLOR, SILHOUETTE, FRONT_SIDE_BACK_DETAILS, SWAP_RULE, NEGATIVE.';
+      const r=await callLLM({images:outfitRefs,prompt:prompt});
       state.outfitDna=(r.textOut||'').trim();
       document.getElementById('ipOutfitDna').textContent=state.outfitDna||'분석 결과 없음';
-      setStatus('의상 DNA 완료');
+      setStatus('의상 6전도 기반 DNA 완료');
     }catch(e){setStatus('실패: '+e.message);}
     busy('ipOutfitBtn',false,'의상 DNA 추출');
   };
+
+  window.ipGenerateOutfitSheet=async function(){
+    try{
+      await ensureOutfitSheet(true);
+    }catch(e){
+      setStatus('의상 6전도 분리 실패: '+e.message);
+    }
+  };
+
+  async function ensureOutfitSheet(force){
+    if(!state.outfit.length) throw new Error('의상 레퍼런스를 먼저 넣어주세요');
+    if(state.outfitSheet&&!force) return [state.outfitSheet];
+    if(state.outfitSheetPromise) return state.outfitSheetPromise;
+    ensureGtiImageMode();
+    const version=state.outfitVersion;
+    const promise=(async function(){
+      const out=document.getElementById('ipOutfitSheetOutput');
+      busy('ipOutfitSheetBtn',true,'분리 중...');
+      try{
+        if(out) out.innerHTML='<span>GTI가 의상만 분리해 6전도 시트 생성 중...</span>';
+        setStatus('GTI 의상 6전도 분리 중... 원본 의상 사진 속 인물은 제거합니다.');
+        const prompt='Create a production-ready CLOTHING-ONLY 6-view turnaround sheet from the uploaded outfit reference images.\n\nTASK:\n- Extract ONLY the wardrobe: garments, shoes, bag, accessories, fabric, silhouette, color, fit details.\n- Completely remove the wearer/model/person from the outfit references.\n- Reconstruct the clothes as an empty outfit reference, like an invisible ghost-mannequin or clean flat-lay production sheet.\n\nLAYOUT: clean 3 columns x 2 rows, no text labels.\nPanel 1: front view full outfit.\nPanel 2: front-left 45 degree view.\nPanel 3: left side view.\nPanel 4: back view.\nPanel 5: right side view.\nPanel 6: front-right 45 degree view plus key accessory/fabric details if visible.\n\nABSOLUTE NEGATIVE:\nNo face, no head, no hair, no skin, no hands, no feet, no human body, no model identity, no copied person, no portrait, no mannequin face, no text, no watermark.\n\nPreserve the exact outfit design from the uploaded images: cut, fabric, color, pattern, seams, buttons, waistline, sleeves, pants/skirt shape, shoes, bag, and accessories. Neutral studio background, high-resolution realistic wardrobe reference, not fashion editorial.';
+        const r=await callImageGen({images:state.outfit.slice(0,6),prompt:prompt,resVal:'1K'});
+        if(!r.imgB64) throw new Error('이미지 응답 없음');
+        if(version!==state.outfitVersion) throw new Error('의상 레퍼런스가 변경되어 분리 결과를 버렸습니다. 다시 실행하세요.');
+        state.outfitSheet={name:'outfit_6view_sheet.png',mime:'image/png',b64:r.imgB64,url:'data:image/png;base64,'+r.imgB64,_type:'costume',_label:'Instagram clothing-only 6-view outfit sheet'};
+        renderOutfitSheet();
+        setStatus('의상 6전도 분리 완료. 최종 생성에는 이 의상 시트만 사용합니다.');
+        return [state.outfitSheet];
+      }catch(e){
+        if(version===state.outfitVersion&&out&&!state.outfitSheet) out.innerHTML='<span>의상 6전도 실패: '+esc(e.message||e)+'</span>';
+        throw e;
+      }
+    })();
+    state.outfitSheetPromise=promise;
+    try{
+      return await promise;
+    }finally{
+      if(state.outfitSheetPromise===promise) state.outfitSheetPromise=null;
+      busy('ipOutfitSheetBtn',false,'GTI 의상 6전도 분리');
+    }
+  }
 
   window.ipGenerateIdentitySheet=async function(){
     if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
@@ -26068,15 +26117,14 @@ function updatePromptPreview() {
       const r=await callImageGen({images:state.person.slice(0,12),prompt:prompt,resVal:'1K'});
       if(!r.imgB64) throw new Error('이미지 응답 없음');
       state.identitySheet={name:'identity_6view.png',mime:'image/png',b64:r.imgB64,_type:'character',_label:'Instagram identity 6-view sheet'};
-      out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="">';
+      out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
       setStatus('6전도 시트 완료');
     }catch(e){out.innerHTML='<span>생성 실패</span>';setStatus('실패: '+e.message);}
     busy('ipSheetBtn',false,'6전도 시트 생성');
   };
 
   window.ipGenerateBatch=async function(){
-    const identityRefs=(state.identitySheet?[state.identitySheet]:[]).concat(state.person.slice(0,10));
-    if(!identityRefs.length) return setStatus('인물 레퍼런스 이미지 또는 6전도 시트가 필요합니다');
+    if(!state.person.length) return setStatus('인물 레퍼런스 이미지가 필요합니다');
     if(!state.outfit.length) return setStatus('의상 레퍼런스 이미지를 먼저 넣어주세요');
     ensureGtiImageMode();
     const countInput=document.getElementById('ipCount');
@@ -26084,18 +26132,33 @@ function updatePromptPreview() {
     if(!Number.isFinite(count)) count=10;
     count=Math.max(1,Math.min(30,count));
     if(countInput) countInput.value=String(count);
-    const loc=getCurrentLoc();
-    const vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
-    const outfitRefs=state.outfit.slice(0,6);
-    const refs=identityRefs.concat(outfitRefs).slice(0,16);
-    state.sessionSeed=buildSessionSeed(loc,vibe);
-    state.results=Array.from({length:count},function(_,i){return {pending:true,prompt:'',loc:loc[0],idx:i+1};});
-    renderResults();
-    focusResults();
+    busy('ipBatchBtn',true,'준비 중...');
+    let identityRefs=[],outfitRefs=[],refs=[],loc,vibe;
+    try{
+      if(!state.identitySheet){
+        busy('ipBatchBtn',true,'인물 6전도 중...');
+        await ipGenerateIdentitySheet();
+        if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
+      }
+      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
+      busy('ipBatchBtn',true,'의상 6전도 중...');
+      outfitRefs=await ensureOutfitSheet(false);
+      refs=identityRefs.concat(outfitRefs).slice(0,16);
+      loc=getCurrentLoc();
+      vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
+      state.sessionSeed=buildSessionSeed(loc,vibe);
+      state.results=Array.from({length:count},function(_,i){return {pending:true,prompt:'',loc:loc[0],idx:i+1};});
+      renderResults();
+      focusResults();
+    }catch(e){
+      busy('ipBatchBtn',false,'GTI 설정 컷 생성');
+      setStatus('생성 준비 실패: '+e.message);
+      return;
+    }
     busy('ipBatchBtn',true,'생성 중...');
     for(let i=0;i<count;i++){
-      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 인물 '+identityRefs.length+'장 + 의상 '+outfitRefs.length+'장을 이미지 레퍼런스로 사용');
-      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length]);
+      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용');
+      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length],identityRefs.length,outfitRefs.length);
       try{
         const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
@@ -26110,14 +26173,28 @@ function updatePromptPreview() {
   };
 
   window.ipGenerateSingle=async function(){
-    const identityRefs=(state.identitySheet?[state.identitySheet]:[]).concat(state.person.slice(0,10));
-    if(!identityRefs.length) return setStatus('인물 레퍼런스 이미지 또는 6전도 시트가 필요합니다');
+    if(!state.person.length) return setStatus('인물 레퍼런스 이미지가 필요합니다');
     if(!state.outfit.length) return setStatus('의상 레퍼런스 이미지를 먼저 넣어주세요');
     ensureGtiImageMode();
-    const loc=getCurrentLoc();
-    const vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
-    const outfitRefs=state.outfit.slice(0,6);
-    const refs=identityRefs.concat(outfitRefs).slice(0,16);
+    busy('ipSingleBtn',true,'준비 중...');
+    let identityRefs=[],outfitRefs=[],refs=[],loc,vibe;
+    try{
+      if(!state.identitySheet){
+        busy('ipSingleBtn',true,'인물 6전도 중...');
+        await ipGenerateIdentitySheet();
+        if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
+      }
+      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
+      busy('ipSingleBtn',true,'의상 6전도 중...');
+      outfitRefs=await ensureOutfitSheet(false);
+      refs=identityRefs.concat(outfitRefs).slice(0,16);
+      loc=getCurrentLoc();
+      vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
+    }catch(e){
+      busy('ipSingleBtn',false,'GTI 1장 생성');
+      setStatus('생성 준비 실패: '+e.message);
+      return;
+    }
     state.sessionSeed=buildSessionSeed(loc,vibe);
     const idx=state.results.length+1;
     const resultIndex=state.results.length;
@@ -26125,8 +26202,8 @@ function updatePromptPreview() {
     renderResults();
     focusResults();
     busy('ipSingleBtn',true,'생성 중...');
-    setStatus('GTI 1장 생성 중... 인물 '+identityRefs.length+'장 + 의상 '+outfitRefs.length+'장을 이미지 레퍼런스로 사용');
-    const prompt=buildPrompt(1,1,loc,vibe,POSES[Math.floor(Math.random()*POSES.length)]);
+    setStatus('GTI 1장 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용');
+    const prompt=buildPrompt(1,1,loc,vibe,POSES[Math.floor(Math.random()*POSES.length)],identityRefs.length,outfitRefs.length);
     try{
       const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
       if(!r.imgB64) throw new Error('이미지 응답 없음');
@@ -26170,14 +26247,17 @@ function updatePromptPreview() {
     return slot+'; one continuous visit at '+loc[0]+'; same phone-camera color pipeline, same lens family, same makeup, same hair state, same outfit fit, same weather, same exposure and color grade.';
   }
 
-  function buildPrompt(index,total,loc,vibe,pose){
+  function buildPrompt(index,total,loc,vibe,pose,identityCount,outfitCount){
     const custom=(document.getElementById('ipCustomPrompt').value||'').trim();
     const strength=document.getElementById('ipOutfitStrength').value;
-    const outfitRule=({strict:'MANDATORY OUTFIT IMAGE LOCK: Dress the subject in the exact uploaded outfit reference. Transfer cut, fabric, color, fit, shoes, bag, accessories, seams, and styling as accurately as possible. The outfit reference images are visual inputs, not loose inspiration.',standard:'MANDATORY OUTFIT IMAGE LOCK: Use the uploaded outfit reference images as the wardrobe source. Preserve key silhouette, color, fabric, fit, shoes, bag, and accessories.',loose:'Use the uploaded outfit reference images as the wardrobe source, keeping the main silhouette, color story, and styling while adapting naturally.'}[strength]||'MANDATORY OUTFIT IMAGE LOCK: Use uploaded outfit reference images directly.')+'\nOUTFIT DNA:\n'+(state.outfitDna||'Read the uploaded clothing images directly.');
+    identityCount=identityCount||1;
+    outfitCount=outfitCount||1;
+    const wardrobeStart=identityCount+1;
+    const outfitRule=({strict:'MANDATORY WARDROBE LOCK: Dress the protagonist in the exact clothing-only outfit 6-view sheet. Transfer cut, fabric, color, fit, shoes, bag, accessories, seams, buttons, waistline, sleeve length, and styling as accurately as possible. The wardrobe sheet is visual clothing data only, not identity data.',standard:'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet as the wardrobe source. Preserve key silhouette, color, fabric, fit, shoes, bag, accessories, and visible styling.',loose:'Use the clothing-only outfit 6-view sheet as the wardrobe source, keeping the main silhouette, color story, and styling while adapting naturally.'}[strength]||'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet directly.')+'\nOUTFIT DNA:\n'+(state.outfitDna||'Read the clothing-only 6-view outfit sheet directly. Ignore all human identity in wardrobe references.');
     const setLabel=total===1?'single Instagram creator post':total+'-cut carousel';
     const sessionLine=total===1?'This image is a polished single Instagram creator photo from one believable visit.':'This image belongs to one continuous '+total+'-photo set shot during the same short visit.';
     const continuityLine=total===1?'Keep the selected time of day, weather, light direction, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location believable in one frame.':'Keep the same time of day, weather, light direction, shadow softness, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location continuity across all '+total+' images.';
-    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nREFERENCE IMAGE USAGE:\n- Use the uploaded PERSON reference images and identity sheet as mandatory visual identity inputs. Do not invent a new face.\n- Preserve the same exact face, hair, body proportions, skin undertone, and personal aura from the person references.\n- Use the uploaded OUTFIT reference images as mandatory visual wardrobe inputs.\n- '+outfitRule+'\n\nIDENTITY DNA:\n'+(state.identityDna||'Use the person reference images as the identity lock.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, landmark present but not tourist postcard.\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: no different person, no face drift, no outfit drift, no clothing redesign, no plastic beauty filter, no CGI, no anime, no editorial over-posing, no deformed hands, no extra limbs, no fake logos, no text overlay.';
+    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe references.\n- If wardrobe and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, landmark present but not tourist postcard.\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: different person, face drift, using wardrobe model face, copying clothing-reference person, changing protagonist facial features, changing protagonist body identity, outfit drift, clothing redesign, plastic beauty filter, CGI, anime, editorial over-posing, deformed hands, extra limbs, fake logos, text overlay.';
   }
 
   function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML=list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join('');}
@@ -26188,10 +26268,8 @@ function updatePromptPreview() {
     if(!bucket[index]) return;
     bucket.splice(index,1);
     if(kind==='outfit'){
-      state.outfitDna='';
-      const dna=document.getElementById('ipOutfitDna');
-      if(dna) dna.textContent='의상 분석값이 여기에 표시됩니다.';
-      setStatus('의상 레퍼런스를 삭제했습니다. 필요하면 의상 DNA를 다시 추출하세요.');
+      resetOutfitSheet('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
+      setStatus('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
     }else{
       state.identityDna='';
       state.identitySheet=null;
@@ -26203,9 +26281,50 @@ function updatePromptPreview() {
     }
     renderThumbs(kind);
   };
-  function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x,i){const del='<button class="ip-thumb-del" onclick="event.stopPropagation();ipRemoveFile(&quot;'+kind+'&quot;,'+i+')">삭제</button>'; return '<div class="ip-thumb"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small>'+del+'</div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
-  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.pending)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc||'생성 대기')+'</span></div><div class="ip-output" style="min-height:260px"><span>GTI 생성 중...</span></div></div>'; if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt=""><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button></div></div>';}).join('');}
+  function resetOutfitSheet(message){
+    state.outfitVersion++;
+    state.outfitSheet=null;
+    state.outfitSheetPromise=null;
+    state.outfitDna='';
+    const dna=document.getElementById('ipOutfitDna');
+    if(dna) dna.textContent='의상 분석값이 여기에 표시됩니다.';
+    renderOutfitSheet();
+    if(message) setStatus(message);
+  }
+  function renderOutfitSheet(){
+    const out=document.getElementById('ipOutfitSheetOutput');
+    if(!out) return;
+    if(state.outfitSheet){
+      out.innerHTML='<img src="'+state.outfitSheet.url+'" alt="" onclick="ipOpenImageViewer(this.src,\'의상 6전도 시트\')">';
+    }else{
+      out.innerHTML='<span>의상 6전도 시트 대기</span>';
+    }
+  }
+  function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x,i){const del='<button class="ip-thumb-del" onclick="event.stopPropagation();ipRemoveFile(&quot;'+kind+'&quot;,'+i+')">삭제</button>'; return '<div class="ip-thumb" data-name="'+esc(x.name)+'" onclick="ipOpenImageViewer(this.querySelector(&quot;img&quot;).src,this.dataset.name)"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small>'+del+'</div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
+  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.pending)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc||'생성 대기')+'</span></div><div class="ip-output" style="min-height:260px"><span>GTI 생성 중...</span></div></div>'; if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt="" onclick="ipOpenImageViewer(this.src,\'Instagram #'+r.idx+'\')"><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button></div></div>';}).join('');}
   window.ipDownloadOne=function(i){const r=state.results[i]; if(!r||r.error)return; const a=document.createElement('a'); a.href='data:'+r.mime+';base64,'+r.b64; a.download='zippy_instagram_'+String(r.idx).padStart(2,'0')+'.png'; document.body.appendChild(a); a.click(); a.remove();};
+  window.ipOpenImageViewer=function(src,title){
+    if(!src) return;
+    state.viewerSrc=src;
+    state.viewerTitle=title||'Instagram image';
+    let modal=document.getElementById('ipImageViewer');
+    if(!modal){
+      modal=document.createElement('div');
+      modal.id='ipImageViewer';
+      modal.className='hist-modal';
+      modal.style.display='none';
+      modal.onclick=function(e){if(e.target===modal) ipCloseImageViewer();};
+      modal.innerHTML='<button class="hist-modal-close" onclick="ipCloseImageViewer()">✕</button><div id="ipImageViewerTitle" style="position:absolute;top:22px;left:24px;right:72px;color:#fff;font-family:var(--font-mono);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><img id="ipImageViewerImg" src="" alt=""><div class="hist-modal-actions"><button class="hist-modal-btn" onclick="ipDownloadViewer()">다운로드</button></div>';
+      document.body.appendChild(modal);
+    }
+    const img=document.getElementById('ipImageViewerImg');
+    const ttl=document.getElementById('ipImageViewerTitle');
+    if(img) img.src=src;
+    if(ttl) ttl.textContent=state.viewerTitle;
+    modal.style.display='flex';
+  };
+  window.ipCloseImageViewer=function(){const modal=document.getElementById('ipImageViewer'); if(modal) modal.style.display='none';};
+  window.ipDownloadViewer=function(){if(!state.viewerSrc)return; const a=document.createElement('a'); a.href=state.viewerSrc; a.download='zippy_instagram_preview_'+Date.now()+'.png'; document.body.appendChild(a); a.click(); a.remove();};
   function focusResults(){setTimeout(function(){const el=document.getElementById('ipResults'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});},60);}
   function readFile(file){return new Promise(function(res,rej){const fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.onerror=rej; fr.readAsDataURL(file);});}
   function busy(id,on,text){const el=document.getElementById(id); if(!el)return; el.disabled=on; el.textContent=text;}

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="instagram-grok-git-20260703-110000">
+<meta name="zippy-deploy-marker" content="instagram-local-video-gti-sbvideo-20260703-114500">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -590,6 +590,14 @@ input[type=file]{display:none}
 .sb-density-btn{border:0;border-right:1px solid var(--bd);background:transparent;color:var(--mu);font-family:var(--font-mono);font-size:11px;font-weight:700;padding:7px 10px;cursor:pointer;line-height:1}
 .sb-density-btn:last-child{border-right:0}
 .sb-density-btn.on{background:rgba(245,158,11,.14);color:var(--or)}
+.sb-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.sb-subtab{padding:9px 14px;border:1px solid var(--bd);background:var(--card);color:var(--mu);border-radius:8px;font-family:var(--font-mono);font-size:12px;font-weight:800;cursor:pointer}
+.sb-subtab.on{border-color:var(--wn);background:rgba(217,119,6,.12);color:var(--wn)}
+.sb-video-grid{display:grid;grid-template-columns:minmax(260px,.55fr) minmax(320px,1fr);gap:14px}
+.sb-video-panel{border:1px solid var(--bd);border-radius:10px;background:var(--card);padding:14px}
+.sb-video-preview{aspect-ratio:16/9;border:1.5px dashed var(--bd);border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--mu);font-family:var(--font-mono);font-size:12px}
+.sb-video-preview img,.sb-video-preview video{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:900px){.sb-video-grid{grid-template-columns:1fr}}
 
 /* ═══ VIDEO MODE ═══ */
 .vid-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1.5px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .12s;letter-spacing:.3px}
@@ -995,11 +1003,11 @@ input[type=file]{display:none}
   <div class="ar" style="margin-top:8px">
     <span class="al" style="color:var(--pu)">영상</span>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="vidMode" value="cloud" checked onchange="onVidModeChange()"> ☁ Kling 3.0
+      <input type="radio" name="vidMode" value="local" checked> 🖥 Local 5080
     </label>
   </div>
   <div class="an" style="font-size:12px;padding-top:7px;margin-top:7px">
-    <a href="https://aistudio.google.com/apikey" target="_blank">Gemini Key</a> · <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Key</a> · <a href="https://platform.klingai.com/" target="_blank">Kling Key</a>
+    <a href="https://aistudio.google.com/apikey" target="_blank">Gemini Key</a> · <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Key</a> · <span>Local 5080 Gateway</span>
   </div>
 </div>
 
@@ -1020,7 +1028,7 @@ input[type=file]{display:none}
 <!-- ═══════════════ INSTAGRAM PERSONA MODULE ═══════════════ -->
 <div class="panel ip-panel" id="pInsta">
   <div class="slbl" style="color:#F472B6">INSTAGRAM PERSONA · 부캐 이미지릴 생성</div>
-  <div class="ip-note">기존 이미지/LLM/영상 프록시 설정을 그대로 사용합니다. 인물 사진, 의상 레퍼런스, 랜드마크를 고르면 6전도 시트와 10컷 이미지릴을 생성합니다.</div>
+  <div class="ip-note">인스타 10컷은 GTI 브릿지로 생성합니다. 인물/의상 업로드 이미지를 레퍼런스로 넣고, 생성 컷은 로컬 5080 영상 탭으로 바로 넘길 수 있습니다.</div>
 
   <div class="ip-top-grid">
     <div class="ip-box">
@@ -1074,8 +1082,8 @@ input[type=file]{display:none}
       <label>랜드마크<select id="ipLocation"></select></label>
       <label>무드<select id="ipVibe"><option value="daily">데일리</option><option value="travel">여행</option><option value="street">스트릿</option><option value="cafe">카페</option><option value="brand">브랜드협업</option></select></label>
       <label>생성 수<input id="ipCount" type="number" min="1" max="20" value="10"></label>
-      <label>I2V 제공자<select id="ipVideoProvider"><option value="kling">Kling Proxy</option><option value="local">Local 5080 Gateway</option></select></label>
-      <label>Local 5080 URL<input id="ipLocalVideoUrl" type="url" placeholder="https://5080-pc.example.trycloudflare.com"></label>
+      <label>I2V 제공자<select id="ipVideoProvider"><option value="local" selected>Local 5080 Gateway</option></select></label>
+      <label>Local 5080 URL<input id="ipLocalVideoUrl" type="url" value="http://127.0.0.1:8788" placeholder="http://127.0.0.1:8788"></label>
       <label>Local Key<input id="ipLocalVideoKey" type="password" placeholder="선택"></label>
     </div>
     <textarea class="ip-textarea" id="ipCustomPrompt" placeholder="추가 지시: 계절, 헤어, 소품, 계정 톤, 피해야 할 것 등"></textarea>
@@ -1407,6 +1415,11 @@ input[type=file]{display:none}
     쇼트리스트 기반 전체 스토리보드. 각 쇼트를 선택해서 이미지를 개별 생성하거나, <strong>전체 생성</strong>으로 한번에 만들 수 있습니다.<br>
     생성된 이미지는 연쇄 수정(Chain Edit)이 가능합니다.
   </div>
+  <div class="sb-subtabs">
+    <button class="sb-subtab on" id="sbSubtabBoard" onclick="setSBSubtab('board')">타임라인</button>
+    <button class="sb-subtab" id="sbSubtabVideo" onclick="setSBSubtab('video')">영상 생성</button>
+  </div>
+  <div id="sbBoardPanel">
   <!-- 에피소드 셀렉터 -->
   <div id="sbEpSelector" style="display:none;margin-bottom:16px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
     <div style="padding:10px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
@@ -1512,6 +1525,54 @@ input[type=file]{display:none}
       <button class="btn bgh" onclick="filterInsCat('slot40', this)">40분판 신규 (21)</button>
     </div>
     <div id="insGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+  </div>
+  </div>
+
+  <div id="sbVideoPanel" style="display:none">
+    <div class="sb-video-grid">
+      <div class="sb-video-panel">
+        <div class="ip-box-head" style="margin-bottom:10px">
+          <div><b>스토리보드 컷 선택</b><span>생성된 쇼트 이미지를 START 프레임으로 사용</span></div>
+          <div class="ip-actions"><button class="btn bgh bsm" onclick="sbRefreshVideoShotOptions()">새로고침</button></div>
+        </div>
+        <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:10px">생성된 쇼트
+          <select id="sbVideoShotSelect" onchange="sbSelectVideoShot(this.value)" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"></select>
+        </label>
+        <div class="sb-video-preview" id="sbVideoPreview"><span>생성된 스토리보드 컷을 선택하세요</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn bor bsm" onclick="sbSendSelectedToMainVideoTab()">메인 영상 탭으로 보내기</button>
+          <button class="btn bgh bsm" onclick="checkLocalVideoGateway()">Local 상태 확인</button>
+        </div>
+        <div id="sbVideoShotMeta" style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:10px"></div>
+      </div>
+      <div class="sb-video-panel">
+        <div class="ip-box-head" style="margin-bottom:10px">
+          <div><b>Local 5080 I2V</b><span>선택 쇼트를 바로 영상으로 생성</span></div>
+          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">영상 생성</button></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway URL
+            <input id="sbVideoGatewayUrl" type="url" value="http://127.0.0.1:8788" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">길이
+            <select id="sbVideoDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="5">5초</option><option value="10">10초</option></select>
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">모드
+            <select id="sbVideoMode" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="std">표준</option><option value="pro">전문가</option></select>
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
+            <select id="sbVideoRatio" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
+          </label>
+        </div>
+        <textarea id="sbVideoPrompt" class="cfg-ta" style="min-height:116px;margin-bottom:10px" placeholder="선택 쇼트의 카메라 움직임/액션 프롬프트가 자동으로 들어갑니다"></textarea>
+        <div id="sbVideoStatus" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--cy);margin-bottom:10px"></div>
+        <div class="sb-video-preview" id="sbVideoOutput"><span>영상 결과 대기</span></div>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700;margin-bottom:8px">스토리보드 영상 이력</div>
+      <div id="sbVideoHistory" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
+    </div>
   </div>
 </div>
 
@@ -2849,10 +2910,25 @@ input[type=file]{display:none}
 
 <!-- ═══════════════ VIDEO PRODUCTION ═══════════════ -->
 <div class="panel" id="pVid">
-  <div class="slbl" style="color:var(--pu)">영상 제작 — Kling API</div>
+  <div class="slbl" style="color:var(--pu)">영상 제작 — Local 5080 Gateway</div>
   <div style="padding:12px 16px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--pu);line-height:1.7">
-    생성된 이미지를 START 프레임으로 영상을 만듭니다. 히스토리나 스토리보드에서 이미지를 선택하세요.<br>
-    <span style="font-size:11px;color:var(--mu)">⚠ Kling API 크레딧이 차감됩니다. 상단에서 API 키를 입력하세요.</span>
+    생성된 이미지를 START 프레임으로 넘겨 Windows 5080/ComfyUI 로컬 게이트웨이에서 영상을 만듭니다.<br>
+    <span style="font-size:11px;color:var(--mu)">기본 주소는 http://127.0.0.1:8788 입니다. 외부 PC 연결 시 Cloudflare Tunnel/공개 브릿지 URL로 바꾸세요.</span>
+  </div>
+
+  <div style="border:1px solid rgba(124,58,237,.24);border-radius:10px;background:rgba(124,58,237,.05);padding:14px 16px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,.5fr) auto;gap:10px;align-items:end">
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Local 5080 Gateway URL
+        <input id="vidLocalGatewayUrl" type="url" value="http://127.0.0.1:8788" placeholder="http://127.0.0.1:8788" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+      </label>
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway Key
+        <input id="vidLocalGatewayKey" type="password" placeholder="선택" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+      </label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn bgh bsm" onclick="checkLocalVideoGateway()">상태 확인</button>
+        <span id="vidLocalGatewayStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
+      </div>
+    </div>
   </div>
 
   <!-- 소스 이미지 선택 -->
@@ -2888,12 +2964,12 @@ input[type=file]{display:none}
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">영상 설정</div>
     <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
       <div>
-        <div class="cfg-lbl">Kling 모델</div>
+        <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">V1.5 <span style="font-size:9px;opacity:.5">$0.14/5s</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">V2.1 <span style="font-size:9px;opacity:.5">$0.28/5s</span></button>
-          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">V3 <span style="font-size:9px;opacity:.5">고품질</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">V3 Omni <span style="font-size:9px;opacity:.5">+오디오</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 기본 <span style="font-size:9px;opacity:.5">ComfyUI</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 고품질 <span style="font-size:9px;opacity:.5">5080</span></button>
+          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 빠른 <span style="font-size:9px;opacity:.5">local</span></button>
+          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">I2V 커스텀 <span style="font-size:9px;opacity:.5">workflow</span></button>
         </div>
       </div>
       <div>
@@ -2928,7 +3004,7 @@ input[type=file]{display:none}
   <!-- 생성 버튼 -->
   <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px">
     <button class="btn bpu" onclick="executeVideoTab()" id="vidTabExecBtn">▶ 영상 생성</button>
-    <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="vidTabCost">예상 비용: ~$0.14</span>
+    <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="vidTabCost">로컬 5080 렌더링 · API 비용 없음</span>
   </div>
 
   <!-- 생성 결과 -->
@@ -2972,7 +3048,7 @@ input[type=file]{display:none}
 <!-- ═══ VIDEO MODE Overlay ═══ -->
 <div class="vid-overlay" id="vidOverlay" style="display:none">
   <div class="vid-config">
-    <div class="vid-config-title">VIDEO 생성 — Kling 3.0</div>
+    <div class="vid-config-title">VIDEO 생성 — Local 5080</div>
     <div style="margin-bottom:14px">
       <img id="vidSourceImg" src="" style="width:100%;border-radius:8px;border:1px solid rgba(255,255,255,.15);max-height:250px;object-fit:contain">
     </div>
@@ -2986,8 +3062,8 @@ input[type=file]{display:none}
     <div class="vid-config-row">
       <span class="vid-config-label">모드</span>
       <div class="vid-config-seg">
-        <button class="vid-seg on" onclick="pickVidSeg(this,'vid-mode')" data-v="std">표준 ($0.14/5s)</button>
-        <button class="vid-seg" onclick="pickVidSeg(this,'vid-mode')" data-v="pro">전문가 ($0.28/5s)</button>
+        <button class="vid-seg on" onclick="pickVidSeg(this,'vid-mode')" data-v="std">표준</button>
+        <button class="vid-seg" onclick="pickVidSeg(this,'vid-mode')" data-v="pro">전문가</button>
       </div>
     </div>
     <div class="vid-config-row">
@@ -3006,7 +3082,7 @@ input[type=file]{display:none}
       <button class="vid-seg" onclick="closeVidOverlay()" style="flex:1">취소</button>
       <button class="vid-seg on" onclick="executeVideo()" id="vidExecBtn" style="flex:2;background:rgba(124,58,237,.5)">▶ 영상 생성</button>
     </div>
-    <div class="vid-warning">⚠ Kling API 크레딧이 차감됩니다. 표준 5초 약 $0.14</div>
+    <div class="vid-warning">Local 5080 Gateway로 전송됩니다. ComfyUI가 켜져 있어야 합니다.</div>
     <div class="vid-result" id="vidResult" style="display:none"></div>
     <div class="vid-status" id="vidStatus" style="display:none"></div>
   </div>
@@ -20173,15 +20249,129 @@ function downloadSBImg(shotId) {
   a.download = 'SB_' + shotId + '_' + Date.now() + '.png';
   a.click();
 }
+const sbVideoHistory = [];
+function setSBSubtab(mode) {
+  const board = document.getElementById('sbBoardPanel');
+  const video = document.getElementById('sbVideoPanel');
+  const boardBtn = document.getElementById('sbSubtabBoard');
+  const videoBtn = document.getElementById('sbSubtabVideo');
+  if (board) board.style.display = mode === 'video' ? 'none' : '';
+  if (video) video.style.display = mode === 'video' ? '' : 'none';
+  if (boardBtn) boardBtn.classList.toggle('on', mode !== 'video');
+  if (videoBtn) videoBtn.classList.toggle('on', mode === 'video');
+  if (mode === 'video') sbRefreshVideoShotOptions();
+}
+function getSBVideoItems() {
+  return Object.keys(sbGenImages || {}).filter(id => !!sbGenImages[id]).map(id => {
+    const shot = SB_SHOTS.find(s => s.id === id) || { id, frame:'', desc:'', func:'' };
+    return { id, shot, b64: sbGenImages[id] };
+  });
+}
+function sbRefreshVideoShotOptions() {
+  const sel = document.getElementById('sbVideoShotSelect');
+  if (!sel) return;
+  const items = getSBVideoItems();
+  sel.innerHTML = items.length ? items.map(item => '<option value="' + escSBAttr(item.id) + '">' + escSBText(item.id + ' · ' + (item.shot.frame || item.shot.desc || '스토리보드 컷')).slice(0, 96) + '</option>').join('') : '<option value="">생성된 쇼트 이미지 없음</option>';
+  if (items.length) sbSelectVideoShot(sel.value || items[0].id);
+  else {
+    const preview = document.getElementById('sbVideoPreview');
+    if (preview) preview.innerHTML = '<span>먼저 스토리보드 이미지를 생성하세요</span>';
+    const meta = document.getElementById('sbVideoShotMeta');
+    if (meta) meta.textContent = '생성된 쇼트가 없습니다.';
+  }
+}
+function sbSelectVideoShot(shotId) {
+  const b64 = sbGenImages[shotId];
+  const shot = SB_SHOTS.find(s => s.id === shotId);
+  const preview = document.getElementById('sbVideoPreview');
+  if (!b64 || !shot) {
+    if (preview) preview.innerHTML = '<span>생성된 스토리보드 컷을 선택하세요</span>';
+    return;
+  }
+  if (preview) preview.innerHTML = '<img src="data:image/png;base64,' + b64 + '">';
+  const promptEl = document.getElementById('sbVideoPrompt');
+  if (promptEl) promptEl.value = buildSBVideoPrompt(shot);
+  const meta = document.getElementById('sbVideoShotMeta');
+  if (meta) meta.innerHTML = '<b>' + escSBText(shot.id) + '</b><br>' + escSBText(shot.frame || '') + '<br>' + escSBText(shot.desc || '');
+}
+function buildSBVideoPrompt(shot) {
+  const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
+  const camera = spec && spec.video ? spec.video : (shot.frame || 'storyboard-defined camera');
+  return [
+    'cinematic storyboard image-to-video from this exact generated frame',
+    'SHOT ID: ' + (shot.id || ''),
+    'CAMERA: ' + camera,
+    'ACTION: ' + (shot.desc || ''),
+    'FUNCTION: ' + (shot.func || ''),
+    'Preserve the exact same characters, faces, costumes, props, location, lighting, framing, and color.',
+    'Add only natural motion implied by the shot: subtle body movement, fabric/hair motion, practical light flicker, atmosphere, and camera movement from the storyboard.',
+    'No face morph, no costume change, no extra people, no new text, no graphic overlays.'
+  ].filter(Boolean).join('\n');
+}
+function syncSBVideoGateway() {
+  const sb = document.getElementById('sbVideoGatewayUrl');
+  const main = document.getElementById('vidLocalGatewayUrl');
+  if (sb && main) main.value = sb.value || 'http://127.0.0.1:8788';
+}
+function sbSendSelectedToMainVideoTab() {
+  const shotId = document.getElementById('sbVideoShotSelect')?.value;
+  sendSBToVideo(shotId);
+}
+async function sbGenerateSelectedVideo() {
+  const shotId = document.getElementById('sbVideoShotSelect')?.value;
+  const b64 = sbGenImages[shotId];
+  const shot = SB_SHOTS.find(s => s.id === shotId);
+  if (!b64 || !shot) { alert('영상으로 만들 스토리보드 컷을 선택하세요'); return; }
+  syncSBVideoGateway();
+  const prompt = (document.getElementById('sbVideoPrompt')?.value || '').trim() || buildSBVideoPrompt(shot);
+  const btn = document.getElementById('sbVideoGenerateBtn');
+  const status = document.getElementById('sbVideoStatus');
+  const output = document.getElementById('sbVideoOutput');
+  if (btn) { btn.disabled = true; btn.textContent = '생성 중...'; }
+  if (status) { status.style.display = 'block'; status.textContent = 'Local 5080 Gateway 전송 중...'; }
+  try {
+    const videoUrl = await requestLocalVideo({
+      model: 'local-5080-i2v',
+      image: 'data:image/png;base64,' + b64,
+      prompt,
+      duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
+      mode: document.getElementById('sbVideoMode')?.value || 'std',
+      aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9'
+    }, msg => { if (status) status.textContent = msg; });
+    if (status) status.textContent = '완료';
+    if (output) output.innerHTML = '<video controls autoplay loop src="' + videoUrl + '"></video>';
+    sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, time: new Date().toLocaleTimeString() });
+    renderSBVideoHistory();
+  } catch(e) {
+    if (status) status.textContent = '오류: ' + e.message;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '영상 생성'; }
+  }
+}
+function renderSBVideoHistory() {
+  const el = document.getElementById('sbVideoHistory');
+  if (!el) return;
+  el.innerHTML = sbVideoHistory.length ? sbVideoHistory.map(v => '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)"><video src="' + v.url + '" muted loop style="width:100%;aspect-ratio:16/9;object-fit:cover" onmouseenter="this.play()" onmouseleave="this.pause()"></video><div style="padding:8px 10px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:700">' + escSBText(v.id) + ' · ' + escSBText(v.time) + '</div><a href="' + v.url + '" download="storyboard_i2v_' + escSBAttr(v.id) + '.mp4" class="hist-card-btn" style="display:inline-block;margin-top:5px;text-decoration:none">다운로드</a></div></div>').join('') : '<div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:16px">아직 생성된 영상이 없습니다</div>';
+}
 function sendSBToVideo(shotId) {
   const b64 = sbGenImages[shotId];
   if (!b64) { alert('먼저 이미지를 생성하세요'); return; }
-  vidStartB64 = b64;
-  vidStartMime = 'image/png';
-  const el = document.getElementById('vidStartFrame');
-  if (el) el.innerHTML = '<img src="data:image/png;base64,' + b64 + '" style="width:100%;height:100%;object-fit:cover">';
-  goStep('vid');
+  const shot = SB_SHOTS.find(s => s.id === shotId) || { id: shotId, frame:'', desc:'', func:'' };
+  const prompt = buildSBVideoPrompt(shot);
+  if (typeof window.zippySendImageToVideoTab === 'function') {
+    window.zippySendImageToVideoTab(b64, 'image/png', prompt);
+  } else {
+    vidStartB64 = b64;
+    vidStartMime = 'image/png';
+    const el = document.getElementById('vidStartFrame');
+    if (el) el.innerHTML = '<img src="data:image/png;base64,' + b64 + '" style="width:100%;height:100%;object-fit:cover">';
+    const promptEl = document.getElementById('vidTabPrompt');
+    if (promptEl) promptEl.value = prompt;
+    goStep('vid');
+  }
 }
+function escSBText(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+function escSBAttr(v){return escSBText(v).replace(/\s+/g,'_');}
 
 /* ═══ ANGLES 2.0 ═══ */
 let angles2SrcB64 = null, angles2SrcMime = 'image/png';
@@ -20531,24 +20721,85 @@ async function generateRelight() {
   }
 }
 
-/* ═══ VIDEO MODE (Kling 3.0 API) ═══ */
+/* ═══ VIDEO MODE (Local 5080 Gateway) ═══ */
 let vidSourceB64 = null;
 let vidSourceMime = 'image/png';
 
+function getLocalVideoGatewayBase() {
+  const el = document.getElementById('vidLocalGatewayUrl') || document.getElementById('ipLocalVideoUrl');
+  const value = (el && el.value.trim()) || 'http://127.0.0.1:8788';
+  try { localStorage.setItem('zippy_local_video_gateway', value); } catch(e) {}
+  return value.replace(/\/+$/, '');
+}
+function getLocalVideoGatewayHeaders() {
+  const key = (document.getElementById('vidLocalGatewayKey')?.value || document.getElementById('ipLocalVideoKey')?.value || '').trim();
+  const headers = {'Content-Type':'application/json'};
+  if (key) { headers.Authorization = 'Bearer ' + key; headers['X-Zippy-Gateway-Key'] = key; }
+  return headers;
+}
+async function requestLocalVideo(payload, onProgress) {
+  const base = getLocalVideoGatewayBase();
+  const headers = getLocalVideoGatewayHeaders();
+  if (onProgress) onProgress('Local 5080 Gateway 전송 중...');
+  const createRes = await fetch(base + '/v1/videos/generations', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload)
+  });
+  if (!createRes.ok) {
+    const errData = await createRes.json().catch(() => ({}));
+    throw new Error(errData.error || errData.message || ('HTTP ' + createRes.status));
+  }
+  const createData = await createRes.json();
+  if (createData.video_url || createData?.video?.url) return createData.video_url || createData.video.url;
+  const requestId = createData.request_id || createData.id;
+  if (!requestId) throw new Error('로컬 게이트웨이 응답에 video_url/request_id가 없습니다');
+  for (let i = 0; i < 120; i++) {
+    await new Promise(r => setTimeout(r, 5000));
+    if (onProgress) onProgress('로컬 렌더링 중... (' + ((i + 1) * 5) + '초 경과)');
+    const pollRes = await fetch(base + '/v1/videos/' + encodeURIComponent(requestId), { headers });
+    if (!pollRes.ok) continue;
+    const pollData = await pollRes.json();
+    const status = pollData.status || pollData.state;
+    if (status === 'done' || status === 'succeeded' || status === 'success') return pollData.video_url || pollData?.video?.url;
+    if (status === 'failed' || status === 'error') throw new Error(pollData.error || pollData.message || '로컬 영상 생성 실패');
+  }
+  throw new Error('로컬 렌더링 시간 초과');
+}
+async function checkLocalVideoGateway() {
+  const el = document.getElementById('vidLocalGatewayStatus');
+  if (el) el.textContent = '확인 중...';
+  try {
+    const res = await fetch(getLocalVideoGatewayBase() + '/health');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI'); el.style.color = 'var(--ok)'; }
+  } catch(e) {
+    if (el) { el.textContent = '연결 실패 · ' + e.message; el.style.color = 'var(--er)'; }
+  }
+}
+function zippySendImageToVideoTab(imgB64, mime, prompt) {
+  vidStartB64 = imgB64;
+  vidStartMime = mime || 'image/png';
+  const frame = document.getElementById('vidStartFrame');
+  if (frame) frame.innerHTML = '<img src="data:' + vidStartMime + ';base64,' + imgB64 + '" style="width:100%;height:100%;object-fit:cover">';
+  const promptEl = document.getElementById('vidTabPrompt');
+  if (promptEl && prompt) promptEl.value = prompt;
+  const gw = document.getElementById('vidLocalGatewayUrl');
+  const ipGw = document.getElementById('ipLocalVideoUrl');
+  if (gw && ipGw && ipGw.value && gw.value === 'http://127.0.0.1:8788') gw.value = ipGw.value;
+  updateVidCost();
+  if (typeof goStep === 'function') goStep('vid');
+  setTimeout(() => document.getElementById('pVid')?.scrollIntoView({behavior:'smooth', block:'start'}), 80);
+}
+window.zippySendImageToVideoTab = zippySendImageToVideoTab;
+
 function openVideoOverlay(imgB64, mime) {
-  const ak = document.getElementById('klingAccessKey')?.value?.trim();
-  const sk = document.getElementById('klingSecretKey')?.value?.trim();
-  if (!ak || !sk) { alert('Kling API Key를 입력하세요 (상단 API 바)'); return; }
-  vidSourceB64 = imgB64;
-  vidSourceMime = mime || 'image/png';
-  document.getElementById('vidSourceImg').src = 'data:' + vidSourceMime + ';base64,' + imgB64;
-  document.getElementById('vidOverlay').style.display = 'flex';
-  document.getElementById('vidResult').style.display = 'none';
-  document.getElementById('vidStatus').style.display = 'none';
-  document.getElementById('vidPrompt').value = '';
+  zippySendImageToVideoTab(imgB64, mime || 'image/png', 'cinematic camera movement, subtle natural motion, preserve the exact same subject, face, outfit, lighting, and composition');
 }
 function closeVidOverlay() {
-  document.getElementById('vidOverlay').style.display = 'none';
+  const overlay = document.getElementById('vidOverlay');
+  if (overlay) overlay.style.display = 'none';
   vidSourceB64 = null;
 }
 function pickVidSeg(btn, group) {
@@ -20601,59 +20852,17 @@ async function executeVideo() {
   btn.disabled = true;
   btn.textContent = '생성 중...';
   status.style.display = 'block';
-  status.textContent = '영상 생성 요청 중...';
+  status.textContent = 'Local 5080 Gateway 전송 중...';
 
   try {
-    // Create task
-    const createRes = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model_name: (typeof getKlingModelName === 'function' ? getKlingModelName() : 'kling-v3'),
-        image: 'data:' + vidSourceMime + ';base64,' + vidSourceB64,
-        prompt: prompt,
-        cfg_scale: 0.5,
-        mode: cfg.mode === 'pro' ? 'pro' : 'std',
-        duration: cfg.duration,
-        aspect_ratio: cfg.ratio
-      })
-    });
-
-    if (!createRes.ok) {
-      const errData = await createRes.json().catch(() => ({}));
-      throw new Error(errData.message || 'HTTP ' + createRes.status);
-    }
-
-    const createData = await createRes.json();
-    const taskId = createData?.data?.task_id;
-    if (!taskId) throw new Error('Task ID를 받지 못했습니다');
-
-    status.textContent = '영상 렌더링 중... (1~3분 소요)';
-
-    // Poll for result
-    let videoUrl = null;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(r => setTimeout(r, 5000)); // 5초마다 확인
-
-      const pollRes = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video/' + taskId);
-
-      if (!pollRes.ok) continue;
-      const pollData = await pollRes.json();
-      const taskStatus = pollData?.data?.task_status;
-
-      if (taskStatus === 'succeed') {
-        videoUrl = pollData?.data?.task_result?.videos?.[0]?.url;
-        break;
-      } else if (taskStatus === 'failed') {
-        throw new Error('영상 생성 실패: ' + (pollData?.data?.task_status_msg || ''));
-      }
-
-      status.textContent = '영상 렌더링 중... (' + ((i+1)*5) + '초 경과)';
-    }
-
-    if (!videoUrl) throw new Error('시간 초과 (5분)');
+    const videoUrl = await requestLocalVideo({
+      model: 'local-5080-i2v',
+      image: 'data:' + vidSourceMime + ';base64,' + vidSourceB64,
+      prompt,
+      duration: Number(cfg.duration || 5),
+      mode: cfg.mode === 'pro' ? 'pro' : 'std',
+      aspect_ratio: cfg.ratio
+    }, msg => { status.textContent = msg; });
 
     status.textContent = '완료!';
     result.style.display = 'block';
@@ -20662,11 +20871,10 @@ async function executeVideo() {
         <source src="${videoUrl}" type="video/mp4">
       </video>
       <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-        <a href="${videoUrl}" download="kling_video_${Date.now()}.mp4" class="vid-seg on" style="text-decoration:none;display:inline-flex;align-items:center;padding:8px 16px">⬇ 다운로드</a>
+        <a href="${videoUrl}" download="local_i2v_${Date.now()}.mp4" class="vid-seg on" style="text-decoration:none;display:inline-flex;align-items:center;padding:8px 16px">⬇ 다운로드</a>
         <button class="vid-seg" onclick="closeVidOverlay()">닫기</button>
       </div>
     `;
-
   } catch(e) {
     status.textContent = '오류: ' + e.message;
     result.style.display = 'none';
@@ -20730,13 +20938,8 @@ async function selectHistForVideo(type, imgId) {
 }
 
 function updateVidCost() {
-  const dur = getSelected('vdur') || '5초';
-  const mode = getSelected('vmode') || '표준';
-  let cost = 0.14;
-  if (dur === '10초') cost *= 2;
-  if (mode === '전문가') cost *= 2;
   const el = document.getElementById('vidTabCost');
-  if (el) el.textContent = '예상 비용: ~$' + cost.toFixed(2);
+  if (el) el.textContent = '로컬 5080 렌더링 · API 비용 없음';
 }
 
 function getKlingModelName() {
@@ -20755,7 +20958,7 @@ async function executeVideoTab() {
   const dur = getSelected('vdur') || '5초';
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
-  const modelName = getKlingModelName();
+  const modelName = 'local-5080-i2v';
 
   const btn = document.getElementById('vidTabExecBtn');
   const status = document.getElementById('vidTabStatus');
@@ -20764,56 +20967,20 @@ async function executeVideoTab() {
   btn.disabled = true;
   btn.textContent = '생성 중...';
   status.style.display = 'block';
-  status.textContent = '영상 생성 요청 중... (모델: ' + modelName + ')';
+  status.textContent = 'Local 5080 Gateway 전송 중...';
 
   try {
-    const body = {
-      model_name: modelName,
+    const refs = [];
+    if (vidEndB64) refs.push({ name:'end_frame.png', mime:vidEndMime, b64:vidEndB64 });
+    const videoUrl = await requestLocalVideo({
+      model: modelName,
       image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
-      prompt: prompt,
-      cfg_scale: 0.5,
+      images: refs,
+      prompt,
       mode: mode === '전문가' ? 'pro' : 'std',
-      duration: dur.replace('초', ''),
+      duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio
-    };
-    if (vidEndB64) {
-      body.tail_image = 'data:' + vidEndMime + ';base64,' + vidEndB64;
-    }
-
-    const createRes = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
-    });
-
-    if (!createRes.ok) {
-      const errData = await createRes.json().catch(() => ({}));
-      throw new Error(errData.message || 'HTTP ' + createRes.status);
-    }
-
-    const createData = await createRes.json();
-    const taskId = createData?.data?.task_id;
-    if (!taskId) throw new Error('Task ID를 받지 못했습니다');
-
-    status.textContent = '영상 렌더링 중... (1~3분 소요)';
-
-    let videoUrl = null;
-    for (let i = 0; i < 60; i++) {
-      await new Promise(r => setTimeout(r, 5000));
-      const pollRes = await fetch('https://pipeline.studiozippy25.workers.dev/proxy/kling/v1/videos/image2video/' + taskId);
-      if (!pollRes.ok) continue;
-      const pollData = await pollRes.json();
-      const taskStatus = pollData?.data?.task_status;
-      if (taskStatus === 'succeed') {
-        videoUrl = pollData?.data?.task_result?.videos?.[0]?.url;
-        break;
-      } else if (taskStatus === 'failed') {
-        throw new Error('영상 생성 실패: ' + (pollData?.data?.task_status_msg || ''));
-      }
-      status.textContent = '영상 렌더링 중... (' + ((i+1)*5) + '초 경과)';
-    }
-
-    if (!videoUrl) throw new Error('시간 초과 (5분)');
+    }, msg => { status.textContent = msg; });
 
     status.textContent = '완료!';
     result.style.display = 'block';
@@ -20822,14 +20989,12 @@ async function executeVideoTab() {
         <source src="${videoUrl}" type="video/mp4">
       </video>
       <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-        <a href="${videoUrl}" download="kling_${modelName}_${Date.now()}.mp4" class="btn bpu bsm" style="text-decoration:none">⬇ 다운로드</a>
+        <a href="${videoUrl}" download="local_i2v_${Date.now()}.mp4" class="btn bpu bsm" style="text-decoration:none">⬇ 다운로드</a>
       </div>
     `;
 
-    // Add to tab history
-    vidTabVideos.unshift({url: videoUrl, model: modelName, prompt: prompt, time: new Date().toLocaleTimeString()});
+    vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
-
   } catch(e) {
     status.textContent = '오류: ' + e.message;
   } finally {
@@ -22250,7 +22415,7 @@ async function callGtiBridge({images=[], prompt, signal=null}) {
   if (images.some(im => im._type && im._label)) {
     manifestPrefix = 'REFERENCE IMAGES (in order):\n';
     images.forEach((im, idx) => {
-      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
+      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'costume' ? '\uC758\uC0C1 (Outfit)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
       manifestPrefix += `  ${idx+1}. ${t}: ${im._label || ''}\n`;
     });
     manifestPrefix += '\n';
@@ -22290,7 +22455,7 @@ async function callGPTImage({images=[], prompt, signal=null}) {
     if (images.some(im => im._type && im._label)) {
       manifestPrefix = 'REFERENCE IMAGES (in order):\n';
       images.forEach((im, idx) => {
-        const typeLabel = im._type === 'character' ? '인물 (Character)' : im._type === 'background' ? '배경 (Background)' : im._type === 'prop' ? '소품 (Prop)' : 'Reference';
+        const typeLabel = im._type === 'character' ? '인물 (Character)' : im._type === 'costume' ? '의상 (Outfit)' : im._type === 'background' ? '배경 (Background)' : im._type === 'prop' ? '소품 (Prop)' : 'Reference';
         manifestPrefix += `  ${idx+1}. ${typeLabel}: ${im._label || ''}\n`;
       });
       manifestPrefix += '\n';
@@ -25720,6 +25885,7 @@ function updatePromptPreview() {
 
   window.ipGenerateIdentitySheet=async function(){
     if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
+    ensureGtiImageMode();
     busy('ipSheetBtn',true,'생성 중...');
     const out=document.getElementById('ipSheetOutput');
     out.innerHTML='<span>6전도 시트 생성 중...</span>';
@@ -25738,6 +25904,7 @@ function updatePromptPreview() {
   window.ipGenerateBatch=async function(){
     const identity=state.identitySheet?[state.identitySheet]:state.person.slice(0,12);
     if(!identity.length) return setStatus('인물 사진 또는 6전도 시트가 필요합니다');
+    ensureGtiImageMode();
     const count=Math.max(1,Math.min(20,parseInt(document.getElementById('ipCount').value,10)||10));
     const loc=getCurrentLoc();
     const vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
@@ -25746,19 +25913,19 @@ function updatePromptPreview() {
     renderResults();
     busy('ipBatchBtn',true,'생성 중...');
     for(let i=0;i<count;i++){
-      setStatus((i+1)+' / '+count+' 생성 중...');
+      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 업로드 이미지를 레퍼런스로 사용');
       const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length]);
       try{
         const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
-        state.results.push({b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1});
+        const item={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1}; state.results.push(item); if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI','#'+(i+1)+' '+loc[0]);
       }catch(e){
         state.results.push({error:e.message,prompt:prompt,loc:loc[0],idx:i+1});
       }
       renderResults();
     }
     busy('ipBatchBtn',false,'10컷 생성');
-    setStatus('이미지릴 생성 완료');
+    setStatus('GTI 이미지릴 생성 완료. 각 컷에서 영상 탭으로 보낼 수 있습니다.');
   };
 
   window.ipGenerateI2V=async function(index){
@@ -25779,6 +25946,18 @@ function updatePromptPreview() {
       status.textContent='완료';
       box.innerHTML='<video controls autoplay loop src="'+videoUrl+'"></video>';
     }catch(e){status.textContent='실패: '+e.message;}
+  };
+
+  window.ipSendToVideoTab=function(index){
+    const item=state.results[index];
+    if(!item||item.error) return;
+    const prompt='vertical Instagram reel, subtle handheld phone camera, gentle push-in, natural hair and fabric motion, keep the exact same person, face, outfit, landmark background, lighting, and composition from the source image';
+    if(typeof window.zippySendImageToVideoTab==='function'){
+      window.zippySendImageToVideoTab(item.b64,item.mime||'image/png',prompt);
+      setStatus('#'+item.idx+' 컷을 로컬 영상 생성 탭 START 프레임으로 보냈습니다.');
+    }else{
+      setStatus('영상 탭 연결 함수를 찾지 못했습니다.');
+    }
   };
 
   window.ipDownloadManifest=function(){
@@ -25803,7 +25982,7 @@ function updatePromptPreview() {
   }
 
   async function runLocalVideo(item,prompt,status){
-    const base=(document.getElementById('ipLocalVideoUrl').value||'').trim().replace(/\/+$/,'');
+    const base=(document.getElementById('ipLocalVideoUrl').value||'http://127.0.0.1:8788').trim().replace(/\/+$/,'');
     if(!base) throw new Error('Local 5080 URL 필요');
     const key=(document.getElementById('ipLocalVideoKey').value||'').trim();
     const headers={'Content-Type':'application/json'}; if(key){headers.Authorization='Bearer '+key; headers['X-Zippy-Gateway-Key']=key;}
@@ -25816,9 +25995,10 @@ function updatePromptPreview() {
   }
 
   function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML=list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join('');}
+  function ensureGtiImageMode(){const r=document.querySelector('input[name="imgMode"][value="gpt"]'); if(r&&!r.checked){r.checked=true; if(typeof onImgModeChange==='function') onImgModeChange();} try{localStorage.setItem('zippy_img_mode','gpt');}catch(e){}}
   function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const idx=parseInt(document.getElementById('ipLocation').value,10)||0; return list[idx]||list[0];}
   function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x){return '<div class="ip-thumb"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small></div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
-  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt=""><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bpu bsm" onclick="ipGenerateI2V('+i+')">I2V</button></div><div class="ip-status" id="ipVideoStatus'+i+'">영상 대기</div><div id="ipVideoBox'+i+'"></div></div>';}).join('');}
+  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt=""><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button><button class="btn bpu bsm" onclick="ipGenerateI2V('+i+')">로컬 I2V</button></div><div class="ip-status" id="ipVideoStatus'+i+'">영상 대기</div><div id="ipVideoBox'+i+'"></div></div>';}).join('');}
   window.ipDownloadOne=function(i){const r=state.results[i]; if(!r||r.error)return; const a=document.createElement('a'); a.href='data:'+r.mime+';base64,'+r.b64; a.download='zippy_instagram_'+String(r.idx).padStart(2,'0')+'.png'; document.body.appendChild(a); a.click(); a.remove();};
   function readFile(file){return new Promise(function(res,rej){const fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.onerror=rej; fr.readAsDataURL(file);});}
   function busy(id,on,text){const el=document.getElementById(id); if(!el)return; el.disabled=on; el.textContent=text;}

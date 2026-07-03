@@ -18365,6 +18365,45 @@ function sbGroupChipLabel(num) {
   return 'EP' + ('0'+num).slice(-2) + ' ' + (et[num] || ('EP'+num));
 }
 
+function sbActiveEpProjectKey() {
+  return 'zippy-sb-active-ep-' + (currentProjectKey || (currentProject && (currentProject.nameEn || currentProject.name)) || 'default');
+}
+
+function setSBActiveEp(epNum) {
+  var n = Number(epNum);
+  if (!Number.isFinite(n)) n = 0;
+  if (!window.__sbActiveEpByProject) window.__sbActiveEpByProject = {};
+  window.__sbActiveEpByProject[sbActiveEpProjectKey()] = n;
+  try { localStorage.setItem(sbActiveEpProjectKey(), String(n)); } catch(e) {}
+}
+
+function getSBActiveEp(epNums, fallbackEp) {
+  var key = sbActiveEpProjectKey();
+  var raw = window.__sbActiveEpByProject && Object.prototype.hasOwnProperty.call(window.__sbActiveEpByProject, key)
+    ? window.__sbActiveEpByProject[key]
+    : null;
+  if (raw == null) {
+    try { raw = localStorage.getItem(key); } catch(e) { raw = null; }
+  }
+  var n = Number(raw);
+  if (Number.isFinite(n)) {
+    if (n === 0) return 0;
+    if ((epNums || []).indexOf(n) !== -1) return n;
+  }
+  return fallbackEp;
+}
+
+function findSBEpChip(epNum) {
+  var chips = document.querySelectorAll('#sbEpChips .chip');
+  var target = null;
+  chips.forEach(function(c) {
+    var onclick = c.getAttribute('onclick') || '';
+    if (epNum === 0 && onclick.indexOf('filterSBEp(0') !== -1) target = c;
+    if (epNum !== 0 && onclick.indexOf('filterSBEp(' + epNum + ',') !== -1) target = c;
+  });
+  return target;
+}
+
 function refreshEpSelector() {
   if (!currentProject || !currentProject.storyboardShots || currentProject.storyboardShots.length === 0) return;
   var sbEpSelector = document.getElementById('sbEpSelector');
@@ -18427,6 +18466,7 @@ function applySBViewDensity() {
 }
 
 function filterSBEp(epNum, btn) {
+  setSBActiveEp(epNum);
   // Toggle chip active state
   var chips = document.querySelectorAll('#sbEpChips .chip');
   chips.forEach(function(c) { c.classList.remove('on'); });
@@ -19578,10 +19618,27 @@ OUTPUT: A single Korean paragraph (3-5 sentences, max 250 characters) that anoth
 }
 
 function deleteSBImage(shotId) {
-  if (!confirm('이 쇼트의 생성된 이미지를 삭제할까요?')) return;
+  if (!confirm('이 쇼트의 생성된 컷 이미지를 삭제할까요?')) return;
   delete sbGenImages[shotId];
+  if (typeof sbSeqImages !== 'undefined') delete sbSeqImages[shotId];
   buildStoryboardTimeline();
   saveStoryboardState('shot-image-deleted');
+}
+
+function deleteSBSeqFrame(shotId, idx) {
+  const arr = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shotId] : null;
+  if (!arr || !arr[idx]) return;
+  if (!confirm('이 흐름 컷만 삭제할까요?')) return;
+  arr.splice(idx, 1);
+  if (arr.length) {
+    sbSeqImages[shotId] = arr;
+    sbGenImages[shotId] = arr[0];
+  } else {
+    delete sbSeqImages[shotId];
+    delete sbGenImages[shotId];
+  }
+  buildStoryboardTimeline();
+  saveStoryboardState('sequence-frame-deleted');
 }
 
 function sbQuoteAttr(v) {
@@ -19626,7 +19683,7 @@ function renderShotCard(shot, sceneVal) {
     html += seq3up(imgKey);
   } else if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
+    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
     html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
@@ -19957,18 +20014,16 @@ function buildStoryboardTimeline() {
       html += `</div>`;
     });
     inner.innerHTML = html;
-    updateSBProgress();
-    applySBViewDensity();
-    // 대용량 기본 필터
-    if (SB_SHOTS.length >= 100 && epNums.length > 1) {
-      const firstEp = epNums[0];
-      const epChips = document.querySelectorAll('#sbEpChips .chip');
-      let targetBtn = null;
-      epChips.forEach(c => { if (c.textContent.indexOf('EP' + ('0'+firstEp).slice(-2)) === 0) targetBtn = c; });
-      if (targetBtn && typeof filterSBEp === 'function') filterSBEp(firstEp, targetBtn);
-    }
-    return;
-  }
+	    updateSBProgress();
+	    applySBViewDensity();
+	    // 대용량 기본 필터
+	    if (SB_SHOTS.length >= 100 && epNums.length > 1) {
+	      const targetEp = getSBActiveEp(epNums, epNums[0]);
+	      const targetBtn = findSBEpChip(targetEp);
+	      if (targetBtn && typeof filterSBEp === 'function') filterSBEp(targetEp, targetBtn);
+	    }
+	    return;
+	  }
 
   // 구 구조: scene = 에피소드 (하위 호환)
   const scenes = {};
@@ -19994,7 +20049,7 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
       if (hasImg) {
         html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
+        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
       } else {
         html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
         html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
@@ -20015,18 +20070,14 @@ function buildStoryboardTimeline() {
   updateSBProgress();
   applySBViewDensity();
 
-  // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
-  if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
-    var firstEp = sceneNums[0];
-    var epChips = document.querySelectorAll('#sbEpChips .chip');
-    var targetBtn = null;
-    epChips.forEach(function(c) {
-      if (c.textContent.indexOf('EP' + ('0'+firstEp).slice(-2)) === 0) targetBtn = c;
-    });
-    if (targetBtn && typeof filterSBEp === 'function') {
-      filterSBEp(firstEp, targetBtn);
-    }
-  }
+	  // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
+	  if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
+	    var targetEp = getSBActiveEp(sceneNums, sceneNums[0]);
+	    var targetBtn = findSBEpChip(targetEp);
+	    if (targetBtn && typeof filterSBEp === 'function') {
+	      filterSBEp(targetEp, targetBtn);
+	    }
+	  }
 }
 function updateSBProgress() {
   const total = SB_SHOTS.filter(s=>s.pri==='must').length;
@@ -20427,43 +20478,71 @@ function openSBLightbox(shotId) {
     lb.id = 'sbLightbox';
     lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
     lb.onclick = function(e){ if(e.target===lb) lb.style.display='none'; };
-    lb.innerHTML =
-      '<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
-      '<div style="display:flex;gap:10px">' +
-        '<button onclick="downloadSBImg(document.getElementById(\'sbLightbox\').dataset.shotId)" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
-        '<button onclick="sendSBLightboxToVideo()" style="padding:8px 20px;background:var(--pu);border:none;color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">START로 보내기</button>' +
-        '<button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
-      '</div>';
-    document.body.appendChild(lb);
-  }
-  lb.dataset.shotId = shotId;
-  document.getElementById('sbLbImg').src = 'data:image/png;base64,' + b64;
-  lb.style.display = 'flex';
-}
-function sendSBLightboxToVideo() {
+	    lb.innerHTML =
+	      '<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
+	      '<div style="display:flex;gap:10px">' +
+	        '<button onclick="downloadSBLightboxImage()" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+	        '<button onclick="sendSBLightboxToVideo()" style="padding:8px 20px;background:var(--pu);border:none;color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">START로 보내기</button>' +
+	        '<button onclick="deleteSBLightboxImage()" style="padding:8px 20px;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.65);color:#FCA5A5;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">삭제</button>' +
+	        '<button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
+	      '</div>';
+	    document.body.appendChild(lb);
+	  }
+	  lb.dataset.shotId = shotId;
+	  lb.dataset.seqIndex = '';
+	  document.getElementById('sbLbImg').src = 'data:image/png;base64,' + b64;
+	  lb.style.display = 'flex';
+	}
+function downloadSBLightboxImage() {
   const lb = document.getElementById('sbLightbox');
   const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
+  const idxRaw = lb && lb.dataset ? lb.dataset.seqIndex : '';
+  if (idxRaw !== '') {
+    const idx = Number(idxRaw);
+    const arr = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shotId] : null;
+    if (arr && arr[idx]) {
+      const a = document.createElement('a');
+      a.href = 'data:image/png;base64,' + arr[idx];
+      a.download = 'SB_' + shotId + '_seq_' + (idx + 1) + '_' + Date.now() + '.png';
+      a.click();
+      return;
+    }
+  }
+  if (shotId) downloadSBImg(shotId);
+}
+function deleteSBLightboxImage() {
+  const lb = document.getElementById('sbLightbox');
+  const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
+  const idxRaw = lb && lb.dataset ? lb.dataset.seqIndex : '';
+  if (lb) lb.style.display = 'none';
+  if (!shotId) return;
+  if (idxRaw !== '') deleteSBSeqFrame(shotId, Number(idxRaw));
+  else deleteSBImage(shotId);
+}
+	function sendSBLightboxToVideo() {
+	  const lb = document.getElementById('sbLightbox');
+	  const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
   if (lb) lb.style.display = 'none';
   if (shotId) sendSBToVideo(shotId);
 }
 function seq3up(imgKey){
   var arr = (typeof sbSeqImages!=='undefined') ? sbSeqImages[imgKey] : null;
   if(!arr || !arr.length) return '';
-  var lab=['시작','정점','직후'];
-  var h='';
-  for(var i=0;i<arr.length;i++){
-    h+='<div style="margin-bottom:6px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700;margin-bottom:2px">'+(i+1)+'. '+(lab[i]||'')+'</div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
-  }
-  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
-  return h;
-}
+	  var lab=['시작','정점','직후'];
+	  var h='';
+	  for(var i=0;i<arr.length;i++){
+	    h+='<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:2px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700">'+(i+1)+'. '+(lab[i]||'')+'</div><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeqFrame(\''+imgKey+'\','+i+')" style="border-color:var(--er);color:var(--er);font-size:9px;padding:2px 6px" title="이 흐름 컷만 삭제">삭제</button></div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
+	  }
+	  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 전체 삭제">시퀀스 전체 삭제</button></div>';
+	  return h;
+	}
 function deleteSBSeq(imgKey){
   if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey];
   if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey];
   if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline();
   saveStoryboardState('sequence-deleted');
 }
-function openSeqFrame(shotId, idx){ var arr=(typeof sbSeqImages!=='undefined')?sbSeqImages[shotId]:null; if(!arr||!arr[idx]) return; openSBLightbox(shotId); var im=document.getElementById('sbLbImg'); if(im) im.src='data:image/png;base64,'+arr[idx]; }
+function openSeqFrame(shotId, idx){ var arr=(typeof sbSeqImages!=='undefined')?sbSeqImages[shotId]:null; if(!arr||!arr[idx]) return; openSBLightbox(shotId); var lb=document.getElementById('sbLightbox'); if(lb) lb.dataset.seqIndex=String(idx); var im=document.getElementById('sbLbImg'); if(im) im.src='data:image/png;base64,'+arr[idx]; }
 function downloadSBImg(shotId) {
   const b64 = sbGenImages[shotId];
   if(!b64) return;

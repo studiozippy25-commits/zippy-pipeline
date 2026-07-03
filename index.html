@@ -1486,7 +1486,7 @@ input[type=file]{display:none}
       <div class="sb-video-panel">
         <div class="ip-box-head" style="margin-bottom:10px">
           <div><b>Local 5080 I2V</b><span>선택 쇼트를 바로 영상으로 생성</span></div>
-          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">영상 생성</button></div>
+          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">영상 생성</button><button class="btn bor bsm" id="sbVideoAbortBtn" onclick="abortSBVideoGeneration()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway URL
@@ -2877,6 +2877,7 @@ input[type=file]{display:none}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bor bsm" id="grokBuildSendBtn" onclick="sendVideoToGrokBuild()">Grok Build 전송</button>
+        <button class="btn bor bsm" id="grokBuildAbortBtn" onclick="abortGrokBuildSend()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button>
         <button class="btn bgh bsm" onclick="document.getElementById('grokBuildResultInput').click()">결과 파일 추가</button>
       </div>
     </div>
@@ -2966,6 +2967,7 @@ input[type=file]{display:none}
   <!-- 생성 버튼 -->
   <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px">
     <button class="btn bpu" onclick="executeVideoTab()" id="vidTabExecBtn">▶ 영상 생성</button>
+    <button class="btn bor" onclick="abortVideoTabGeneration()" id="vidTabAbortBtn" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button>
     <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="vidTabCost">로컬 5080 렌더링 · API 비용 없음</span>
   </div>
 
@@ -3042,6 +3044,7 @@ input[type=file]{display:none}
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="vid-seg" onclick="closeVidOverlay()" style="flex:1">취소</button>
+      <button class="vid-seg" onclick="abortVideoOverlayGeneration()" id="vidAbortBtn" disabled style="flex:1;border-color:var(--er);color:var(--er);opacity:.45">중단</button>
       <button class="vid-seg on" onclick="executeVideo()" id="vidExecBtn" style="flex:2;background:rgba(124,58,237,.5)">▶ 영상 생성</button>
     </div>
     <div class="vid-warning">Local 5080 Gateway로 전송됩니다. ComfyUI가 켜져 있어야 합니다.</div>
@@ -20300,12 +20303,15 @@ async function sbGenerateSelectedVideo() {
   const b64 = sbGenImages[shotId];
   const shot = SB_SHOTS.find(s => s.id === shotId);
   if (!b64 || !shot) { alert('영상으로 만들 스토리보드 컷을 선택하세요'); return; }
+  if (sbVideoAbortController) sbVideoAbortController.abort();
+  sbVideoAbortController = new AbortController();
   syncSBVideoGateway();
   const prompt = (document.getElementById('sbVideoPrompt')?.value || '').trim() || buildSBVideoPrompt(shot);
   const btn = document.getElementById('sbVideoGenerateBtn');
   const status = document.getElementById('sbVideoStatus');
   const output = document.getElementById('sbVideoOutput');
   if (btn) { btn.disabled = true; btn.textContent = '생성 중...'; }
+  setAbortButtonEnabled('sbVideoAbortBtn', true);
   if (status) { status.style.display = 'block'; status.textContent = 'Local 5080 Gateway 전송 중...'; }
   try {
     const videoUrl = await requestLocalVideo({
@@ -20315,14 +20321,16 @@ async function sbGenerateSelectedVideo() {
       duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
       mode: document.getElementById('sbVideoMode')?.value || 'std',
       aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9'
-    }, msg => { if (status) status.textContent = msg; });
+    }, msg => { if (status) status.textContent = msg; }, { signal: sbVideoAbortController.signal });
     if (status) status.textContent = '완료';
     if (output) output.innerHTML = '<video controls autoplay loop src="' + videoUrl + '"></video>';
     sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, time: new Date().toLocaleTimeString() });
     renderSBVideoHistory();
   } catch(e) {
-    if (status) status.textContent = '오류: ' + formatLocalGatewayError(e);
+    if (status) status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
   } finally {
+    sbVideoAbortController = null;
+    setAbortButtonEnabled('sbVideoAbortBtn', false);
     if (btn) { btn.disabled = false; btn.textContent = '영상 생성'; }
   }
 }
@@ -20811,12 +20819,15 @@ function initLocalVideoGatewayFields() {
     grokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}});
   }
 }
-async function requestLocalVideo(payload, onProgress) {
+async function requestLocalVideo(payload, onProgress, options) {
+  const signal = options && options.signal;
   const base = getLocalVideoGatewayBase();
   const headers = getLocalVideoGatewayHeaders();
+  throwIfVideoAborted(signal);
   if (onProgress) onProgress('ComfyUI 연결 확인 중...');
-  const healthRes = await fetch(base + '/health', { headers });
+  const healthRes = await fetch(base + '/health', { headers, signal });
   const healthData = await healthRes.json().catch(() => ({}));
+  throwIfVideoAborted(signal);
   if (!healthRes.ok || healthData.comfy_ok !== true) {
     if (healthRes.ok && healthData.comfy_ok == null) {
       throw new Error('Local 5080 Gateway가 구버전입니다. Windows의 local-5080-gateway/server.mjs를 새 버전으로 교체해야 ComfyUI 큐 진입 여부를 확인할 수 있습니다.');
@@ -20834,8 +20845,10 @@ async function requestLocalVideo(payload, onProgress) {
     const createRes = await fetch(base + '/v1/videos/generations', {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
+    throwIfVideoAborted(signal);
     if (!createRes.ok) {
       const errData = await createRes.json().catch(() => ({}));
       throw new Error([errData.stage, errData.error || errData.message || ('HTTP ' + createRes.status), errData.hint].filter(Boolean).join(' · '));
@@ -20848,9 +20861,9 @@ async function requestLocalVideo(payload, onProgress) {
   const requestId = createData.request_id || createData.id;
   if (!requestId) throw new Error('로컬 게이트웨이 응답에 video_url/request_id가 없습니다');
   for (let i = 0; i < 120; i++) {
-    await new Promise(r => setTimeout(r, 5000));
+    await waitWithVideoAbort(5000, signal);
     if (onProgress) onProgress('로컬 렌더링 중... (' + ((i + 1) * 5) + '초 경과)');
-    const pollRes = await fetch(base + '/v1/videos/' + encodeURIComponent(requestId), { headers });
+    const pollRes = await fetch(base + '/v1/videos/' + encodeURIComponent(requestId), { headers, signal });
     if (!pollRes.ok) continue;
     const pollData = await pollRes.json();
     const status = pollData.status || pollData.state;
@@ -20858,6 +20871,34 @@ async function requestLocalVideo(payload, onProgress) {
     if (status === 'failed' || status === 'error') throw new Error(pollData.error || pollData.message || '로컬 영상 생성 실패');
   }
   throw new Error('로컬 렌더링 시간 초과');
+}
+function makeVideoAbortError() {
+  try { return new DOMException('Video generation aborted', 'AbortError'); }
+  catch(e) { const err = new Error('Video generation aborted'); err.name = 'AbortError'; return err; }
+}
+function throwIfVideoAborted(signal) {
+  if (signal && signal.aborted) throw makeVideoAbortError();
+}
+function waitWithVideoAbort(ms, signal) {
+  return new Promise(function(resolve, reject) {
+    if (signal && signal.aborted) return reject(makeVideoAbortError());
+    const timer = setTimeout(resolve, ms);
+    if (signal) {
+      signal.addEventListener('abort', function() {
+        clearTimeout(timer);
+        reject(makeVideoAbortError());
+      }, { once: true });
+    }
+  });
+}
+function isVideoAbortError(e) {
+  return !!(e && (e.name === 'AbortError' || /aborted|abort|중단/i.test(e.message || String(e))));
+}
+function setAbortButtonEnabled(id, enabled) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '.45';
 }
 async function checkLocalVideoGateway() {
   const el = document.getElementById('vidLocalGatewayStatus');
@@ -20875,6 +20916,7 @@ async function checkLocalVideoGateway() {
   }
 }
 function formatLocalGatewayError(e) {
+  if (isVideoAbortError(e)) return '중단됨';
   const msg = e && e.message ? e.message : String(e || '');
   if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
     return '게이트웨이에 연결할 수 없습니다. URL, 터널 상태, CORS, Gateway Key를 확인하세요.';
@@ -20946,6 +20988,8 @@ async function generateKlingJWT() {
 
 async function executeVideo() {
   if (!vidSourceB64) { alert('이미지가 없습니다'); return; }
+  if (vidOverlayAbortController) vidOverlayAbortController.abort();
+  vidOverlayAbortController = new AbortController();
   const cfg = getVidConfig();
   const prompt = composeVideoRealismPrompt(document.getElementById('vidPrompt').value.trim() || 'subtle handheld camera movement, gentle push-in');
   const btn = document.getElementById('vidExecBtn');
@@ -20954,6 +20998,7 @@ async function executeVideo() {
 
   btn.disabled = true;
   btn.textContent = '생성 중...';
+  setAbortButtonEnabled('vidAbortBtn', true);
   status.style.display = 'block';
   status.textContent = 'Local 5080 Gateway 전송 중...';
 
@@ -20965,7 +21010,7 @@ async function executeVideo() {
       duration: Number(cfg.duration || 5),
       mode: cfg.mode === 'pro' ? 'pro' : 'std',
       aspect_ratio: cfg.ratio
-    }, msg => { status.textContent = msg; });
+    }, msg => { status.textContent = msg; }, { signal: vidOverlayAbortController.signal });
 
     status.textContent = '완료!';
     result.style.display = 'block';
@@ -20979,9 +21024,11 @@ async function executeVideo() {
       </div>
     `;
   } catch(e) {
-    status.textContent = '오류: ' + e.message;
+    status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + e.message;
     result.style.display = 'none';
   } finally {
+    vidOverlayAbortController = null;
+    setAbortButtonEnabled('vidAbortBtn', false);
     btn.disabled = false;
     btn.textContent = '▶ 영상 생성';
   }
@@ -20991,7 +21038,24 @@ async function executeVideo() {
 let vidStartB64 = null, vidEndB64 = null;
 let vidStartMime = 'image/png', vidEndMime = 'image/png';
 let vidStartMeta = null;
+let vidTabAbortController = null;
+let vidOverlayAbortController = null;
+let sbVideoAbortController = null;
+let grokBuildAbortController = null;
 const vidTabVideos = [];
+
+function abortVideoTabGeneration() {
+  if (vidTabAbortController) vidTabAbortController.abort();
+}
+function abortVideoOverlayGeneration() {
+  if (vidOverlayAbortController) vidOverlayAbortController.abort();
+}
+function abortSBVideoGeneration() {
+  if (sbVideoAbortController) sbVideoAbortController.abort();
+}
+function abortGrokBuildSend() {
+  if (grokBuildAbortController) grokBuildAbortController.abort();
+}
 
 function loadVidFrame(type, files) {
   if (!files || !files.length) return;
@@ -21065,6 +21129,8 @@ function getVideoStartPayloadMeta(prompt) {
 
 async function sendVideoToGrokBuild() {
   if (!vidStartB64) { alert('Grok Build로 보낼 START 프레임을 먼저 넣어주세요'); return; }
+  if (grokBuildAbortController) grokBuildAbortController.abort();
+  grokBuildAbortController = new AbortController();
   const prompt = getVidTabPromptForGeneration();
   const payloadMeta = getVideoStartPayloadMeta(prompt);
   const status = document.getElementById('grokBuildStatus');
@@ -21072,6 +21138,7 @@ async function sendVideoToGrokBuild() {
   const dur = getSelected('vdur') || '5초';
   const ratio = getSelected('vratio') || '9:16';
   if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
+  setAbortButtonEnabled('grokBuildAbortBtn', true);
   if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + (payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : '');
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
@@ -21085,7 +21152,8 @@ async function sendVideoToGrokBuild() {
         duration: Number(String(dur).replace(/[^0-9.]/g, '')) || 5,
         aspect_ratio: ratio,
         resolution: '720p'
-      })
+      }),
+      signal: grokBuildAbortController.signal
     });
     const data = await res.json().catch(() => ({}));
     const videoUrl = data.video_url || data?.video?.url;
@@ -21096,8 +21164,10 @@ async function sendVideoToGrokBuild() {
     showGrokBuildVideoResult(videoUrl, prompt, data.model || 'Grok Build CLI', 'grok_build_' + Date.now() + '.mp4');
     if (status) status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || '');
   } catch(e) {
-    if (status) status.textContent = '오류: ' + formatGrokBuildError(e);
+    if (status) status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatGrokBuildError(e);
   } finally {
+    grokBuildAbortController = null;
+    setAbortButtonEnabled('grokBuildAbortBtn', false);
     if (btn) { btn.disabled = false; btn.textContent = 'Grok Build 전송'; }
   }
 }
@@ -21163,6 +21233,8 @@ function getKlingModelName() {
 
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
+  if (vidTabAbortController) vidTabAbortController.abort();
+  vidTabAbortController = new AbortController();
 
   const prompt = getVidTabPromptForGeneration();
   const dur = getSelected('vdur') || '5초';
@@ -21176,6 +21248,7 @@ async function executeVideoTab() {
 
   btn.disabled = true;
   btn.textContent = '생성 중...';
+  setAbortButtonEnabled('vidTabAbortBtn', true);
   status.style.display = 'block';
   status.textContent = 'Local 5080 Gateway 전송 중...';
 
@@ -21190,7 +21263,7 @@ async function executeVideoTab() {
       mode: mode === '전문가' ? 'pro' : 'std',
       duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio
-    }, msg => { status.textContent = msg; });
+    }, msg => { status.textContent = msg; }, { signal: vidTabAbortController.signal });
 
     status.textContent = '완료!';
     result.style.display = 'block';
@@ -21206,8 +21279,10 @@ async function executeVideoTab() {
     vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
   } catch(e) {
-    status.textContent = '오류: ' + formatLocalGatewayError(e);
+    status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
   } finally {
+    vidTabAbortController = null;
+    setAbortButtonEnabled('vidTabAbortBtn', false);
     btn.disabled = false;
     btn.textContent = '▶ 영상 생성';
   }

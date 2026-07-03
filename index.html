@@ -1021,6 +1021,7 @@ input[type=file]{display:none}
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
+  <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
 </div>
@@ -2988,6 +2989,92 @@ input[type=file]{display:none}
     <div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700;margin-bottom:8px">최근 생성 영상</div>
     <div id="vidTabHistory" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);text-align:center;padding:20px">아직 생성된 영상이 없습니다</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PREMIERE ROUGHCUT EXPORT ═══════════════ -->
+<div class="panel" id="pPremiere">
+  <div class="slbl" style="color:var(--cy)">Premiere 가편집 — FCPXML / EDL / SRT 패키지</div>
+  <div style="padding:12px 16px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.22);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--cy);line-height:1.7">
+    스토리보드 컷, 영상 제작 결과, 히스토리 이미지, 업로드 파일을 컷 리스트로 모아 Premiere에서 열 수 있는 가편집 패키지로 내보냅니다.<br>
+    <span style="font-size:11px;color:var(--mu)">패키지에는 media 폴더, FCPXML, EDL, SRT, markers.csv, manifest.json, README가 포함됩니다.</span>
+  </div>
+
+  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">소스 가져오기</div>
+    <div style="padding:16px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn bgh bsm" onclick="premiereAddStoryboardImages()">스토리보드 이미지</button>
+        <button class="btn bgh bsm" onclick="premiereAddStoryboardVideos()">스토리보드 영상</button>
+        <button class="btn bgh bsm" onclick="premiereAddVideoTabVideos()">영상 제작 결과</button>
+        <button class="btn bgh bsm" onclick="premiereAddHistoryImages()">히스토리 이미지</button>
+        <button class="btn bgh bsm" onclick="document.getElementById('premiereFileInput').click()">파일 추가</button>
+        <button class="btn bgh bsm" onclick="premiereClearItems()" style="border-color:var(--er);color:var(--er)">목록 비우기</button>
+      </div>
+      <input id="premiereFileInput" type="file" accept="image/*,video/*" multiple style="display:none" onchange="premiereAddFiles(this.files)">
+      <div id="premiereSourceHint" style="font-family:var(--font-mono);font-size:12px;color:var(--mu);line-height:1.6">컷 소스를 추가하면 아래 타임라인에 순서대로 쌓입니다.</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,.9fr);gap:18px;margin-bottom:18px">
+    <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+      <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">가편집 설정</div>
+      <div style="padding:16px;display:grid;gap:12px">
+        <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">프로젝트명
+          <input id="premiereProjectName" class="ci" value="ZIPPY_ROUGHCUT" style="margin:0">
+        </label>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px">
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
+            <select id="premiereAspect" class="msel" style="width:100%">
+              <option value="9:16">9:16 Reels</option>
+              <option value="16:9" selected>16:9 Film</option>
+              <option value="1:1">1:1 Square</option>
+            </select>
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">FPS
+            <select id="premiereFps" class="msel" style="width:100%">
+              <option value="23.976">23.976</option>
+              <option value="24">24</option>
+              <option value="25">25</option>
+              <option value="29.97" selected>29.97</option>
+              <option value="30">30</option>
+            </select>
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">이미지 컷 길이
+            <input id="premiereStillDuration" type="number" min="1" max="30" value="5" class="ci" style="margin:0">
+          </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">기본 영상 길이
+            <input id="premiereVideoDuration" type="number" min="1" max="60" value="5" class="ci" style="margin:0">
+          </label>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--mu)">
+          <input id="premiereIncludeMedia" type="checkbox" checked> media 폴더에 원본 파일 포함
+        </label>
+        <textarea id="premiereGlobalNote" class="cfg-ta" style="min-height:72px" placeholder="프리미어 마커/README에 들어갈 편집 메모. 예: 음악은 0:01부터, 컷 3은 슬로우모션 후보, 자막은 임시..."></textarea>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+      <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">내보내기</div>
+      <div style="padding:16px;display:grid;gap:10px">
+        <button class="btn bpu" onclick="premiereDownloadPackage()" id="premierePackageBtn">Premiere 패키지 다운로드</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn bgh bsm" onclick="premiereDownloadText('fcpxml')">FCPXML만</button>
+          <button class="btn bgh bsm" onclick="premiereDownloadText('edl')">EDL만</button>
+          <button class="btn bgh bsm" onclick="premiereDownloadText('srt')">SRT만</button>
+          <button class="btn bgh bsm" onclick="premiereDownloadText('manifest')">Manifest</button>
+        </div>
+        <div id="premiereStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu);line-height:1.6">대기</div>
+        <pre id="premierePreview" style="white-space:pre-wrap;word-break:break-word;max-height:210px;overflow:auto;padding:10px;border:1px solid var(--bd);border-radius:6px;background:rgba(0,0,0,.12);font-family:var(--font-mono);font-size:11px;color:var(--mu)">컷 리스트 없음</pre>
+      </div>
+    </div>
+  </div>
+
+  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">타임라인 컷 리스트</div>
+    <div id="premiereTimeline" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:16px">
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:14px">아직 추가된 컷이 없습니다</div>
     </div>
   </div>
 </div>
@@ -21459,6 +21546,480 @@ if (document.readyState === 'loading') {
   initLocalVideoGatewayFields();
 }
 
+/* ═══ PREMIERE ROUGHCUT EXPORT ═══ */
+const premiereItems = [];
+let premiereCrcTable = null;
+
+function premiereSettings() {
+  const aspect = document.getElementById('premiereAspect')?.value || '16:9';
+  const fps = Number(document.getElementById('premiereFps')?.value || 29.97);
+  const stillDuration = Math.max(1, Number(document.getElementById('premiereStillDuration')?.value || 5));
+  const videoDuration = Math.max(1, Number(document.getElementById('premiereVideoDuration')?.value || 5));
+  const dims = aspect === '9:16' ? {width:1080,height:1920} : aspect === '1:1' ? {width:1080,height:1080} : {width:1920,height:1080};
+  return {
+    projectName: (document.getElementById('premiereProjectName')?.value || 'ZIPPY_ROUGHCUT').trim() || 'ZIPPY_ROUGHCUT',
+    aspect, fps, fpsInt: Math.round(fps), stillDuration, videoDuration,
+    includeMedia: !!document.getElementById('premiereIncludeMedia')?.checked,
+    note: document.getElementById('premiereGlobalNote')?.value || '',
+    width: dims.width,
+    height: dims.height
+  };
+}
+function premiereFcpFrameDuration(fps) {
+  if (Math.abs(fps - 23.976) < .01) return '1001/24000s';
+  if (Math.abs(fps - 29.97) < .01) return '1001/30000s';
+  return '1/' + Math.round(fps || 30) + 's';
+}
+function premiereExtForMime(mime, fallback) {
+  mime = String(mime || '').toLowerCase();
+  if (mime.includes('jpeg')) return 'jpg';
+  if (mime.includes('png')) return 'png';
+  if (mime.includes('webp')) return 'webp';
+  if (mime.includes('quicktime')) return 'mov';
+  if (mime.includes('webm')) return 'webm';
+  if (mime.includes('mp4')) return 'mp4';
+  return fallback || 'bin';
+}
+function premiereSafeName(v) {
+  return String(v || 'clip').replace(/[\\/:*?"<>|#%{}^~[\]`]+/g, '_').replace(/\s+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'clip';
+}
+function premiereClipFileName(item, index) {
+  const ext = item.ext || premiereExtForMime(item.mime, item.type === 'video' ? 'mp4' : 'png');
+  return String(index + 1).padStart(3, '0') + '_' + premiereSafeName(item.name || item.label || item.id) + '.' + ext;
+}
+function premiereAddItem(item) {
+  const s = premiereSettings();
+  const type = item.type || ((item.mime || '').startsWith('video/') ? 'video' : 'image');
+  premiereItems.push(Object.assign({
+    id: 'prem_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    type,
+    duration: type === 'image' ? s.stillDuration : s.videoDuration,
+    caption: item.caption || item.desc || item.label || item.name || '',
+    source: item.source || 'manual',
+    createdAt: new Date().toISOString()
+  }, item, {type}));
+}
+function premiereAddStoryboardImages() {
+  if (typeof ensureStoryboardStateRestored === 'function') ensureStoryboardStateRestored();
+  if (typeof SB_SHOTS === 'undefined' || typeof sbGenImages === 'undefined') return;
+  let added = 0;
+  SB_SHOTS.forEach(function(shot) {
+    const seq = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shot.id] : null;
+    if (seq && seq.length) {
+      seq.forEach(function(b64, idx) {
+        premiereAddItem({
+          type:'image', mime:'image/png', b64,
+          name: shot.id + '_seq_' + (idx + 1),
+          label: shot.id + ' · 흐름 ' + (idx + 1),
+          caption: (shot.desc || '') + (idx === 0 ? ' / 시작' : idx === 1 ? ' / 정점' : ' / 직후'),
+          source:'storyboard_sequence',
+          shotId: shot.id
+        });
+        added++;
+      });
+    } else if (sbGenImages[shot.id]) {
+      premiereAddItem({
+        type:'image', mime:'image/png', b64: sbGenImages[shot.id],
+        name: shot.id,
+        label: shot.id + ' · ' + (shot.frame || ''),
+        caption: shot.desc || shot.frame || shot.id,
+        source:'storyboard_image',
+        shotId: shot.id
+      });
+      added++;
+    }
+  });
+  premiereRenderItems('스토리보드 이미지 ' + added + '개 추가');
+}
+function premiereAddStoryboardVideos() {
+  let added = 0;
+  if (typeof sbVideoHistory !== 'undefined') {
+    sbVideoHistory.forEach(function(v, i) {
+      premiereAddItem({
+        type:'video', mime:'video/mp4', url:v.url,
+        name:'storyboard_i2v_' + (v.id || i),
+        label:(v.id || 'Storyboard Video') + ' · ' + (v.time || ''),
+        caption:v.prompt || v.id || '',
+        source:'storyboard_video'
+      });
+      added++;
+    });
+  }
+  premiereRenderItems('스토리보드 영상 ' + added + '개 추가');
+}
+function premiereAddVideoTabVideos() {
+  let added = 0;
+  if (typeof vidTabVideos !== 'undefined') {
+    vidTabVideos.forEach(function(v, i) {
+      premiereAddItem({
+        type:'video', mime:'video/mp4', url:v.url,
+        name:(v.fileName || ('video_tab_' + i)).replace(/\.[^.]+$/, ''),
+        label:(v.model || 'Video') + ' · ' + (v.time || ''),
+        caption:v.prompt || '',
+        source:'video_tab'
+      });
+      added++;
+    });
+  }
+  premiereRenderItems('영상 제작 결과 ' + added + '개 추가');
+}
+async function premiereAddHistoryImages() {
+  const items = (typeof loadHistory === 'function') ? await loadHistory() : [];
+  let added = 0;
+  items.sort(function(a,b){return (a.timestamp || 0) - (b.timestamp || 0);}).forEach(function(img) {
+    premiereAddItem({
+      type:'image', mime:img.mime || 'image/png', b64:img.b64,
+      name:'history_' + (img.step || 'img') + '_' + img.id,
+      label:(img.step || 'History') + ' · ' + (img.time || ''),
+      caption:img.desc || img.step || '',
+      source:'history'
+    });
+    added++;
+  });
+  premiereRenderItems('히스토리 이미지 ' + added + '개 추가');
+}
+function premiereAddFiles(files) {
+  let added = 0;
+  Array.from(files || []).forEach(function(file) {
+    if (!/^image\/|^video\//.test(file.type || '')) return;
+    const url = URL.createObjectURL(file);
+    premiereAddItem({
+      type:file.type.startsWith('video/') ? 'video' : 'image',
+      mime:file.type || 'application/octet-stream',
+      file,
+      url,
+      name:file.name.replace(/\.[^.]+$/, ''),
+      label:file.name,
+      caption:file.name,
+      ext:(file.name.split('.').pop() || '').toLowerCase(),
+      source:'upload'
+    });
+    added++;
+  });
+  premiereRenderItems('업로드 파일 ' + added + '개 추가');
+}
+function premiereClearItems() {
+  if (!premiereItems.length) return;
+  if (!confirm('Premiere 컷 리스트를 비울까요?')) return;
+  premiereItems.splice(0, premiereItems.length);
+  premiereRenderItems('목록을 비웠습니다');
+}
+function premiereRemoveItem(index) {
+  premiereItems.splice(index, 1);
+  premiereRenderItems('컷 삭제');
+}
+function premiereMoveItem(index, dir) {
+  const next = index + dir;
+  if (next < 0 || next >= premiereItems.length) return;
+  const tmp = premiereItems[index];
+  premiereItems[index] = premiereItems[next];
+  premiereItems[next] = tmp;
+  premiereRenderItems('순서 변경');
+}
+function premiereUpdateItem(index, key, value) {
+  if (!premiereItems[index]) return;
+  if (key === 'duration') premiereItems[index][key] = Math.max(1, Number(value || 1));
+  else premiereItems[index][key] = value;
+  premiereRenderItems();
+}
+function premiereRenderItems(statusText) {
+  const grid = document.getElementById('premiereTimeline');
+  const status = document.getElementById('premiereStatus');
+  if (statusText && status) status.textContent = statusText;
+  if (!grid) return;
+  if (!premiereItems.length) {
+    grid.innerHTML = '<div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:14px">아직 추가된 컷이 없습니다</div>';
+    premiereUpdatePreview();
+    return;
+  }
+  grid.innerHTML = premiereItems.map(function(item, i) {
+    const src = item.b64 ? ('data:' + (item.mime || 'image/png') + ';base64,' + item.b64) : (item.url || '');
+    const media = item.type === 'video'
+      ? '<video src="' + premiereEscAttr(src) + '" muted controls style="width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block"></video>'
+      : '<img src="' + premiereEscAttr(src) + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">';
+    return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)">' +
+      media +
+      '<div style="padding:9px 10px;display:grid;gap:7px">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-family:var(--font-mono);font-size:11px;color:var(--cy)">#' + (i + 1) + ' ' + premiereEsc(item.type.toUpperCase()) + '</b><span style="font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + premiereEsc(item.source || '') + '</span></div>' +
+      '<div style="font-size:12px;color:var(--tx);line-height:1.35;min-height:32px">' + premiereEsc(item.label || item.name || '') + '</div>' +
+      '<label style="display:grid;gap:3px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">길이 초<input type="number" min="1" max="120" value="' + premiereEscAttr(item.duration) + '" onchange="premiereUpdateItem(' + i + ',\'duration\',this.value)" style="width:100%;padding:5px 7px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);border-radius:4px;font-family:var(--font-mono)"></label>' +
+      '<textarea rows="2" onchange="premiereUpdateItem(' + i + ',\'caption\',this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);border-radius:4px;font-size:11px;line-height:1.45;resize:vertical" placeholder="자막/마커 메모">' + premiereEsc(item.caption || '') + '</textarea>' +
+      '<div style="display:flex;gap:5px;flex-wrap:wrap"><button class="hist-card-btn" onclick="premiereMoveItem(' + i + ',-1)">↑</button><button class="hist-card-btn" onclick="premiereMoveItem(' + i + ',1)">↓</button><button class="hist-card-btn del" onclick="premiereRemoveItem(' + i + ')">삭제</button></div>' +
+      '</div></div>';
+  }).join('');
+  premiereUpdatePreview();
+}
+function premiereUpdatePreview() {
+  const pre = document.getElementById('premierePreview');
+  if (!pre) return;
+  const s = premiereSettings();
+  let t = 'PROJECT: ' + s.projectName + '\nFORMAT: ' + s.aspect + ' / ' + s.fps + 'fps / ' + s.width + 'x' + s.height + '\nCUTS: ' + premiereItems.length + '\n\n';
+  let offset = 0;
+  premiereItems.forEach(function(item, i) {
+    t += String(i + 1).padStart(2, '0') + '  ' + premiereTimecode(offset, s.fpsInt) + '  ' + premiereTimecode(offset + Number(item.duration || 1), s.fpsInt) + '  ' + (item.label || item.name || '') + '\n';
+    offset += Number(item.duration || 1);
+  });
+  pre.textContent = t;
+}
+function premiereTimecode(seconds, fps) {
+  fps = Math.max(1, Math.round(fps || 30));
+  const total = Math.round(Number(seconds || 0) * fps);
+  const ff = total % fps;
+  const totalSeconds = Math.floor(total / fps);
+  const ss = totalSeconds % 60;
+  const mm = Math.floor(totalSeconds / 60) % 60;
+  const hh = Math.floor(totalSeconds / 3600);
+  return [hh, mm, ss, ff].map(function(n){return String(n).padStart(2, '0');}).join(':');
+}
+function premiereSrtTime(seconds) {
+  const ms = Math.round((Number(seconds || 0) % 1) * 1000);
+  const totalSeconds = Math.floor(Number(seconds || 0));
+  const ss = totalSeconds % 60;
+  const mm = Math.floor(totalSeconds / 60) % 60;
+  const hh = Math.floor(totalSeconds / 3600);
+  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0') + ',' + String(ms).padStart(3,'0');
+}
+function premiereBuildManifest(mediaNames) {
+  const s = premiereSettings();
+  let offset = 0;
+  return {
+    type:'studioZIPPY Premiere roughcut package',
+    createdAt:new Date().toISOString(),
+    project:s,
+    clips:premiereItems.map(function(item, i) {
+      const start = offset;
+      const dur = Number(item.duration || 1);
+      offset += dur;
+      return {
+        index:i + 1,
+        name:item.label || item.name || '',
+        source:item.source || '',
+        type:item.type,
+        media:mediaNames ? mediaNames[i] : premiereClipFileName(item, i),
+        start_seconds:start,
+        duration_seconds:dur,
+        caption:item.caption || ''
+      };
+    })
+  };
+}
+function premiereBuildFcpXml(mediaNames) {
+  const s = premiereSettings();
+  const fd = premiereFcpFrameDuration(s.fps);
+  const projectName = premiereXml(s.projectName);
+  const total = premiereItems.reduce(function(a, item){return a + Number(item.duration || 1);}, 0);
+  let resources = '<format id="r1" name="FFVideoFormat' + s.height + 'p" frameDuration="' + fd + '" width="' + s.width + '" height="' + s.height + '"/>\n';
+  let spine = '';
+  let offset = 0;
+  premiereItems.forEach(function(item, i) {
+    const rid = 'r' + (i + 2);
+    const media = mediaNames ? mediaNames[i] : premiereClipFileName(item, i);
+    const dur = Number(item.duration || 1);
+    resources += '<asset id="' + rid + '" name="' + premiereXml(media) + '" src="' + premiereXml('file://./media/' + media) + '" start="0s" duration="' + dur + 's" hasVideo="1" format="r1"/>\n';
+    spine += '<asset-clip name="' + premiereXml(item.label || item.name || media) + '" ref="' + rid + '" offset="' + offset + 's" duration="' + dur + 's"/>\n';
+    offset += dur;
+  });
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE fcpxml>\n<fcpxml version="1.10">\n<resources>\n' + resources + '</resources>\n<library>\n<event name="' + projectName + '">\n<project name="' + projectName + '">\n<sequence format="r1" duration="' + total + 's" tcStart="0s" tcFormat="NDF">\n<spine>\n' + spine + '</spine>\n</sequence>\n</project>\n</event>\n</library>\n</fcpxml>\n';
+}
+function premiereBuildEdl(mediaNames) {
+  const s = premiereSettings();
+  let out = 'TITLE: ' + s.projectName + '\nFCM: NON-DROP FRAME\n\n';
+  let offset = 0;
+  premiereItems.forEach(function(item, i) {
+    const dur = Number(item.duration || 1);
+    const start = premiereTimecode(offset, s.fpsInt);
+    const end = premiereTimecode(offset + dur, s.fpsInt);
+    const clipEnd = premiereTimecode(dur, s.fpsInt);
+    out += String(i + 1).padStart(3, '0') + '  AX       V     C        00:00:00:00 ' + clipEnd + ' ' + start + ' ' + end + '\n';
+    out += '* FROM CLIP NAME: media/' + (mediaNames ? mediaNames[i] : premiereClipFileName(item, i)) + '\n';
+    if (item.caption) out += '* COMMENT: ' + String(item.caption).replace(/\n+/g, ' / ') + '\n';
+    out += '\n';
+    offset += dur;
+  });
+  return out;
+}
+function premiereBuildSrt() {
+  let out = '';
+  let offset = 0;
+  let n = 1;
+  premiereItems.forEach(function(item) {
+    const dur = Number(item.duration || 1);
+    const text = String(item.caption || item.label || item.name || '').trim();
+    if (text) {
+      out += n++ + '\n' + premiereSrtTime(offset) + ' --> ' + premiereSrtTime(offset + dur) + '\n' + text + '\n\n';
+    }
+    offset += dur;
+  });
+  return out || '1\n00:00:00,000 --> 00:00:01,000\nZIPPY roughcut\n';
+}
+function premiereBuildMarkersCsv(mediaNames) {
+  const rows = ['Name,Start,Duration,Comment,Source,Media'];
+  let offset = 0;
+  premiereItems.forEach(function(item, i) {
+    const dur = Number(item.duration || 1);
+    rows.push([item.label || item.name || ('Clip ' + (i + 1)), premiereTimecode(offset, premiereSettings().fpsInt), dur + 's', item.caption || '', item.source || '', mediaNames ? mediaNames[i] : premiereClipFileName(item, i)].map(premiereCsv).join(','));
+    offset += dur;
+  });
+  return rows.join('\n') + '\n';
+}
+function premiereBuildReadme(mediaNames) {
+  const s = premiereSettings();
+  return '# studioZIPPY Premiere Roughcut\n\n' +
+    '- Project: ' + s.projectName + '\n' +
+    '- Format: ' + s.aspect + ' / ' + s.fps + 'fps / ' + s.width + 'x' + s.height + '\n' +
+    '- Clips: ' + premiereItems.length + '\n\n' +
+    'Import `zippy_roughcut.fcpxml` into Premiere Pro. If that fails, use `zippy_roughcut.edl` and relink files from the `media` folder. Import `captions.srt` as captions.\n\n' +
+    'Edit note:\n' + (s.note || '(none)') + '\n\n' +
+    premiereItems.map(function(item, i){return (i + 1) + '. media/' + (mediaNames ? mediaNames[i] : premiereClipFileName(item, i)) + ' — ' + (item.caption || item.label || item.name || '');}).join('\n') + '\n';
+}
+function premiereGeneratedTexts(mediaNames) {
+  return {
+    fcpxml: premiereBuildFcpXml(mediaNames),
+    edl: premiereBuildEdl(mediaNames),
+    srt: premiereBuildSrt(),
+    markers: premiereBuildMarkersCsv(mediaNames),
+    manifest: JSON.stringify(premiereBuildManifest(mediaNames), null, 2),
+    readme: premiereBuildReadme(mediaNames)
+  };
+}
+async function premiereDownloadText(kind) {
+  if (!premiereItems.length && kind !== 'manifest') { alert('먼저 컷을 추가하세요'); return; }
+  const names = premiereItems.map(premiereClipFileName);
+  const texts = premiereGeneratedTexts(names);
+  const map = {fcpxml:'zippy_roughcut.fcpxml', edl:'zippy_roughcut.edl', srt:'captions.srt', manifest:'manifest.json'};
+  premiereDownloadBlob(new Blob([texts[kind] || texts.manifest], {type:'text/plain;charset=utf-8'}), map[kind] || (kind + '.txt'));
+}
+async function premiereDownloadPackage() {
+  if (!premiereItems.length) { alert('먼저 컷을 추가하세요'); return; }
+  const btn = document.getElementById('premierePackageBtn');
+  const status = document.getElementById('premiereStatus');
+  if (btn) { btn.disabled = true; btn.textContent = '패키징 중...'; }
+  if (status) status.textContent = 'Premiere 패키지 생성 중...';
+  try {
+    const mediaNames = premiereItems.map(premiereClipFileName);
+    const texts = premiereGeneratedTexts(mediaNames);
+    const entries = [
+      {name:'zippy_roughcut.fcpxml', data:premiereTextBytes(texts.fcpxml)},
+      {name:'zippy_roughcut.edl', data:premiereTextBytes(texts.edl)},
+      {name:'captions.srt', data:premiereTextBytes(texts.srt)},
+      {name:'markers.csv', data:premiereTextBytes(texts.markers)},
+      {name:'manifest.json', data:premiereTextBytes(texts.manifest)},
+      {name:'README.md', data:premiereTextBytes(texts.readme)}
+    ];
+    if (premiereSettings().includeMedia) {
+      for (let i = 0; i < premiereItems.length; i++) {
+        try {
+          const bytes = await premiereItemBytes(premiereItems[i]);
+          entries.push({name:'media/' + mediaNames[i], data:bytes});
+          if (status) status.textContent = '미디어 포함 중... ' + (i + 1) + ' / ' + premiereItems.length;
+        } catch(e) {
+          entries.push({name:'media/MISSING_' + mediaNames[i] + '.txt', data:premiereTextBytes('Could not include media: ' + (e.message || e))});
+        }
+      }
+    }
+    const zip = premiereBuildZip(entries);
+    premiereDownloadBlob(new Blob([zip], {type:'application/zip'}), premiereSafeName(premiereSettings().projectName) + '_premiere_package.zip');
+    if (status) status.textContent = '패키지 생성 완료 · ' + entries.length + ' files';
+  } catch(e) {
+    if (status) status.textContent = '패키지 실패: ' + (e.message || e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Premiere 패키지 다운로드'; }
+  }
+}
+async function premiereItemBytes(item) {
+  if (item.file) return new Uint8Array(await item.file.arrayBuffer());
+  if (item.b64) return premiereBase64Bytes(item.b64);
+  if (item.url) {
+    const res = await fetch(item.url);
+    if (!res.ok) throw new Error('fetch failed ' + res.status);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  throw new Error('no media data');
+}
+function premiereBuildZip(entries) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  const now = new Date();
+  const dt = premiereDosDateTime(now);
+  entries.forEach(function(entry) {
+    const nameBytes = premiereTextBytes(entry.name);
+    const data = entry.data instanceof Uint8Array ? entry.data : new Uint8Array(entry.data || []);
+    const crc = premiereCrc32(data);
+    const local = premiereZipHeader(0x04034b50, [
+      [2,20], [2,0x0800], [2,0], [2,dt.time], [2,dt.date], [4,crc], [4,data.length], [4,data.length], [2,nameBytes.length], [2,0]
+    ]);
+    locals.push(local, nameBytes, data);
+    const central = premiereZipHeader(0x02014b50, [
+      [2,20], [2,20], [2,0x0800], [2,0], [2,dt.time], [2,dt.date], [4,crc], [4,data.length], [4,data.length], [2,nameBytes.length], [2,0], [2,0], [2,0], [2,0], [4,0], [4,offset]
+    ]);
+    centrals.push(central, nameBytes);
+    offset += local.length + nameBytes.length + data.length;
+  });
+  const centralStart = offset;
+  const centralSize = centrals.reduce(function(a,b){return a + b.length;}, 0);
+  const end = premiereZipHeader(0x06054b50, [[2,0],[2,0],[2,entries.length],[2,entries.length],[4,centralSize],[4,centralStart],[2,0]]);
+  return premiereConcat(locals.concat(centrals, [end]));
+}
+function premiereZipHeader(sig, fields) {
+  const len = 4 + fields.reduce(function(a,f){return a + f[0];}, 0);
+  const out = new Uint8Array(len);
+  const dv = new DataView(out.buffer);
+  let p = 0;
+  dv.setUint32(p, sig, true); p += 4;
+  fields.forEach(function(f) {
+    if (f[0] === 2) { dv.setUint16(p, f[1] & 0xffff, true); p += 2; }
+    else { dv.setUint32(p, f[1] >>> 0, true); p += 4; }
+  });
+  return out;
+}
+function premiereDosDateTime(d) {
+  const year = Math.max(1980, d.getFullYear());
+  return {
+    time: (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2),
+    date: ((year - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()
+  };
+}
+function premiereCrc32(bytes) {
+  if (!premiereCrcTable) {
+    premiereCrcTable = [];
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      premiereCrcTable[n] = c >>> 0;
+    }
+  }
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) crc = premiereCrcTable[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
+}
+function premiereConcat(parts) {
+  const total = parts.reduce(function(a,b){return a + b.length;}, 0);
+  const out = new Uint8Array(total);
+  let p = 0;
+  parts.forEach(function(part){ out.set(part, p); p += part.length; });
+  return out;
+}
+function premiereTextBytes(text) { return new TextEncoder().encode(String(text == null ? '' : text)); }
+function premiereBase64Bytes(b64) {
+  const bin = atob(String(b64).replace(/^data:[^,]+,/, ''));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function premiereDownloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 200);
+}
+function premiereEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];}); }
+function premiereEscAttr(v) { return premiereEsc(v); }
+function premiereXml(v) { return premiereEsc(v); }
+function premiereCsv(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\n+/g, ' / ') + '"'; }
+
 /* ═══ EDIT TOOLS DROPDOWN ═══ */
 function toggleEditMenu(btn) {
   const dd = btn.closest('.edit-dropdown');
@@ -24123,11 +24684,12 @@ function setupDnD(id,cb){
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
+    else if(n==='premiere') el.classList.toggle('active',id==='pPremiere');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
     else el.classList.toggle('active', id==='p'+n);
@@ -24138,11 +24700,13 @@ function goStep(n){
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
+  document.getElementById('tabPremiere').className='stab '+(n==='premiere'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
   if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
+  if(n==='premiere') premiereRenderItems();
   if(n==='hist') refreshHistory();
 }
 function setSt(pfx,idx){
@@ -26140,7 +26704,7 @@ function updatePromptPreview() {
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';

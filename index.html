@@ -1071,11 +1071,25 @@ input[type=file]{display:none}
       <pre class="ip-pre" id="ipOutfitDna">의상 분석값이 여기에 표시됩니다.</pre>
       <div class="ip-output" id="ipOutfitSheetOutput"><span>의상 6전도 시트 대기</span></div>
     </div>
+
+    <div class="ip-box">
+      <div class="ip-box-head">
+        <div><b>03 장소 레퍼런스</b><span>선택 사항 · 배경/랜드마크 이미지</span></div>
+        <div class="ip-actions">
+          <button class="btn bgh bsm" onclick="document.getElementById('ipPlaceInput').click()">사진 추가</button>
+          <button class="btn bgh bsm" onclick="document.getElementById('ipPlaceFolder').click()">폴더 추가</button>
+        </div>
+      </div>
+      <input id="ipPlaceInput" type="file" accept="image/*" multiple style="display:none" onchange="ipAddFiles('place', this.files)">
+      <input id="ipPlaceFolder" type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="ipAddFiles('place', this.files)">
+      <div class="ip-thumb-grid" id="ipPlaceGrid"><span>장소 이미지 대기</span></div>
+      <div class="ip-note" style="margin:0">장소 이미지는 없어도 생성됩니다. 업로드하면 사람/의상은 무시하고 배경, 구조, 분위기만 참고합니다.</div>
+    </div>
   </div>
 
   <div class="ip-box">
     <div class="ip-box-head">
-      <div><b>03 랜드마크 + 04 GTI 이미지</b><span>1장 테스트 / 설정 컷 이미지릴</span></div>
+      <div><b>04 랜드마크 + GTI 이미지</b><span>1장 테스트 / 설정 컷 이미지릴</span></div>
       <div class="ip-actions">
         <button class="btn bor bsm" id="ipSingleBtn" onclick="ipGenerateSingle()">GTI 1장 생성</button>
         <button class="btn bpu bsm" id="ipBatchBtn" onclick="ipGenerateBatch()">GTI 설정 컷 생성</button>
@@ -26939,7 +26953,7 @@ function updatePromptPreview() {
 }
 <!-- zippy-instagram-module -->
 (function(){
-  const state={person:[],outfit:[],outfitSheet:null,outfitSheetPromise:null,outfitVersion:0,identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
+  const state={person:[],outfit:[],place:[],outfitSheet:null,outfitSheetPromise:null,outfitVersion:0,identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
   const KR=[
     ['서울 · 경복궁','Gyeongbokgung Palace in Seoul, stone courtyard, palace gates and traditional rooflines visible but not postcard-like'],
     ['서울 · 북촌한옥마을','Bukchon Hanok Village in Seoul, narrow hanok alley, tiled roofs, quiet residential morning'],
@@ -27030,19 +27044,43 @@ function updatePromptPreview() {
 
 	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();saveInstagramState('location-mode');};
   window.ipAddFiles=async function(kind,files){
-    const bucket=kind==='person'?state.person:state.outfit;
+    const bucket=getRefBucket(kind);
+    if(!bucket) return;
+    const meta=getRefMeta(kind);
     for(const file of Array.from(files||[])){
       if(!file.type.startsWith('image/')) continue;
       const data=await readFile(file);
-      bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:kind==='person'?'character':'costume',_label:file.name});
+      bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:meta.type,_label:file.name});
     }
     if(kind==='outfit'){
       resetOutfitSheet('의상 레퍼런스가 변경되었습니다. GTI 의상 6전도 분리를 다시 수행합니다.');
+    }else if(kind==='place'&&bucket.length){
+      setStatus('장소 레퍼런스 '+bucket.length+'개 등록. 장소가 없어도 생성 가능하며, 있으면 배경으로만 사용합니다.');
     }
     renderThumbs(kind);
     saveInstagramState('refs-added');
     if(kind==='outfit'&&bucket.length) window.ipGenerateOutfitSheet();
   };
+
+  function getRefBucket(kind){
+    if(kind==='person') return state.person;
+    if(kind==='outfit') return state.outfit;
+    if(kind==='place') return state.place;
+    return null;
+  }
+
+  function getRefMeta(kind){
+    if(kind==='person') return {type:'character',empty:'인물 이미지 대기'};
+    if(kind==='outfit') return {type:'costume',empty:'의상 이미지 대기'};
+    if(kind==='place') return {type:'background',empty:'장소 이미지 대기'};
+    return {type:'reference',empty:'이미지 대기'};
+  }
+
+  function getPlaceRefs(){
+    return state.place.slice(0,6).map(function(img,i){
+      return Object.assign({},img,{_type:'background',_label:'Instagram place/background reference '+(i+1)+' - use only for background'});
+    });
+  }
 
   window.ipExtractIdentity=async function(){
     if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
@@ -27145,7 +27183,7 @@ function updatePromptPreview() {
     count=Math.max(1,Math.min(30,count));
     if(countInput) countInput.value=String(count);
     busy('ipBatchBtn',true,'준비 중...');
-    let identityRefs=[],outfitRefs=[],refs=[],loc,vibe;
+    let identityRefs=[],outfitRefs=[],placeRefs=[],refs=[],loc,vibe;
     try{
       if(!state.identitySheet){
         busy('ipBatchBtn',true,'인물 6전도 중...');
@@ -27155,7 +27193,8 @@ function updatePromptPreview() {
       identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
       busy('ipBatchBtn',true,'의상 6전도 중...');
       outfitRefs=await ensureOutfitSheet(false);
-      refs=identityRefs.concat(outfitRefs).slice(0,16);
+      placeRefs=getPlaceRefs();
+      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
       loc=getCurrentLoc();
       vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
       state.sessionSeed=buildSessionSeed(loc,vibe);
@@ -27170,8 +27209,8 @@ function updatePromptPreview() {
     }
     busy('ipBatchBtn',true,'생성 중...');
     for(let i=0;i<count;i++){
-      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용');
-      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length],identityRefs.length,outfitRefs.length);
+      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용'+(placeRefs.length?' + 장소 배경 참고':''));
+      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length],identityRefs.length,outfitRefs.length,placeRefs.length);
       try{
         const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
@@ -27191,7 +27230,7 @@ function updatePromptPreview() {
     if(!state.outfit.length) return setStatus('의상 레퍼런스 이미지를 먼저 넣어주세요');
     ensureGtiImageMode();
     busy('ipSingleBtn',true,'준비 중...');
-    let identityRefs=[],outfitRefs=[],refs=[],loc,vibe;
+    let identityRefs=[],outfitRefs=[],placeRefs=[],refs=[],loc,vibe;
     try{
       if(!state.identitySheet){
         busy('ipSingleBtn',true,'인물 6전도 중...');
@@ -27201,7 +27240,8 @@ function updatePromptPreview() {
       identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
       busy('ipSingleBtn',true,'의상 6전도 중...');
       outfitRefs=await ensureOutfitSheet(false);
-      refs=identityRefs.concat(outfitRefs).slice(0,16);
+      placeRefs=getPlaceRefs();
+      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
       loc=getCurrentLoc();
       vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
     }catch(e){
@@ -27217,8 +27257,8 @@ function updatePromptPreview() {
     saveInstagramState('single-start');
     focusResults();
     busy('ipSingleBtn',true,'생성 중...');
-    setStatus('GTI 1장 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용');
-    const prompt=buildPrompt(1,1,loc,vibe,POSES[Math.floor(Math.random()*POSES.length)],identityRefs.length,outfitRefs.length);
+    setStatus('GTI 1장 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용'+(placeRefs.length?' + 장소 배경 참고':''));
+    const prompt=buildPrompt(1,1,loc,vibe,POSES[Math.floor(Math.random()*POSES.length)],identityRefs.length,outfitRefs.length,placeRefs.length);
     try{
       const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
       if(!r.imgB64) throw new Error('이미지 응답 없음');
@@ -27247,7 +27287,7 @@ function updatePromptPreview() {
   };
 
   window.ipDownloadManifest=function(){
-    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
+    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,placeReferences:state.place.map(function(x){return x.name;}),results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='zippy_instagram_manifest_'+Date.now()+'.json'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
   };
@@ -27260,32 +27300,41 @@ function updatePromptPreview() {
       'same quiet morning window around 10:30 AM, clean daylight, gentle city reflections'
     ];
     const slot=slots[Math.floor(Math.random()*slots.length)];
-    return slot+'; one continuous visit at '+loc[0]+'; same phone-camera color pipeline, same lens family, same makeup, same hair state, same outfit fit, same weather, same exposure and color grade.';
+    const placeName=loc&&loc[2]?'a believable creator location chosen to match the outfit and mood':loc[0];
+    return slot+'; one continuous visit at '+placeName+'; same phone-camera color pipeline, same lens family, same makeup, same hair state, same outfit fit, same weather, same exposure and color grade.';
   }
 
-  function buildPrompt(index,total,loc,vibe,pose,identityCount,outfitCount){
+  function buildPrompt(index,total,loc,vibe,pose,identityCount,outfitCount,placeCount){
     const custom=(document.getElementById('ipCustomPrompt').value||'').trim();
     const strength=document.getElementById('ipOutfitStrength').value;
     identityCount=identityCount||1;
     outfitCount=outfitCount||1;
+    placeCount=placeCount||0;
     const wardrobeStart=identityCount+1;
+    const placeStart=wardrobeStart+outfitCount;
     const outfitRule=({strict:'MANDATORY WARDROBE LOCK: Dress the protagonist in the exact clothing-only outfit 6-view sheet. Transfer cut, fabric, color, fit, shoes, bag, accessories, seams, buttons, waistline, sleeve length, and styling as accurately as possible. The wardrobe sheet is visual clothing data only, not identity data.',standard:'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet as the wardrobe source. Preserve key silhouette, color, fabric, fit, shoes, bag, accessories, and visible styling.',loose:'Use the clothing-only outfit 6-view sheet as the wardrobe source, keeping the main silhouette, color story, and styling while adapting naturally.'}[strength]||'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet directly.')+'\nOUTFIT DNA:\n'+(state.outfitDna||'Read the clothing-only 6-view outfit sheet directly. Ignore all human identity in wardrobe references.');
+    const placeRange='Reference image '+placeStart+(placeCount>1?'-'+(placeStart+placeCount-1):'');
+    const placeRule=placeCount>0?'BACKGROUND / PLACE REFERENCE LOCK:\n- '+placeRange+' are location/background references only.\n- Use them for architecture, street texture, terrain, interior/exterior layout, landmark shape, lighting clues, and place atmosphere.\n- Never copy any person, face, body, outfit, age, gender, ethnicity, pose, or identity from place references.\n- If place references contain people, remove them or treat them as anonymous background blur. The protagonist must remain reference image 1.\n- If a selected landmark is also specified, blend the uploaded place reference with that location as one believable setting. If no landmark is selected, use the uploaded place image as the primary background source.':'BACKGROUND / PLACE REFERENCE:\n- No place image was uploaded. Generate normally from the selected landmark/location text.\n- If no landmark is selected, choose a believable natural creator background that matches the mood, outfit, and same-session continuity.';
     const setLabel=total===1?'single Instagram creator post':total+'-cut carousel';
     const sessionLine=total===1?'This image is a polished single Instagram creator photo from one believable visit.':'This image belongs to one continuous '+total+'-photo set shot during the same short visit.';
     const continuityLine=total===1?'Keep the selected time of day, weather, light direction, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location believable in one frame.':'Keep the same time of day, weather, light direction, shadow softness, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location continuity across all '+total+' images.';
-    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe references.\n- If wardrobe and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, landmark present but not tourist postcard.\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: different person, face drift, using wardrobe model face, copying clothing-reference person, changing protagonist facial features, changing protagonist body identity, outfit drift, clothing redesign, plastic beauty filter, CGI, anime, editorial over-posing, deformed hands, extra limbs, fake logos, text overlay.';
+    const locationMaterial=loc&&loc[2]?'background believable and not generic, no forced landmark.':'landmark present but not tourist postcard.';
+    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe or place references.\n- If wardrobe/place and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\n'+placeRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, '+locationMaterial+'\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: different person, face drift, using wardrobe model face, copying clothing-reference person, copying place-reference people, changing protagonist facial features, changing protagonist body identity, outfit drift, clothing redesign, plastic beauty filter, CGI, anime, editorial over-posing, deformed hands, extra limbs, fake logos, text overlay.';
   }
 
-  function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML=list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join('');}
+  function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const previous=sel.value; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML='<option value="-1">장소 없음 / 자동</option>'+list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join(''); sel.value=previous==='-1'?'-1':'0';}
   function ensureGtiImageMode(){const r=document.querySelector('input[name="imgMode"][value="gpt"]'); if(r&&!r.checked){r.checked=true; if(typeof onImgModeChange==='function') onImgModeChange();} try{localStorage.setItem('zippy_img_mode','gpt');}catch(e){}}
-  function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const idx=parseInt(document.getElementById('ipLocation').value,10)||0; return list[idx]||list[0];}
+  function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const raw=document.getElementById('ipLocation')?.value||'0'; if(raw==='-1') return ['장소 없음 / 자동','No fixed landmark selected. Use uploaded place reference if present; otherwise choose a believable natural Instagram creator setting that fits the outfit, mood, lighting, and same photo session.',true]; const idx=parseInt(raw,10); return list[Number.isFinite(idx)?idx:0]||list[0];}
   window.ipRemoveFile=function(kind,index){
-    const bucket=kind==='person'?state.person:state.outfit;
+    const bucket=getRefBucket(kind);
+    if(!bucket) return;
     if(!bucket[index]) return;
     bucket.splice(index,1);
     if(kind==='outfit'){
       resetOutfitSheet('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
       setStatus('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
+    }else if(kind==='place'){
+      setStatus('장소 레퍼런스를 삭제했습니다. 장소 이미지 없이도 생성할 수 있습니다.');
     }else{
       state.identityDna='';
       state.identitySheet=null;
@@ -27410,6 +27459,7 @@ function updatePromptPreview() {
     return {
       person:state.person.map(ipImageForPersist).filter(Boolean),
       outfit:state.outfit.map(ipImageForPersist).filter(Boolean),
+      place:state.place.map(ipImageForPersist).filter(Boolean),
       identitySheet:ipImageForPersist(state.identitySheet),
       outfitSheet:ipImageForPersist(state.outfitSheet),
       identityDna:state.identityDna||'',
@@ -27443,6 +27493,7 @@ function updatePromptPreview() {
       if(!snap) return;
       state.person=(snap.person||[]).map(ipNormalizeImage).filter(Boolean);
       state.outfit=(snap.outfit||[]).map(ipNormalizeImage).filter(Boolean);
+      state.place=(snap.place||[]).map(ipNormalizeImage).filter(Boolean);
       state.identitySheet=ipNormalizeImage(snap.identitySheet);
       state.outfitSheet=ipNormalizeImage(snap.outfitSheet);
       state.identityDna=snap.identityDna||'';
@@ -27454,6 +27505,7 @@ function updatePromptPreview() {
       ipApplyControls(snap.controls);
       renderThumbs('person');
       renderThumbs('outfit');
+      renderThumbs('place');
       renderOutfitSheet();
       renderResults();
       const idDna=document.getElementById('ipIdentityDna');
@@ -27462,7 +27514,7 @@ function updatePromptPreview() {
       if(idDna&&state.identityDna) idDna.textContent=state.identityDna;
       if(outfitDna&&state.outfitDna) outfitDna.textContent=state.outfitDna;
       if(sheetOut&&state.identitySheet) sheetOut.innerHTML='<img src="'+state.identitySheet.url+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
-      if((state.results&&state.results.length)||state.person.length||state.outfit.length) setStatus('이전 인스타 작업을 복원했습니다 · '+(snap.savedAt||''));
+      if((state.results&&state.results.length)||state.person.length||state.outfit.length||state.place.length) setStatus('이전 인스타 작업을 복원했습니다 · '+(snap.savedAt||''));
     }catch(e){
       console.warn('Instagram state restore failed:',e);
     }
@@ -27476,7 +27528,16 @@ function updatePromptPreview() {
       out.innerHTML='<span>의상 6전도 시트 대기</span>';
     }
   }
-  function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x,i){const del='<button class="ip-thumb-del" onclick="event.stopPropagation();ipRemoveFile(&quot;'+kind+'&quot;,'+i+')">삭제</button>'; return '<div class="ip-thumb" data-name="'+esc(x.name)+'" onclick="ipOpenImageViewer(this.querySelector(&quot;img&quot;).src,this.dataset.name)"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small>'+del+'</div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
+  function renderThumbs(kind){
+    const bucket=getRefBucket(kind);
+    const el=document.getElementById(kind==='person'?'ipPersonGrid':kind==='outfit'?'ipOutfitGrid':'ipPlaceGrid');
+    if(!bucket||!el) return;
+    const meta=getRefMeta(kind);
+    el.innerHTML=bucket.length?bucket.map(function(x,i){
+      const del='<button class="ip-thumb-del" onclick="event.stopPropagation();ipRemoveFile(&quot;'+kind+'&quot;,'+i+')">삭제</button>';
+      return '<div class="ip-thumb" data-name="'+esc(x.name)+'" onclick="ipOpenImageViewer(this.querySelector(&quot;img&quot;).src,this.dataset.name)"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small>'+del+'</div>';
+    }).join(''):'<span>'+meta.empty+'</span>';
+  }
   function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.pending)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc||'생성 대기')+'</span></div><div class="ip-output" style="min-height:260px"><span>GTI 생성 중...</span></div></div>'; if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt="" onclick="ipOpenImageViewer(this.src,\'Instagram #'+r.idx+'\')"><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button></div></div>';}).join('');}
   window.ipDownloadOne=function(i){const r=state.results[i]; if(!r||r.error)return; const a=document.createElement('a'); a.href='data:'+r.mime+';base64,'+r.b64; a.download='zippy_instagram_'+String(r.idx).padStart(2,'0')+'.png'; document.body.appendChild(a); a.click(); a.remove();};
   window.ipOpenImageViewer=function(src,title){

@@ -2969,15 +2969,13 @@ input[type=file]{display:none}
 
   <!-- 영상 설정 -->
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">Grok 영상 설정</div>
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">영상 설정</div>
     <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
       <div>
-        <div class="cfg-lbl">5080 Gateway 워크플로우</div>
+        <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 기본 <span style="font-size:9px;opacity:.5">i2v_api</span></button>
-          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 고품질 <span style="font-size:9px;opacity:.5">5080</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 빠른 <span style="font-size:9px;opacity:.5">std</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">커스텀 API <span style="font-size:9px;opacity:.5">Export</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel')">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel')">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
         </div>
       </div>
       <div>
@@ -2985,13 +2983,6 @@ input[type=file]{display:none}
         <div class="chips">
           <button class="chip on" data-g="vdur" onclick="pickSingle(this,'vdur')">5초</button>
           <button class="chip" data-g="vdur" onclick="pickSingle(this,'vdur')">10초</button>
-        </div>
-      </div>
-      <div>
-        <div class="cfg-lbl">모드</div>
-        <div class="chips">
-          <button class="chip on" data-g="vmode" onclick="pickSingle(this,'vmode')">표준</button>
-          <button class="chip" data-g="vmode" onclick="pickSingle(this,'vmode')">전문가</button>
         </div>
       </div>
       <div>
@@ -22148,17 +22139,21 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
+function getSelectedVideoWorkflowProfile() {
+  const selected = document.querySelector('[data-g="vmodel"].on');
+  return selected?.dataset?.workflow || 'wan';
+}
+
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
   if (vidTabAbortController) vidTabAbortController.abort();
   vidTabAbortController = new AbortController();
 
   const prompt = getVidTabPromptForGeneration();
-  const workflowPreset = getSelected('vmodel') || 'Gateway 고품질 5080';
   const dur = getSelected('vdur') || '5초';
-  const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
+  const workflowPreset = getSelectedVideoWorkflowProfile();
   const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
   const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
@@ -22181,7 +22176,7 @@ async function executeVideoTab() {
       image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
       images: refs,
       prompt,
-      mode: mode === '전문가' ? 'pro' : 'std',
+      mode: 'std',
       duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio
     }, msg => { status.textContent = msg; }, { signal: vidTabAbortController.signal });

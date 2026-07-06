@@ -22172,10 +22172,12 @@ async function executeVideoTab() {
     if (vidEndB64) refs.push({ name:'end_frame.png', mime:vidEndMime, b64:vidEndB64 });
     const videoUrl = await requestLocalVideo({
       model: modelName,
+      workflow_profile: workflowPreset,
       workflow_preset: workflowPreset,
       image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
       images: refs,
       prompt,
+      audio_text: prompt,
       mode: 'std',
       duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio

@@ -1466,6 +1466,7 @@ input[type=file]{display:none}
     <button class="btn bgh" onclick="generateFullStoryboard()" id="btnSBAllShots" style="border-color:var(--wn);color:var(--wn)">전체 생성</button>
     <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
     <button class="btn bgh" onclick="downloadAllStoryboardImages()" id="btnSBBulkDownload" style="border-color:var(--ok);color:var(--ok)">일괄 다운로드</button>
+    <button class="btn bgh" onclick="syncStoryboardToHistory()" id="btnSBHistory" style="border-color:var(--pu);color:var(--pu)">히스토리에 저장</button>
     <button class="btn bgh" onclick="clearStoryboard()">초기화</button>
     <div class="sb-density-toggle" role="group" aria-label="스토리보드 보기 크기">
       <button class="sb-density-btn on" id="sbViewLarge" onclick="setSBViewDensity('large')" title="큰 카드 보기">라지</button>
@@ -19729,6 +19730,7 @@ function zippyNasApplyStoryboardLoad(data) {
     const b64 = zippyNasImportedB64(images[id]);
     if (!b64) return;
     sbGenImages[id] = b64;
+    saveStoryboardFrameToHistory(id, b64, 0, 'nas-import');
     imageCount++;
   });
 
@@ -19739,6 +19741,9 @@ function zippyNasApplyStoryboardLoad(data) {
     if (!cleaned.length) return;
     sbSeqImages[shotId] = cleaned;
     if (!sbGenImages[shotId]) sbGenImages[shotId] = cleaned[0];
+    cleaned.forEach(function(b64, i) {
+      saveStoryboardFrameToHistory(shotId, b64, i + 1, 'nas-import');
+    });
     sequenceFrameCount += cleaned.length;
   });
 
@@ -19829,6 +19834,77 @@ function sbStoryboardSnapshot() {
     shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
     savedAt: new Date().toISOString()
   };
+}
+function sbHistoryShot(shotId) {
+  try {
+    if (typeof SB_SHOTS !== 'undefined') return SB_SHOTS.find(function(s) { return s && s.id === shotId; }) || null;
+  } catch(e) {}
+  return null;
+}
+function sbHistoryDescription(shotId, frameIndex) {
+  const shot = sbHistoryShot(shotId);
+  const prefix = shotId + (frameIndex ? ' #' + frameIndex : '');
+  const text = (shot && (shot.frame || shot.desc || shot.loc || shot.sceneName)) || '스토리보드 컷';
+  return prefix + ' · ' + String(text).slice(0, 90);
+}
+function sbHistoryDedupeKey(shotId, frameIndex) {
+  return 'storyboard:' + sbStateProjectKey() + ':' + String(shotId || 'shot') + ':' + (frameIndex ? ('seq-' + frameIndex) : 'main');
+}
+function saveStoryboardFrameToHistory(shotId, b64, frameIndex, reason) {
+  if (!b64 || typeof saveToHistory !== 'function') return Promise.resolve(null);
+  const seqIndex = Number(frameIndex || 0);
+  const step = seqIndex ? 'SB-스토리보드-흐름' : 'SB-스토리보드';
+  return saveToHistory(b64, step, sbHistoryDescription(shotId, seqIndex), {
+    dedupeKey: sbHistoryDedupeKey(shotId, seqIndex),
+    source: 'storyboard',
+    shotId: shotId,
+    frameIndex: seqIndex,
+    reason: reason || ''
+  });
+}
+async function syncStoryboardToHistory(opts) {
+  const options = opts || {};
+  const btn = document.getElementById('btnSBHistory');
+  const oldText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+  try {
+    if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
+      sbStateRestored = true;
+      await restoreStoryboardState();
+    }
+    let saved = 0;
+    let seenSequence = {};
+    if (typeof sbSeqImages !== 'undefined') {
+      const seqIds = Object.keys(sbSeqImages || {}).sort();
+      for (let s = 0; s < seqIds.length; s++) {
+        const shotId = seqIds[s];
+        const frames = Array.isArray(sbSeqImages[shotId]) ? sbSeqImages[shotId] : [];
+        if (frames.length) seenSequence[shotId] = true;
+        for (let i = 0; i < frames.length; i++) {
+          const record = await saveStoryboardFrameToHistory(shotId, frames[i], i + 1, 'manual-history-sync');
+          if (record) saved++;
+        }
+      }
+    }
+    if (typeof sbGenImages !== 'undefined') {
+      const shotIds = Object.keys(sbGenImages || {}).sort();
+      for (let i = 0; i < shotIds.length; i++) {
+        const shotId = shotIds[i];
+        if (seenSequence[shotId]) continue;
+        const record = await saveStoryboardFrameToHistory(shotId, sbGenImages[shotId], 0, 'manual-history-sync');
+        if (record) saved++;
+      }
+    }
+    if (typeof refreshHistory === 'function' && histFilter === 'SB') refreshHistory();
+    if (!options.silent) alert(saved ? ('스토리보드 ' + saved + '컷을 히스토리에 저장했습니다.') : '새로 저장할 스토리보드 컷이 없습니다.');
+    return {ok: true, saved: saved};
+  } catch(e) {
+    console.warn('Storyboard history sync failed:', e);
+    if (!options.silent) alert('스토리보드 히스토리 저장 실패: ' + (e && e.message ? e.message : e));
+    return {ok: false, error: e};
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에 저장'; }
+  }
 }
 async function saveStoryboardState(reason) {
   try {
@@ -20572,6 +20648,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
+    saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
     zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
     buildStoryboardTimeline();
     saveStoryboardState('shot-generated');
@@ -20607,6 +20684,7 @@ async function generateSBSequence(shotId) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
       seq.forEach(function(b64, i) {
+        saveStoryboardFrameToHistory(shotId, b64, i + 1, 'sequence-generated');
         zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (i + 1), b64, 'image/png', {shotId: shotId, frameIndex: i + 1, reason: 'sequence-generated'});
       });
       buildStoryboardTimeline();
@@ -22991,6 +23069,17 @@ function openHistDB() {
 async function saveToHistory(imgB64, step, desc) {
   try {
     const db = await openHistDB();
+    const meta = (arguments.length > 3 && arguments[3] && typeof arguments[3] === 'object') ? arguments[3] : null;
+    const dedupeKey = meta && meta.dedupeKey ? String(meta.dedupeKey) : '';
+    if (dedupeKey) {
+      const exists = await new Promise(resolve => {
+        const tx = db.transaction(HIST_STORE, 'readonly');
+        const req = tx.objectStore(HIST_STORE).getAll();
+        req.onsuccess = () => resolve((req.result || []).some(function(item) { return item && item.dedupeKey === dedupeKey; }));
+        req.onerror = () => resolve(false);
+      });
+      if (exists) return null;
+    }
     const tx = db.transaction(HIST_STORE, 'readwrite');
     const store = tx.objectStore(HIST_STORE);
     const now = new Date();
@@ -23003,8 +23092,18 @@ async function saveToHistory(imgB64, step, desc) {
       time: now.toTimeString().split(' ')[0].substring(0,5),
       timestamp: now.getTime()
     };
+    if (meta) {
+      record.meta = meta;
+      if (dedupeKey) record.dedupeKey = dedupeKey;
+    }
     store.add(record);
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
     zippyNasSaveImage('history_' + (step || 'image'), (step || 'image') + '_' + record.timestamp, imgB64, 'image/png', record);
+    return record;
   } catch(e) { console.warn('History save failed:', e); }
 }
 

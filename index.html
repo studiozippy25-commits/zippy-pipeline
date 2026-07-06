@@ -1471,6 +1471,7 @@ input[type=file]{display:none}
     <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
     <button class="btn bgh" onclick="downloadAllStoryboardImages()" id="btnSBBulkDownload" style="border-color:var(--ok);color:var(--ok)">일괄 다운로드</button>
     <button class="btn bgh" onclick="syncStoryboardToHistory()" id="btnSBHistory" style="border-color:var(--pu);color:var(--pu)">히스토리에 저장</button>
+    <button class="btn bgh" onclick="restoreStoryboardFromHistory()" id="btnSBRecoverHistory" style="border-color:var(--bl);color:var(--bl)">히스토리에서 복구</button>
     <button class="btn bgh" onclick="clearStoryboard()">초기화</button>
     <div class="sb-density-toggle" role="group" aria-label="스토리보드 보기 크기">
       <button class="sb-density-btn on" id="sbViewLarge" onclick="setSBViewDensity('large')" title="큰 카드 보기">라지</button>
@@ -19562,6 +19563,10 @@ async function zippyNasAutoLoadStoryboard(reason) {
   const key = zippyNasAutoLoadKey();
   if (zippyNasAutoLoadAttempts[key] === 'running' || zippyNasAutoLoadAttempts[key] === 'done') return {ok: true, skipped: true};
   zippyNasAutoLoadAttempts[key] = 'running';
+  if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
+    sbStateRestored = true;
+    await restoreStoryboardState();
+  }
   zippyNasSetProgress('자동 불러오기 준비 · 5컷씩', true);
   const result = await zippyNasLoadStoryboardNow({silent: true, auto: true, batchSize: 5, reason: reason || 'auto'});
   zippyNasAutoLoadAttempts[key] = result && result.ok ? 'done' : 'failed';
@@ -19902,13 +19907,17 @@ async function zippyNasApplyStoryboardLoad(data, opts) {
   zippyNasShowImportedEpisode(importedEp);
   if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
   if (typeof refreshHistory === 'function') refreshHistory();
-  saveStoryboardState('nas-import', {localOnly: true});
+  if (imageCount || sequenceFrameCount) saveStoryboardState('nas-import', {localOnly: true});
   return {images: imageCount, sequenceFrames: sequenceFrameCount, historySaved: historySaved};
 }
 async function zippyNasLoadStoryboardNow(opts) {
   const options = opts || {};
   zippyNasSaveSettings();
   try {
+    if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
+      sbStateRestored = true;
+      await restoreStoryboardState();
+    }
     const label = options.auto ? '자동 불러오기' : '가져오기';
     const batchSize = Math.max(1, Math.min(24, Number(options.batchSize || (options.auto ? 5 : 8)) || 5));
     const missingOnly = options.missingOnly !== false;
@@ -20114,6 +20123,54 @@ async function syncStoryboardToHistory(opts) {
     return {ok: false, error: e};
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에 저장'; }
+  }
+}
+async function restoreStoryboardFromHistory(opts) {
+  const options = opts || {};
+  const btn = document.getElementById('btnSBRecoverHistory');
+  const oldText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '복구 중...'; }
+  try {
+    if (typeof loadHistory !== 'function') throw new Error('히스토리 DB를 읽을 수 없습니다');
+    const items = await loadHistory();
+    let restoredImages = 0;
+    let restoredFrames = 0;
+    const sorted = (items || []).slice().sort(function(a, b) {
+      return Number(a.timestamp || 0) - Number(b.timestamp || 0);
+    });
+    sorted.forEach(function(item) {
+      if (!item || !item.b64) return;
+      const meta = item.meta || {};
+      const isStoryboard = meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1;
+      if (!isStoryboard) return;
+      let shotId = meta.shotId || '';
+      if (!shotId && item.desc) shotId = String(item.desc).split('·')[0].trim().replace(/\s+#\d+$/, '');
+      if (!shotId) return;
+      shotId = (typeof zippyNasResolveStoryboardShotId === 'function') ? zippyNasResolveStoryboardShotId(shotId) : shotId;
+      const frameIndex = Number(meta.frameIndex || 0);
+      if (frameIndex > 0) {
+        if (!sbSeqImages[shotId]) sbSeqImages[shotId] = [];
+        sbSeqImages[shotId][frameIndex - 1] = item.b64;
+        if (!sbGenImages[shotId]) sbGenImages[shotId] = item.b64;
+        restoredFrames++;
+      } else {
+        sbGenImages[shotId] = item.b64;
+        restoredImages++;
+      }
+      if (typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
+    });
+    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
+    await saveStoryboardState('history-recovery', {localOnly: true});
+    const total = restoredImages + restoredFrames;
+    if (!options.silent) alert(total ? ('히스토리에서 ' + restoredImages + '컷 / 흐름 ' + restoredFrames + '프레임을 복구했습니다.') : '복구할 스토리보드 히스토리가 없습니다.');
+    return {ok: true, images: restoredImages, sequenceFrames: restoredFrames};
+  } catch(e) {
+    console.warn('Storyboard history recovery failed:', e);
+    if (!options.silent) alert('히스토리 복구 실패: ' + (e && e.message ? e.message : e));
+    return {ok: false, error: e};
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에서 복구'; }
   }
 }
 async function saveStoryboardState(reason, opts) {

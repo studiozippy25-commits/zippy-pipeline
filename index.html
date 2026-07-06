@@ -19754,13 +19754,47 @@ async function zippyNasLoadStoryboardNow(opts) {
     zippyNasSetStatus('가져오기 준비 중', true);
     const connected = await zippyNasCheck();
     if (!connected) throw new Error('NAS bridge 연결 실패');
-    const data = await zippyNasPost('/load-storyboard', {
-      project: zippyNasProjectSlug()
-    }, true);
-    const counts = await zippyNasApplyStoryboardLoad(data || {});
-    const histText = counts.historySaved ? (' · 히스토리 ' + counts.historySaved + '컷') : '';
-    zippyNasSetStatus('가져오기 완료 · ' + counts.images + '컷 / 흐름 ' + counts.sequenceFrames + '프레임' + histText, true);
-    return {ok: true, counts: counts, data: data};
+    const project = zippyNasProjectSlug();
+    const batchSize = 8;
+    let imageOffset = 0;
+    let sequenceOffset = 0;
+    let totalImages = null;
+    let totalSequenceFrames = null;
+    let lastData = null;
+    const totals = {images: 0, sequenceFrames: 0, historySaved: 0};
+
+    for (let guard = 0; guard < 200; guard++) {
+      const data = await zippyNasPost('/load-storyboard', {
+        project: project,
+        imageOffset: imageOffset,
+        imageLimit: batchSize,
+        sequenceOffset: sequenceOffset,
+        sequenceLimit: batchSize
+      }, true);
+      lastData = data;
+      const paging = (data && data.paging) || {};
+      const counts = await zippyNasApplyStoryboardLoad(data || {});
+      totals.images += counts.images || 0;
+      totals.sequenceFrames += counts.sequenceFrames || 0;
+      totals.historySaved += counts.historySaved || 0;
+
+      const returnedImages = Number(paging.returnedImages != null ? paging.returnedImages : counts.images) || 0;
+      const returnedSequenceFrames = Number(paging.returnedSequenceFrames != null ? paging.returnedSequenceFrames : counts.sequenceFrames) || 0;
+      totalImages = Number(paging.totalImages != null ? paging.totalImages : totals.images) || totals.images;
+      totalSequenceFrames = Number(paging.totalSequenceFrames != null ? paging.totalSequenceFrames : totals.sequenceFrames) || totals.sequenceFrames;
+
+      imageOffset += returnedImages;
+      sequenceOffset += returnedSequenceFrames;
+      const imageDone = imageOffset >= totalImages;
+      const sequenceDone = sequenceOffset >= totalSequenceFrames;
+      zippyNasSetStatus('가져오는 중 · ' + Math.min(imageOffset, totalImages) + '/' + totalImages + '컷 / 흐름 ' + Math.min(sequenceOffset, totalSequenceFrames) + '/' + totalSequenceFrames, true);
+      if (imageDone && sequenceDone) break;
+      if (!returnedImages && !returnedSequenceFrames) break;
+    }
+
+    const histText = totals.historySaved ? (' · 히스토리 ' + totals.historySaved + '컷') : '';
+    zippyNasSetStatus('가져오기 완료 · ' + totals.images + '컷 / 흐름 ' + totals.sequenceFrames + '프레임' + histText, true);
+    return {ok: true, counts: totals, data: lastData};
   } catch(e) {
     zippyNasSetStatus('가져오기 실패', false);
     console.warn('NAS storyboard load failed:', e);

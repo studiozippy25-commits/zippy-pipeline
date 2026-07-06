@@ -19624,13 +19624,15 @@ async function zippyNasPost(endpoint, payload, force) {
 function zippyNasSaveImage(kind, id, b64, mime, meta, opts) {
   const force = !!(opts && opts.force);
   if (!b64 || (!force && !zippyNasEnabled())) return;
+  const fullMeta = zippyNasEnrichImageMeta(id, meta || {});
   return zippyNasPost('/save-image', {
     project: zippyNasProjectSlug(),
     kind: zippyNasSafePart(kind, 'image'),
     id: zippyNasSafePart(id, 'image'),
+    episode: fullMeta.episodeFolder || '',
     mime: mime || 'image/png',
     b64: b64,
-    meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
+    meta: zippyNasBaseMeta(zippyNasStripB64(fullMeta, 0))
   }, force).catch(function(e) {
     zippyNasSetStatus('저장 실패', false);
     console.warn('NAS image save failed:', e);
@@ -19654,9 +19656,34 @@ function zippyNasSaveJson(kind, id, data, meta, opts) {
 }
 function zippyNasStoryboardShot(id) {
   try {
-    if (typeof SB_SHOTS !== 'undefined') return SB_SHOTS.find(function(s) { return s && s.id === id; }) || null;
+    if (typeof SB_SHOTS !== 'undefined') {
+      const raw = String(id || '').replace(/_frame_\d+$/i, '');
+      return SB_SHOTS.find(function(s) { return s && s.id === raw; }) || null;
+    }
   } catch(e) {}
   return null;
+}
+function zippyNasEpisodeFolderName(shot) {
+  if (!shot) return '';
+  const hasEp = typeof shot.ep !== 'undefined';
+  const raw = hasEp ? shot.ep : shot.scene;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return '';
+  if (n < 0) return 'SPECIAL_' + String(Math.abs(n)).padStart(2, '0');
+  return (hasEp ? 'EP' : 'S') + String(n).padStart(2, '0');
+}
+function zippyNasEnrichImageMeta(id, meta) {
+  const out = Object.assign({}, meta || {});
+  const rawShotId = out.shotId || id;
+  const resolvedShotId = (typeof zippyNasResolveStoryboardShotId === 'function') ? zippyNasResolveStoryboardShotId(rawShotId) : rawShotId;
+  const shot = out.shot || zippyNasStoryboardShot(resolvedShotId) || zippyNasStoryboardShot(rawShotId);
+  if (shot) {
+    out.shot = shot;
+    out.shotId = shot.id || resolvedShotId;
+    if (out.episode == null) out.episode = (typeof shot.ep !== 'undefined') ? shot.ep : shot.scene;
+    if (!out.episodeFolder) out.episodeFolder = zippyNasEpisodeFolderName(shot);
+  }
+  return out;
 }
 async function zippyNasSyncStoryboardNow(opts) {
   const options = opts || {};

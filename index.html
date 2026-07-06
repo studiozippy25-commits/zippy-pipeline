@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="nas-sync-20260703-184435">
+<meta name="zippy-deploy-marker" content="instagram-gti-10cut-noapi-20260703-121500">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -775,22 +775,20 @@ input[type=file]{display:none}
 .ip-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 .ip-thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;min-height:104px;padding:10px;border:1px dashed var(--bd);border-radius:8px;background:rgba(255,255,255,.02);margin-bottom:10px}
 .ip-thumb-grid>span{align-self:center;color:var(--mu);font-family:var(--font-mono);font-size:11px}
-.ip-thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--sf);cursor:pointer}
+.ip-thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--sf)}
 .ip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .ip-thumb small{position:absolute;left:4px;right:4px;bottom:4px;padding:2px 4px;border-radius:3px;background:rgba(0,0,0,.62);color:white;font-family:var(--font-mono);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ip-thumb-del{position:absolute;top:4px;right:4px;padding:3px 6px;border:1px solid rgba(248,113,113,.75);border-radius:4px;background:rgba(127,29,29,.82);color:#FECACA;font-family:var(--font-mono);font-size:8px;font-weight:800;cursor:pointer}
-.ip-thumb-del:hover{background:#B91C1C;color:white}
 .ip-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
 .ip-controls label{display:grid;gap:4px;color:var(--mu);font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.8px}
 .ip-controls select,.ip-controls input,.ip-textarea{width:100%;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);padding:8px;font-family:var(--font-body)}
 .ip-textarea{min-height:70px;resize:vertical;margin-bottom:10px}
 .ip-pre{min-height:120px;margin:10px 0;padding:10px;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);white-space:pre-wrap;color:#CBD5E1;font-family:var(--font-mono);font-size:11px;line-height:1.65}
 .ip-output{min-height:180px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:8px;background:rgba(0,0,0,.18);color:var(--mu);font-family:var(--font-mono);font-size:11px;overflow:hidden}
-.ip-output img{max-width:100%;max-height:520px;display:block;cursor:pointer}
+.ip-output img{max-width:100%;max-height:520px;display:block}
 .ip-status{padding:8px 10px;border-radius:6px;background:rgba(96,165,250,.08);color:#93C5FD;font-family:var(--font-mono);font-size:12px;margin-bottom:10px}
 .ip-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
 .ip-card-result{border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--sf)}
-.ip-card-result img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0b0f14;cursor:pointer}
+.ip-card-result img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#0b0f14}
 .ip-card-result .meta{padding:8px 10px;color:var(--mu);font-family:var(--font-mono);font-size:10px;display:flex;justify-content:space-between;gap:8px}
 .ip-card-result .tools{display:flex;gap:6px;flex-wrap:wrap;padding:8px 10px;border-top:1px solid var(--bd)}
 .ip-card-result video{width:100%;display:block;border-top:1px solid var(--bd)}
@@ -968,20 +966,6 @@ input[type=file]{display:none}
     <button class="btn bgh bsm" onclick="checkGtiBridge()" style="font-size:11px;padding:3px 10px">상태 확인</button>
     <span style="font-family:var(--font-mono);font-size:10px;color:var(--mu)">꺼져있으면 바탕화면 <b>gti-브리지-켜기.command</b> 더블클릭</span>
   </div>
-  <div class="ar" id="nasBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px dashed var(--bd)">
-    <span class="al" style="color:var(--ok);font-size:11px">NAS 저장</span>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:4px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="checkbox" id="nasAutoSync" onchange="zippyNasSaveSettings()"> 자동 저장
-    </label>
-    <input type="text" class="api-inp" id="nasBridgeUrl" value="http://localhost:8788" placeholder="NAS 브리지 URL" style="flex:0 1 220px;min-width:180px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
-    <input type="text" class="api-inp" id="nasProjectSlug" placeholder="프로젝트 폴더 자동" style="flex:0 1 170px;min-width:140px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
-    <input type="password" class="api-inp" id="nasBridgeToken" placeholder="브리지 토큰(선택)" style="flex:0 1 150px;min-width:120px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
-    <span id="nasBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
-    <span id="nasBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
-    <button class="btn bgh bsm" onclick="zippyNasCheck()" style="font-size:11px;padding:3px 10px">연결 확인</button>
-    <button class="btn bgh bsm" onclick="zippyNasSyncStoryboardNow()" style="font-size:11px;padding:3px 10px">현재 컷 보내기</button>
-    <button class="btn bgh bsm" onclick="zippyNasLoadStoryboardNow()" style="font-size:11px;padding:3px 10px">NAS에서 가져오기</button>
-  </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
     <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
@@ -1035,7 +1019,6 @@ input[type=file]{display:none}
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
-  <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
 </div>
@@ -1044,7 +1027,7 @@ input[type=file]{display:none}
 <!-- ═══════════════ INSTAGRAM PERSONA MODULE ═══════════════ -->
 <div class="panel ip-panel" id="pInsta">
   <div class="slbl" style="color:#F472B6">INSTAGRAM PERSONA · 부캐 이미지릴 생성</div>
-  <div class="ip-note">인스타 이미지는 GTI 브릿지로만 생성합니다. 의상 사진은 먼저 GTI로 사람을 제거한 의상 6전도 시트로 분리하고, 최종 생성에는 인물 레퍼런스 + 의상 시트만 넣어 같은 시간대에 찍은 이미지릴처럼 맞춥니다. I2V는 생성 후 영상 제작 탭으로 넘겨 처리합니다.</div>
+  <div class="ip-note">인스타 10컷은 GTI 브릿지로만 생성합니다. 인물/의상 업로드 이미지를 실제 레퍼런스 입력으로 넣고, 같은 시간대에 한 번에 찍은 사진 세트처럼 맞춥니다. I2V는 생성 후 영상 제작 탭으로 넘겨 처리합니다.</div>
 
   <div class="ip-top-grid">
     <div class="ip-box">
@@ -1079,34 +1062,17 @@ input[type=file]{display:none}
       <div class="ip-thumb-grid" id="ipOutfitGrid"><span>의상 이미지 대기</span></div>
       <div class="ip-controls">
         <label>의상 반영<select id="ipOutfitStrength"><option value="standard">표준</option><option value="strict">정확</option><option value="loose">느슨</option></select></label>
-        <button class="btn bbl bsm" id="ipOutfitSheetBtn" onclick="ipGenerateOutfitSheet()">GTI 의상 6전도 분리</button>
         <button class="btn bor bsm" id="ipOutfitBtn" onclick="ipExtractOutfit()">의상 DNA 추출</button>
       </div>
       <pre class="ip-pre" id="ipOutfitDna">의상 분석값이 여기에 표시됩니다.</pre>
-      <div class="ip-output" id="ipOutfitSheetOutput"><span>의상 6전도 시트 대기</span></div>
-    </div>
-
-    <div class="ip-box">
-      <div class="ip-box-head">
-        <div><b>03 장소 레퍼런스</b><span>선택 사항 · 배경/랜드마크 이미지</span></div>
-        <div class="ip-actions">
-          <button class="btn bgh bsm" onclick="document.getElementById('ipPlaceInput').click()">사진 추가</button>
-          <button class="btn bgh bsm" onclick="document.getElementById('ipPlaceFolder').click()">폴더 추가</button>
-        </div>
-      </div>
-      <input id="ipPlaceInput" type="file" accept="image/*" multiple style="display:none" onchange="ipAddFiles('place', this.files)">
-      <input id="ipPlaceFolder" type="file" accept="image/*" multiple webkitdirectory style="display:none" onchange="ipAddFiles('place', this.files)">
-      <div class="ip-thumb-grid" id="ipPlaceGrid"><span>장소 이미지 대기</span></div>
-      <div class="ip-note" style="margin:0">장소 이미지는 없어도 생성됩니다. 업로드하면 사람/의상은 무시하고 배경, 구조, 분위기만 참고합니다.</div>
     </div>
   </div>
 
   <div class="ip-box">
     <div class="ip-box-head">
-      <div><b>04 랜드마크 + GTI 이미지</b><span>1장 테스트 / 설정 컷 이미지릴</span></div>
+      <div><b>03 랜드마크 + 04 GTI 10컷</b><span>같은 시간대에 촬영한 인스타 이미지릴</span></div>
       <div class="ip-actions">
-        <button class="btn bor bsm" id="ipSingleBtn" onclick="ipGenerateSingle()">GTI 1장 생성</button>
-        <button class="btn bpu bsm" id="ipBatchBtn" onclick="ipGenerateBatch()">GTI 설정 컷 생성</button>
+        <button class="btn bpu bsm" id="ipBatchBtn" onclick="ipGenerateBatch()">GTI 10컷 생성</button>
         <button class="btn bgh bsm" onclick="ipDownloadManifest()">매니페스트 저장</button>
       </div>
     </div>
@@ -1114,7 +1080,7 @@ input[type=file]{display:none}
       <label>지역<select id="ipLocMode" onchange="ipSetLocationMode(this.value)"><option value="korea">대한민국</option><option value="world">세계</option></select></label>
       <label>랜드마크<select id="ipLocation"></select></label>
       <label>무드<select id="ipVibe"><option value="daily">데일리</option><option value="travel">여행</option><option value="street">스트릿</option><option value="cafe">카페</option><option value="brand">브랜드협업</option></select></label>
-      <label>컷 수<input id="ipCount" type="number" min="1" max="30" value="10"></label>
+      <label>컷 수<input id="ipCount" type="number" min="10" max="10" value="10" readonly></label>
     </div>
     <textarea class="ip-textarea" id="ipCustomPrompt" placeholder="추가 지시: 계절, 헤어, 소품, 계정 톤, 피해야 할 것 등"></textarea>
     <div class="ip-status" id="ipStatus">대기</div>
@@ -1462,11 +1428,8 @@ input[type=file]{display:none}
     <div id="sbEditorContent" style="padding:14px;max-height:400px;overflow-y:auto"></div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
-    <button class="btn bor" onclick="generateAllStoryboard()" id="btnSBAll">필수 생성</button>
-    <button class="btn bgh" onclick="generateFullStoryboard()" id="btnSBAllShots" style="border-color:var(--wn);color:var(--wn)">전체 생성</button>
+    <button class="btn bor" onclick="generateAllStoryboard()" id="btnSBAll">전체 생성 (필수 쇼트)</button>
     <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
-    <button class="btn bgh" onclick="downloadAllStoryboardImages()" id="btnSBBulkDownload" style="border-color:var(--ok);color:var(--ok)">일괄 다운로드</button>
-    <button class="btn bgh" onclick="syncStoryboardToHistory()" id="btnSBHistory" style="border-color:var(--pu);color:var(--pu)">히스토리에 저장</button>
     <button class="btn bgh" onclick="clearStoryboard()">초기화</button>
     <div class="sb-density-toggle" role="group" aria-label="스토리보드 보기 크기">
       <button class="sb-density-btn on" id="sbViewLarge" onclick="setSBViewDensity('large')" title="큰 카드 보기">라지</button>
@@ -1516,27 +1479,24 @@ input[type=file]{display:none}
         <div class="sb-video-preview" id="sbVideoPreview"><span>생성된 스토리보드 컷을 선택하세요</span></div>
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
           <button class="btn bor bsm" onclick="sbSendSelectedToMainVideoTab()">메인 영상 탭으로 보내기</button>
-          <button class="btn bgh bsm" onclick="checkGrokBuildBridge('sbVideoStatus','sbGrokBuildBridgeUrl','sbGrokBuildBridgeKey')">Grok 브릿지 확인</button>
+          <button class="btn bgh bsm" onclick="checkLocalVideoGateway()">Local 상태 확인</button>
         </div>
         <div id="sbVideoShotMeta" style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:10px"></div>
       </div>
       <div class="sb-video-panel">
         <div class="ip-box-head" style="margin-bottom:10px">
-          <div><b>Grok Build I2V</b><span>선택 쇼트를 Grok으로 영상 생성</span></div>
-          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">Grok 영상 생성</button><button class="btn bor bsm" id="sbVideoAbortBtn" onclick="abortSBVideoGeneration()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button></div>
+          <div><b>Local 5080 I2V</b><span>선택 쇼트를 바로 영상으로 생성</span></div>
+          <div class="ip-actions"><button class="btn bpu bsm" id="sbVideoGenerateBtn" onclick="sbGenerateSelectedVideo()">영상 생성</button><button class="btn bor bsm" id="sbVideoAbortBtn" onclick="abortSBVideoGeneration()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button></div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px">
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Grok Bridge URL
-            <input id="sbGrokBuildBridgeUrl" type="url" value="http://127.0.0.1:8790" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
-          </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Bridge Key
-            <input id="sbGrokBuildBridgeKey" type="password" placeholder="외부 브릿지 보호 키" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway URL
+            <input id="sbVideoGatewayUrl" type="url" value="http://127.0.0.1:8789" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">길이
             <select id="sbVideoDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="5">5초</option><option value="10">10초</option></select>
           </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">품질
-            <select id="sbVideoQuality" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="720p">720p</option><option value="1080p">1080p</option></select>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">모드
+            <select id="sbVideoMode" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="std">표준</option><option value="pro">전문가</option></select>
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
             <select id="sbVideoRatio" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
@@ -1544,7 +1504,7 @@ input[type=file]{display:none}
         </div>
         <textarea id="sbVideoPrompt" class="cfg-ta" style="min-height:116px;margin-bottom:10px" placeholder="선택 쇼트의 카메라 움직임/액션 프롬프트가 자동으로 들어갑니다"></textarea>
         <div id="sbVideoStatus" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--cy);margin-bottom:10px"></div>
-        <div class="sb-video-preview" id="sbVideoOutput"><span>Grok 결과 대기</span></div>
+        <div class="sb-video-preview" id="sbVideoOutput"><span>영상 결과 대기</span></div>
       </div>
     </div>
     <div style="margin-top:16px">
@@ -2897,7 +2857,7 @@ input[type=file]{display:none}
   <div style="border:1px solid rgba(124,58,237,.24);border-radius:10px;background:rgba(124,58,237,.05);padding:14px 16px;margin-bottom:18px">
     <div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(160px,.5fr) auto;gap:10px;align-items:end">
       <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Local 5080 Gateway URL
-        <input id="vidLocalGatewayUrl" type="url" value="https://zippy-5080.studiozippy.co.kr" placeholder="https://zippy-5080.studiozippy.co.kr" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+        <input id="vidLocalGatewayUrl" type="url" value="http://127.0.0.1:8789" placeholder="http://127.0.0.1:8789" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
       </label>
       <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway Key
         <input id="vidLocalGatewayKey" type="password" placeholder="브라우저에 저장됨" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
@@ -2930,11 +2890,6 @@ input[type=file]{display:none}
       </label>
       <button class="btn bgh bsm" onclick="checkGrokBuildBridge()">브릿지 확인</button>
     </div>
-    <div style="margin:10px 0 12px">
-      <div class="cfg-lbl">Grok 전송 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">인스타그램/스토리보드 이미지와 함께 전송</span></div>
-      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 예: subtle handheld vertical Instagram reel, gentle push-in, natural hair and fabric motion, keep face/outfit/location unchanged..." style="min-height:96px"></textarea>
-      <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:6px">인스타그램 탭에서 넘어온 컷은 이 입력값과 함께 Grok Build로 전송됩니다. 필요하면 여기서 바로 수정한 뒤 전송하세요.</div>
-    </div>
     <input id="grokBuildResultInput" type="file" accept="video/*" style="display:none" onchange="receiveGrokBuildVideo(this.files)">
     <div id="grokBuildStatus" style="font-family:var(--font-mono);font-size:12px;color:#FDBA74;line-height:1.7">대기</div>
   </div>
@@ -2946,16 +2901,18 @@ input[type=file]{display:none}
       <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div>
           <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:6px">START 프레임</div>
-          <div id="vidStartFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById('vidStartInput').click()">
+          <div id="vidStartFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="openVidFilePicker('start')">
             <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 이미지 업로드 또는 드래그</span>
           </div>
+          <button class="btn bgh bsm" onclick="clearVidFrame('start')" style="margin-top:6px;width:100%">초기화</button>
           <input type="file" id="vidStartInput" accept="image/*" style="display:none" onchange="loadVidFrame('start',this.files)">
         </div>
         <div>
           <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:6px">END 프레임 <span style="opacity:.5">(선택)</span></div>
-          <div id="vidEndFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById('vidEndInput').click()">
+          <div id="vidEndFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="openVidFilePicker('end')">
             <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 선택사항</span>
           </div>
+          <button class="btn bgh bsm" onclick="clearVidFrame('end')" style="margin-top:6px;width:100%">초기화</button>
           <input type="file" id="vidEndInput" accept="image/*" style="display:none" onchange="loadVidFrame('end',this.files)">
         </div>
         <div style="flex:1;min-width:200px">
@@ -2969,15 +2926,13 @@ input[type=file]{display:none}
 
   <!-- 영상 설정 -->
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">Grok 영상 설정</div>
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">영상 설정</div>
     <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px">
       <div>
-        <div class="cfg-lbl">5080 Gateway 워크플로우</div>
+        <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 기본 <span style="font-size:9px;opacity:.5">i2v_api</span></button>
-          <button class="chip on" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 고품질 <span style="font-size:9px;opacity:.5">5080</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">Gateway 빠른 <span style="font-size:9px;opacity:.5">std</span></button>
-          <button class="chip" data-g="vmodel" onclick="pickSingle(this,'vmodel')">커스텀 API <span style="font-size:9px;opacity:.5">Export</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel')">Gateway 기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel')">Gateway 고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
         </div>
       </div>
       <div>
@@ -3003,6 +2958,10 @@ input[type=file]{display:none}
         </div>
       </div>
     </div>
+    <div style="padding:0 16px 16px">
+      <div class="cfg-lbl">카메라/액션 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">실사화 기본 프롬프트 자동 포함</span></div>
+      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 추가 지시만 적어도 됩니다. 예: slow dolly forward, 인물이 천천히 고개를 돌린다, gentle zoom into face..." style="min-height:60px"></textarea>
+    </div>
   </div>
 
   <!-- 생성 버튼 -->
@@ -3024,92 +2983,6 @@ input[type=file]{display:none}
     <div style="font-family:var(--font-mono);font-size:13px;color:var(--mu);font-weight:700;margin-bottom:8px">최근 생성 영상</div>
     <div id="vidTabHistory" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px">
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);text-align:center;padding:20px">아직 생성된 영상이 없습니다</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ PREMIERE ROUGHCUT EXPORT ═══════════════ -->
-<div class="panel" id="pPremiere">
-  <div class="slbl" style="color:var(--cy)">Premiere 가편집 — FCPXML / EDL / SRT 패키지</div>
-  <div style="padding:12px 16px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.22);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--cy);line-height:1.7">
-    스토리보드 컷, 영상 제작 결과, 히스토리 이미지, 업로드 파일을 컷 리스트로 모아 Premiere에서 열 수 있는 가편집 패키지로 내보냅니다.<br>
-    <span style="font-size:11px;color:var(--mu)">패키지에는 media 폴더, FCPXML, EDL, SRT, markers.csv, manifest.json, README가 포함됩니다.</span>
-  </div>
-
-  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">소스 가져오기</div>
-    <div style="padding:16px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="btn bgh bsm" onclick="premiereAddStoryboardImages()">스토리보드 이미지</button>
-        <button class="btn bgh bsm" onclick="premiereAddStoryboardVideos()">스토리보드 영상</button>
-        <button class="btn bgh bsm" onclick="premiereAddVideoTabVideos()">영상 제작 결과</button>
-        <button class="btn bgh bsm" onclick="premiereAddHistoryImages()">히스토리 이미지</button>
-        <button class="btn bgh bsm" onclick="document.getElementById('premiereFileInput').click()">파일 추가</button>
-        <button class="btn bgh bsm" onclick="premiereClearItems()" style="border-color:var(--er);color:var(--er)">목록 비우기</button>
-      </div>
-      <input id="premiereFileInput" type="file" accept="image/*,video/*" multiple style="display:none" onchange="premiereAddFiles(this.files)">
-      <div id="premiereSourceHint" style="font-family:var(--font-mono);font-size:12px;color:var(--mu);line-height:1.6">컷 소스를 추가하면 아래 타임라인에 순서대로 쌓입니다.</div>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:minmax(280px,1fr) minmax(280px,.9fr);gap:18px;margin-bottom:18px">
-    <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
-      <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">가편집 설정</div>
-      <div style="padding:16px;display:grid;gap:12px">
-        <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">프로젝트명
-          <input id="premiereProjectName" class="ci" value="ZIPPY_ROUGHCUT" style="margin:0">
-        </label>
-        <div style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px">
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
-            <select id="premiereAspect" class="msel" style="width:100%">
-              <option value="9:16">9:16 Reels</option>
-              <option value="16:9" selected>16:9 Film</option>
-              <option value="1:1">1:1 Square</option>
-            </select>
-          </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">FPS
-            <select id="premiereFps" class="msel" style="width:100%">
-              <option value="23.976">23.976</option>
-              <option value="24">24</option>
-              <option value="25">25</option>
-              <option value="29.97" selected>29.97</option>
-              <option value="30">30</option>
-            </select>
-          </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">이미지 컷 길이
-            <input id="premiereStillDuration" type="number" min="1" max="30" value="5" class="ci" style="margin:0">
-          </label>
-          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">기본 영상 길이
-            <input id="premiereVideoDuration" type="number" min="1" max="60" value="5" class="ci" style="margin:0">
-          </label>
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;color:var(--mu)">
-          <input id="premiereIncludeMedia" type="checkbox" checked> media 폴더에 원본 파일 포함
-        </label>
-        <textarea id="premiereGlobalNote" class="cfg-ta" style="min-height:72px" placeholder="프리미어 마커/README에 들어갈 편집 메모. 예: 음악은 0:01부터, 컷 3은 슬로우모션 후보, 자막은 임시..."></textarea>
-      </div>
-    </div>
-
-    <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
-      <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">내보내기</div>
-      <div style="padding:16px;display:grid;gap:10px">
-        <button class="btn bpu" onclick="premiereDownloadPackage()" id="premierePackageBtn">Premiere 패키지 다운로드</button>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn bgh bsm" onclick="premiereDownloadText('fcpxml')">FCPXML만</button>
-          <button class="btn bgh bsm" onclick="premiereDownloadText('edl')">EDL만</button>
-          <button class="btn bgh bsm" onclick="premiereDownloadText('srt')">SRT만</button>
-          <button class="btn bgh bsm" onclick="premiereDownloadText('manifest')">Manifest</button>
-        </div>
-        <div id="premiereStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu);line-height:1.6">대기</div>
-        <pre id="premierePreview" style="white-space:pre-wrap;word-break:break-word;max-height:210px;overflow:auto;padding:10px;border:1px solid var(--bd);border-radius:6px;background:rgba(0,0,0,.12);font-family:var(--font-mono);font-size:11px;color:var(--mu)">컷 리스트 없음</pre>
-      </div>
-    </div>
-  </div>
-
-  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">타임라인 컷 리스트</div>
-    <div id="premiereTimeline" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:16px">
-      <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:14px">아직 추가된 컷이 없습니다</div>
     </div>
   </div>
 </div>
@@ -4748,7 +4621,7 @@ const PROJECTS = {
           "어린 이든": "assets/love/avatar/EDN_young_character_sheet.png?v=1"
       },
       "defaultFaceRefs": {
-          "이루리": "assets/love/face/6view/IRU_iruri_6view.png?v=3",
+          "이루리": "assets/love/face/6view/IRU_iruri_6view.png?v=1",
           "정이든": "assets/love/face/6view/EDN_eden_6view.png?v=1",
           "한소담": "assets/love/face/6view/DAM_sodam_6view.png?v=1",
           "최나온": "assets/love/face/6view/NAON_naon_6view.png?v=1",
@@ -17819,7 +17692,7 @@ const PROJECTS = {
           "[SP-WAY] 등하굣길 봄 벚꽃길 주택가": "Spring commute path through residential streets, cherry blossoms and soft backlight, present-tense everyday romance. Motif: walking side by side, drifting petals, unsaid line."
       },
       "characterDNA": {
-          "이루리": "[DNA LOVE-IRU] Japanese transfer student, Korean high-school film photo club member, stage name Minami in imagination cuts, bright oddball deadpan energy, yellow-green cardigan or photo-club styling, film camera with yellow strap, precise eye for decisive moments, loves freezing today before it disappears. Mandatory visual lock: small yellow atom-shaped hairpin must appear in every Ruri appearance where her hair/head is visible; never omit or replace it. Motif: focus, shutter, yellow strap, yellow atom hairpin, red darkroom safelight.",
+          "이루리": "[DNA LOVE-IRU] Japanese transfer student, Korean high-school film photo club member, stage name Minami in imagination cuts, bright oddball deadpan energy, yellow-green cardigan or photo-club styling, film camera with yellow strap, precise eye for decisive moments, loves freezing today before it disappears. Motif: focus, shutter, yellow strap, red darkroom safelight.",
           "정이든": "[DNA LOVE-EDN] Korean high-school tennis captain, tall controlled posture, cold blue-grey tennis styling, racket and LOVE scoreboard motif, trapped by points and winning, quiet fear under perfection. Motif: serve toss, baseline solitude, blue court light, zero-point restart.",
           "한소담": "[DNA LOVE-DAM] Photo club friend, grounded warm observer, practical support energy, school uniform with soft casual details, balances Luri's imagination with present-tense care. Motif: club-room routine, prints, gentle reality check.",
           "최나온": "[DNA LOVE-NAON] Rival/friend figure with mirror-sword imagination avatar, sharp symmetrical styling, cool gaze, exacting and theatrical but emotionally readable. Motif: mirrors, doubles, reflection, balanced framing.",
@@ -18395,45 +18268,6 @@ function sbGroupChipLabel(num) {
   return 'EP' + ('0'+num).slice(-2) + ' ' + (et[num] || ('EP'+num));
 }
 
-function sbActiveEpProjectKey() {
-  return 'zippy-sb-active-ep-' + (currentProjectKey || (currentProject && (currentProject.nameEn || currentProject.name)) || 'default');
-}
-
-function setSBActiveEp(epNum) {
-  var n = Number(epNum);
-  if (!Number.isFinite(n)) n = 0;
-  if (!window.__sbActiveEpByProject) window.__sbActiveEpByProject = {};
-  window.__sbActiveEpByProject[sbActiveEpProjectKey()] = n;
-  try { localStorage.setItem(sbActiveEpProjectKey(), String(n)); } catch(e) {}
-}
-
-function getSBActiveEp(epNums, fallbackEp) {
-  var key = sbActiveEpProjectKey();
-  var raw = window.__sbActiveEpByProject && Object.prototype.hasOwnProperty.call(window.__sbActiveEpByProject, key)
-    ? window.__sbActiveEpByProject[key]
-    : null;
-  if (raw == null) {
-    try { raw = localStorage.getItem(key); } catch(e) { raw = null; }
-  }
-  var n = Number(raw);
-  if (Number.isFinite(n)) {
-    if (n === 0) return 0;
-    if ((epNums || []).indexOf(n) !== -1) return n;
-  }
-  return fallbackEp;
-}
-
-function findSBEpChip(epNum) {
-  var chips = document.querySelectorAll('#sbEpChips .chip');
-  var target = null;
-  chips.forEach(function(c) {
-    var onclick = c.getAttribute('onclick') || '';
-    if (epNum === 0 && onclick.indexOf('filterSBEp(0') !== -1) target = c;
-    if (epNum !== 0 && onclick.indexOf('filterSBEp(' + epNum + ',') !== -1) target = c;
-  });
-  return target;
-}
-
 function refreshEpSelector() {
   if (!currentProject || !currentProject.storyboardShots || currentProject.storyboardShots.length === 0) return;
   var sbEpSelector = document.getElementById('sbEpSelector');
@@ -18496,7 +18330,6 @@ function applySBViewDensity() {
 }
 
 function filterSBEp(epNum, btn) {
-  setSBActiveEp(epNum);
   // Toggle chip active state
   var chips = document.querySelectorAll('#sbEpChips .chip');
   chips.forEach(function(c) { c.classList.remove('on'); });
@@ -19481,502 +19314,8 @@ const SB_SHOTS = [
   {scene:16,id:'16-1',frame:'WS / 뒷모습 와이드',desc:'골목 끝에서 두 사람의 뒷모습. 같은 방향으로 움직일 수 있는 상태.',func:'엔딩 여운',pri:'must'},
   {scene:16,id:'16-2',frame:'INS / 마지막 잔상',desc:'골목 바닥의 마지막 잔상 인서트. 잔향. F.O.',func:'잔향',pri:'opt'}
 ];
-
-/* ═══ NAS BRIDGE AUTOSAVE ═══ */
-const ZIPPY_NAS_DEFAULT_URL = 'http://localhost:8788';
-function zippyNasStorageGet(key, fallback) {
-  try { const v = localStorage.getItem(key); return v == null || v === '' ? fallback : v; } catch(e) { return fallback; }
-}
-function zippyNasStorageSet(key, value) {
-  try { localStorage.setItem(key, value == null ? '' : String(value)); } catch(e) {}
-}
-function zippyNasEnabled() {
-  return zippyNasStorageGet('zippy_nas_auto', '0') === '1';
-}
-function zippyNasUrl() {
-  return (zippyNasStorageGet('zippy_nas_url', ZIPPY_NAS_DEFAULT_URL) || ZIPPY_NAS_DEFAULT_URL).replace(/\/+$/, '');
-}
-function zippyNasToken() {
-  return zippyNasStorageGet('zippy_nas_token', '');
-}
-function zippyNasSafePart(v, fallback) {
-  return String(v || fallback || 'default').normalize('NFKC').replace(/[\\/:*?"<>|#%{}$!`'@+=~]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').slice(0, 100) || (fallback || 'default');
-}
-function zippyNasProjectSlug() {
-  const manual = zippyNasStorageGet('zippy_nas_project', '');
-  if (manual) return zippyNasSafePart(manual, 'project');
-  let key = 'default';
-  try { key = currentProjectKey || (currentProject && currentProject.name) || 'default'; } catch(e) {}
-  return zippyNasSafePart(key, 'project');
-}
-function zippyNasSetStatus(text, ok) {
-  const st = document.getElementById('nasBridgeStatus');
-  const dot = document.getElementById('nasBridgeDot');
-  if (st) { st.textContent = text; st.style.color = ok ? 'var(--ok)' : 'var(--mu)'; }
-  if (dot) dot.style.background = ok ? 'var(--ok)' : '#9CA3AF';
-}
-function zippyNasSaveSettings() {
-  const url = document.getElementById('nasBridgeUrl');
-  const auto = document.getElementById('nasAutoSync');
-  const project = document.getElementById('nasProjectSlug');
-  const token = document.getElementById('nasBridgeToken');
-  if (url) zippyNasStorageSet('zippy_nas_url', url.value.trim() || ZIPPY_NAS_DEFAULT_URL);
-  if (auto) zippyNasStorageSet('zippy_nas_auto', auto.checked ? '1' : '0');
-  if (project) zippyNasStorageSet('zippy_nas_project', project.value.trim());
-  if (token) zippyNasStorageSet('zippy_nas_token', token.value.trim());
-  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
-}
-function zippyNasInit() {
-  const url = document.getElementById('nasBridgeUrl');
-  const auto = document.getElementById('nasAutoSync');
-  const project = document.getElementById('nasProjectSlug');
-  const token = document.getElementById('nasBridgeToken');
-  if (url) url.value = zippyNasUrl();
-  if (auto) auto.checked = zippyNasEnabled();
-  if (project) project.value = zippyNasStorageGet('zippy_nas_project', '');
-  if (token) token.value = zippyNasToken();
-  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
-  if (zippyNasEnabled()) setTimeout(zippyNasCheck, 300);
-}
-function zippyNasBaseMeta(extra) {
-  let projectName = '';
-  try { projectName = (currentProject && currentProject.name) || ''; } catch(e) {}
-  return Object.assign({
-    projectKey: (typeof currentProjectKey !== 'undefined' && currentProjectKey) || '',
-    projectName: projectName,
-    clientSavedAt: new Date().toISOString(),
-    page: location.href
-  }, extra || {});
-}
-function zippyNasStripB64(value, depth) {
-  if (value == null || depth > 8) return value;
-  if (typeof value === 'string') return value.length > 240 && /^[A-Za-z0-9+/=]+$/.test(value.slice(0, 240)) ? '[base64 omitted: ' + value.length + ' chars]' : value;
-  if (Array.isArray(value)) return value.map(function(v) { return zippyNasStripB64(v, (depth || 0) + 1); });
-  if (typeof value === 'object') {
-    const out = {};
-    Object.keys(value).forEach(function(k) {
-      if (/^(b64|imgB64|genImages|seqImages)$/i.test(k)) {
-        if (typeof value[k] === 'string') out[k] = '[base64 omitted: ' + value[k].length + ' chars]';
-        else if (value[k] && typeof value[k] === 'object') out[k] = Object.keys(value[k]);
-        else out[k] = value[k];
-      } else {
-        out[k] = zippyNasStripB64(value[k], (depth || 0) + 1);
-      }
-    });
-    return out;
-  }
-  return value;
-}
-async function zippyNasCheck() {
-  zippyNasSaveSettings();
-  try {
-    const res = await fetch(zippyNasUrl() + '/health', { headers: zippyNasToken() ? {'X-Zippy-NAS-Token': zippyNasToken()} : {} });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
-    zippyNasSetStatus('연결됨 · ' + (data.mode || 'bridge'), true);
-    return true;
-  } catch(e) {
-    zippyNasSetStatus('연결 실패', false);
-    console.warn('NAS bridge check failed:', e);
-    return false;
-  }
-}
-async function zippyNasPost(endpoint, payload, force) {
-  if (!force && !zippyNasEnabled()) return null;
-  const headers = {'Content-Type': 'application/json'};
-  const token = zippyNasToken();
-  if (token) headers['X-Zippy-NAS-Token'] = token;
-  const res = await fetch(zippyNasUrl() + endpoint, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
-  const data = await res.json().catch(function(){ return {}; });
-  if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
-  zippyNasSetStatus('저장됨 · ' + (payload.kind || payload.type || 'file'), true);
-  return data;
-}
-function zippyNasSaveImage(kind, id, b64, mime, meta, opts) {
-  const force = !!(opts && opts.force);
-  if (!b64 || (!force && !zippyNasEnabled())) return;
-  return zippyNasPost('/save-image', {
-    project: zippyNasProjectSlug(),
-    kind: zippyNasSafePart(kind, 'image'),
-    id: zippyNasSafePart(id, 'image'),
-    mime: mime || 'image/png',
-    b64: b64,
-    meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
-  }, force).catch(function(e) {
-    zippyNasSetStatus('저장 실패', false);
-    console.warn('NAS image save failed:', e);
-    if (force) throw e;
-  });
-}
-function zippyNasSaveJson(kind, id, data, meta, opts) {
-  const force = !!(opts && opts.force);
-  if (!force && !zippyNasEnabled()) return;
-  return zippyNasPost('/save-json', {
-    project: zippyNasProjectSlug(),
-    kind: zippyNasSafePart(kind, 'state'),
-    id: zippyNasSafePart(id, 'state'),
-    data: zippyNasStripB64(data, 0),
-    meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
-  }, force).catch(function(e) {
-    zippyNasSetStatus('저장 실패', false);
-    console.warn('NAS JSON save failed:', e);
-    if (force) throw e;
-  });
-}
-function zippyNasStoryboardShot(id) {
-  try {
-    if (typeof SB_SHOTS !== 'undefined') return SB_SHOTS.find(function(s) { return s && s.id === id; }) || null;
-  } catch(e) {}
-  return null;
-}
-async function zippyNasSyncStoryboardNow(opts) {
-  const options = opts || {};
-  zippyNasSaveSettings();
-  try {
-    if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
-      sbStateRestored = true;
-      await restoreStoryboardState();
-    }
-    zippyNasSetStatus('동기화 준비 중', true);
-    const connected = await zippyNasCheck();
-    if (!connected) throw new Error('NAS bridge 연결 실패');
-
-    const snapshot = (typeof sbStoryboardSnapshot === 'function') ? sbStoryboardSnapshot() : {
-      genImages: (typeof sbGenImages !== 'undefined') ? sbPlainMap(sbGenImages) : {},
-      seqImages: (typeof sbSeqImages !== 'undefined') ? sbPlainMap(sbSeqImages) : {},
-      savedAt: new Date().toISOString()
-    };
-    const reason = options.reason || 'manual-sync';
-    const payload = {
-      key: 'current',
-      reason: reason,
-      savedAt: new Date().toISOString(),
-      snapshot: snapshot
-    };
-    await zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason}, {force: true});
-
-    const images = [];
-    if (typeof sbGenImages !== 'undefined') {
-      Object.keys(sbGenImages || {}).sort().forEach(function(id) {
-        if (!sbGenImages[id]) return;
-        images.push({
-          kind: 'storyboard',
-          id: id,
-          b64: sbGenImages[id],
-          meta: {shotId: id, shot: zippyNasStoryboardShot(id), reason: reason}
-        });
-      });
-    }
-    if (typeof sbSeqImages !== 'undefined') {
-      Object.keys(sbSeqImages || {}).sort().forEach(function(shotId) {
-        const seq = sbSeqImages[shotId];
-        if (!Array.isArray(seq)) return;
-        seq.forEach(function(b64, i) {
-          if (!b64) return;
-          images.push({
-            kind: 'storyboard_sequence',
-            id: shotId + '_frame_' + (i + 1),
-            b64: b64,
-            meta: {shotId: shotId, frameIndex: i + 1, shot: zippyNasStoryboardShot(shotId), reason: reason}
-          });
-        });
-      });
-    }
-
-    for (let i = 0; i < images.length; i++) {
-      const item = images[i];
-      zippyNasSetStatus('동기화 ' + (i + 1) + '/' + images.length, true);
-      await zippyNasSaveImage(item.kind, item.id, item.b64, 'image/png', item.meta, {force: true});
-    }
-    zippyNasSetStatus(images.length ? ('동기화 완료 · ' + images.length + '컷') : '상태 저장 완료', true);
-    return {ok: true, images: images.length};
-  } catch(e) {
-    zippyNasSetStatus('동기화 실패', false);
-    console.warn('NAS storyboard sync failed:', e);
-    if (!options.silent) alert('NAS 동기화 실패: ' + (e && e.message ? e.message : e));
-    return {ok: false, error: e};
-  }
-}
-function zippyNasImportedB64(value) {
-  if (!value) return '';
-  if (typeof value === 'string') return value.replace(/^data:[^,]+,/, '');
-  if (value && typeof value.b64 === 'string') return value.b64.replace(/^data:[^,]+,/, '');
-  return '';
-}
-function zippyNasApplySnapshotState(snap) {
-  if (!snap || typeof snap !== 'object') return;
-  if (typeof sbCameraPositions !== 'undefined' && snap.cameraPositions) {
-    Object.assign(sbCameraPositions, snap.cameraPositions || {});
-  }
-  if (typeof sbCameraControls !== 'undefined' && snap.cameraControls) {
-    Object.assign(sbCameraControls, snap.cameraControls || {});
-  }
-  if (typeof SB_SHOTS !== 'undefined' && Array.isArray(snap.shotLocations)) {
-    snap.shotLocations.forEach(function(item) {
-      const shot = SB_SHOTS.find(function(s) { return s && s.id === item.id; });
-      if (shot) shot.loc = item.loc || '';
-    });
-  }
-}
-async function zippyNasApplyStoryboardLoad(data) {
-  const state = data && data.state;
-  const snap = (state && state.snapshot) || (data && data.snapshot) || null;
-  zippyNasApplySnapshotState(snap);
-
-  let imageCount = 0;
-  let sequenceFrameCount = 0;
-  let historySaved = 0;
-  const images = (data && data.images) || {};
-  const imageIds = Object.keys(images);
-  for (let idx = 0; idx < imageIds.length; idx++) {
-    const id = imageIds[idx];
-    const b64 = zippyNasImportedB64(images[id]);
-    if (!b64) continue;
-    sbGenImages[id] = b64;
-    const record = await saveStoryboardFrameToHistory(id, b64, 0, 'nas-import');
-    if (record) historySaved++;
-    imageCount++;
-  }
-
-  const seqImages = (data && data.seqImages) || {};
-  const seqShotIds = Object.keys(seqImages);
-  for (let s = 0; s < seqShotIds.length; s++) {
-    const shotId = seqShotIds[s];
-    const arr = Array.isArray(seqImages[shotId]) ? seqImages[shotId] : [];
-    const cleaned = arr.map(zippyNasImportedB64).filter(Boolean);
-    if (!cleaned.length) continue;
-    sbSeqImages[shotId] = cleaned;
-    if (!sbGenImages[shotId]) sbGenImages[shotId] = cleaned[0];
-    for (let i = 0; i < cleaned.length; i++) {
-      const record = await saveStoryboardFrameToHistory(shotId, cleaned[i], i + 1, 'nas-import');
-      if (record) historySaved++;
-    }
-    sequenceFrameCount += cleaned.length;
-  }
-
-  if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
-  if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
-  if (typeof refreshHistory === 'function') refreshHistory();
-  saveStoryboardState('nas-import');
-  return {images: imageCount, sequenceFrames: sequenceFrameCount, historySaved: historySaved};
-}
-async function zippyNasLoadStoryboardNow(opts) {
-  const options = opts || {};
-  zippyNasSaveSettings();
-  try {
-    zippyNasSetStatus('가져오기 준비 중', true);
-    const connected = await zippyNasCheck();
-    if (!connected) throw new Error('NAS bridge 연결 실패');
-    const data = await zippyNasPost('/load-storyboard', {
-      project: zippyNasProjectSlug()
-    }, true);
-    const counts = await zippyNasApplyStoryboardLoad(data || {});
-    const histText = counts.historySaved ? (' · 히스토리 ' + counts.historySaved + '컷') : '';
-    zippyNasSetStatus('가져오기 완료 · ' + counts.images + '컷 / 흐름 ' + counts.sequenceFrames + '프레임' + histText, true);
-    return {ok: true, counts: counts, data: data};
-  } catch(e) {
-    zippyNasSetStatus('가져오기 실패', false);
-    console.warn('NAS storyboard load failed:', e);
-    if (!options.silent) alert('NAS 가져오기 실패: ' + (e && e.message ? e.message : e));
-    return {ok: false, error: e};
-  }
-}
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
-
 const sbGenImages = {};
 const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
-const SB_STATE_DB_VER = 1;
-const SB_STATE_STORE = 'state';
-let sbStateDB = null;
-let sbStateDBNameOpen = '';
-let sbStateRestored = false;
-
-function sbStateProjectKey() {
-  let key = 'default';
-  try {
-    key = (typeof currentProjectKey !== 'undefined' && currentProjectKey) ||
-      (window.currentProjectKey) ||
-      (currentProject && currentProject.name) ||
-      'default';
-  } catch(e) {}
-  return String(key || 'default').replace(/[^\w-]+/g, '_');
-}
-function sbStateDBName() {
-  return 'studioZIPPY_' + sbStateProjectKey() + '_StoryboardState';
-}
-function openSBStateDB() {
-  return new Promise(function(resolve, reject) {
-    const name = sbStateDBName();
-    if (sbStateDB && sbStateDBNameOpen === name) { resolve(sbStateDB); return; }
-    if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
-    const req = indexedDB.open(name, SB_STATE_DB_VER);
-    req.onupgradeneeded = function(e) {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(SB_STATE_STORE)) db.createObjectStore(SB_STATE_STORE, {keyPath: 'key'});
-    };
-    req.onsuccess = function(e) {
-      sbStateDB = e.target.result;
-      sbStateDBNameOpen = name;
-      sbStateDB.onversionchange = function() {
-        try { sbStateDB.close(); } catch(err) {}
-        sbStateDB = null;
-        sbStateDBNameOpen = '';
-      };
-      resolve(sbStateDB);
-    };
-    req.onerror = function() { reject(req.error); };
-  });
-}
-function sbPlainMap(src) {
-  const out = {};
-  Object.keys(src || {}).forEach(function(k) {
-    if (src[k] != null && src[k] !== '') out[k] = src[k];
-  });
-  return out;
-}
-function sbStoryboardSnapshot() {
-  return {
-    genImages: sbPlainMap(sbGenImages),
-    seqImages: sbPlainMap(sbSeqImages),
-    cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
-    cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
-    shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
-    savedAt: new Date().toISOString()
-  };
-}
-function sbHistoryShot(shotId) {
-  try {
-    if (typeof SB_SHOTS !== 'undefined') return SB_SHOTS.find(function(s) { return s && s.id === shotId; }) || null;
-  } catch(e) {}
-  return null;
-}
-function sbHistoryDescription(shotId, frameIndex) {
-  const shot = sbHistoryShot(shotId);
-  const prefix = shotId + (frameIndex ? ' #' + frameIndex : '');
-  const text = (shot && (shot.frame || shot.desc || shot.loc || shot.sceneName)) || '스토리보드 컷';
-  return prefix + ' · ' + String(text).slice(0, 90);
-}
-function sbHistoryDedupeKey(shotId, frameIndex) {
-  return 'storyboard:' + sbStateProjectKey() + ':' + String(shotId || 'shot') + ':' + (frameIndex ? ('seq-' + frameIndex) : 'main');
-}
-function saveStoryboardFrameToHistory(shotId, b64, frameIndex, reason) {
-  if (!b64 || typeof saveToHistory !== 'function') return Promise.resolve(null);
-  const seqIndex = Number(frameIndex || 0);
-  const step = seqIndex ? 'SB-스토리보드-흐름' : 'SB-스토리보드';
-  return saveToHistory(b64, step, sbHistoryDescription(shotId, seqIndex), {
-    dedupeKey: sbHistoryDedupeKey(shotId, seqIndex),
-    source: 'storyboard',
-    shotId: shotId,
-    frameIndex: seqIndex,
-    reason: reason || ''
-  });
-}
-async function syncStoryboardToHistory(opts) {
-  const options = opts || {};
-  const btn = document.getElementById('btnSBHistory');
-  const oldText = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-  try {
-    if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
-      sbStateRestored = true;
-      await restoreStoryboardState();
-    }
-    let saved = 0;
-    let seenSequence = {};
-    if (typeof sbSeqImages !== 'undefined') {
-      const seqIds = Object.keys(sbSeqImages || {}).sort();
-      for (let s = 0; s < seqIds.length; s++) {
-        const shotId = seqIds[s];
-        const frames = Array.isArray(sbSeqImages[shotId]) ? sbSeqImages[shotId] : [];
-        if (frames.length) seenSequence[shotId] = true;
-        for (let i = 0; i < frames.length; i++) {
-          const record = await saveStoryboardFrameToHistory(shotId, frames[i], i + 1, 'manual-history-sync');
-          if (record) saved++;
-        }
-      }
-    }
-    if (typeof sbGenImages !== 'undefined') {
-      const shotIds = Object.keys(sbGenImages || {}).sort();
-      for (let i = 0; i < shotIds.length; i++) {
-        const shotId = shotIds[i];
-        if (seenSequence[shotId]) continue;
-        const record = await saveStoryboardFrameToHistory(shotId, sbGenImages[shotId], 0, 'manual-history-sync');
-        if (record) saved++;
-      }
-    }
-    if (typeof refreshHistory === 'function' && histFilter === 'SB') refreshHistory();
-    if (!options.silent) alert(saved ? ('스토리보드 ' + saved + '컷을 히스토리에 저장했습니다.') : '새로 저장할 스토리보드 컷이 없습니다.');
-    return {ok: true, saved: saved};
-  } catch(e) {
-    console.warn('Storyboard history sync failed:', e);
-    if (!options.silent) alert('스토리보드 히스토리 저장 실패: ' + (e && e.message ? e.message : e));
-    return {ok: false, error: e};
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에 저장'; }
-  }
-}
-async function saveStoryboardState(reason) {
-  try {
-    const db = await openSBStateDB();
-    const tx = db.transaction(SB_STATE_STORE, 'readwrite');
-    const snapshot = sbStoryboardSnapshot();
-    const payload = {
-        key: 'current',
-        reason: reason || '',
-        savedAt: new Date().toISOString(),
-        snapshot: snapshot
-      };
-    tx.objectStore(SB_STATE_STORE).put(payload);
-    zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason || ''});
-  } catch(e) {
-    console.warn('Storyboard state save failed:', e);
-  }
-}
-async function restoreStoryboardState() {
-  try {
-    const db = await openSBStateDB();
-    const snap = await new Promise(function(resolve, reject) {
-      const tx = db.transaction(SB_STATE_STORE, 'readonly');
-      const req = tx.objectStore(SB_STATE_STORE).get('current');
-      req.onsuccess = function() { resolve(req.result && req.result.snapshot); };
-      req.onerror = function() { reject(req.error); };
-    });
-    if (!snap) return;
-    Object.keys(sbGenImages).forEach(function(k) { delete sbGenImages[k]; });
-    Object.assign(sbGenImages, snap.genImages || {});
-    Object.keys(sbSeqImages).forEach(function(k) { delete sbSeqImages[k]; });
-    Object.assign(sbSeqImages, snap.seqImages || {});
-    if (typeof sbCameraPositions !== 'undefined') {
-      Object.keys(sbCameraPositions).forEach(function(k) { delete sbCameraPositions[k]; });
-      Object.assign(sbCameraPositions, snap.cameraPositions || {});
-    }
-    if (typeof sbCameraControls !== 'undefined') {
-      Object.keys(sbCameraControls).forEach(function(k) { delete sbCameraControls[k]; });
-      Object.assign(sbCameraControls, snap.cameraControls || {});
-    }
-    if (typeof SB_SHOTS !== 'undefined' && Array.isArray(snap.shotLocations)) {
-      snap.shotLocations.forEach(function(item) {
-        const shot = SB_SHOTS.find(function(s) { return s.id === item.id; });
-        if (shot) shot.loc = item.loc || '';
-      });
-    }
-    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
-    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
-  } catch(e) {
-    console.warn('Storyboard state restore failed:', e);
-  }
-}
-function ensureStoryboardStateRestored() {
-  if (sbStateRestored) return;
-  sbStateRestored = true;
-  restoreStoryboardState();
-}
-function bindStoryboardStatePersistence() {
-  if (window.__zippyStoryboardPersistBound) return;
-  window.__zippyStoryboardPersistBound = true;
-  window.addEventListener('pagehide', function() { saveStoryboardState('pagehide'); });
-}
-bindStoryboardStatePersistence();
 async function expandSBShot(shotId) {
   const shot = SB_SHOTS.find(s => s.id === shotId);
   if (!shot) return;
@@ -20024,27 +19363,9 @@ OUTPUT: A single Korean paragraph (3-5 sentences, max 250 characters) that anoth
 }
 
 function deleteSBImage(shotId) {
-  if (!confirm('이 쇼트의 생성된 컷 이미지를 삭제할까요?')) return;
+  if (!confirm('이 쇼트의 생성된 이미지를 삭제할까요?')) return;
   delete sbGenImages[shotId];
-  if (typeof sbSeqImages !== 'undefined') delete sbSeqImages[shotId];
   buildStoryboardTimeline();
-  saveStoryboardState('shot-image-deleted');
-}
-
-function deleteSBSeqFrame(shotId, idx) {
-  const arr = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shotId] : null;
-  if (!arr || !arr[idx]) return;
-  if (!confirm('이 흐름 컷만 삭제할까요?')) return;
-  arr.splice(idx, 1);
-  if (arr.length) {
-    sbSeqImages[shotId] = arr;
-    sbGenImages[shotId] = arr[0];
-  } else {
-    delete sbSeqImages[shotId];
-    delete sbGenImages[shotId];
-  }
-  buildStoryboardTimeline();
-  saveStoryboardState('sequence-frame-deleted');
 }
 
 function sbQuoteAttr(v) {
@@ -20089,7 +19410,7 @@ function renderShotCard(shot, sceneVal) {
     html += seq3up(imgKey);
   } else if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
+    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
     html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
@@ -20170,7 +19491,6 @@ function setShotCameraControl(shotId, key, val) {
   if (!sbCameraControls[shotId]) sbCameraControls[shotId] = {};
   if (val) sbCameraControls[shotId][key] = val;
   else delete sbCameraControls[shotId][key];
-  saveStoryboardState('camera-control');
 }
 function describeSBCameraControls(shotId) {
   const c = sbCameraControls[shotId] || {};
@@ -20212,7 +19532,6 @@ function renderSBCameraControl(shot) {
 
 function setShotCameraPos(shotId, val) {
   sbCameraPositions[shotId] = val.trim();
-  saveStoryboardState('camera-position');
 }
 function sbLocOptions(sel) {
   var names = (currentProject && (currentProject.spaceNames || currentProject.locations)) || [];
@@ -20223,7 +19542,7 @@ function sbLocOptions(sel) {
 function setShotLoc(shotId, val) {
   if (typeof SB_SHOTS === 'undefined') return;
   var s = SB_SHOTS.find(function(x){ return x.id === shotId; });
-  if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); saveStoryboardState('shot-location'); }
+  if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); }
 }
 var SB_SP_MAP = {'SP-ALLEY':'SP-POLY','SP-ALLEY43':'SP-POLY','SP-BAR':'SP-LS-BAR','SP-LS':'SP-LS-BAR','SP-FAC-IN':'SP-FACIN','SP-FAC-OUT':'SP-FACOUT','SP-BORDER':'SP-BORDER-CHK','SP-WASTE':'SP-GRAY'};
 function sbCodeOf(s){ var m=(s||'').match(/\[(SP-[A-Z0-9-]+|\uC5F4\uCC28)\]/i); return m?m[1].toUpperCase():''; }
@@ -20420,16 +19739,18 @@ function buildStoryboardTimeline() {
       html += `</div>`;
     });
     inner.innerHTML = html;
-	    updateSBProgress();
-	    applySBViewDensity();
-	    // 대용량 기본 필터
-	    if (SB_SHOTS.length >= 100 && epNums.length > 1) {
-	      const targetEp = getSBActiveEp(epNums, epNums[0]);
-	      const targetBtn = findSBEpChip(targetEp);
-	      if (targetBtn && typeof filterSBEp === 'function') filterSBEp(targetEp, targetBtn);
-	    }
-	    return;
-	  }
+    updateSBProgress();
+    applySBViewDensity();
+    // 대용량 기본 필터
+    if (SB_SHOTS.length >= 100 && epNums.length > 1) {
+      const firstEp = epNums[0];
+      const epChips = document.querySelectorAll('#sbEpChips .chip');
+      let targetBtn = null;
+      epChips.forEach(c => { if (c.textContent.indexOf('EP' + ('0'+firstEp).slice(-2)) === 0) targetBtn = c; });
+      if (targetBtn && typeof filterSBEp === 'function') filterSBEp(firstEp, targetBtn);
+    }
+    return;
+  }
 
   // 구 구조: scene = 에피소드 (하위 호환)
   const scenes = {};
@@ -20455,7 +19776,7 @@ function buildStoryboardTimeline() {
       html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':'선택'}</span></div>`;
       if (hasImg) {
         html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
+        html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er)" title="이미지 삭제">✕</button></div></div>`;
       } else {
         html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
         html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
@@ -20476,14 +19797,18 @@ function buildStoryboardTimeline() {
   updateSBProgress();
   applySBViewDensity();
 
-	  // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
-	  if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
-	    var targetEp = getSBActiveEp(sceneNums, sceneNums[0]);
-	    var targetBtn = findSBEpChip(targetEp);
-	    if (targetBtn && typeof filterSBEp === 'function') {
-	      filterSBEp(targetEp, targetBtn);
-	    }
-	  }
+  // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
+  if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
+    var firstEp = sceneNums[0];
+    var epChips = document.querySelectorAll('#sbEpChips .chip');
+    var targetBtn = null;
+    epChips.forEach(function(c) {
+      if (c.textContent.indexOf('EP' + ('0'+firstEp).slice(-2)) === 0) targetBtn = c;
+    });
+    if (targetBtn && typeof filterSBEp === 'function') {
+      filterSBEp(firstEp, targetBtn);
+    }
+  }
 }
 function updateSBProgress() {
   const total = SB_SHOTS.filter(s=>s.pri==='must').length;
@@ -20657,10 +19982,16 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
-    saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
-    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
+    if (typeof zippyUploadAssetToNas === 'function') {
+      zippyUploadAssetToNas(imgB64, 'storyboard', 'storyboard_' + String(shotId).replace(/[^a-z0-9가-힣_-]+/gi, '_') + '_' + Date.now() + '.png', {
+        source: 'storyboard',
+        shot_id: shotId,
+        scene: shot.scene,
+        frame: shot.frame || '',
+        desc: shot.desc || ''
+      });
+    }
     buildStoryboardTimeline();
-    saveStoryboardState('shot-generated');
   } catch(e) {
     alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
@@ -20687,17 +20018,21 @@ async function generateSBSequence(shotId) {
       const b64 = await generateSBShot(shotId, { phase: phases[i], cont: cont, returnOnly: true });
       if (!b64) break;
       seq.push(b64);
+      if (typeof zippyUploadAssetToNas === 'function') {
+        zippyUploadAssetToNas(b64, 'storyboard', 'storyboard_' + String(shotId).replace(/[^a-z0-9가-힣_-]+/gi, '_') + '_seq' + (i + 1) + '_' + Date.now() + '.png', {
+          source: 'storyboard_sequence',
+          shot_id: shotId,
+          sequence_index: i + 1,
+          scene: shot.scene,
+          frame: shot.frame || ''
+        });
+      }
       if (i === 0) cont = [{ b64: b64, mime: 'image/png', _type: 'background', _label: '이전 프레임 — 동일 공간/셋 그대로 유지' }];
     }
     if (seq.length) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
-      seq.forEach(function(b64, i) {
-        saveStoryboardFrameToHistory(shotId, b64, i + 1, 'sequence-generated');
-        zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (i + 1), b64, 'image/png', {shotId: shotId, frameIndex: i + 1, reason: 'sequence-generated'});
-      });
       buildStoryboardTimeline();
-      saveStoryboardState('sequence-generated');
     } else {
       throw new Error('생성 결과 없음');
     }
@@ -20708,47 +20043,30 @@ async function generateSBSequence(shotId) {
   }
 }
 async function generateAllStoryboard() {
-  return generateStoryboardBatch('must');
-}
-async function generateFullStoryboard() {
-  return generateStoryboardBatch('all');
-}
-async function generateStoryboardBatch(scope) {
-  const isAll = scope === 'all';
-  const sourceShots = isAll ? SB_SHOTS : SB_SHOTS.filter(s=>s.pri==='must');
-  const remaining = sourceShots.filter(s=>!sbGenImages[s.id]);
-  const label = isAll ? '전체 쇼트' : '필수 쇼트';
-  if(remaining.length===0){alert(label + '가 이미 모두 생성되었습니다.');return;}
-  const btn = document.getElementById(isAll ? 'btnSBAllShots' : 'btnSBAll');
-  const otherBtn = document.getElementById(isAll ? 'btnSBAll' : 'btnSBAllShots');
+  const mustShots = SB_SHOTS.filter(s=>s.pri==='must');
+  const remaining = mustShots.filter(s=>!sbGenImages[s.id]);
+  if(remaining.length===0){alert('모든 필수 쇼트가 이미 생성되었습니다.');return;}
+  const btn = document.getElementById('btnSBAll');
   const stopBtn = document.getElementById('btnSBStop');
-  const progress = document.getElementById('sbProgress');
-  if (btn) btn.disabled = true;
-  if (otherBtn) otherBtn.disabled = true;
+  btn.disabled = true;
   if (stopBtn) stopBtn.style.display = 'inline-block';
   window.__sbAllAborted = false;
   document.getElementById('sbLoadingWrap').style.display = 'block';
   for(let i=0; i<remaining.length; i++){
     if (window.__sbAllAborted) break;
-    const msg = `${remaining[i].id} 생성 중... (${i+1}/${remaining.length}) · ${label}`;
-    document.getElementById('sbLoadStatus').textContent = msg;
-    if (progress) progress.textContent = `${label} ${i+1} / ${remaining.length}`;
+    document.getElementById('sbLoadStatus').textContent = `${remaining[i].id} 생성 중... (${i+1}/${remaining.length})`;
     await generateSBShot(remaining[i].id);
     await new Promise(r=>setTimeout(r,500));
   }
-  document.getElementById('sbLoadStatus').textContent = window.__sbAllAborted ? '중단됨' : label + ' 생성 완료!';
-  if (btn) btn.disabled = false;
-  if (otherBtn) otherBtn.disabled = false;
+  document.getElementById('sbLoadStatus').textContent = window.__sbAllAborted ? '중단됨' : '전체 생성 완료!';
+  btn.disabled = false;
   if (stopBtn) stopBtn.style.display = 'none';
   window.__sbAllAborted = false;
-  saveStoryboardState(isAll ? 'all-shots-generated' : 'must-shots-generated');
   setTimeout(()=>{document.getElementById('sbLoadingWrap').style.display='none';},2000);
 }
 function clearStoryboard() {
   Object.keys(sbGenImages).forEach(k=>delete sbGenImages[k]);
-  Object.keys(sbSeqImages).forEach(k=>delete sbSeqImages[k]);
   buildStoryboardTimeline();
-  saveStoryboardState('storyboard-cleared');
 }
 /* ═══ STORYBOARD EDITOR ═══ */
 function toggleSBEditor() {
@@ -20890,71 +20208,38 @@ function openSBLightbox(shotId) {
     lb.id = 'sbLightbox';
     lb.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
     lb.onclick = function(e){ if(e.target===lb) lb.style.display='none'; };
-	    lb.innerHTML =
-	      '<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
-	      '<div style="display:flex;gap:10px">' +
-	        '<button onclick="downloadSBLightboxImage()" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
-	        '<button onclick="sendSBLightboxToVideo()" style="padding:8px 20px;background:var(--pu);border:none;color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">START로 보내기</button>' +
-	        '<button onclick="deleteSBLightboxImage()" style="padding:8px 20px;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.65);color:#FCA5A5;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">삭제</button>' +
-	        '<button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
-	      '</div>';
-	    document.body.appendChild(lb);
-	  }
-	  lb.dataset.shotId = shotId;
-	  lb.dataset.seqIndex = '';
-	  document.getElementById('sbLbImg').src = 'data:image/png;base64,' + b64;
-	  lb.style.display = 'flex';
-	}
-function downloadSBLightboxImage() {
-  const lb = document.getElementById('sbLightbox');
-  const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
-  const idxRaw = lb && lb.dataset ? lb.dataset.seqIndex : '';
-  if (idxRaw !== '') {
-    const idx = Number(idxRaw);
-    const arr = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shotId] : null;
-    if (arr && arr[idx]) {
-      const a = document.createElement('a');
-      a.href = 'data:image/png;base64,' + arr[idx];
-      a.download = 'SB_' + shotId + '_seq_' + (idx + 1) + '_' + Date.now() + '.png';
-      a.click();
-      return;
-    }
+    lb.innerHTML =
+      '<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain">' +
+      '<div style="display:flex;gap:10px">' +
+        '<button onclick="downloadSBImg(document.getElementById(\'sbLightbox\').dataset.shotId)" style="padding:8px 20px;background:var(--card);border:none;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">↓ 다운로드</button>' +
+        '<button onclick="sendSBLightboxToVideo()" style="padding:8px 20px;background:var(--pu);border:none;color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer;font-weight:700">START로 보내기</button>' +
+        '<button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'" style="padding:8px 20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;font-family:var(--font-mono);font-size:13px;cursor:pointer">✕ 닫기</button>' +
+      '</div>';
+    document.body.appendChild(lb);
   }
-  if (shotId) downloadSBImg(shotId);
+  lb.dataset.shotId = shotId;
+  document.getElementById('sbLbImg').src = 'data:image/png;base64,' + b64;
+  lb.style.display = 'flex';
 }
-function deleteSBLightboxImage() {
+function sendSBLightboxToVideo() {
   const lb = document.getElementById('sbLightbox');
   const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
-  const idxRaw = lb && lb.dataset ? lb.dataset.seqIndex : '';
-  if (lb) lb.style.display = 'none';
-  if (!shotId) return;
-  if (idxRaw !== '') deleteSBSeqFrame(shotId, Number(idxRaw));
-  else deleteSBImage(shotId);
-}
-	function sendSBLightboxToVideo() {
-	  const lb = document.getElementById('sbLightbox');
-	  const shotId = lb && lb.dataset ? lb.dataset.shotId : '';
   if (lb) lb.style.display = 'none';
   if (shotId) sendSBToVideo(shotId);
 }
 function seq3up(imgKey){
   var arr = (typeof sbSeqImages!=='undefined') ? sbSeqImages[imgKey] : null;
   if(!arr || !arr.length) return '';
-	  var lab=['시작','정점','직후'];
-	  var h='';
-	  for(var i=0;i<arr.length;i++){
-	    h+='<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:2px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700">'+(i+1)+'. '+(lab[i]||'')+'</div><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeqFrame(\''+imgKey+'\','+i+')" style="border-color:var(--er);color:var(--er);font-size:9px;padding:2px 6px" title="이 흐름 컷만 삭제">삭제</button></div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
-	  }
-	  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 전체 삭제">시퀀스 전체 삭제</button></div>';
-	  return h;
-	}
-function deleteSBSeq(imgKey){
-  if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey];
-  if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey];
-  if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline();
-  saveStoryboardState('sequence-deleted');
+  var lab=['시작','정점','직후'];
+  var h='';
+  for(var i=0;i<arr.length;i++){
+    h+='<div style="margin-bottom:6px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700;margin-bottom:2px">'+(i+1)+'. '+(lab[i]||'')+'</div><img src="data:image/png;base64,'+arr[i]+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
+  }
+  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 삭제">✕ 시퀀스</button></div>';
+  return h;
 }
-function openSeqFrame(shotId, idx){ var arr=(typeof sbSeqImages!=='undefined')?sbSeqImages[shotId]:null; if(!arr||!arr[idx]) return; openSBLightbox(shotId); var lb=document.getElementById('sbLightbox'); if(lb) lb.dataset.seqIndex=String(idx); var im=document.getElementById('sbLbImg'); if(im) im.src='data:image/png;base64,'+arr[idx]; }
+function deleteSBSeq(imgKey){ if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey]; if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey]; if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); }
+function openSeqFrame(shotId, idx){ var arr=(typeof sbSeqImages!=='undefined')?sbSeqImages[shotId]:null; if(!arr||!arr[idx]) return; openSBLightbox(shotId); var im=document.getElementById('sbLbImg'); if(im) im.src='data:image/png;base64,'+arr[idx]; }
 function downloadSBImg(shotId) {
   const b64 = sbGenImages[shotId];
   if(!b64) return;
@@ -20962,117 +20247,6 @@ function downloadSBImg(shotId) {
   a.href = 'data:image/png;base64,' + b64;
   a.download = 'SB_' + shotId + '_' + Date.now() + '.png';
   a.click();
-}
-function collectStoryboardDownloadItems() {
-  const items = [];
-  const used = {};
-  const shots = (typeof SB_SHOTS !== 'undefined' && Array.isArray(SB_SHOTS)) ? SB_SHOTS : [];
-  function safe(v) {
-    return (typeof premiereSafeName === 'function')
-      ? premiereSafeName(v)
-      : String(v || 'shot').replace(/[\\/:*?"<>|#%{}^~[\]`]+/g, '_').replace(/\s+/g, '_').slice(0, 80);
-  }
-  function addItem(shot, id, b64, path, kind, seqIndex) {
-    if (!b64) return;
-    items.push({
-      id,
-      path,
-      kind,
-      seqIndex,
-      b64,
-      shot: shot ? {
-        id: shot.id || id,
-        ep: shot.ep,
-        scene: shot.scene,
-        sceneName: shot.sceneName || '',
-        frame: shot.frame || '',
-        desc: shot.desc || '',
-        func: shot.func || '',
-        loc: shot.loc || '',
-        time: shot.time || '',
-        pri: shot.pri || ''
-      } : { id }
-    });
-  }
-  shots.forEach(function(shot, index) {
-    const id = String(shot.id || ('SHOT_' + (index + 1)));
-    const base = String(index + 1).padStart(3, '0') + '_' + safe(id);
-    const seq = (typeof sbSeqImages !== 'undefined' && Array.isArray(sbSeqImages[id])) ? sbSeqImages[id] : null;
-    used[id] = true;
-    if (seq && seq.length) {
-      seq.forEach(function(b64, seqIndex) {
-        addItem(shot, id, b64, 'sequences/' + base + '_' + String(seqIndex + 1).padStart(2, '0') + '.png', 'sequence', seqIndex + 1);
-      });
-    } else if (typeof sbGenImages !== 'undefined' && sbGenImages[id]) {
-      addItem(shot, id, sbGenImages[id], 'images/' + base + '.png', 'image', null);
-    }
-  });
-  if (typeof sbGenImages !== 'undefined') {
-    Object.keys(sbGenImages).sort().forEach(function(id) {
-      if (used[id]) return;
-      addItem(null, id, sbGenImages[id], 'images/orphans/' + safe(id) + '.png', 'image', null);
-    });
-  }
-  if (typeof sbSeqImages !== 'undefined') {
-    Object.keys(sbSeqImages).sort().forEach(function(id) {
-      if (used[id] || !Array.isArray(sbSeqImages[id])) return;
-      sbSeqImages[id].forEach(function(b64, seqIndex) {
-        addItem(null, id, b64, 'sequences/orphans/' + safe(id) + '_' + String(seqIndex + 1).padStart(2, '0') + '.png', 'sequence', seqIndex + 1);
-      });
-    });
-  }
-  return items;
-}
-async function downloadAllStoryboardImages() {
-  const btn = document.getElementById('btnSBBulkDownload');
-  const progress = document.getElementById('sbProgress');
-  if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
-    sbStateRestored = true;
-    await restoreStoryboardState();
-  }
-  const items = collectStoryboardDownloadItems();
-  if (!items.length) {
-    alert('다운로드할 생성 이미지가 없습니다. 먼저 스토리보드 이미지를 생성하세요.');
-    return;
-  }
-  const oldText = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = '패키징 중...'; }
-  if (progress) progress.textContent = '일괄 다운로드 준비 중...';
-  try {
-    const projectName = (currentProject && currentProject.name) ? currentProject.name : 'storyboard';
-    const manifest = {
-      type: 'studioZIPPY storyboard image package',
-      createdAt: new Date().toISOString(),
-      project: projectName,
-      count: items.length,
-      files: items.map(function(item, index) {
-        return {
-          index: index + 1,
-          file: item.path,
-          shot_id: item.id,
-          kind: item.kind,
-          sequence_index: item.seqIndex,
-          shot: item.shot
-        };
-      })
-    };
-    const entries = [
-      { name: 'manifest.json', data: premiereTextBytes(JSON.stringify(manifest, null, 2)) },
-      { name: 'README.md', data: premiereTextBytes('# studioZIPPY Storyboard Package\n\nGenerated storyboard images are organized in `images/` and 3-cut sequence frames are organized in `sequences/`.\n\nUse `manifest.json` to match each file back to its shot ID, frame text, description, location, and priority.\n') }
-    ];
-    items.forEach(function(item) {
-      entries.push({ name: item.path, data: premiereBase64Bytes(item.b64) });
-    });
-    const zip = premiereBuildZip(entries);
-    const safeProject = (typeof premiereSafeName === 'function') ? premiereSafeName(projectName) : 'storyboard';
-    premiereDownloadBlob(new Blob([zip], { type: 'application/zip' }), safeProject + '_storyboard_images_' + Date.now() + '.zip');
-    if (progress) progress.textContent = items.length + '개 이미지 ZIP 다운로드 완료';
-  } catch(e) {
-    alert('스토리보드 일괄 다운로드 실패: ' + (e.message || e));
-    if (progress) progress.textContent = '일괄 다운로드 실패';
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = oldText || '일괄 다운로드'; }
-  }
 }
 const sbVideoHistory = [];
 function setSBSubtab(mode) {
@@ -21123,7 +20297,6 @@ function buildSBVideoPrompt(shot) {
   const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
   const camera = spec && spec.video ? spec.video : (shot.frame || 'storyboard-defined camera');
   return [
-    '100% photorealistic live-action cinema footage from this exact source frame, not CGI, not animation, not illustration',
     'cinematic storyboard image-to-video from this exact generated frame',
     'SHOT ID: ' + (shot.id || ''),
     'CAMERA: ' + camera,
@@ -21135,12 +20308,9 @@ function buildSBVideoPrompt(shot) {
   ].filter(Boolean).join('\n');
 }
 function syncSBVideoGateway() {
-  const sb = document.getElementById('sbGrokBuildBridgeUrl');
-  const main = document.getElementById('grokBuildBridgeUrl');
-  const sbKey = document.getElementById('sbGrokBuildBridgeKey');
-  const mainKey = document.getElementById('grokBuildBridgeKey');
-  if (sb && main) main.value = sb.value || DEFAULT_GROK_BUILD_BRIDGE;
-  if (sbKey && mainKey) mainKey.value = sbKey.value || mainKey.value || '';
+  const sb = document.getElementById('sbVideoGatewayUrl');
+  const main = document.getElementById('vidLocalGatewayUrl');
+  if (sb && main) main.value = sb.value || 'http://127.0.0.1:8789';
 }
 function sbSendSelectedToMainVideoTab() {
   const shotId = document.getElementById('sbVideoShotSelect')?.value;
@@ -21155,58 +20325,32 @@ async function sbGenerateSelectedVideo() {
   sbVideoAbortController = new AbortController();
   syncSBVideoGateway();
   const prompt = (document.getElementById('sbVideoPrompt')?.value || '').trim() || buildSBVideoPrompt(shot);
-  const storyboardMeta = {
-    shot_id: shotId,
-    frame: shot.frame || '',
-    description: shot.desc || '',
-    function: shot.func || '',
-    video_prompt: prompt
-  };
   const btn = document.getElementById('sbVideoGenerateBtn');
   const status = document.getElementById('sbVideoStatus');
   const output = document.getElementById('sbVideoOutput');
-  if (btn) { btn.disabled = true; btn.textContent = 'Grok 전송 중...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '생성 중...'; }
   setAbortButtonEnabled('sbVideoAbortBtn', true);
-  if (status) { status.style.display = 'block'; status.style.color = 'var(--cy)'; status.textContent = 'Grok CLI 브릿지로 스토리보드 컷과 프롬프트 전송 중...'; }
+  if (status) { status.style.display = 'block'; status.textContent = 'Local 5080 Gateway 전송 중...'; }
   try {
-    const res = await fetch(getGrokBuildBridgeBase('sbGrokBuildBridgeUrl') + '/v1/grok/build/video', {
-      method: 'POST',
-      headers: getGrokBuildBridgeHeaders(true, 'sbGrokBuildBridgeKey'),
-      body: JSON.stringify({
-        image: 'data:image/png;base64,' + b64,
-        prompt,
-        metadata: {
-          source: 'storyboard',
-          prompt_source: 'storyboard_i2v_prompt',
-          storyboard: storyboardMeta
-        },
-        storyboard: storyboardMeta,
-        duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
-        aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9',
-        resolution: document.getElementById('sbVideoQuality')?.value || '720p'
-      }),
-      signal: sbVideoAbortController.signal
-    });
-    const data = await res.json().catch(() => ({}));
-    const videoUrl = data.video_url || data?.video?.url;
-    if (!res.ok || !videoUrl) {
-      const tail = data.output ? '\n\nCLI 출력:\n' + String(data.output).slice(-1600) : '';
-      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + tail);
-    }
-    if (status) { status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || ''); status.style.color = 'var(--ok)'; }
-    if (output) output.innerHTML = '<video controls autoplay loop src="' + escAttr(videoUrl) + '"></video><div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><a href="' + escAttr(videoUrl) + '" download="storyboard_grok_' + escSBAttr(shotId) + '.mp4" class="btn bpu bsm" style="text-decoration:none">다운로드</a></div>';
-    sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, model: data.model || 'Grok Build CLI', time: new Date().toLocaleTimeString() });
-    if (typeof vidTabVideos !== 'undefined') {
-      vidTabVideos.unshift({url: videoUrl, model: data.model || 'Grok Build CLI', prompt, time: new Date().toLocaleTimeString(), fileName: 'storyboard_grok_' + shotId + '.mp4'});
-      if (typeof renderVidTabHistory === 'function') renderVidTabHistory();
-    }
+    const videoUrl = await requestLocalVideo({
+      model: 'local-5080-i2v',
+      workflow_profile: getSelectedVideoWorkflowProfile(),
+      image: 'data:image/png;base64,' + b64,
+      prompt,
+      duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
+      mode: document.getElementById('sbVideoMode')?.value || 'std',
+      aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9'
+    }, msg => { if (status) status.textContent = msg; }, { signal: sbVideoAbortController.signal });
+    if (status) status.textContent = '완료';
+    if (output) output.innerHTML = '<video controls autoplay loop src="' + videoUrl + '"></video>';
+    sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, time: new Date().toLocaleTimeString() });
     renderSBVideoHistory();
   } catch(e) {
-    if (status) { status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatGrokBuildError(e); status.style.color = isVideoAbortError(e) ? 'var(--mu)' : 'var(--er)'; }
+    if (status) status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
   } finally {
     sbVideoAbortController = null;
     setAbortButtonEnabled('sbVideoAbortBtn', false);
-    if (btn) { btn.disabled = false; btn.textContent = 'Grok 영상 생성'; }
+    if (btn) { btn.disabled = false; btn.textContent = '영상 생성'; }
   }
 }
 function renderSBVideoHistory() {
@@ -21592,7 +20736,8 @@ async function generateRelight() {
 }
 
 /* ═══ VIDEO MODE (Local 5080 Gateway) ═══ */
-const DEFAULT_LOCAL_VIDEO_GATEWAY = 'https://zippy-5080.studiozippy.co.kr';
+const DEFAULT_LOCAL_VIDEO_GATEWAY = 'http://127.0.0.1:8789';
+const DEFAULT_LOCAL_5080_KEY = 'zippy_dcf6ee96a3cdae982b19c14197d9ee2ef2030aa351767885';
 const DEFAULT_GROK_BUILD_BRIDGE = 'http://127.0.0.1:8790';
 const DEFAULT_LOCAL_5080_PROXY_PATH = '/proxy/local5080';
 const DEFAULT_VIDEO_REALISM_PROMPT = 'Photorealistic live-action Instagram reel from this exact source frame. Keep the same person, face identity, body shape, outfit, hairstyle, background, lighting, colors, camera angle, and composition unchanged. Subtle handheld camera movement, gentle push-in, natural breathing, tiny eye/head movement, realistic hair and fabric micro-motion, real smartphone/ARRI-style footage, natural motion blur. No face morphing, no outfit change, no background change, no extra people, no text, no logo, no AI/CG look.';
@@ -21617,7 +20762,7 @@ function shouldProxyLocal5080(value) {
 }
 function getLocalVideoGatewayHeaders() {
   const keyEl = document.getElementById('vidLocalGatewayKey');
-  const key = (keyEl?.value || '').trim();
+  const key = ((keyEl?.value || '').trim()) || DEFAULT_LOCAL_5080_KEY;
   try { if (key) localStorage.setItem('zippy_local_video_gateway_key', key); } catch(e) {}
   const headers = {'Content-Type':'application/json'};
   if (key) { headers.Authorization = 'Bearer ' + key; headers['X-Zippy-Gateway-Key'] = key; }
@@ -21628,30 +20773,57 @@ function getLocalVideoGatewayHeaders() {
   }
   return headers;
 }
-function getGrokBuildBridgeBase(sourceId) {
-  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeUrl') || document.getElementById('sbGrokBuildBridgeUrl');
+function zippyNasCategoryForStep(step) {
+  const value = String(step || '').toLowerCase();
+  if (value.indexOf('instagram') !== -1 || value.indexOf('insta') !== -1) return 'instagram';
+  if (value.indexOf('storyboard') !== -1 || value.indexOf('shot') !== -1 || value.indexOf('sb') !== -1) return 'storyboard';
+  if (value.indexOf('video') !== -1 || value.indexOf('i2v') !== -1) return 'video';
+  return 'image';
+}
+async function zippyUploadAssetToNas(imgB64, category, name, meta) {
+  if (!imgB64) return null;
+  try {
+    const projectName = (window.currentProject && window.currentProject.name) || (typeof currentProject !== 'undefined' && currentProject && currentProject.name) || 'zippy-pipeline';
+    const batch = new Date().toISOString().slice(0, 10);
+    const payload = {
+      category: category || 'image',
+      project: projectName,
+      batch: batch,
+      file: {
+        name: name || ((category || 'image') + '_' + Date.now() + '.png'),
+        mime: 'image/png',
+        b64: imgB64
+      },
+      meta: meta || {}
+    };
+    const res = await fetch(getLocalVideoGatewayBase() + '/v1/nas/upload', {
+      method: 'POST',
+      headers: getLocalVideoGatewayHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('NAS upload HTTP ' + res.status);
+    return await res.json().catch(function(){ return null; });
+  } catch(e) {
+    console.warn('NAS upload failed:', e);
+    return null;
+  }
+}
+function getGrokBuildBridgeBase() {
+  const el = document.getElementById('grokBuildBridgeUrl');
   const value = (el && el.value.trim()) || DEFAULT_GROK_BUILD_BRIDGE;
   try { localStorage.setItem('zippy_grok_build_bridge', value); } catch(e) {}
-  const main = document.getElementById('grokBuildBridgeUrl');
-  const sb = document.getElementById('sbGrokBuildBridgeUrl');
-  if (main && main !== el) main.value = value;
-  if (sb && sb !== el) sb.value = value;
   return value.replace(/\/+$/, '');
 }
-function getGrokBuildBridgeKey(sourceId) {
-  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey');
+function getGrokBuildBridgeKey() {
+  const el = document.getElementById('grokBuildBridgeKey');
   const key = (el?.value || '').trim();
   try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
-  const main = document.getElementById('grokBuildBridgeKey');
-  const sb = document.getElementById('sbGrokBuildBridgeKey');
-  if (key && main && main !== el) main.value = key;
-  if (key && sb && sb !== el) sb.value = key;
   return key;
 }
-function getGrokBuildBridgeHeaders(json, keySourceId) {
+function getGrokBuildBridgeHeaders(json) {
   const headers = {};
   if (json) headers['Content-Type'] = 'application/json';
-  const key = getGrokBuildBridgeKey(keySourceId);
+  const key = getGrokBuildBridgeKey();
   if (key) headers['X-Zippy-Grok-Key'] = key;
   return headers;
 }
@@ -21670,11 +20842,9 @@ function initLocalVideoGatewayFields() {
   const sbUrlEl = document.getElementById('sbVideoGatewayUrl');
   const grokBridgeEl = document.getElementById('grokBuildBridgeUrl');
   const grokBridgeKeyEl = document.getElementById('grokBuildBridgeKey');
-  const sbGrokBridgeEl = document.getElementById('sbGrokBuildBridgeUrl');
-  const sbGrokBridgeKeyEl = document.getElementById('sbGrokBuildBridgeKey');
   try {
     const savedUrl = localStorage.getItem('zippy_local_video_gateway') || DEFAULT_LOCAL_VIDEO_GATEWAY;
-    const savedKey = localStorage.getItem('zippy_local_video_gateway_key') || '';
+    const savedKey = localStorage.getItem('zippy_local_video_gateway_key') || DEFAULT_LOCAL_5080_KEY;
     const savedGrokBridge = localStorage.getItem('zippy_grok_build_bridge') || DEFAULT_GROK_BUILD_BRIDGE;
     const savedGrokBridgeKey = localStorage.getItem('zippy_grok_build_bridge_key') || '';
     if (urlEl) urlEl.value = savedUrl;
@@ -21682,13 +20852,10 @@ function initLocalVideoGatewayFields() {
     if (keyEl) keyEl.value = savedKey;
     if (grokBridgeEl) grokBridgeEl.value = savedGrokBridge;
     if (grokBridgeKeyEl) grokBridgeKeyEl.value = savedGrokBridgeKey;
-    if (sbGrokBridgeEl) sbGrokBridgeEl.value = savedGrokBridge;
-    if (sbGrokBridgeKeyEl) sbGrokBridgeKeyEl.value = savedGrokBridgeKey;
   } catch(e) {
     if (urlEl) urlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
     if (sbUrlEl) sbUrlEl.value = DEFAULT_LOCAL_VIDEO_GATEWAY;
     if (grokBridgeEl) grokBridgeEl.value = DEFAULT_GROK_BUILD_BRIDGE;
-    if (sbGrokBridgeEl) sbGrokBridgeEl.value = DEFAULT_GROK_BUILD_BRIDGE;
   }
   if (urlEl && !urlEl.dataset.boundSave) {
     urlEl.dataset.boundSave = '1';
@@ -21705,14 +20872,6 @@ function initLocalVideoGatewayFields() {
   if (grokBridgeKeyEl && !grokBridgeKeyEl.dataset.boundSave) {
     grokBridgeKeyEl.dataset.boundSave = '1';
     grokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}});
-  }
-  if (sbGrokBridgeEl && !sbGrokBridgeEl.dataset.boundSave) {
-    sbGrokBridgeEl.dataset.boundSave = '1';
-    sbGrokBridgeEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge', this.value.trim() || DEFAULT_GROK_BUILD_BRIDGE);}catch(e){}; const main=document.getElementById('grokBuildBridgeUrl'); if(main) main.value=this.value.trim() || DEFAULT_GROK_BUILD_BRIDGE;});
-  }
-  if (sbGrokBridgeKeyEl && !sbGrokBridgeKeyEl.dataset.boundSave) {
-    sbGrokBridgeKeyEl.dataset.boundSave = '1';
-    sbGrokBridgeKeyEl.addEventListener('change', function(){try{localStorage.setItem('zippy_grok_build_bridge_key', this.value.trim());}catch(e){}; const main=document.getElementById('grokBuildBridgeKey'); if(main && this.value.trim()) main.value=this.value.trim();});
   }
 }
 async function requestLocalVideo(payload, onProgress, options) {
@@ -21823,6 +20982,9 @@ function zippySendImageToVideoTab(imgB64, mime, prompt, meta) {
   vidStartB64 = imgB64;
   vidStartMime = mime || 'image/png';
   vidStartMeta = meta || null;
+  if (vidEndB64) {
+    clearVidFrame('end');
+  }
   const frame = document.getElementById('vidStartFrame');
   if (frame) frame.innerHTML = '<img src="data:' + vidStartMime + ';base64,' + imgB64 + '" style="width:100%;height:100%;object-fit:cover">';
   const promptEl = document.getElementById('vidTabPrompt');
@@ -21842,6 +21004,31 @@ function closeVidOverlay() {
   const overlay = document.getElementById('vidOverlay');
   if (overlay) overlay.style.display = 'none';
   vidSourceB64 = null;
+}
+function openVidFilePicker(type) {
+  const input = document.getElementById(type === 'start' ? 'vidStartInput' : 'vidEndInput');
+  if (!input) return;
+  input.value = '';
+  input.click();
+}
+function clearVidFrame(type) {
+  const frame = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
+  if (type === 'start') {
+    vidStartB64 = null;
+    vidStartMime = 'image/png';
+    vidStartMeta = null;
+    const input = document.getElementById('vidStartInput');
+    if (input) input.value = '';
+    if (frame) frame.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 이미지 업로드 또는 드래그</span>';
+    return;
+  }
+  if (type === 'end') {
+    vidEndB64 = null;
+    vidEndMime = 'image/png';
+    const input = document.getElementById('vidEndInput');
+    if (input) input.value = '';
+    if (frame) frame.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 선택사항</span>';
+  }
 }
 function pickVidSeg(btn, group) {
   btn.parentElement.querySelectorAll('.vid-seg').forEach(s => s.classList.remove('on'));
@@ -21901,6 +21088,7 @@ async function executeVideo() {
   try {
     const videoUrl = await requestLocalVideo({
       model: 'local-5080-i2v',
+      workflow_profile: getSelectedVideoWorkflowProfile(),
       image: 'data:' + vidSourceMime + ';base64,' + vidSourceB64,
       prompt,
       duration: Number(cfg.duration || 5),
@@ -21959,13 +21147,24 @@ function loadVidFrame(type, files) {
   reader.onload = function(e) {
     const b64 = e.target.result.split(',')[1];
     const mime = files[0].type || 'image/png';
-    if (type === 'start') { vidStartB64 = b64; vidStartMime = mime; vidStartMeta = null; }
-    else { vidEndB64 = b64; vidEndMime = mime; }
+    if (type === 'start') {
+      vidStartB64 = b64;
+      vidStartMime = mime;
+      vidStartMeta = null;
+      if (vidEndB64) {
+        clearVidFrame('end');
+      }
+    } else {
+      vidEndB64 = b64;
+      vidEndMime = mime;
+    }
     const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
     el.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
     updateVidCost();
   };
   reader.readAsDataURL(files[0]);
+  const input = document.getElementById(type === 'start' ? 'vidStartInput' : 'vidEndInput');
+  if (input) input.value = '';
 }
 
 function loadFromHistory(type) {
@@ -21995,8 +21194,17 @@ async function selectHistForVideo(type, imgId) {
   const items = await loadHistory();
   const img = items.find(i => i.id === imgId);
   if (!img) return;
-  if (type === 'start') { vidStartB64 = img.b64; vidStartMime = img.mime || 'image/png'; vidStartMeta = null; }
-  else { vidEndB64 = img.b64; vidEndMime = img.mime || 'image/png'; }
+  if (type === 'start') {
+    vidStartB64 = img.b64;
+    vidStartMime = img.mime || 'image/png';
+    vidStartMeta = null;
+    if (vidEndB64) {
+      clearVidFrame('end');
+    }
+  } else {
+    vidEndB64 = img.b64;
+    vidEndMime = img.mime || 'image/png';
+  }
   const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
   if (el) el.innerHTML = '<img src="data:' + (img.mime||'image/png') + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
 }
@@ -22009,22 +21217,15 @@ function updateVidCost() {
 function getVideoStartPayloadMeta(prompt) {
   const meta = vidStartMeta || {};
   const isStoryboard = meta.source === 'storyboard';
-  const isInstagram = meta.source === 'instagram';
   return {
-    source: isStoryboard ? 'storyboard' : (isInstagram ? 'instagram' : 'video_tab'),
-    prompt_source: isStoryboard ? 'storyboard_i2v_prompt' : (isInstagram ? 'instagram_video_prompt' : 'video_tab_prompt'),
+    source: isStoryboard ? 'storyboard' : 'video_tab',
+    prompt_source: isStoryboard ? 'storyboard_i2v_prompt' : 'video_tab_prompt',
     prompt,
     storyboard: isStoryboard ? {
       shot_id: meta.shotId || '',
       frame: meta.frame || '',
       description: meta.desc || '',
       function: meta.func || '',
-      video_prompt: meta.videoPrompt || prompt
-    } : null,
-    instagram: isInstagram ? {
-      index: meta.index || '',
-      location: meta.location || '',
-      image_prompt: meta.imagePrompt || '',
       video_prompt: meta.videoPrompt || prompt
     } : null
   };
@@ -22042,8 +21243,7 @@ async function sendVideoToGrokBuild() {
   const ratio = getSelected('vratio') || '9:16';
   if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
   setAbortButtonEnabled('grokBuildAbortBtn', true);
-  const sourceNote = payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : (payloadMeta.source === 'instagram' ? ' · 인스타그램 이미지/영상 프롬프트 포함' : '');
-  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + sourceNote;
+  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + (payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : '');
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
       method: 'POST',
@@ -22053,7 +21253,6 @@ async function sendVideoToGrokBuild() {
         prompt,
         metadata: payloadMeta,
         storyboard: payloadMeta.storyboard,
-        instagram: payloadMeta.instagram,
         duration: Number(String(dur).replace(/[^0-9.]/g, '')) || 5,
         aspect_ratio: ratio,
         resolution: '720p'
@@ -22077,17 +21276,16 @@ async function sendVideoToGrokBuild() {
   }
 }
 
-async function checkGrokBuildBridge(statusId, urlSourceId, keySourceId) {
-  const status = document.getElementById(statusId || 'grokBuildStatus');
+async function checkGrokBuildBridge() {
+  const status = document.getElementById('grokBuildStatus');
   if (status) status.textContent = 'Grok CLI 브릿지 확인 중...';
   try {
-    if (status) status.style.display = 'block';
-    const res = await fetch(getGrokBuildBridgeBase(urlSourceId) + '/health', { headers: getGrokBuildBridgeHeaders(false, keySourceId) });
+    const res = await fetch(getGrokBuildBridgeBase() + '/health', { headers: getGrokBuildBridgeHeaders(false) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    if (status) { status.textContent = '브릿지 연결됨 · ' + (data.grok_build_model || 'grok-build') + ' · ' + (data.grok_bin || ''); status.style.color = 'var(--ok)'; }
+    if (status) status.textContent = '브릿지 연결됨 · ' + (data.grok_build_model || 'grok-build') + ' · ' + (data.grok_bin || '');
   } catch(e) {
-    if (status) { status.textContent = '브릿지 연결 실패 · ' + formatGrokBuildError(e); status.style.color = 'var(--er)'; }
+    if (status) status.textContent = '브릿지 연결 실패 · ' + formatGrokBuildError(e);
   }
 }
 
@@ -22148,19 +21346,22 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
+function getSelectedVideoWorkflowProfile() {
+  const selected = document.querySelector('[data-g="vmodel"].on');
+  return selected?.dataset?.workflow || 'wan';
+}
+
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
   if (vidTabAbortController) vidTabAbortController.abort();
   vidTabAbortController = new AbortController();
 
   const prompt = getVidTabPromptForGeneration();
-  const workflowPreset = getSelected('vmodel') || 'Gateway 고품질 5080';
   const dur = getSelected('vdur') || '5초';
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
-  const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
-  const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
+  const workflowProfile = getSelectedVideoWorkflowProfile();
 
   const btn = document.getElementById('vidTabExecBtn');
   const status = document.getElementById('vidTabStatus');
@@ -22170,17 +21371,17 @@ async function executeVideoTab() {
   btn.textContent = '생성 중...';
   setAbortButtonEnabled('vidTabAbortBtn', true);
   status.style.display = 'block';
-  status.textContent = 'Local 5080 Gateway 전송 중...' + (localGatewayProxied ? ' · 로컬 프록시 경유' : ' · 직접 호출');
+  status.textContent = 'Local 5080 Gateway 전송 중...';
 
   try {
     const refs = [];
     if (vidEndB64) refs.push({ name:'end_frame.png', mime:vidEndMime, b64:vidEndB64 });
     const videoUrl = await requestLocalVideo({
       model: modelName,
-      workflow_preset: workflowPreset,
       image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
       images: refs,
       prompt,
+      workflow_profile: workflowProfile,
       mode: mode === '전문가' ? 'pro' : 'std',
       duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio
@@ -22197,7 +21398,7 @@ async function executeVideoTab() {
       </div>
     `;
 
-    vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
+    vidTabVideos.unshift({url: videoUrl, model: workflowProfile === 'ltx23' ? 'Local 5080 LTX 2.3' : 'Local 5080 Wan', prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
   } catch(e) {
     status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
@@ -22229,480 +21430,6 @@ if (document.readyState === 'loading') {
 } else {
   initLocalVideoGatewayFields();
 }
-
-/* ═══ PREMIERE ROUGHCUT EXPORT ═══ */
-const premiereItems = [];
-let premiereCrcTable = null;
-
-function premiereSettings() {
-  const aspect = document.getElementById('premiereAspect')?.value || '16:9';
-  const fps = Number(document.getElementById('premiereFps')?.value || 29.97);
-  const stillDuration = Math.max(1, Number(document.getElementById('premiereStillDuration')?.value || 5));
-  const videoDuration = Math.max(1, Number(document.getElementById('premiereVideoDuration')?.value || 5));
-  const dims = aspect === '9:16' ? {width:1080,height:1920} : aspect === '1:1' ? {width:1080,height:1080} : {width:1920,height:1080};
-  return {
-    projectName: (document.getElementById('premiereProjectName')?.value || 'ZIPPY_ROUGHCUT').trim() || 'ZIPPY_ROUGHCUT',
-    aspect, fps, fpsInt: Math.round(fps), stillDuration, videoDuration,
-    includeMedia: !!document.getElementById('premiereIncludeMedia')?.checked,
-    note: document.getElementById('premiereGlobalNote')?.value || '',
-    width: dims.width,
-    height: dims.height
-  };
-}
-function premiereFcpFrameDuration(fps) {
-  if (Math.abs(fps - 23.976) < .01) return '1001/24000s';
-  if (Math.abs(fps - 29.97) < .01) return '1001/30000s';
-  return '1/' + Math.round(fps || 30) + 's';
-}
-function premiereExtForMime(mime, fallback) {
-  mime = String(mime || '').toLowerCase();
-  if (mime.includes('jpeg')) return 'jpg';
-  if (mime.includes('png')) return 'png';
-  if (mime.includes('webp')) return 'webp';
-  if (mime.includes('quicktime')) return 'mov';
-  if (mime.includes('webm')) return 'webm';
-  if (mime.includes('mp4')) return 'mp4';
-  return fallback || 'bin';
-}
-function premiereSafeName(v) {
-  return String(v || 'clip').replace(/[\\/:*?"<>|#%{}^~[\]`]+/g, '_').replace(/\s+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'clip';
-}
-function premiereClipFileName(item, index) {
-  const ext = item.ext || premiereExtForMime(item.mime, item.type === 'video' ? 'mp4' : 'png');
-  return String(index + 1).padStart(3, '0') + '_' + premiereSafeName(item.name || item.label || item.id) + '.' + ext;
-}
-function premiereAddItem(item) {
-  const s = premiereSettings();
-  const type = item.type || ((item.mime || '').startsWith('video/') ? 'video' : 'image');
-  premiereItems.push(Object.assign({
-    id: 'prem_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-    type,
-    duration: type === 'image' ? s.stillDuration : s.videoDuration,
-    caption: item.caption || item.desc || item.label || item.name || '',
-    source: item.source || 'manual',
-    createdAt: new Date().toISOString()
-  }, item, {type}));
-}
-function premiereAddStoryboardImages() {
-  if (typeof ensureStoryboardStateRestored === 'function') ensureStoryboardStateRestored();
-  if (typeof SB_SHOTS === 'undefined' || typeof sbGenImages === 'undefined') return;
-  let added = 0;
-  SB_SHOTS.forEach(function(shot) {
-    const seq = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shot.id] : null;
-    if (seq && seq.length) {
-      seq.forEach(function(b64, idx) {
-        premiereAddItem({
-          type:'image', mime:'image/png', b64,
-          name: shot.id + '_seq_' + (idx + 1),
-          label: shot.id + ' · 흐름 ' + (idx + 1),
-          caption: (shot.desc || '') + (idx === 0 ? ' / 시작' : idx === 1 ? ' / 정점' : ' / 직후'),
-          source:'storyboard_sequence',
-          shotId: shot.id
-        });
-        added++;
-      });
-    } else if (sbGenImages[shot.id]) {
-      premiereAddItem({
-        type:'image', mime:'image/png', b64: sbGenImages[shot.id],
-        name: shot.id,
-        label: shot.id + ' · ' + (shot.frame || ''),
-        caption: shot.desc || shot.frame || shot.id,
-        source:'storyboard_image',
-        shotId: shot.id
-      });
-      added++;
-    }
-  });
-  premiereRenderItems('스토리보드 이미지 ' + added + '개 추가');
-}
-function premiereAddStoryboardVideos() {
-  let added = 0;
-  if (typeof sbVideoHistory !== 'undefined') {
-    sbVideoHistory.forEach(function(v, i) {
-      premiereAddItem({
-        type:'video', mime:'video/mp4', url:v.url,
-        name:'storyboard_i2v_' + (v.id || i),
-        label:(v.id || 'Storyboard Video') + ' · ' + (v.time || ''),
-        caption:v.prompt || v.id || '',
-        source:'storyboard_video'
-      });
-      added++;
-    });
-  }
-  premiereRenderItems('스토리보드 영상 ' + added + '개 추가');
-}
-function premiereAddVideoTabVideos() {
-  let added = 0;
-  if (typeof vidTabVideos !== 'undefined') {
-    vidTabVideos.forEach(function(v, i) {
-      premiereAddItem({
-        type:'video', mime:'video/mp4', url:v.url,
-        name:(v.fileName || ('video_tab_' + i)).replace(/\.[^.]+$/, ''),
-        label:(v.model || 'Video') + ' · ' + (v.time || ''),
-        caption:v.prompt || '',
-        source:'video_tab'
-      });
-      added++;
-    });
-  }
-  premiereRenderItems('영상 제작 결과 ' + added + '개 추가');
-}
-async function premiereAddHistoryImages() {
-  const items = (typeof loadHistory === 'function') ? await loadHistory() : [];
-  let added = 0;
-  items.sort(function(a,b){return (a.timestamp || 0) - (b.timestamp || 0);}).forEach(function(img) {
-    premiereAddItem({
-      type:'image', mime:img.mime || 'image/png', b64:img.b64,
-      name:'history_' + (img.step || 'img') + '_' + img.id,
-      label:(img.step || 'History') + ' · ' + (img.time || ''),
-      caption:img.desc || img.step || '',
-      source:'history'
-    });
-    added++;
-  });
-  premiereRenderItems('히스토리 이미지 ' + added + '개 추가');
-}
-function premiereAddFiles(files) {
-  let added = 0;
-  Array.from(files || []).forEach(function(file) {
-    if (!/^image\/|^video\//.test(file.type || '')) return;
-    const url = URL.createObjectURL(file);
-    premiereAddItem({
-      type:file.type.startsWith('video/') ? 'video' : 'image',
-      mime:file.type || 'application/octet-stream',
-      file,
-      url,
-      name:file.name.replace(/\.[^.]+$/, ''),
-      label:file.name,
-      caption:file.name,
-      ext:(file.name.split('.').pop() || '').toLowerCase(),
-      source:'upload'
-    });
-    added++;
-  });
-  premiereRenderItems('업로드 파일 ' + added + '개 추가');
-}
-function premiereClearItems() {
-  if (!premiereItems.length) return;
-  if (!confirm('Premiere 컷 리스트를 비울까요?')) return;
-  premiereItems.splice(0, premiereItems.length);
-  premiereRenderItems('목록을 비웠습니다');
-}
-function premiereRemoveItem(index) {
-  premiereItems.splice(index, 1);
-  premiereRenderItems('컷 삭제');
-}
-function premiereMoveItem(index, dir) {
-  const next = index + dir;
-  if (next < 0 || next >= premiereItems.length) return;
-  const tmp = premiereItems[index];
-  premiereItems[index] = premiereItems[next];
-  premiereItems[next] = tmp;
-  premiereRenderItems('순서 변경');
-}
-function premiereUpdateItem(index, key, value) {
-  if (!premiereItems[index]) return;
-  if (key === 'duration') premiereItems[index][key] = Math.max(1, Number(value || 1));
-  else premiereItems[index][key] = value;
-  premiereRenderItems();
-}
-function premiereRenderItems(statusText) {
-  const grid = document.getElementById('premiereTimeline');
-  const status = document.getElementById('premiereStatus');
-  if (statusText && status) status.textContent = statusText;
-  if (!grid) return;
-  if (!premiereItems.length) {
-    grid.innerHTML = '<div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:14px">아직 추가된 컷이 없습니다</div>';
-    premiereUpdatePreview();
-    return;
-  }
-  grid.innerHTML = premiereItems.map(function(item, i) {
-    const src = item.b64 ? ('data:' + (item.mime || 'image/png') + ';base64,' + item.b64) : (item.url || '');
-    const media = item.type === 'video'
-      ? '<video src="' + premiereEscAttr(src) + '" muted controls style="width:100%;aspect-ratio:16/9;object-fit:cover;background:#000;display:block"></video>'
-      : '<img src="' + premiereEscAttr(src) + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">';
-    return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--card)">' +
-      media +
-      '<div style="padding:9px 10px;display:grid;gap:7px">' +
-      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-family:var(--font-mono);font-size:11px;color:var(--cy)">#' + (i + 1) + ' ' + premiereEsc(item.type.toUpperCase()) + '</b><span style="font-family:var(--font-mono);font-size:9px;color:var(--mu)">' + premiereEsc(item.source || '') + '</span></div>' +
-      '<div style="font-size:12px;color:var(--tx);line-height:1.35;min-height:32px">' + premiereEsc(item.label || item.name || '') + '</div>' +
-      '<label style="display:grid;gap:3px;font-family:var(--font-mono);font-size:9px;color:var(--mu)">길이 초<input type="number" min="1" max="120" value="' + premiereEscAttr(item.duration) + '" onchange="premiereUpdateItem(' + i + ',\'duration\',this.value)" style="width:100%;padding:5px 7px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);border-radius:4px;font-family:var(--font-mono)"></label>' +
-      '<textarea rows="2" onchange="premiereUpdateItem(' + i + ',\'caption\',this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);border-radius:4px;font-size:11px;line-height:1.45;resize:vertical" placeholder="자막/마커 메모">' + premiereEsc(item.caption || '') + '</textarea>' +
-      '<div style="display:flex;gap:5px;flex-wrap:wrap"><button class="hist-card-btn" onclick="premiereMoveItem(' + i + ',-1)">↑</button><button class="hist-card-btn" onclick="premiereMoveItem(' + i + ',1)">↓</button><button class="hist-card-btn del" onclick="premiereRemoveItem(' + i + ')">삭제</button></div>' +
-      '</div></div>';
-  }).join('');
-  premiereUpdatePreview();
-}
-function premiereUpdatePreview() {
-  const pre = document.getElementById('premierePreview');
-  if (!pre) return;
-  const s = premiereSettings();
-  let t = 'PROJECT: ' + s.projectName + '\nFORMAT: ' + s.aspect + ' / ' + s.fps + 'fps / ' + s.width + 'x' + s.height + '\nCUTS: ' + premiereItems.length + '\n\n';
-  let offset = 0;
-  premiereItems.forEach(function(item, i) {
-    t += String(i + 1).padStart(2, '0') + '  ' + premiereTimecode(offset, s.fpsInt) + '  ' + premiereTimecode(offset + Number(item.duration || 1), s.fpsInt) + '  ' + (item.label || item.name || '') + '\n';
-    offset += Number(item.duration || 1);
-  });
-  pre.textContent = t;
-}
-function premiereTimecode(seconds, fps) {
-  fps = Math.max(1, Math.round(fps || 30));
-  const total = Math.round(Number(seconds || 0) * fps);
-  const ff = total % fps;
-  const totalSeconds = Math.floor(total / fps);
-  const ss = totalSeconds % 60;
-  const mm = Math.floor(totalSeconds / 60) % 60;
-  const hh = Math.floor(totalSeconds / 3600);
-  return [hh, mm, ss, ff].map(function(n){return String(n).padStart(2, '0');}).join(':');
-}
-function premiereSrtTime(seconds) {
-  const ms = Math.round((Number(seconds || 0) % 1) * 1000);
-  const totalSeconds = Math.floor(Number(seconds || 0));
-  const ss = totalSeconds % 60;
-  const mm = Math.floor(totalSeconds / 60) % 60;
-  const hh = Math.floor(totalSeconds / 3600);
-  return String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0') + ',' + String(ms).padStart(3,'0');
-}
-function premiereBuildManifest(mediaNames) {
-  const s = premiereSettings();
-  let offset = 0;
-  return {
-    type:'studioZIPPY Premiere roughcut package',
-    createdAt:new Date().toISOString(),
-    project:s,
-    clips:premiereItems.map(function(item, i) {
-      const start = offset;
-      const dur = Number(item.duration || 1);
-      offset += dur;
-      return {
-        index:i + 1,
-        name:item.label || item.name || '',
-        source:item.source || '',
-        type:item.type,
-        media:mediaNames ? mediaNames[i] : premiereClipFileName(item, i),
-        start_seconds:start,
-        duration_seconds:dur,
-        caption:item.caption || ''
-      };
-    })
-  };
-}
-function premiereBuildFcpXml(mediaNames) {
-  const s = premiereSettings();
-  const fd = premiereFcpFrameDuration(s.fps);
-  const projectName = premiereXml(s.projectName);
-  const total = premiereItems.reduce(function(a, item){return a + Number(item.duration || 1);}, 0);
-  let resources = '<format id="r1" name="FFVideoFormat' + s.height + 'p" frameDuration="' + fd + '" width="' + s.width + '" height="' + s.height + '"/>\n';
-  let spine = '';
-  let offset = 0;
-  premiereItems.forEach(function(item, i) {
-    const rid = 'r' + (i + 2);
-    const media = mediaNames ? mediaNames[i] : premiereClipFileName(item, i);
-    const dur = Number(item.duration || 1);
-    resources += '<asset id="' + rid + '" name="' + premiereXml(media) + '" src="' + premiereXml('file://./media/' + media) + '" start="0s" duration="' + dur + 's" hasVideo="1" format="r1"/>\n';
-    spine += '<asset-clip name="' + premiereXml(item.label || item.name || media) + '" ref="' + rid + '" offset="' + offset + 's" duration="' + dur + 's"/>\n';
-    offset += dur;
-  });
-  return '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE fcpxml>\n<fcpxml version="1.10">\n<resources>\n' + resources + '</resources>\n<library>\n<event name="' + projectName + '">\n<project name="' + projectName + '">\n<sequence format="r1" duration="' + total + 's" tcStart="0s" tcFormat="NDF">\n<spine>\n' + spine + '</spine>\n</sequence>\n</project>\n</event>\n</library>\n</fcpxml>\n';
-}
-function premiereBuildEdl(mediaNames) {
-  const s = premiereSettings();
-  let out = 'TITLE: ' + s.projectName + '\nFCM: NON-DROP FRAME\n\n';
-  let offset = 0;
-  premiereItems.forEach(function(item, i) {
-    const dur = Number(item.duration || 1);
-    const start = premiereTimecode(offset, s.fpsInt);
-    const end = premiereTimecode(offset + dur, s.fpsInt);
-    const clipEnd = premiereTimecode(dur, s.fpsInt);
-    out += String(i + 1).padStart(3, '0') + '  AX       V     C        00:00:00:00 ' + clipEnd + ' ' + start + ' ' + end + '\n';
-    out += '* FROM CLIP NAME: media/' + (mediaNames ? mediaNames[i] : premiereClipFileName(item, i)) + '\n';
-    if (item.caption) out += '* COMMENT: ' + String(item.caption).replace(/\n+/g, ' / ') + '\n';
-    out += '\n';
-    offset += dur;
-  });
-  return out;
-}
-function premiereBuildSrt() {
-  let out = '';
-  let offset = 0;
-  let n = 1;
-  premiereItems.forEach(function(item) {
-    const dur = Number(item.duration || 1);
-    const text = String(item.caption || item.label || item.name || '').trim();
-    if (text) {
-      out += n++ + '\n' + premiereSrtTime(offset) + ' --> ' + premiereSrtTime(offset + dur) + '\n' + text + '\n\n';
-    }
-    offset += dur;
-  });
-  return out || '1\n00:00:00,000 --> 00:00:01,000\nZIPPY roughcut\n';
-}
-function premiereBuildMarkersCsv(mediaNames) {
-  const rows = ['Name,Start,Duration,Comment,Source,Media'];
-  let offset = 0;
-  premiereItems.forEach(function(item, i) {
-    const dur = Number(item.duration || 1);
-    rows.push([item.label || item.name || ('Clip ' + (i + 1)), premiereTimecode(offset, premiereSettings().fpsInt), dur + 's', item.caption || '', item.source || '', mediaNames ? mediaNames[i] : premiereClipFileName(item, i)].map(premiereCsv).join(','));
-    offset += dur;
-  });
-  return rows.join('\n') + '\n';
-}
-function premiereBuildReadme(mediaNames) {
-  const s = premiereSettings();
-  return '# studioZIPPY Premiere Roughcut\n\n' +
-    '- Project: ' + s.projectName + '\n' +
-    '- Format: ' + s.aspect + ' / ' + s.fps + 'fps / ' + s.width + 'x' + s.height + '\n' +
-    '- Clips: ' + premiereItems.length + '\n\n' +
-    'Import `zippy_roughcut.fcpxml` into Premiere Pro. If that fails, use `zippy_roughcut.edl` and relink files from the `media` folder. Import `captions.srt` as captions.\n\n' +
-    'Edit note:\n' + (s.note || '(none)') + '\n\n' +
-    premiereItems.map(function(item, i){return (i + 1) + '. media/' + (mediaNames ? mediaNames[i] : premiereClipFileName(item, i)) + ' — ' + (item.caption || item.label || item.name || '');}).join('\n') + '\n';
-}
-function premiereGeneratedTexts(mediaNames) {
-  return {
-    fcpxml: premiereBuildFcpXml(mediaNames),
-    edl: premiereBuildEdl(mediaNames),
-    srt: premiereBuildSrt(),
-    markers: premiereBuildMarkersCsv(mediaNames),
-    manifest: JSON.stringify(premiereBuildManifest(mediaNames), null, 2),
-    readme: premiereBuildReadme(mediaNames)
-  };
-}
-async function premiereDownloadText(kind) {
-  if (!premiereItems.length && kind !== 'manifest') { alert('먼저 컷을 추가하세요'); return; }
-  const names = premiereItems.map(premiereClipFileName);
-  const texts = premiereGeneratedTexts(names);
-  const map = {fcpxml:'zippy_roughcut.fcpxml', edl:'zippy_roughcut.edl', srt:'captions.srt', manifest:'manifest.json'};
-  premiereDownloadBlob(new Blob([texts[kind] || texts.manifest], {type:'text/plain;charset=utf-8'}), map[kind] || (kind + '.txt'));
-}
-async function premiereDownloadPackage() {
-  if (!premiereItems.length) { alert('먼저 컷을 추가하세요'); return; }
-  const btn = document.getElementById('premierePackageBtn');
-  const status = document.getElementById('premiereStatus');
-  if (btn) { btn.disabled = true; btn.textContent = '패키징 중...'; }
-  if (status) status.textContent = 'Premiere 패키지 생성 중...';
-  try {
-    const mediaNames = premiereItems.map(premiereClipFileName);
-    const texts = premiereGeneratedTexts(mediaNames);
-    const entries = [
-      {name:'zippy_roughcut.fcpxml', data:premiereTextBytes(texts.fcpxml)},
-      {name:'zippy_roughcut.edl', data:premiereTextBytes(texts.edl)},
-      {name:'captions.srt', data:premiereTextBytes(texts.srt)},
-      {name:'markers.csv', data:premiereTextBytes(texts.markers)},
-      {name:'manifest.json', data:premiereTextBytes(texts.manifest)},
-      {name:'README.md', data:premiereTextBytes(texts.readme)}
-    ];
-    if (premiereSettings().includeMedia) {
-      for (let i = 0; i < premiereItems.length; i++) {
-        try {
-          const bytes = await premiereItemBytes(premiereItems[i]);
-          entries.push({name:'media/' + mediaNames[i], data:bytes});
-          if (status) status.textContent = '미디어 포함 중... ' + (i + 1) + ' / ' + premiereItems.length;
-        } catch(e) {
-          entries.push({name:'media/MISSING_' + mediaNames[i] + '.txt', data:premiereTextBytes('Could not include media: ' + (e.message || e))});
-        }
-      }
-    }
-    const zip = premiereBuildZip(entries);
-    premiereDownloadBlob(new Blob([zip], {type:'application/zip'}), premiereSafeName(premiereSettings().projectName) + '_premiere_package.zip');
-    if (status) status.textContent = '패키지 생성 완료 · ' + entries.length + ' files';
-  } catch(e) {
-    if (status) status.textContent = '패키지 실패: ' + (e.message || e);
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Premiere 패키지 다운로드'; }
-  }
-}
-async function premiereItemBytes(item) {
-  if (item.file) return new Uint8Array(await item.file.arrayBuffer());
-  if (item.b64) return premiereBase64Bytes(item.b64);
-  if (item.url) {
-    const res = await fetch(item.url);
-    if (!res.ok) throw new Error('fetch failed ' + res.status);
-    return new Uint8Array(await res.arrayBuffer());
-  }
-  throw new Error('no media data');
-}
-function premiereBuildZip(entries) {
-  const locals = [];
-  const centrals = [];
-  let offset = 0;
-  const now = new Date();
-  const dt = premiereDosDateTime(now);
-  entries.forEach(function(entry) {
-    const nameBytes = premiereTextBytes(entry.name);
-    const data = entry.data instanceof Uint8Array ? entry.data : new Uint8Array(entry.data || []);
-    const crc = premiereCrc32(data);
-    const local = premiereZipHeader(0x04034b50, [
-      [2,20], [2,0x0800], [2,0], [2,dt.time], [2,dt.date], [4,crc], [4,data.length], [4,data.length], [2,nameBytes.length], [2,0]
-    ]);
-    locals.push(local, nameBytes, data);
-    const central = premiereZipHeader(0x02014b50, [
-      [2,20], [2,20], [2,0x0800], [2,0], [2,dt.time], [2,dt.date], [4,crc], [4,data.length], [4,data.length], [2,nameBytes.length], [2,0], [2,0], [2,0], [2,0], [4,0], [4,offset]
-    ]);
-    centrals.push(central, nameBytes);
-    offset += local.length + nameBytes.length + data.length;
-  });
-  const centralStart = offset;
-  const centralSize = centrals.reduce(function(a,b){return a + b.length;}, 0);
-  const end = premiereZipHeader(0x06054b50, [[2,0],[2,0],[2,entries.length],[2,entries.length],[4,centralSize],[4,centralStart],[2,0]]);
-  return premiereConcat(locals.concat(centrals, [end]));
-}
-function premiereZipHeader(sig, fields) {
-  const len = 4 + fields.reduce(function(a,f){return a + f[0];}, 0);
-  const out = new Uint8Array(len);
-  const dv = new DataView(out.buffer);
-  let p = 0;
-  dv.setUint32(p, sig, true); p += 4;
-  fields.forEach(function(f) {
-    if (f[0] === 2) { dv.setUint16(p, f[1] & 0xffff, true); p += 2; }
-    else { dv.setUint32(p, f[1] >>> 0, true); p += 4; }
-  });
-  return out;
-}
-function premiereDosDateTime(d) {
-  const year = Math.max(1980, d.getFullYear());
-  return {
-    time: (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2),
-    date: ((year - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()
-  };
-}
-function premiereCrc32(bytes) {
-  if (!premiereCrcTable) {
-    premiereCrcTable = [];
-    for (let n = 0; n < 256; n++) {
-      let c = n;
-      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
-      premiereCrcTable[n] = c >>> 0;
-    }
-  }
-  let crc = 0xffffffff;
-  for (let i = 0; i < bytes.length; i++) crc = premiereCrcTable[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
-}
-function premiereConcat(parts) {
-  const total = parts.reduce(function(a,b){return a + b.length;}, 0);
-  const out = new Uint8Array(total);
-  let p = 0;
-  parts.forEach(function(part){ out.set(part, p); p += part.length; });
-  return out;
-}
-function premiereTextBytes(text) { return new TextEncoder().encode(String(text == null ? '' : text)); }
-function premiereBase64Bytes(b64) {
-  const bin = atob(String(b64).replace(/^data:[^,]+,/, ''));
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-function premiereDownloadBlob(blob, name) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 200);
-}
-function premiereEsc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];}); }
-function premiereEscAttr(v) { return premiereEsc(v); }
-function premiereXml(v) { return premiereEsc(v); }
-function premiereCsv(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\n+/g, ' / ') + '"'; }
 
 /* ═══ EDIT TOOLS DROPDOWN ═══ */
 function toggleEditMenu(btn) {
@@ -23053,7 +21780,7 @@ CRITICAL RULES:
 /* ═══ HISTORY GALLERY (IndexedDB) ═══ */
 const HIST_DB_NAME_BASE = 'studioZIPPY';
 function getHistDBName() { return HIST_DB_NAME_BASE + '_' + (currentProjectKey || 'default') + '_History'; }
-const HIST_DB_VER = 2;
+const HIST_DB_VER = 1;
 const HIST_STORE = 'images';
 let histDB = null;
 let histModalData = null;
@@ -23068,22 +21795,9 @@ function openHistDB() {
         const store = db.createObjectStore(HIST_STORE, {keyPath:'id',autoIncrement:true});
         store.createIndex('date','date');
         store.createIndex('step','step');
-        store.createIndex('dedupeKey','dedupeKey', {unique:false});
-      } else {
-        const store = e.target.transaction.objectStore(HIST_STORE);
-        if (!store.indexNames.contains('date')) store.createIndex('date','date');
-        if (!store.indexNames.contains('step')) store.createIndex('step','step');
-        if (!store.indexNames.contains('dedupeKey')) store.createIndex('dedupeKey','dedupeKey', {unique:false});
       }
     };
-    req.onsuccess = e => {
-      histDB = e.target.result;
-      histDB.onversionchange = function() {
-        try { histDB.close(); } catch(err) {}
-        histDB = null;
-      };
-      resolve(histDB);
-    };
+    req.onsuccess = e => { histDB = e.target.result; resolve(histDB); };
     req.onerror = e => reject(e.target.error);
   });
 }
@@ -23091,25 +21805,10 @@ function openHistDB() {
 async function saveToHistory(imgB64, step, desc) {
   try {
     const db = await openHistDB();
-    const meta = (arguments.length > 3 && arguments[3] && typeof arguments[3] === 'object') ? arguments[3] : null;
-    const dedupeKey = meta && meta.dedupeKey ? String(meta.dedupeKey) : '';
-    if (dedupeKey) {
-      const exists = await new Promise(resolve => {
-        const tx = db.transaction(HIST_STORE, 'readonly');
-        const store = tx.objectStore(HIST_STORE);
-        const req = store.indexNames.contains('dedupeKey') ? store.index('dedupeKey').get(dedupeKey) : store.getAll();
-        req.onsuccess = () => {
-          if (Array.isArray(req.result)) resolve((req.result || []).some(function(item) { return item && item.dedupeKey === dedupeKey; }));
-          else resolve(Boolean(req.result));
-        };
-        req.onerror = () => resolve(false);
-      });
-      if (exists) return null;
-    }
     const tx = db.transaction(HIST_STORE, 'readwrite');
     const store = tx.objectStore(HIST_STORE);
     const now = new Date();
-    const record = {
+    store.add({
       b64: imgB64,
       mime: 'image/png',
       step: step,
@@ -23117,19 +21816,15 @@ async function saveToHistory(imgB64, step, desc) {
       date: now.toISOString().split('T')[0],
       time: now.toTimeString().split(' ')[0].substring(0,5),
       timestamp: now.getTime()
-    };
-    if (meta) {
-      record.meta = meta;
-      if (dedupeKey) record.dedupeKey = dedupeKey;
-    }
-    store.add(record);
-    await new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error);
     });
-    zippyNasSaveImage('history_' + (step || 'image'), (step || 'image') + '_' + record.timestamp, imgB64, 'image/png', record);
-    return record;
+    if (typeof zippyUploadAssetToNas === 'function') {
+      zippyUploadAssetToNas(
+        imgB64,
+        zippyNasCategoryForStep(step),
+        (step || 'image').replace(/[^a-z0-9가-힣_-]+/gi, '_') + '_' + now.getTime() + '.png',
+        { step: step || '', desc: desc || '' }
+      );
+    }
   } catch(e) { console.warn('History save failed:', e); }
 }
 
@@ -23432,8 +22127,7 @@ function downloadIGImage() {
 // ═══ 전역 통합 라이트박스 ═══
 function openLightbox(b64OrSrc) {
   if (!b64OrSrc) return;
-  const value = String(b64OrSrc);
-  const src = /^(data:|https?:|blob:|\.\/|\.\.\/|assets\/)/.test(value) ? value : ('data:image/png;base64,' + value);
+  const src = (typeof b64OrSrc === 'string' && b64OrSrc.startsWith('data:')) ? b64OrSrc : ('data:image/png;base64,' + b64OrSrc);
   let lb = document.getElementById('globalLightbox');
   if (!lb) {
     lb = document.createElement('div');
@@ -23454,42 +22148,6 @@ function openLightbox(b64OrSrc) {
 }
 // 호환: 기존 호출도 통합 라이트박스 사용
 function openIGLightbox(b64) { openLightbox(b64); }
-
-function shouldGlobalZoomImage(img) {
-  if (!img || !img.src) return false;
-  if (['globalLbImg','sbLbImg','histModalImg','ipImageViewerImg'].includes(img.id)) return false;
-  if (img.closest('#globalLightbox,#sbLightbox,#histModal,#ipImageViewer,.hist-modal')) return false;
-  if (img.closest('button,a,label,input,textarea,select')) return false;
-  if (img.getAttribute('onclick')) return false;
-  const clickableParent = img.closest('[onclick]');
-  if (clickableParent) {
-    const code = clickableParent.getAttribute('onclick') || '';
-    if (/open(?:SB)?Lightbox|openLightbox|openIGLightbox|openHistModal|ipOpenImageViewer/i.test(code)) return false;
-  }
-  return true;
-}
-
-function installGlobalImageZoom() {
-  if (window.__zippyGlobalImageZoomBound) return;
-  window.__zippyGlobalImageZoomBound = true;
-  document.addEventListener('click', function(e) {
-    const img = e.target && e.target.closest ? e.target.closest('img') : null;
-    if (!shouldGlobalZoomImage(img)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    openLightbox(img.currentSrc || img.src);
-  }, true);
-  document.addEventListener('mouseover', function(e) {
-    const img = e.target && e.target.closest ? e.target.closest('img') : null;
-    if (shouldGlobalZoomImage(img)) img.style.cursor = 'zoom-in';
-  }, true);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', installGlobalImageZoom);
-} else {
-  installGlobalImageZoom();
-}
 
 function reuseIGAsRef() {
   if (!igLastB64) return;
@@ -25445,12 +24103,11 @@ function setupDnD(id,cb){
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
-    else if(n==='premiere') el.classList.toggle('active',id==='pPremiere');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
     else el.classList.toggle('active', id==='p'+n);
@@ -25461,13 +24118,11 @@ function goStep(n){
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
-  document.getElementById('tabPremiere').className='stab '+(n==='premiere'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
-  if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
-  if(n==='premiere') premiereRenderItems();
+  if(n==='sb') { buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
   if(n==='hist') refreshHistory();
 }
 function setSt(pfx,idx){
@@ -27400,7 +26055,7 @@ function updatePromptPreview() {
 }
 <!-- zippy-instagram-module -->
 (function(){
-  const state={person:[],outfit:[],place:[],outfitSheet:null,outfitSheetPromise:null,outfitVersion:0,identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
+  const state={person:[],outfit:[],identityDna:'',outfitDna:'',identitySheet:null,results:[],locMode:'korea',sessionSeed:''};
   const KR=[
     ['서울 · 경복궁','Gyeongbokgung Palace in Seoul, stone courtyard, palace gates and traditional rooflines visible but not postcard-like'],
     ['서울 · 북촌한옥마을','Bukchon Hanok Village in Seoul, narrow hanok alley, tiled roofs, quiet residential morning'],
@@ -27448,24 +26103,15 @@ function updatePromptPreview() {
     'upper body close-up, face and texture clear',
     'slight back view turning toward camera, hair and outfit silhouette visible'
   ];
-  const IP_STATE_DB_VER=1;
-  const IP_STATE_STORE='state';
-  let ipStateDB=null;
 
 	  function init(){
 	    renderLocs();
-	    restoreInstagramState();
-	    bindInstagramControlPersistence();
-	    if(!window.__zippyIpPersistBound){
-	      window.__zippyIpPersistBound=true;
-	      window.addEventListener('pagehide',function(){saveInstagramState('pagehide');});
-	    }
 	    const originalGoStep=window.goStep;
 	    window.goStep=function(n){
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pSB','pVid','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';
@@ -27489,45 +26135,16 @@ function updatePromptPreview() {
 	    goStep('insta');
 	  };
 
-	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();saveInstagramState('location-mode');};
+	  window.ipSetLocationMode=function(mode){state.locMode=mode;renderLocs();};
   window.ipAddFiles=async function(kind,files){
-    const bucket=getRefBucket(kind);
-    if(!bucket) return;
-    const meta=getRefMeta(kind);
+    const bucket=kind==='person'?state.person:state.outfit;
     for(const file of Array.from(files||[])){
       if(!file.type.startsWith('image/')) continue;
       const data=await readFile(file);
-      bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:meta.type,_label:file.name});
-    }
-    if(kind==='outfit'){
-      resetOutfitSheet('의상 레퍼런스가 변경되었습니다. GTI 의상 6전도 분리를 다시 수행합니다.');
-    }else if(kind==='place'&&bucket.length){
-      setStatus('장소 레퍼런스 '+bucket.length+'개 등록. 장소가 없어도 생성 가능하며, 있으면 배경으로만 사용합니다.');
+      bucket.push({name:file.name,mime:file.type||'image/png',b64:data.split(',')[1],url:data,_type:kind==='person'?'character':'costume',_label:file.name});
     }
     renderThumbs(kind);
-    saveInstagramState('refs-added');
-    if(kind==='outfit'&&bucket.length) window.ipGenerateOutfitSheet();
   };
-
-  function getRefBucket(kind){
-    if(kind==='person') return state.person;
-    if(kind==='outfit') return state.outfit;
-    if(kind==='place') return state.place;
-    return null;
-  }
-
-  function getRefMeta(kind){
-    if(kind==='person') return {type:'character',empty:'인물 이미지 대기'};
-    if(kind==='outfit') return {type:'costume',empty:'의상 이미지 대기'};
-    if(kind==='place') return {type:'background',empty:'장소 이미지 대기'};
-    return {type:'reference',empty:'이미지 대기'};
-  }
-
-  function getPlaceRefs(){
-    return state.place.slice(0,6).map(function(img,i){
-      return Object.assign({},img,{_type:'background',_label:'Instagram place/background reference '+(i+1)+' - use only for background'});
-    });
-  }
 
   window.ipExtractIdentity=async function(){
     if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
@@ -27538,7 +26155,6 @@ function updatePromptPreview() {
       state.identityDna=(r.textOut||'').trim();
       document.getElementById('ipIdentityDna').textContent=state.identityDna||'분석 결과 없음';
       setStatus('인물 DNA 완료');
-      saveInstagramState('identity-dna');
     }catch(e){setStatus('실패: '+e.message);}
     busy('ipIdentityBtn',false,'인물 DNA 추출');
   };
@@ -27547,59 +26163,14 @@ function updatePromptPreview() {
     if(!state.outfit.length) return setStatus('의상 레퍼런스를 먼저 넣어주세요');
     busy('ipOutfitBtn',true,'분석 중...');
     try{
-      const outfitRefs=await ensureOutfitSheet(false);
-      const prompt='Analyze these clothing-only outfit sheet references for a virtual Instagram creator. Ignore any human identity if accidentally visible. Return Korean sections: OUTFIT_LOCK, MATERIAL_COLOR, SILHOUETTE, FRONT_SIDE_BACK_DETAILS, SWAP_RULE, NEGATIVE.';
-      const r=await callLLM({images:outfitRefs,prompt:prompt});
+      const prompt='Analyze these outfit references for a virtual Instagram creator. Return Korean sections: OUTFIT_LOCK, MATERIAL_COLOR, SILHOUETTE, SWAP_RULE, NEGATIVE.';
+      const r=await callLLM({images:state.outfit.slice(0,8),prompt:prompt});
       state.outfitDna=(r.textOut||'').trim();
       document.getElementById('ipOutfitDna').textContent=state.outfitDna||'분석 결과 없음';
-      setStatus('의상 6전도 기반 DNA 완료');
-      saveInstagramState('outfit-dna');
+      setStatus('의상 DNA 완료');
     }catch(e){setStatus('실패: '+e.message);}
     busy('ipOutfitBtn',false,'의상 DNA 추출');
   };
-
-  window.ipGenerateOutfitSheet=async function(){
-    try{
-      await ensureOutfitSheet(true);
-    }catch(e){
-      setStatus('의상 6전도 분리 실패: '+e.message);
-    }
-  };
-
-  async function ensureOutfitSheet(force){
-    if(!state.outfit.length) throw new Error('의상 레퍼런스를 먼저 넣어주세요');
-    if(state.outfitSheet&&!force) return [state.outfitSheet];
-    if(state.outfitSheetPromise) return state.outfitSheetPromise;
-    ensureGtiImageMode();
-    const version=state.outfitVersion;
-    const promise=(async function(){
-      const out=document.getElementById('ipOutfitSheetOutput');
-      busy('ipOutfitSheetBtn',true,'분리 중...');
-      try{
-        if(out) out.innerHTML='<span>GTI가 의상만 분리해 6전도 시트 생성 중...</span>';
-        setStatus('GTI 의상 6전도 분리 중... 원본 의상 사진 속 인물은 제거합니다.');
-        const prompt='Create a production-ready CLOTHING-ONLY 6-view turnaround sheet from the uploaded outfit reference images.\n\nTASK:\n- Extract ONLY the wardrobe: garments, shoes, bag, accessories, fabric, silhouette, color, fit details.\n- Completely remove the wearer/model/person from the outfit references.\n- Reconstruct the clothes as an empty outfit reference, like an invisible ghost-mannequin or clean flat-lay production sheet.\n\nLAYOUT: clean 3 columns x 2 rows, no text labels.\nPanel 1: front view full outfit.\nPanel 2: front-left 45 degree view.\nPanel 3: left side view.\nPanel 4: back view.\nPanel 5: right side view.\nPanel 6: front-right 45 degree view plus key accessory/fabric details if visible.\n\nABSOLUTE NEGATIVE:\nNo face, no head, no hair, no skin, no hands, no feet, no human body, no model identity, no copied person, no portrait, no mannequin face, no text, no watermark.\n\nPreserve the exact outfit design from the uploaded images: cut, fabric, color, pattern, seams, buttons, waistline, sleeves, pants/skirt shape, shoes, bag, and accessories. Neutral studio background, high-resolution realistic wardrobe reference, not fashion editorial.';
-        const r=await callImageGen({images:state.outfit.slice(0,6),prompt:prompt,resVal:'1K'});
-        if(!r.imgB64) throw new Error('이미지 응답 없음');
-        if(version!==state.outfitVersion) throw new Error('의상 레퍼런스가 변경되어 분리 결과를 버렸습니다. 다시 실행하세요.');
-        state.outfitSheet={name:'outfit_6view_sheet.png',mime:'image/png',b64:r.imgB64,url:'data:image/png;base64,'+r.imgB64,_type:'costume',_label:'Instagram clothing-only 6-view outfit sheet'};
-        renderOutfitSheet();
-        setStatus('의상 6전도 분리 완료. 최종 생성에는 이 의상 시트만 사용합니다.');
-        saveInstagramState('outfit-sheet');
-        return [state.outfitSheet];
-      }catch(e){
-        if(version===state.outfitVersion&&out&&!state.outfitSheet) out.innerHTML='<span>의상 6전도 실패: '+esc(e.message||e)+'</span>';
-        throw e;
-      }
-    })();
-    state.outfitSheetPromise=promise;
-    try{
-      return await promise;
-    }finally{
-      if(state.outfitSheetPromise===promise) state.outfitSheetPromise=null;
-      busy('ipOutfitSheetBtn',false,'GTI 의상 6전도 분리');
-    }
-  }
 
   window.ipGenerateIdentitySheet=async function(){
     if(!state.person.length) return setStatus('인물 사진을 먼저 넣어주세요');
@@ -27613,130 +26184,57 @@ function updatePromptPreview() {
       const r=await callImageGen({images:state.person.slice(0,12),prompt:prompt,resVal:'1K'});
       if(!r.imgB64) throw new Error('이미지 응답 없음');
       state.identitySheet={name:'identity_6view.png',mime:'image/png',b64:r.imgB64,_type:'character',_label:'Instagram identity 6-view sheet'};
-      out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
+      out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="">';
       setStatus('6전도 시트 완료');
-      saveInstagramState('identity-sheet');
     }catch(e){out.innerHTML='<span>생성 실패</span>';setStatus('실패: '+e.message);}
     busy('ipSheetBtn',false,'6전도 시트 생성');
   };
 
   window.ipGenerateBatch=async function(){
-    if(!state.person.length) return setStatus('인물 레퍼런스 이미지가 필요합니다');
+    const identityRefs=(state.identitySheet?[state.identitySheet]:[]).concat(state.person.slice(0,10));
+    if(!identityRefs.length) return setStatus('인물 레퍼런스 이미지 또는 6전도 시트가 필요합니다');
     if(!state.outfit.length) return setStatus('의상 레퍼런스 이미지를 먼저 넣어주세요');
     ensureGtiImageMode();
-    const countInput=document.getElementById('ipCount');
-    let count=parseInt(countInput&&countInput.value,10);
-    if(!Number.isFinite(count)) count=10;
-    count=Math.max(1,Math.min(30,count));
-    if(countInput) countInput.value=String(count);
-    busy('ipBatchBtn',true,'준비 중...');
-    let identityRefs=[],outfitRefs=[],placeRefs=[],refs=[],loc,vibe;
-    try{
-      if(!state.identitySheet){
-        busy('ipBatchBtn',true,'인물 6전도 중...');
-        await ipGenerateIdentitySheet();
-        if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
-      }
-      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
-      busy('ipBatchBtn',true,'의상 6전도 중...');
-      outfitRefs=await ensureOutfitSheet(false);
-      placeRefs=getPlaceRefs();
-      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
-      loc=getCurrentLoc();
-      vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
-      state.sessionSeed=buildSessionSeed(loc,vibe);
-      state.results=Array.from({length:count},function(_,i){return {pending:true,prompt:'',loc:loc[0],idx:i+1};});
-      renderResults();
-      saveInstagramState('batch-start');
-      focusResults();
-    }catch(e){
-      busy('ipBatchBtn',false,'GTI 설정 컷 생성');
-      setStatus('생성 준비 실패: '+e.message);
-      return;
-    }
+    const count=10;
+    const countInput=document.getElementById('ipCount'); if(countInput) countInput.value='10';
+    const loc=getCurrentLoc();
+    const vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
+    const outfitRefs=state.outfit.slice(0,6);
+    const refs=identityRefs.concat(outfitRefs).slice(0,16);
+    state.sessionSeed=buildSessionSeed(loc,vibe);
+    state.results=[];
+    renderResults();
     busy('ipBatchBtn',true,'생성 중...');
     for(let i=0;i<count;i++){
-      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용'+(placeRefs.length?' + 장소 배경 참고':''));
-      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length],identityRefs.length,outfitRefs.length,placeRefs.length);
+      setStatus('GTI '+(i+1)+' / '+count+' 생성 중... 인물 '+identityRefs.length+'장 + 의상 '+outfitRefs.length+'장을 이미지 레퍼런스로 사용');
+      const prompt=buildPrompt(i+1,count,loc,vibe,POSES[i%POSES.length]);
       try{
         const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
-        const item={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1}; state.results[i]=item; if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI','#'+(i+1)+' '+loc[0]); zippyNasSaveImage('instagram', 'reel_' + String(i+1).padStart(2,'0'), r.imgB64, 'image/png', {idx:i+1, loc:loc[0], prompt:prompt, reason:'batch'});
+        const item={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:i+1}; state.results.push(item); if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI','#'+(i+1)+' '+loc[0]);
       }catch(e){
-        state.results[i]={error:e.message,prompt:prompt,loc:loc[0],idx:i+1};
+        state.results.push({error:e.message,prompt:prompt,loc:loc[0],idx:i+1});
       }
       renderResults();
-      saveInstagramState('batch-progress');
     }
-    busy('ipBatchBtn',false,'GTI 설정 컷 생성');
-    setStatus('GTI '+count+'컷 이미지릴 완료. 각 컷은 영상 제작 탭으로 넘겨 I2V 처리하세요.');
-  };
-
-  window.ipGenerateSingle=async function(){
-    if(!state.person.length) return setStatus('인물 레퍼런스 이미지가 필요합니다');
-    if(!state.outfit.length) return setStatus('의상 레퍼런스 이미지를 먼저 넣어주세요');
-    ensureGtiImageMode();
-    busy('ipSingleBtn',true,'준비 중...');
-    let identityRefs=[],outfitRefs=[],placeRefs=[],refs=[],loc,vibe;
-    try{
-      if(!state.identitySheet){
-        busy('ipSingleBtn',true,'인물 6전도 중...');
-        await ipGenerateIdentitySheet();
-        if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
-      }
-      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
-      busy('ipSingleBtn',true,'의상 6전도 중...');
-      outfitRefs=await ensureOutfitSheet(false);
-      placeRefs=getPlaceRefs();
-      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
-      loc=getCurrentLoc();
-      vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
-    }catch(e){
-      busy('ipSingleBtn',false,'GTI 1장 생성');
-      setStatus('생성 준비 실패: '+e.message);
-      return;
-    }
-    state.sessionSeed=buildSessionSeed(loc,vibe);
-    const idx=state.results.length+1;
-    const resultIndex=state.results.length;
-    state.results.push({pending:true,prompt:'',loc:loc[0],idx:idx});
-    renderResults();
-    saveInstagramState('single-start');
-    focusResults();
-    busy('ipSingleBtn',true,'생성 중...');
-    setStatus('GTI 1장 생성 중... 1번 인물 6전도 얼굴 고정 + 의상 6전도 시트만 의상으로 사용'+(placeRefs.length?' + 장소 배경 참고':''));
-    const prompt=buildPrompt(1,1,loc,vibe,POSES[Math.floor(Math.random()*POSES.length)],identityRefs.length,outfitRefs.length,placeRefs.length);
-    try{
-      const r=await callImageGen({images:refs,prompt:prompt,resVal:'1K'});
-      if(!r.imgB64) throw new Error('이미지 응답 없음');
-      state.results[resultIndex]={b64:r.imgB64,mime:'image/png',prompt:prompt,loc:loc[0],idx:idx};
-      if(typeof saveToHistory==='function') saveToHistory(r.imgB64,'Instagram-GTI-1','#'+idx+' '+loc[0]);
-      zippyNasSaveImage('instagram', 'single_' + String(idx).padStart(2,'0'), r.imgB64, 'image/png', {idx:idx, loc:loc[0], prompt:prompt, reason:'single'});
-      setStatus('GTI 1장 생성 완료. 결과 그리드에 표시했습니다.');
-    }catch(e){
-      state.results[resultIndex]={error:e.message,prompt:prompt,loc:loc[0],idx:idx};
-      setStatus('GTI 1장 생성 실패: '+e.message);
-    }
-    renderResults();
-    saveInstagramState('single-finish');
-    busy('ipSingleBtn',false,'GTI 1장 생성');
+    busy('ipBatchBtn',false,'GTI 10컷 생성');
+    setStatus('GTI 10컷 이미지릴 완료. 각 컷은 영상 제작 탭으로 넘겨 I2V 처리하세요.');
   };
 
   window.ipSendToVideoTab=function(index){
     const item=state.results[index];
     if(!item||item.error) return;
-    const prompt='vertical Instagram reel, subtle handheld phone camera, gentle push-in, natural hair and fabric motion, keep the exact same person, face, outfit, location background, lighting, and composition from the source image';
-    const meta={source:'instagram',index:item.idx,location:item.loc||'',imagePrompt:item.prompt||'',videoPrompt:prompt};
+    const prompt='vertical Instagram reel, subtle handheld phone camera, gentle push-in, natural hair and fabric motion, keep the exact same person, face, outfit, landmark background, lighting, and composition from the source image';
     if(typeof window.zippySendImageToVideoTab==='function'){
-      window.zippySendImageToVideoTab(item.b64,item.mime||'image/png',prompt,meta);
-      setStatus('#'+item.idx+' 컷을 영상 제작 탭 START 프레임으로 보냈습니다. Grok 전송 프롬프트를 확인하세요.');
+      window.zippySendImageToVideoTab(item.b64,item.mime||'image/png',prompt);
+      setStatus('#'+item.idx+' 컷을 로컬 영상 생성 탭 START 프레임으로 보냈습니다.');
     }else{
       setStatus('영상 탭 연결 함수를 찾지 못했습니다.');
     }
   };
 
   window.ipDownloadManifest=function(){
-    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,placeReferences:state.place.map(function(x){return x.name;}),results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
+    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='zippy_instagram_manifest_'+Date.now()+'.json'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
   };
@@ -27749,272 +26247,22 @@ function updatePromptPreview() {
       'same quiet morning window around 10:30 AM, clean daylight, gentle city reflections'
     ];
     const slot=slots[Math.floor(Math.random()*slots.length)];
-    const placeName=loc&&loc[2]?'a believable creator location chosen to match the outfit and mood':loc[0];
-    return slot+'; one continuous visit at '+placeName+'; same phone-camera color pipeline, same lens family, same makeup, same hair state, same outfit fit, same weather, same exposure and color grade.';
+    return slot+'; one continuous visit at '+loc[0]+'; same phone-camera color pipeline, same lens family, same makeup, same hair state, same outfit fit, same weather, same exposure and color grade.';
   }
 
-  function buildPrompt(index,total,loc,vibe,pose,identityCount,outfitCount,placeCount){
+  function buildPrompt(index,total,loc,vibe,pose){
     const custom=(document.getElementById('ipCustomPrompt').value||'').trim();
     const strength=document.getElementById('ipOutfitStrength').value;
-    identityCount=identityCount||1;
-    outfitCount=outfitCount||1;
-    placeCount=placeCount||0;
-    const wardrobeStart=identityCount+1;
-    const placeStart=wardrobeStart+outfitCount;
-    const outfitRule=({strict:'MANDATORY WARDROBE LOCK: Dress the protagonist in the exact clothing-only outfit 6-view sheet. Transfer cut, fabric, color, fit, shoes, bag, accessories, seams, buttons, waistline, sleeve length, and styling as accurately as possible. The wardrobe sheet is visual clothing data only, not identity data.',standard:'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet as the wardrobe source. Preserve key silhouette, color, fabric, fit, shoes, bag, accessories, and visible styling.',loose:'Use the clothing-only outfit 6-view sheet as the wardrobe source, keeping the main silhouette, color story, and styling while adapting naturally.'}[strength]||'MANDATORY WARDROBE LOCK: Use the clothing-only outfit 6-view sheet directly.')+'\nOUTFIT DNA:\n'+(state.outfitDna||'Read the clothing-only 6-view outfit sheet directly. Ignore all human identity in wardrobe references.');
-    const placeRange='Reference image '+placeStart+(placeCount>1?'-'+(placeStart+placeCount-1):'');
-    const placeRule=placeCount>0?'BACKGROUND / PLACE REFERENCE LOCK:\n- '+placeRange+' are location/background references only.\n- Use them for architecture, street texture, terrain, interior/exterior layout, landmark shape, lighting clues, and place atmosphere.\n- Never copy any person, face, body, outfit, age, gender, ethnicity, pose, or identity from place references.\n- If place references contain people, remove them or treat them as anonymous background blur. The protagonist must remain reference image 1.\n- If a selected landmark is also specified, blend the uploaded place reference with that location as one believable setting. If no landmark is selected, use the uploaded place image as the primary background source.':'BACKGROUND / PLACE REFERENCE:\n- No place image was uploaded. Generate normally from the selected landmark/location text.\n- If no landmark is selected, choose a believable natural creator background that matches the mood, outfit, and same-session continuity.';
-    const setLabel=total===1?'single Instagram creator post':total+'-cut carousel';
-    const sessionLine=total===1?'This image is a polished single Instagram creator photo from one believable visit.':'This image belongs to one continuous '+total+'-photo set shot during the same short visit.';
-    const continuityLine=total===1?'Keep the selected time of day, weather, light direction, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location believable in one frame.':'Keep the same time of day, weather, light direction, shadow softness, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location continuity across all '+total+' images.';
-    const locationMaterial=loc&&loc[2]?'background believable and not generic, no forced landmark.':'landmark present but not tourist postcard.';
-    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe or place references.\n- If wardrobe/place and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\n'+placeRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, '+locationMaterial+'\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: different person, face drift, using wardrobe model face, copying clothing-reference person, copying place-reference people, changing protagonist facial features, changing protagonist body identity, outfit drift, clothing redesign, plastic beauty filter, CGI, anime, editorial over-posing, deformed hands, extra limbs, fake logos, text overlay.';
+    const outfitRule=({strict:'MANDATORY OUTFIT IMAGE LOCK: Dress the subject in the exact uploaded outfit reference. Transfer cut, fabric, color, fit, shoes, bag, accessories, seams, and styling as accurately as possible. The outfit reference images are visual inputs, not loose inspiration.',standard:'MANDATORY OUTFIT IMAGE LOCK: Use the uploaded outfit reference images as the wardrobe source. Preserve key silhouette, color, fabric, fit, shoes, bag, and accessories.',loose:'Use the uploaded outfit reference images as the wardrobe source, keeping the main silhouette, color story, and styling while adapting naturally.'}[strength]||'MANDATORY OUTFIT IMAGE LOCK: Use uploaded outfit reference images directly.')+'\nOUTFIT DNA:\n'+(state.outfitDna||'Read the uploaded clothing images directly.');
+    return 'Create ONE ultra-realistic vertical Instagram creator photo for a 10-cut carousel.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nSAME PHOTO SESSION LOCK:\n- This image belongs to one continuous 10-photo set shot during the same short visit.\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- Keep the same time of day, weather, light direction, shadow softness, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location continuity across all 10 images.\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the carousel feels natural.\n\nREFERENCE IMAGE USAGE:\n- Use the uploaded PERSON reference images and identity sheet as mandatory visual identity inputs. Do not invent a new face.\n- Preserve the same exact face, hair, body proportions, skin undertone, and personal aura from the person references.\n- Use the uploaded OUTFIT reference images as mandatory visual wardrobe inputs.\n- '+outfitRule+'\n\nIDENTITY DNA:\n'+(state.identityDna||'Use the person reference images as the identity lock.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, landmark present but not tourist postcard.\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: no different person, no face drift, no outfit drift, no clothing redesign, no plastic beauty filter, no CGI, no anime, no editorial over-posing, no deformed hands, no extra limbs, no fake logos, no text overlay.';
   }
 
-  function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const previous=sel.value; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML='<option value="-1">장소 없음 / 자동</option>'+list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join(''); sel.value=previous==='-1'?'-1':'0';}
+  function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML=list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join('');}
   function ensureGtiImageMode(){const r=document.querySelector('input[name="imgMode"][value="gpt"]'); if(r&&!r.checked){r.checked=true; if(typeof onImgModeChange==='function') onImgModeChange();} try{localStorage.setItem('zippy_img_mode','gpt');}catch(e){}}
-  function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const raw=document.getElementById('ipLocation')?.value||'0'; if(raw==='-1') return ['장소 없음 / 자동','No fixed landmark selected. Use uploaded place reference if present; otherwise choose a believable natural Instagram creator setting that fits the outfit, mood, lighting, and same photo session.',true]; const idx=parseInt(raw,10); return list[Number.isFinite(idx)?idx:0]||list[0];}
-  window.ipRemoveFile=function(kind,index){
-    const bucket=getRefBucket(kind);
-    if(!bucket) return;
-    if(!bucket[index]) return;
-    bucket.splice(index,1);
-    if(kind==='outfit'){
-      resetOutfitSheet('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
-      setStatus('의상 레퍼런스를 삭제했습니다. 필요하면 의상 6전도/DNA를 다시 생성하세요.');
-    }else if(kind==='place'){
-      setStatus('장소 레퍼런스를 삭제했습니다. 장소 이미지 없이도 생성할 수 있습니다.');
-    }else{
-      state.identityDna='';
-      state.identitySheet=null;
-      const dna=document.getElementById('ipIdentityDna');
-      const out=document.getElementById('ipSheetOutput');
-      if(dna) dna.textContent='인물 고정값이 여기에 표시됩니다.';
-      if(out) out.innerHTML='<span>6전도 시트 대기</span>';
-      setStatus('인물 레퍼런스를 삭제했습니다. 필요하면 인물 DNA/6전도 시트를 다시 생성하세요.');
-    }
-    renderThumbs(kind);
-    saveInstagramState('ref-removed');
-  };
-  function resetOutfitSheet(message){
-    state.outfitVersion++;
-    state.outfitSheet=null;
-    state.outfitSheetPromise=null;
-    state.outfitDna='';
-    const dna=document.getElementById('ipOutfitDna');
-    if(dna) dna.textContent='의상 분석값이 여기에 표시됩니다.';
-    renderOutfitSheet();
-    if(message) setStatus(message);
-  }
-  function ipStateDBName(){
-    let key='default';
-    try{
-      key=(typeof currentProjectKey!=='undefined'&&currentProjectKey)||window.currentProjectKey||'default';
-    }catch(e){}
-    key=String(key||'default').replace(/[^\w-]+/g,'_');
-    return 'studioZIPPY_'+key+'_InstagramPersonaState';
-  }
-  function openIPStateDB(){
-    return new Promise(function(resolve,reject){
-      if(ipStateDB){resolve(ipStateDB);return;}
-      if(!window.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
-      const req=indexedDB.open(ipStateDBName(),IP_STATE_DB_VER);
-      req.onupgradeneeded=function(e){
-        const db=e.target.result;
-        if(!db.objectStoreNames.contains(IP_STATE_STORE)) db.createObjectStore(IP_STATE_STORE,{keyPath:'key'});
-      };
-      req.onsuccess=function(e){
-        ipStateDB=e.target.result;
-        ipStateDB.onversionchange=function(){try{ipStateDB.close();}catch(err){} ipStateDB=null;};
-        resolve(ipStateDB);
-      };
-      req.onerror=function(){reject(req.error);};
-    });
-  }
-  function ipImageForPersist(img){
-    if(!img) return null;
-    return {
-      name:img.name||'',
-      mime:img.mime||'image/png',
-      b64:img.b64||'',
-      url:img.url||((img.b64)?('data:'+(img.mime||'image/png')+';base64,'+img.b64):''),
-      _type:img._type||'',
-      _label:img._label||img.name||''
-    };
-  }
-  function ipNormalizeImage(img){
-    if(!img||!img.b64) return null;
-    const mime=img.mime||'image/png';
-    return {
-      name:img.name||'image.png',
-      mime:mime,
-      b64:img.b64,
-      url:img.url||('data:'+mime+';base64,'+img.b64),
-      _type:img._type||'',
-      _label:img._label||img.name||''
-    };
-  }
-  function ipReadControls(){
-    return {
-      locMode:document.getElementById('ipLocMode')?.value||state.locMode,
-      location:document.getElementById('ipLocation')?.value||'0',
-      vibe:document.getElementById('ipVibe')?.value||'daily',
-      outfitStrength:document.getElementById('ipOutfitStrength')?.value||'standard',
-      count:document.getElementById('ipCount')?.value||'10',
-      customPrompt:document.getElementById('ipCustomPrompt')?.value||''
-    };
-  }
-  function ipApplyControls(ctrl){
-    if(!ctrl) return;
-    const locMode=document.getElementById('ipLocMode');
-    if(locMode&&ctrl.locMode){locMode.value=ctrl.locMode;state.locMode=ctrl.locMode;renderLocs();}
-    const loc=document.getElementById('ipLocation');
-    if(loc&&ctrl.location!=null) loc.value=String(ctrl.location);
-    const vibe=document.getElementById('ipVibe');
-    if(vibe&&ctrl.vibe) vibe.value=ctrl.vibe;
-    const strength=document.getElementById('ipOutfitStrength');
-    if(strength&&ctrl.outfitStrength) strength.value=ctrl.outfitStrength;
-    const count=document.getElementById('ipCount');
-    if(count&&ctrl.count!=null) count.value=String(ctrl.count);
-    const custom=document.getElementById('ipCustomPrompt');
-    if(custom&&ctrl.customPrompt!=null) custom.value=ctrl.customPrompt;
-  }
-  function bindInstagramControlPersistence(){
-    if(window.__zippyIpControlPersistBound) return;
-    window.__zippyIpControlPersistBound=true;
-    ['ipLocMode','ipLocation','ipVibe','ipOutfitStrength','ipCount','ipCustomPrompt'].forEach(function(id){
-      const el=document.getElementById(id);
-      if(!el) return;
-      let timer=null;
-      const ev=id==='ipCustomPrompt'?'input':'change';
-      el.addEventListener(ev,function(){
-        clearTimeout(timer);
-        timer=setTimeout(function(){saveInstagramState('control-change');},250);
-      });
-    });
-  }
-  function ipSnapshot(){
-    const results=(state.results||[]).map(function(r){
-      if(r&&r.pending) return {idx:r.idx,loc:r.loc||'',prompt:r.prompt||'',error:'페이지 이동으로 생성 상태가 중단됨'};
-      return {
-        idx:r?.idx,
-        loc:r?.loc||'',
-        prompt:r?.prompt||'',
-        mime:r?.mime||'image/png',
-        b64:r?.b64||'',
-        error:r?.error||null
-      };
-    });
-    return {
-      person:state.person.map(ipImageForPersist).filter(Boolean),
-      outfit:state.outfit.map(ipImageForPersist).filter(Boolean),
-      place:state.place.map(ipImageForPersist).filter(Boolean),
-      identitySheet:ipImageForPersist(state.identitySheet),
-      outfitSheet:ipImageForPersist(state.outfitSheet),
-      identityDna:state.identityDna||'',
-      outfitDna:state.outfitDna||'',
-      outfitVersion:state.outfitVersion||0,
-      results:results,
-      locMode:state.locMode||'korea',
-      sessionSeed:state.sessionSeed||'',
-      controls:ipReadControls(),
-      savedAt:new Date().toISOString()
-    };
-  }
-  async function saveInstagramState(reason){
-    try{
-      const db=await openIPStateDB();
-      const tx=db.transaction(IP_STATE_STORE,'readwrite');
-      const snapshot = ipSnapshot();
-      const payload = {key:'current',reason:reason||'',savedAt:new Date().toISOString(),snapshot:snapshot};
-      tx.objectStore(IP_STATE_STORE).put(payload);
-      zippyNasSaveJson('state_instagram', 'current', payload, {reason:reason||''});
-    }catch(e){
-      console.warn('Instagram state save failed:',e);
-    }
-  }
-  async function restoreInstagramState(){
-    try{
-      const db=await openIPStateDB();
-      const snap=await new Promise(function(resolve,reject){
-        const tx=db.transaction(IP_STATE_STORE,'readonly');
-        const req=tx.objectStore(IP_STATE_STORE).get('current');
-        req.onsuccess=function(){resolve(req.result&&req.result.snapshot);};
-        req.onerror=function(){reject(req.error);};
-      });
-      if(!snap) return;
-      state.person=(snap.person||[]).map(ipNormalizeImage).filter(Boolean);
-      state.outfit=(snap.outfit||[]).map(ipNormalizeImage).filter(Boolean);
-      state.place=(snap.place||[]).map(ipNormalizeImage).filter(Boolean);
-      state.identitySheet=ipNormalizeImage(snap.identitySheet);
-      state.outfitSheet=ipNormalizeImage(snap.outfitSheet);
-      state.identityDna=snap.identityDna||'';
-      state.outfitDna=snap.outfitDna||'';
-      state.outfitVersion=snap.outfitVersion||0;
-      state.results=(snap.results||[]).map(function(r){return {...r,pending:false};});
-      state.locMode=snap.locMode||snap.controls?.locMode||'korea';
-      state.sessionSeed=snap.sessionSeed||'';
-      ipApplyControls(snap.controls);
-      renderThumbs('person');
-      renderThumbs('outfit');
-      renderThumbs('place');
-      renderOutfitSheet();
-      renderResults();
-      const idDna=document.getElementById('ipIdentityDna');
-      const outfitDna=document.getElementById('ipOutfitDna');
-      const sheetOut=document.getElementById('ipSheetOutput');
-      if(idDna&&state.identityDna) idDna.textContent=state.identityDna;
-      if(outfitDna&&state.outfitDna) outfitDna.textContent=state.outfitDna;
-      if(sheetOut&&state.identitySheet) sheetOut.innerHTML='<img src="'+state.identitySheet.url+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
-      if((state.results&&state.results.length)||state.person.length||state.outfit.length||state.place.length) setStatus('이전 인스타 작업을 복원했습니다 · '+(snap.savedAt||''));
-    }catch(e){
-      console.warn('Instagram state restore failed:',e);
-    }
-  }
-  function renderOutfitSheet(){
-    const out=document.getElementById('ipOutfitSheetOutput');
-    if(!out) return;
-    if(state.outfitSheet){
-      out.innerHTML='<img src="'+state.outfitSheet.url+'" alt="" onclick="ipOpenImageViewer(this.src,\'의상 6전도 시트\')">';
-    }else{
-      out.innerHTML='<span>의상 6전도 시트 대기</span>';
-    }
-  }
-  function renderThumbs(kind){
-    const bucket=getRefBucket(kind);
-    const el=document.getElementById(kind==='person'?'ipPersonGrid':kind==='outfit'?'ipOutfitGrid':'ipPlaceGrid');
-    if(!bucket||!el) return;
-    const meta=getRefMeta(kind);
-    el.innerHTML=bucket.length?bucket.map(function(x,i){
-      const del='<button class="ip-thumb-del" onclick="event.stopPropagation();ipRemoveFile(&quot;'+kind+'&quot;,'+i+')">삭제</button>';
-      return '<div class="ip-thumb" data-name="'+esc(x.name)+'" onclick="ipOpenImageViewer(this.querySelector(&quot;img&quot;).src,this.dataset.name)"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small>'+del+'</div>';
-    }).join(''):'<span>'+meta.empty+'</span>';
-  }
-  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.pending)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc||'생성 대기')+'</span></div><div class="ip-output" style="min-height:260px"><span>GTI 생성 중...</span></div></div>'; if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt="" onclick="ipOpenImageViewer(this.src,\'Instagram #'+r.idx+'\')"><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button></div></div>';}).join('');}
+  function getCurrentLoc(){const list=state.locMode==='world'?WORLD:KR; const idx=parseInt(document.getElementById('ipLocation').value,10)||0; return list[idx]||list[0];}
+  function renderThumbs(kind){const bucket=kind==='person'?state.person:state.outfit; const el=document.getElementById(kind==='person'?'ipPersonGrid':'ipOutfitGrid'); if(!el) return; el.innerHTML=bucket.length?bucket.map(function(x){return '<div class="ip-thumb"><img src="'+x.url+'" alt=""><small>'+esc(x.name)+'</small></div>';}).join(''):'<span>'+(kind==='person'?'인물':'의상')+' 이미지 대기</span>';}
+  function renderResults(){const el=document.getElementById('ipResults'); if(!el) return; el.innerHTML=state.results.map(function(r,i){if(r.error)return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>실패</span></div><pre class="ip-pre">'+esc(r.error)+'</pre></div>'; return '<div class="ip-card-result"><div class="meta"><b>#'+r.idx+'</b><span>'+esc(r.loc)+'</span></div><img src="data:'+r.mime+';base64,'+r.b64+'" alt=""><div class="tools"><button class="btn bgh bsm" onclick="ipDownloadOne('+i+')">저장</button><button class="btn bor bsm" onclick="ipSendToVideoTab('+i+')">영상 탭으로</button></div></div>';}).join('');}
   window.ipDownloadOne=function(i){const r=state.results[i]; if(!r||r.error)return; const a=document.createElement('a'); a.href='data:'+r.mime+';base64,'+r.b64; a.download='zippy_instagram_'+String(r.idx).padStart(2,'0')+'.png'; document.body.appendChild(a); a.click(); a.remove();};
-  window.ipOpenImageViewer=function(src,title){
-    if(!src) return;
-    state.viewerSrc=src;
-    state.viewerTitle=title||'Instagram image';
-    let modal=document.getElementById('ipImageViewer');
-    if(!modal){
-      modal=document.createElement('div');
-      modal.id='ipImageViewer';
-      modal.className='hist-modal';
-      modal.style.display='none';
-      modal.onclick=function(e){if(e.target===modal) ipCloseImageViewer();};
-      modal.innerHTML='<button class="hist-modal-close" onclick="ipCloseImageViewer()">✕</button><div id="ipImageViewerTitle" style="position:absolute;top:22px;left:24px;right:72px;color:#fff;font-family:var(--font-mono);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><img id="ipImageViewerImg" src="" alt=""><div class="hist-modal-actions"><button class="hist-modal-btn" onclick="ipDownloadViewer()">다운로드</button></div>';
-      document.body.appendChild(modal);
-    }
-    const img=document.getElementById('ipImageViewerImg');
-    const ttl=document.getElementById('ipImageViewerTitle');
-    if(img) img.src=src;
-    if(ttl) ttl.textContent=state.viewerTitle;
-    modal.style.display='flex';
-  };
-  window.ipCloseImageViewer=function(){const modal=document.getElementById('ipImageViewer'); if(modal) modal.style.display='none';};
-  window.ipDownloadViewer=function(){if(!state.viewerSrc)return; const a=document.createElement('a'); a.href=state.viewerSrc; a.download='zippy_instagram_preview_'+Date.now()+'.png'; document.body.appendChild(a); a.click(); a.remove();};
-  function focusResults(){setTimeout(function(){const el=document.getElementById('ipResults'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'});},60);}
   function readFile(file){return new Promise(function(res,rej){const fr=new FileReader(); fr.onload=function(){res(fr.result);}; fr.onerror=rej; fr.readAsDataURL(file);});}
   function busy(id,on,text){const el=document.getElementById(id); if(!el)return; el.disabled=on; el.textContent=text;}
   function setStatus(text){const el=document.getElementById('ipStatus'); if(el) el.textContent=text;}

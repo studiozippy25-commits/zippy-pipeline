@@ -973,11 +973,15 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:4px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="checkbox" id="nasAutoSync" onchange="zippyNasSaveSettings()"> 자동 저장
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:11px;cursor:pointer;padding:4px 8px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="checkbox" id="nasAutoLoad" onchange="zippyNasSaveSettings()"> 자동 불러오기
+    </label>
     <input type="text" class="api-inp" id="nasBridgeUrl" value="http://localhost:8788" placeholder="NAS 브리지 URL" style="flex:0 1 220px;min-width:180px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
     <input type="text" class="api-inp" id="nasProjectSlug" placeholder="프로젝트 폴더 자동" style="flex:0 1 170px;min-width:140px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
     <input type="password" class="api-inp" id="nasBridgeToken" placeholder="브리지 토큰(선택)" style="flex:0 1 150px;min-width:120px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
     <span id="nasBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
     <span id="nasBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
+    <span id="nasBridgeProgress" style="font-family:var(--font-mono);font-size:11px;color:var(--bl);min-width:120px"></span>
     <button class="btn bgh bsm" onclick="zippyNasCheck()" style="font-size:11px;padding:3px 10px">연결 확인</button>
     <button class="btn bgh bsm" onclick="zippyNasSyncStoryboardNow()" style="font-size:11px;padding:3px 10px">현재 컷 보내기</button>
     <button class="btn bgh bsm" onclick="zippyNasLoadStoryboardNow()" style="font-size:11px;padding:3px 10px">NAS에서 가져오기</button>
@@ -18176,6 +18180,7 @@ function selectProject(key) {
 
   // Go to Step 1
   goStep(1);
+  if (typeof zippyNasScheduleAutoLoad === 'function') zippyNasScheduleAutoLoad('project-select');
 }
 
 function backToLanding() {
@@ -19480,6 +19485,9 @@ function zippyNasStorageSet(key, value) {
 function zippyNasEnabled() {
   return zippyNasStorageGet('zippy_nas_auto', '0') === '1';
 }
+function zippyNasAutoLoadEnabled() {
+  return zippyNasStorageGet('zippy_nas_auto_load', '1') === '1';
+}
 function zippyNasUrl() {
   return (zippyNasStorageGet('zippy_nas_url', ZIPPY_NAS_DEFAULT_URL) || ZIPPY_NAS_DEFAULT_URL).replace(/\/+$/, '');
 }
@@ -19502,28 +19510,62 @@ function zippyNasSetStatus(text, ok) {
   if (st) { st.textContent = text; st.style.color = ok ? 'var(--ok)' : 'var(--mu)'; }
   if (dot) dot.style.background = ok ? 'var(--ok)' : '#9CA3AF';
 }
+function zippyNasSetProgress(text, ok) {
+  const el = document.getElementById('nasBridgeProgress');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = ok === false ? 'var(--er)' : 'var(--bl)';
+}
 function zippyNasSaveSettings() {
   const url = document.getElementById('nasBridgeUrl');
   const auto = document.getElementById('nasAutoSync');
+  const autoLoad = document.getElementById('nasAutoLoad');
   const project = document.getElementById('nasProjectSlug');
   const token = document.getElementById('nasBridgeToken');
   if (url) zippyNasStorageSet('zippy_nas_url', url.value.trim() || ZIPPY_NAS_DEFAULT_URL);
   if (auto) zippyNasStorageSet('zippy_nas_auto', auto.checked ? '1' : '0');
+  if (autoLoad) zippyNasStorageSet('zippy_nas_auto_load', autoLoad.checked ? '1' : '0');
   if (project) zippyNasStorageSet('zippy_nas_project', project.value.trim());
   if (token) zippyNasStorageSet('zippy_nas_token', token.value.trim());
-  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
+  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : (zippyNasAutoLoadEnabled() ? '자동 불러오기 켜짐' : '자동 저장 꺼짐'), zippyNasEnabled() || zippyNasAutoLoadEnabled());
 }
 function zippyNasInit() {
   const url = document.getElementById('nasBridgeUrl');
   const auto = document.getElementById('nasAutoSync');
+  const autoLoad = document.getElementById('nasAutoLoad');
   const project = document.getElementById('nasProjectSlug');
   const token = document.getElementById('nasBridgeToken');
   if (url) url.value = zippyNasUrl();
   if (auto) auto.checked = zippyNasEnabled();
+  if (autoLoad) autoLoad.checked = zippyNasAutoLoadEnabled();
   if (project) project.value = zippyNasStorageGet('zippy_nas_project', '');
   if (token) token.value = zippyNasToken();
-  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : '자동 저장 꺼짐', zippyNasEnabled());
+  zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : (zippyNasAutoLoadEnabled() ? '자동 불러오기 켜짐' : '자동 저장 꺼짐'), zippyNasEnabled() || zippyNasAutoLoadEnabled());
   if (zippyNasEnabled()) setTimeout(zippyNasCheck, 300);
+  if (zippyNasAutoLoadEnabled()) zippyNasScheduleAutoLoad('init');
+}
+const zippyNasAutoLoadAttempts = {};
+function zippyNasAutoLoadKey() {
+  return zippyNasProjectSlug();
+}
+function zippyNasScheduleAutoLoad(reason) {
+  if (!zippyNasAutoLoadEnabled()) return;
+  if (!currentProject || !currentProject.hasStoryboard) return;
+  const key = zippyNasAutoLoadKey();
+  if (zippyNasAutoLoadAttempts[key]) return;
+  zippyNasAutoLoadAttempts[key] = 'scheduled';
+  setTimeout(function() { zippyNasAutoLoadStoryboard(reason || 'auto'); }, 650);
+}
+async function zippyNasAutoLoadStoryboard(reason) {
+  if (!zippyNasAutoLoadEnabled()) return {ok: false, skipped: true};
+  if (!currentProject || !currentProject.hasStoryboard) return {ok: false, skipped: true};
+  const key = zippyNasAutoLoadKey();
+  if (zippyNasAutoLoadAttempts[key] === 'running' || zippyNasAutoLoadAttempts[key] === 'done') return {ok: true, skipped: true};
+  zippyNasAutoLoadAttempts[key] = 'running';
+  zippyNasSetProgress('자동 불러오기 준비 · 5컷씩', true);
+  const result = await zippyNasLoadStoryboardNow({silent: true, auto: true, batchSize: 5, reason: reason || 'auto'});
+  zippyNasAutoLoadAttempts[key] = result && result.ok ? 'done' : 'failed';
+  return result;
 }
 function zippyNasBaseMeta(extra) {
   let projectName = '';
@@ -19690,6 +19732,79 @@ function zippyNasImportedB64(value) {
   if (value && typeof value.b64 === 'string') return value.b64.replace(/^data:[^,]+,/, '');
   return '';
 }
+function zippyNasNormalizeShotId(value) {
+  return String(value == null ? '' : value).trim();
+}
+function zippyNasResolveStoryboardShotId(value) {
+  const raw = zippyNasNormalizeShotId(value);
+  if (!raw) return raw;
+  try {
+    if (typeof SB_SHOTS === 'undefined' || !Array.isArray(SB_SHOTS)) return raw;
+    const exact = SB_SHOTS.find(function(s) { return s && s.id === raw; });
+    if (exact) return exact.id;
+    const lower = raw.toLowerCase();
+    const ci = SB_SHOTS.find(function(s) { return s && String(s.id || '').toLowerCase() === lower; });
+    if (ci) return ci.id;
+    if (/^\d+$/.test(raw)) {
+      const idx = parseInt(raw, 10);
+      if (SB_SHOTS[idx] && SB_SHOTS[idx].id) return SB_SHOTS[idx].id;
+      if (idx > 0 && SB_SHOTS[idx - 1] && SB_SHOTS[idx - 1].id) return SB_SHOTS[idx - 1].id;
+    }
+  } catch(e) {}
+  return raw;
+}
+function zippyNasShotForResolvedId(shotId) {
+  try {
+    if (typeof SB_SHOTS === 'undefined' || !Array.isArray(SB_SHOTS)) return null;
+    return SB_SHOTS.find(function(s) { return s && s.id === shotId; }) || null;
+  } catch(e) {
+    return null;
+  }
+}
+function zippyNasImportedShotEp(shotId) {
+  const shot = zippyNasShotForResolvedId(shotId);
+  if (!shot) return null;
+  if (typeof shot.ep !== 'undefined') return Number(shot.ep);
+  if (typeof shot.scene !== 'undefined') return Number(shot.scene);
+  return null;
+}
+function zippyNasShowImportedEpisode(epNum) {
+  if (!Number.isFinite(epNum) || epNum === 0) return;
+  try {
+    if (typeof findSBEpChip !== 'function' || typeof filterSBEp !== 'function') return;
+    const btn = findSBEpChip(epNum);
+    if (btn) filterSBEp(epNum, btn);
+  } catch(e) {}
+}
+function zippyNasCurrentStoryboardImageIds(includeLocalDeletes) {
+  const ids = {};
+  try {
+    Object.keys(sbGenImages || {}).forEach(function(id) {
+      if (sbGenImages[id]) ids[zippyNasResolveStoryboardShotId(id)] = true;
+    });
+    if (includeLocalDeletes && typeof sbLocalDeletedImages !== 'undefined') {
+      Object.keys(sbLocalDeletedImages || {}).forEach(function(id) {
+        if (sbLocalDeletedImages[id]) ids[zippyNasResolveStoryboardShotId(id)] = true;
+      });
+    }
+  } catch(e) {}
+  return Object.keys(ids);
+}
+function zippyNasCurrentStoryboardSequenceIds(includeLocalDeletes) {
+  const ids = {};
+  try {
+    Object.keys(sbSeqImages || {}).forEach(function(id) {
+      const arr = sbSeqImages[id];
+      if (Array.isArray(arr) && arr.filter(Boolean).length) ids[zippyNasResolveStoryboardShotId(id)] = true;
+    });
+    if (includeLocalDeletes && typeof sbLocalDeletedImages !== 'undefined') {
+      Object.keys(sbLocalDeletedImages || {}).forEach(function(id) {
+        if (sbLocalDeletedImages[id]) ids[zippyNasResolveStoryboardShotId(id)] = true;
+      });
+    }
+  } catch(e) {}
+  return Object.keys(ids);
+}
 function zippyNasApplySnapshotState(snap) {
   if (!snap || typeof snap !== 'object') return;
   if (typeof sbCameraPositions !== 'undefined' && snap.cameraPositions) {
@@ -19705,7 +19820,8 @@ function zippyNasApplySnapshotState(snap) {
     });
   }
 }
-async function zippyNasApplyStoryboardLoad(data) {
+async function zippyNasApplyStoryboardLoad(data, opts) {
+  const options = opts || {};
   const state = data && data.state;
   const snap = (state && state.snapshot) || (data && data.snapshot) || null;
   zippyNasApplySnapshotState(snap);
@@ -19715,12 +19831,19 @@ async function zippyNasApplyStoryboardLoad(data) {
   let historySaved = 0;
   const images = (data && data.images) || {};
   const imageIds = Object.keys(images);
+  let importedEp = null;
   for (let idx = 0; idx < imageIds.length; idx++) {
     const id = imageIds[idx];
     const b64 = zippyNasImportedB64(images[id]);
     if (!b64) continue;
-    sbGenImages[id] = b64;
-    const record = await saveStoryboardFrameToHistory(id, b64, 0, 'nas-import');
+    const shotId = zippyNasResolveStoryboardShotId(id);
+    if (options.respectLocalDeletes && typeof sbLocalDeletedImages !== 'undefined' && sbLocalDeletedImages[shotId]) continue;
+    if (options.skipExisting && sbGenImages[shotId]) continue;
+    if (!options.respectLocalDeletes && typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
+    sbGenImages[shotId] = b64;
+    if (shotId !== id) delete sbGenImages[id];
+    if (importedEp == null) importedEp = zippyNasImportedShotEp(shotId);
+    const record = await saveStoryboardFrameToHistory(shotId, b64, 0, 'nas-import');
     if (record) historySaved++;
     imageCount++;
   }
@@ -19728,12 +19851,19 @@ async function zippyNasApplyStoryboardLoad(data) {
   const seqImages = (data && data.seqImages) || {};
   const seqShotIds = Object.keys(seqImages);
   for (let s = 0; s < seqShotIds.length; s++) {
-    const shotId = seqShotIds[s];
-    const arr = Array.isArray(seqImages[shotId]) ? seqImages[shotId] : [];
+    const rawShotId = seqShotIds[s];
+    const shotId = zippyNasResolveStoryboardShotId(rawShotId);
+    if (options.respectLocalDeletes && typeof sbLocalDeletedImages !== 'undefined' && sbLocalDeletedImages[shotId]) continue;
+    if (options.skipExisting && sbSeqImages[shotId] && Array.isArray(sbSeqImages[shotId]) && sbSeqImages[shotId].filter(Boolean).length) continue;
+    if (!options.respectLocalDeletes && typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
+    const arr = Array.isArray(seqImages[rawShotId]) ? seqImages[rawShotId] : [];
     const cleaned = arr.map(zippyNasImportedB64).filter(Boolean);
     if (!cleaned.length) continue;
     sbSeqImages[shotId] = cleaned;
+    if (shotId !== rawShotId) delete sbSeqImages[rawShotId];
     if (!sbGenImages[shotId]) sbGenImages[shotId] = cleaned[0];
+    if (shotId !== rawShotId) delete sbGenImages[rawShotId];
+    if (importedEp == null) importedEp = zippyNasImportedShotEp(shotId);
     for (let i = 0; i < cleaned.length; i++) {
       const record = await saveStoryboardFrameToHistory(shotId, cleaned[i], i + 1, 'nas-import');
       if (record) historySaved++;
@@ -19742,20 +19872,24 @@ async function zippyNasApplyStoryboardLoad(data) {
   }
 
   if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  zippyNasShowImportedEpisode(importedEp);
   if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
   if (typeof refreshHistory === 'function') refreshHistory();
-  saveStoryboardState('nas-import');
+  saveStoryboardState('nas-import', {localOnly: true});
   return {images: imageCount, sequenceFrames: sequenceFrameCount, historySaved: historySaved};
 }
 async function zippyNasLoadStoryboardNow(opts) {
   const options = opts || {};
   zippyNasSaveSettings();
   try {
-    zippyNasSetStatus('가져오기 준비 중', true);
+    const label = options.auto ? '자동 불러오기' : '가져오기';
+    const batchSize = Math.max(1, Math.min(24, Number(options.batchSize || (options.auto ? 5 : 8)) || 5));
+    const missingOnly = options.missingOnly !== false;
+    zippyNasSetStatus(label + ' 준비 중', true);
+    zippyNasSetProgress(label + ' 준비 · 없는 컷만 · ' + batchSize + '컷씩', true);
     const connected = await zippyNasCheck();
     if (!connected) throw new Error('NAS bridge 연결 실패');
     const project = zippyNasProjectSlug();
-    const batchSize = 8;
     let imageOffset = 0;
     let sequenceOffset = 0;
     let totalImages = null;
@@ -19764,16 +19898,22 @@ async function zippyNasLoadStoryboardNow(opts) {
     const totals = {images: 0, sequenceFrames: 0, historySaved: 0};
 
     for (let guard = 0; guard < 200; guard++) {
+      const excludeLocalDeletes = !!options.auto;
+      const requestImageOffset = missingOnly ? 0 : imageOffset;
+      const requestSequenceOffset = missingOnly ? 0 : sequenceOffset;
       const data = await zippyNasPost('/load-storyboard', {
         project: project,
-        imageOffset: imageOffset,
+        imageOffset: requestImageOffset,
         imageLimit: batchSize,
-        sequenceOffset: sequenceOffset,
-        sequenceLimit: batchSize
+        sequenceOffset: requestSequenceOffset,
+        sequenceLimit: batchSize,
+        missingOnly: missingOnly,
+        excludeImageIds: missingOnly ? zippyNasCurrentStoryboardImageIds(excludeLocalDeletes) : [],
+        excludeSequenceShotIds: missingOnly ? zippyNasCurrentStoryboardSequenceIds(excludeLocalDeletes) : []
       }, true);
       lastData = data;
       const paging = (data && data.paging) || {};
-      const counts = await zippyNasApplyStoryboardLoad(data || {});
+      const counts = await zippyNasApplyStoryboardLoad(data || {}, {respectLocalDeletes: !!options.auto, skipExisting: missingOnly});
       totals.images += counts.images || 0;
       totals.sequenceFrames += counts.sequenceFrames || 0;
       totals.historySaved += counts.historySaved || 0;
@@ -19783,20 +19923,31 @@ async function zippyNasLoadStoryboardNow(opts) {
       totalImages = Number(paging.totalImages != null ? paging.totalImages : totals.images) || totals.images;
       totalSequenceFrames = Number(paging.totalSequenceFrames != null ? paging.totalSequenceFrames : totals.sequenceFrames) || totals.sequenceFrames;
 
-      imageOffset += returnedImages;
-      sequenceOffset += returnedSequenceFrames;
-      const imageDone = imageOffset >= totalImages;
-      const sequenceDone = sequenceOffset >= totalSequenceFrames;
-      zippyNasSetStatus('가져오는 중 · ' + Math.min(imageOffset, totalImages) + '/' + totalImages + '컷 / 흐름 ' + Math.min(sequenceOffset, totalSequenceFrames) + '/' + totalSequenceFrames, true);
-      if (imageDone && sequenceDone) break;
+      if (missingOnly) {
+        const remainingImages = Math.max(0, totalImages - returnedImages);
+        const remainingSeq = Math.max(0, totalSequenceFrames - returnedSequenceFrames);
+        zippyNasSetStatus('없는 컷 가져오는 중 · +' + totals.images + '컷 / 흐름 +' + totals.sequenceFrames, true);
+        zippyNasSetProgress(label + ' · 새로 ' + totals.images + '컷 · 남은 ' + remainingImages + '컷 · 흐름 남은 ' + remainingSeq, true);
+        if ((!returnedImages && !returnedSequenceFrames) || (returnedImages < batchSize && returnedSequenceFrames < batchSize) || (!counts.images && !counts.sequenceFrames)) break;
+      } else {
+        imageOffset += returnedImages;
+        sequenceOffset += returnedSequenceFrames;
+        const imageDone = imageOffset >= totalImages;
+        const sequenceDone = sequenceOffset >= totalSequenceFrames;
+        zippyNasSetStatus('가져오는 중 · ' + Math.min(imageOffset, totalImages) + '/' + totalImages + '컷 / 흐름 ' + Math.min(sequenceOffset, totalSequenceFrames) + '/' + totalSequenceFrames, true);
+        zippyNasSetProgress(label + ' · ' + Math.min(imageOffset, totalImages) + '/' + totalImages + '컷 · 흐름 ' + Math.min(sequenceOffset, totalSequenceFrames) + '/' + totalSequenceFrames, true);
+        if (imageDone && sequenceDone) break;
+      }
       if (!returnedImages && !returnedSequenceFrames) break;
     }
 
     const histText = totals.historySaved ? (' · 히스토리 ' + totals.historySaved + '컷') : '';
     zippyNasSetStatus('가져오기 완료 · ' + totals.images + '컷 / 흐름 ' + totals.sequenceFrames + '프레임' + histText, true);
+    zippyNasSetProgress(label + ' 완료 · 새로 ' + totals.images + '컷', true);
     return {ok: true, counts: totals, data: lastData};
   } catch(e) {
     zippyNasSetStatus('가져오기 실패', false);
+    zippyNasSetProgress((options.auto ? '자동 불러오기' : '가져오기') + ' 실패', false);
     console.warn('NAS storyboard load failed:', e);
     if (!options.silent) alert('NAS 가져오기 실패: ' + (e && e.message ? e.message : e));
     return {ok: false, error: e};
@@ -19806,6 +19957,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
 
 const sbGenImages = {};
 const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
+const sbLocalDeletedImages = {};
 const SB_STATE_DB_VER = 1;
 const SB_STATE_STORE = 'state';
 let sbStateDB = null;
@@ -19859,6 +20011,7 @@ function sbStoryboardSnapshot() {
   return {
     genImages: sbPlainMap(sbGenImages),
     seqImages: sbPlainMap(sbSeqImages),
+    localDeletedImages: sbPlainMap(sbLocalDeletedImages),
     cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
     cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
     shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
@@ -19936,7 +20089,8 @@ async function syncStoryboardToHistory(opts) {
     if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에 저장'; }
   }
 }
-async function saveStoryboardState(reason) {
+async function saveStoryboardState(reason, opts) {
+  const options = opts || {};
   try {
     const db = await openSBStateDB();
     const tx = db.transaction(SB_STATE_STORE, 'readwrite');
@@ -19948,7 +20102,7 @@ async function saveStoryboardState(reason) {
         snapshot: snapshot
       };
     tx.objectStore(SB_STATE_STORE).put(payload);
-    zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason || ''});
+    if (!options.localOnly) zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason || ''});
   } catch(e) {
     console.warn('Storyboard state save failed:', e);
   }
@@ -19967,6 +20121,8 @@ async function restoreStoryboardState() {
     Object.assign(sbGenImages, snap.genImages || {});
     Object.keys(sbSeqImages).forEach(function(k) { delete sbSeqImages[k]; });
     Object.assign(sbSeqImages, snap.seqImages || {});
+    Object.keys(sbLocalDeletedImages).forEach(function(k) { delete sbLocalDeletedImages[k]; });
+    Object.assign(sbLocalDeletedImages, snap.localDeletedImages || {});
     if (typeof sbCameraPositions !== 'undefined') {
       Object.keys(sbCameraPositions).forEach(function(k) { delete sbCameraPositions[k]; });
       Object.assign(sbCameraPositions, snap.cameraPositions || {});
@@ -20046,10 +20202,17 @@ OUTPUT: A single Korean paragraph (3-5 sentences, max 250 characters) that anoth
 
 function deleteSBImage(shotId) {
   if (!confirm('이 쇼트의 생성된 컷 이미지를 삭제할까요?')) return;
-  delete sbGenImages[shotId];
-  if (typeof sbSeqImages !== 'undefined') delete sbSeqImages[shotId];
+  const resolvedId = (typeof zippyNasResolveStoryboardShotId === 'function') ? zippyNasResolveStoryboardShotId(shotId) : shotId;
+  delete sbGenImages[resolvedId];
+  if (resolvedId !== shotId) delete sbGenImages[shotId];
+  if (typeof sbLocalDeletedImages !== 'undefined') sbLocalDeletedImages[resolvedId] = new Date().toISOString();
+  if (typeof sbSeqImages !== 'undefined') {
+    delete sbSeqImages[resolvedId];
+    if (resolvedId !== shotId) delete sbSeqImages[shotId];
+  }
   buildStoryboardTimeline();
-  saveStoryboardState('shot-image-deleted');
+  saveStoryboardState('shot-image-deleted-local', {localOnly: true});
+  if (typeof zippyNasSetStatus === 'function') zippyNasSetStatus('로컬에서 삭제됨 · NAS 원본 유지', true);
 }
 
 function deleteSBSeqFrame(shotId, idx) {
@@ -20063,9 +20226,11 @@ function deleteSBSeqFrame(shotId, idx) {
   } else {
     delete sbSeqImages[shotId];
     delete sbGenImages[shotId];
+    if (typeof sbLocalDeletedImages !== 'undefined') sbLocalDeletedImages[shotId] = new Date().toISOString();
   }
   buildStoryboardTimeline();
-  saveStoryboardState('sequence-frame-deleted');
+  saveStoryboardState('sequence-frame-deleted-local', {localOnly: true});
+  if (typeof zippyNasSetStatus === 'function') zippyNasSetStatus('로컬에서 삭제됨 · NAS 원본 유지', true);
 }
 
 function sbQuoteAttr(v) {
@@ -20110,7 +20275,7 @@ function renderShotCard(shot, sceneVal) {
     html += seq3up(imgKey);
   } else if (hasImg) {
     html += `<img class="sb-shot-img" src="data:image/png;base64,${hasImg}" onclick="openSBLightbox('${imgKey}')">`;
-    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
+    html += `<div class="refine-wrap" data-imgb64="${hasImg}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="이 컴퓨터에서만 삭제 · NAS 원본 유지">삭제</button></div></div>`;
   } else {
     html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
     html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
@@ -25493,7 +25658,7 @@ function goStep(n){
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
-  if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); }
+  if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); if (typeof zippyNasScheduleAutoLoad === 'function') zippyNasScheduleAutoLoad('storyboard-tab'); }
   if(n==='premiere') premiereRenderItems();
   if(n==='hist') refreshHistory();
 }

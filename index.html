@@ -979,6 +979,8 @@ input[type=file]{display:none}
     <span id="nasBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
     <span id="nasBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
     <button class="btn bgh bsm" onclick="zippyNasCheck()" style="font-size:11px;padding:3px 10px">연결 확인</button>
+    <button class="btn bgh bsm" onclick="zippyNasSyncStoryboardNow()" style="font-size:11px;padding:3px 10px">현재 컷 보내기</button>
+    <button class="btn bgh bsm" onclick="zippyNasLoadStoryboardNow()" style="font-size:11px;padding:3px 10px">NAS에서 가져오기</button>
   </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
@@ -19578,8 +19580,8 @@ async function zippyNasCheck() {
     return false;
   }
 }
-async function zippyNasPost(endpoint, payload) {
-  if (!zippyNasEnabled()) return null;
+async function zippyNasPost(endpoint, payload, force) {
+  if (!force && !zippyNasEnabled()) return null;
   const headers = {'Content-Type': 'application/json'};
   const token = zippyNasToken();
   if (token) headers['X-Zippy-NAS-Token'] = token;
@@ -19589,32 +19591,181 @@ async function zippyNasPost(endpoint, payload) {
   zippyNasSetStatus('저장됨 · ' + (payload.kind || payload.type || 'file'), true);
   return data;
 }
-function zippyNasSaveImage(kind, id, b64, mime, meta) {
-  if (!b64 || !zippyNasEnabled()) return;
-  zippyNasPost('/save-image', {
+function zippyNasSaveImage(kind, id, b64, mime, meta, opts) {
+  const force = !!(opts && opts.force);
+  if (!b64 || (!force && !zippyNasEnabled())) return;
+  return zippyNasPost('/save-image', {
     project: zippyNasProjectSlug(),
     kind: zippyNasSafePart(kind, 'image'),
     id: zippyNasSafePart(id, 'image'),
     mime: mime || 'image/png',
     b64: b64,
     meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
-  }).catch(function(e) {
+  }, force).catch(function(e) {
     zippyNasSetStatus('저장 실패', false);
     console.warn('NAS image save failed:', e);
+    if (force) throw e;
   });
 }
-function zippyNasSaveJson(kind, id, data, meta) {
-  if (!zippyNasEnabled()) return;
-  zippyNasPost('/save-json', {
+function zippyNasSaveJson(kind, id, data, meta, opts) {
+  const force = !!(opts && opts.force);
+  if (!force && !zippyNasEnabled()) return;
+  return zippyNasPost('/save-json', {
     project: zippyNasProjectSlug(),
     kind: zippyNasSafePart(kind, 'state'),
     id: zippyNasSafePart(id, 'state'),
     data: zippyNasStripB64(data, 0),
     meta: zippyNasBaseMeta(zippyNasStripB64(meta || {}, 0))
-  }).catch(function(e) {
+  }, force).catch(function(e) {
     zippyNasSetStatus('저장 실패', false);
     console.warn('NAS JSON save failed:', e);
+    if (force) throw e;
   });
+}
+function zippyNasStoryboardShot(id) {
+  try {
+    if (typeof SB_SHOTS !== 'undefined') return SB_SHOTS.find(function(s) { return s && s.id === id; }) || null;
+  } catch(e) {}
+  return null;
+}
+async function zippyNasSyncStoryboardNow(opts) {
+  const options = opts || {};
+  zippyNasSaveSettings();
+  try {
+    if (typeof restoreStoryboardState === 'function' && typeof sbStateRestored !== 'undefined' && !sbStateRestored) {
+      sbStateRestored = true;
+      await restoreStoryboardState();
+    }
+    zippyNasSetStatus('동기화 준비 중', true);
+    const connected = await zippyNasCheck();
+    if (!connected) throw new Error('NAS bridge 연결 실패');
+
+    const snapshot = (typeof sbStoryboardSnapshot === 'function') ? sbStoryboardSnapshot() : {
+      genImages: (typeof sbGenImages !== 'undefined') ? sbPlainMap(sbGenImages) : {},
+      seqImages: (typeof sbSeqImages !== 'undefined') ? sbPlainMap(sbSeqImages) : {},
+      savedAt: new Date().toISOString()
+    };
+    const reason = options.reason || 'manual-sync';
+    const payload = {
+      key: 'current',
+      reason: reason,
+      savedAt: new Date().toISOString(),
+      snapshot: snapshot
+    };
+    await zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason}, {force: true});
+
+    const images = [];
+    if (typeof sbGenImages !== 'undefined') {
+      Object.keys(sbGenImages || {}).sort().forEach(function(id) {
+        if (!sbGenImages[id]) return;
+        images.push({
+          kind: 'storyboard',
+          id: id,
+          b64: sbGenImages[id],
+          meta: {shotId: id, shot: zippyNasStoryboardShot(id), reason: reason}
+        });
+      });
+    }
+    if (typeof sbSeqImages !== 'undefined') {
+      Object.keys(sbSeqImages || {}).sort().forEach(function(shotId) {
+        const seq = sbSeqImages[shotId];
+        if (!Array.isArray(seq)) return;
+        seq.forEach(function(b64, i) {
+          if (!b64) return;
+          images.push({
+            kind: 'storyboard_sequence',
+            id: shotId + '_frame_' + (i + 1),
+            b64: b64,
+            meta: {shotId: shotId, frameIndex: i + 1, shot: zippyNasStoryboardShot(shotId), reason: reason}
+          });
+        });
+      });
+    }
+
+    for (let i = 0; i < images.length; i++) {
+      const item = images[i];
+      zippyNasSetStatus('동기화 ' + (i + 1) + '/' + images.length, true);
+      await zippyNasSaveImage(item.kind, item.id, item.b64, 'image/png', item.meta, {force: true});
+    }
+    zippyNasSetStatus(images.length ? ('동기화 완료 · ' + images.length + '컷') : '상태 저장 완료', true);
+    return {ok: true, images: images.length};
+  } catch(e) {
+    zippyNasSetStatus('동기화 실패', false);
+    console.warn('NAS storyboard sync failed:', e);
+    if (!options.silent) alert('NAS 동기화 실패: ' + (e && e.message ? e.message : e));
+    return {ok: false, error: e};
+  }
+}
+function zippyNasImportedB64(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value.replace(/^data:[^,]+,/, '');
+  if (value && typeof value.b64 === 'string') return value.b64.replace(/^data:[^,]+,/, '');
+  return '';
+}
+function zippyNasApplySnapshotState(snap) {
+  if (!snap || typeof snap !== 'object') return;
+  if (typeof sbCameraPositions !== 'undefined' && snap.cameraPositions) {
+    Object.assign(sbCameraPositions, snap.cameraPositions || {});
+  }
+  if (typeof sbCameraControls !== 'undefined' && snap.cameraControls) {
+    Object.assign(sbCameraControls, snap.cameraControls || {});
+  }
+  if (typeof SB_SHOTS !== 'undefined' && Array.isArray(snap.shotLocations)) {
+    snap.shotLocations.forEach(function(item) {
+      const shot = SB_SHOTS.find(function(s) { return s && s.id === item.id; });
+      if (shot) shot.loc = item.loc || '';
+    });
+  }
+}
+function zippyNasApplyStoryboardLoad(data) {
+  const state = data && data.state;
+  const snap = (state && state.snapshot) || (data && data.snapshot) || null;
+  zippyNasApplySnapshotState(snap);
+
+  let imageCount = 0;
+  let sequenceFrameCount = 0;
+  const images = (data && data.images) || {};
+  Object.keys(images).forEach(function(id) {
+    const b64 = zippyNasImportedB64(images[id]);
+    if (!b64) return;
+    sbGenImages[id] = b64;
+    imageCount++;
+  });
+
+  const seqImages = (data && data.seqImages) || {};
+  Object.keys(seqImages).forEach(function(shotId) {
+    const arr = Array.isArray(seqImages[shotId]) ? seqImages[shotId] : [];
+    const cleaned = arr.map(zippyNasImportedB64).filter(Boolean);
+    if (!cleaned.length) return;
+    sbSeqImages[shotId] = cleaned;
+    if (!sbGenImages[shotId]) sbGenImages[shotId] = cleaned[0];
+    sequenceFrameCount += cleaned.length;
+  });
+
+  if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
+  saveStoryboardState('nas-import');
+  return {images: imageCount, sequenceFrames: sequenceFrameCount};
+}
+async function zippyNasLoadStoryboardNow(opts) {
+  const options = opts || {};
+  zippyNasSaveSettings();
+  try {
+    zippyNasSetStatus('가져오기 준비 중', true);
+    const connected = await zippyNasCheck();
+    if (!connected) throw new Error('NAS bridge 연결 실패');
+    const data = await zippyNasPost('/load-storyboard', {
+      project: zippyNasProjectSlug()
+    }, true);
+    const counts = zippyNasApplyStoryboardLoad(data || {});
+    zippyNasSetStatus('가져오기 완료 · ' + counts.images + '컷 / 흐름 ' + counts.sequenceFrames + '프레임', true);
+    return {ok: true, counts: counts, data: data};
+  } catch(e) {
+    zippyNasSetStatus('가져오기 실패', false);
+    console.warn('NAS storyboard load failed:', e);
+    if (!options.silent) alert('NAS 가져오기 실패: ' + (e && e.message ? e.message : e));
+    return {ok: false, error: e};
+  }
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
 

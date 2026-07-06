@@ -19718,39 +19718,47 @@ function zippyNasApplySnapshotState(snap) {
     });
   }
 }
-function zippyNasApplyStoryboardLoad(data) {
+async function zippyNasApplyStoryboardLoad(data) {
   const state = data && data.state;
   const snap = (state && state.snapshot) || (data && data.snapshot) || null;
   zippyNasApplySnapshotState(snap);
 
   let imageCount = 0;
   let sequenceFrameCount = 0;
+  let historySaved = 0;
   const images = (data && data.images) || {};
-  Object.keys(images).forEach(function(id) {
+  const imageIds = Object.keys(images);
+  for (let idx = 0; idx < imageIds.length; idx++) {
+    const id = imageIds[idx];
     const b64 = zippyNasImportedB64(images[id]);
-    if (!b64) return;
+    if (!b64) continue;
     sbGenImages[id] = b64;
-    saveStoryboardFrameToHistory(id, b64, 0, 'nas-import');
+    const record = await saveStoryboardFrameToHistory(id, b64, 0, 'nas-import');
+    if (record) historySaved++;
     imageCount++;
-  });
+  }
 
   const seqImages = (data && data.seqImages) || {};
-  Object.keys(seqImages).forEach(function(shotId) {
+  const seqShotIds = Object.keys(seqImages);
+  for (let s = 0; s < seqShotIds.length; s++) {
+    const shotId = seqShotIds[s];
     const arr = Array.isArray(seqImages[shotId]) ? seqImages[shotId] : [];
     const cleaned = arr.map(zippyNasImportedB64).filter(Boolean);
-    if (!cleaned.length) return;
+    if (!cleaned.length) continue;
     sbSeqImages[shotId] = cleaned;
     if (!sbGenImages[shotId]) sbGenImages[shotId] = cleaned[0];
-    cleaned.forEach(function(b64, i) {
-      saveStoryboardFrameToHistory(shotId, b64, i + 1, 'nas-import');
-    });
+    for (let i = 0; i < cleaned.length; i++) {
+      const record = await saveStoryboardFrameToHistory(shotId, cleaned[i], i + 1, 'nas-import');
+      if (record) historySaved++;
+    }
     sequenceFrameCount += cleaned.length;
-  });
+  }
 
   if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
   if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
+  if (typeof refreshHistory === 'function') refreshHistory();
   saveStoryboardState('nas-import');
-  return {images: imageCount, sequenceFrames: sequenceFrameCount};
+  return {images: imageCount, sequenceFrames: sequenceFrameCount, historySaved: historySaved};
 }
 async function zippyNasLoadStoryboardNow(opts) {
   const options = opts || {};
@@ -19762,8 +19770,9 @@ async function zippyNasLoadStoryboardNow(opts) {
     const data = await zippyNasPost('/load-storyboard', {
       project: zippyNasProjectSlug()
     }, true);
-    const counts = zippyNasApplyStoryboardLoad(data || {});
-    zippyNasSetStatus('가져오기 완료 · ' + counts.images + '컷 / 흐름 ' + counts.sequenceFrames + '프레임', true);
+    const counts = await zippyNasApplyStoryboardLoad(data || {});
+    const histText = counts.historySaved ? (' · 히스토리 ' + counts.historySaved + '컷') : '';
+    zippyNasSetStatus('가져오기 완료 · ' + counts.images + '컷 / 흐름 ' + counts.sequenceFrames + '프레임' + histText, true);
     return {ok: true, counts: counts, data: data};
   } catch(e) {
     zippyNasSetStatus('가져오기 실패', false);
@@ -23044,7 +23053,7 @@ CRITICAL RULES:
 /* ═══ HISTORY GALLERY (IndexedDB) ═══ */
 const HIST_DB_NAME_BASE = 'studioZIPPY';
 function getHistDBName() { return HIST_DB_NAME_BASE + '_' + (currentProjectKey || 'default') + '_History'; }
-const HIST_DB_VER = 1;
+const HIST_DB_VER = 2;
 const HIST_STORE = 'images';
 let histDB = null;
 let histModalData = null;
@@ -23059,9 +23068,22 @@ function openHistDB() {
         const store = db.createObjectStore(HIST_STORE, {keyPath:'id',autoIncrement:true});
         store.createIndex('date','date');
         store.createIndex('step','step');
+        store.createIndex('dedupeKey','dedupeKey', {unique:false});
+      } else {
+        const store = e.target.transaction.objectStore(HIST_STORE);
+        if (!store.indexNames.contains('date')) store.createIndex('date','date');
+        if (!store.indexNames.contains('step')) store.createIndex('step','step');
+        if (!store.indexNames.contains('dedupeKey')) store.createIndex('dedupeKey','dedupeKey', {unique:false});
       }
     };
-    req.onsuccess = e => { histDB = e.target.result; resolve(histDB); };
+    req.onsuccess = e => {
+      histDB = e.target.result;
+      histDB.onversionchange = function() {
+        try { histDB.close(); } catch(err) {}
+        histDB = null;
+      };
+      resolve(histDB);
+    };
     req.onerror = e => reject(e.target.error);
   });
 }
@@ -23074,8 +23096,12 @@ async function saveToHistory(imgB64, step, desc) {
     if (dedupeKey) {
       const exists = await new Promise(resolve => {
         const tx = db.transaction(HIST_STORE, 'readonly');
-        const req = tx.objectStore(HIST_STORE).getAll();
-        req.onsuccess = () => resolve((req.result || []).some(function(item) { return item && item.dedupeKey === dedupeKey; }));
+        const store = tx.objectStore(HIST_STORE);
+        const req = store.indexNames.contains('dedupeKey') ? store.index('dedupeKey').get(dedupeKey) : store.getAll();
+        req.onsuccess = () => {
+          if (Array.isArray(req.result)) resolve((req.result || []).some(function(item) { return item && item.dedupeKey === dedupeKey; }));
+          else resolve(Boolean(req.result));
+        };
         req.onerror = () => resolve(false);
       });
       if (exists) return null;

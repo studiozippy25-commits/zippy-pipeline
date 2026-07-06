@@ -20719,10 +20719,22 @@ async function generateSBShot(shotId, _seq) {
   // Character DNA injection
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
-    Object.keys(currentProject.characterDNA).forEach(function(name) {
-      if (shot.desc && shot.desc.indexOf(name) !== -1) {
-        charDnaBlock += currentProject.characterDNA[name] + '\n';
+    const seenDnaLocks = {};
+    function addCharacterDna(rawName) {
+      if (!rawName) return;
+      const real = (typeof sbCharReal === 'function') ? sbCharReal(rawName) : rawName;
+      const base = String(real || rawName || '').split(/[\s(（]/)[0];
+      const dna = currentProject.characterDNA[real] || currentProject.characterDNA[rawName] || currentProject.characterDNA[base];
+      if (dna && !seenDnaLocks[dna]) {
+        charDnaBlock += dna + '\n';
+        seenDnaLocks[dna] = true;
       }
+    }
+    if (Array.isArray(shot.char) && shot.char.length) {
+      shot.char.forEach(addCharacterDna);
+    }
+    Object.keys(currentProject.characterDNA).forEach(function(name) {
+      if (shot.desc && shot.desc.indexOf(name) !== -1) addCharacterDna(name);
     });
   }
   // Emotional DNA
@@ -20741,10 +20753,10 @@ async function generateSBShot(shotId, _seq) {
   // BAENE Anatomy + ZIPPY DNA prompt
   const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : {summary: (shot.frame || ''), aperture: ''};
   const fStop = sbCam.aperture || '';
-  const hasCharRef = Object.keys(sbRefs).some(k => k.startsWith('char') && sbRefs[k]) || assetLib.char.length > 0;
-  const hasFaceRef = Object.keys(sbRefs).some(k => k.startsWith('face') && sbRefs[k]);
-  const hasObjRef = Object.keys(sbRefs).some(k => k.startsWith('obj') && sbRefs[k]);
-  const hasBgRef = Object.keys(sbRefs).some(k => k.startsWith('loc') && sbRefs[k]);
+  const hasCharRef = images.some(function(im){ return im._type === 'character'; });
+  const hasFaceRef = images.some(function(im){ return im._type === 'face'; });
+  const hasObjRef = images.some(function(im){ return im._type === 'prop'; });
+  const hasBgRef = images.some(function(im){ return im._type === 'background'; });
 
   // 의상 시트 없는 캐릭터 — 강제 텍스트 의상 락 (컷 간 통일성)
   let missingCostumeLock = '';
@@ -20828,17 +20840,37 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
   const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}
   if(!(_seq)) sbShowLoading(shotId, '생성 중...');
+  let _lastGenMeta = '';
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
-    const imgInputs = (imgMode === 'zimage') ? [] : [...images];
+    let imgInputs = (imgMode === 'zimage') ? [] : [...images];
     if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
+
+    const shotTextForRefs = [shot.id, shot.frame || '', shot.desc || '', shot.func || '', shot.time || '', shot.light || ''].join(' ');
+    const isTitleOrNoTextPlate = /타이틀용|무자막|텍스트 없음|글자|로고|title background|no readable text|no logo/i.test(shotTextForRefs);
+    const hasVisibleCharacters = Array.isArray(shot.char) && shot.char.length > 0;
+    if (imgMode === 'gpt' || imgMode === 'gptapi') {
+      if (!hasVisibleCharacters || isTitleOrNoTextPlate) {
+        const groundedRefs = imgInputs.filter(function(im){ return im._type === 'background' || im._type === 'prop'; });
+        if (groundedRefs.length > 0) imgInputs = groundedRefs.slice(0, 4);
+      } else if (imgInputs.length > 10) {
+        const faceRefs = imgInputs.filter(function(im){ return im._type === 'face'; }).slice(0, 4);
+        const charRefs = imgInputs.filter(function(im){ return im._type === 'character'; }).slice(0, 4);
+        const costumeRefs = imgInputs.filter(function(im){ return im._type === 'costume'; }).slice(0, 2);
+        const bgRefs = imgInputs.filter(function(im){ return im._type === 'background'; }).slice(0, 1);
+        const propRefs = imgInputs.filter(function(im){ return im._type === 'prop'; }).slice(0, 1);
+        imgInputs = [...faceRefs, ...charRefs, ...costumeRefs, ...bgRefs, ...propRefs].slice(0, 12);
+      }
+    }
+
     let _finalPrompt = prompt;
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
+    _lastGenMeta = 'refs ' + imgInputs.length + ' / prompt ' + _finalPrompt.length;
     const { imgB64 } = await callImageGen({
       images: imgInputs,
       prompt: _finalPrompt,
       resVal: '1K',
-      onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); }
+      onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg + ' · ' + _lastGenMeta; if(!(_seq)) sbShowLoading(shotId, msg + ' · ' + _lastGenMeta); }
     });
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
@@ -20848,7 +20880,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     buildStoryboardTimeline();
     saveStoryboardState('shot-generated');
   } catch(e) {
-    alert('Shot '+shotId+' 생성 실패: '+e.message);
+    alert('Shot '+shotId+' 생성 실패: '+e.message + (_lastGenMeta ? ' · ' + _lastGenMeta : ''));
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
     sbHideLoading(shotId);
   }
@@ -24370,7 +24402,7 @@ async function callGtiBridge({images=[], prompt, signal=null}) {
   if (images.some(im => im._type && im._label)) {
     manifestPrefix = 'REFERENCE IMAGES (in order):\n';
     images.forEach((im, idx) => {
-      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'costume' ? '\uC758\uC0C1 (Outfit)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
+      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'face' ? '\uC5BC\uAD74 (Face)' : im._type === 'costume' ? '\uC758\uC0C1 (Outfit)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
       manifestPrefix += `  ${idx+1}. ${t}: ${im._label || ''}\n`;
     });
     manifestPrefix += '\n';

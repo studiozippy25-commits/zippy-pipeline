@@ -1033,6 +1033,19 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="radio" name="imgMode" value="local" onchange="onImgModeChange()"> 🖥 Local (ComfyUI/5080)
+    </label>
+  </div>
+  <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
+    <span class="al" style="color:var(--pu);font-size:11px">ComfyUI</span>
+    <input id="comfyHost" value="http://127.0.0.1:8790/proxy/local5080" spellcheck="false" style="font-family:var(--font-mono);font-size:11px;width:250px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px" placeholder="ComfyUI/5080 host">
+    <button class="btn bgh bsm" onclick="checkComfy()" style="font-size:11px;padding:3px 8px">연결확인</button>
+    <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
+    <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
+    <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
   </div>
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
@@ -24989,6 +25002,9 @@ function onImgModeChange() {
   if (gptRow) gptRow.style.display = (mode === 'gpt' || mode === 'gptapi') ? '' : 'none';
   const gtiRow = document.getElementById('gtiBridgeRow');
   if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
+  const localRow = document.getElementById('localCfgRow');
+  if (localRow) localRow.style.display = (mode === 'local') ? '' : 'none';
+  try { if (mode === 'local' && typeof checkComfy === 'function') setTimeout(checkComfy, 50); } catch(e){}
 }
 function chkImgKey() {
   const mode = getImgMode();

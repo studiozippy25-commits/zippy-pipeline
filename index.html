@@ -19176,7 +19176,16 @@ function isProofOfTasteProject() {
   return currentProjectKey === 'proof-of-taste' || (currentProject && currentProject.name === '취향의 증거');
 }
 
-function compactProofOfTasteRefs(images, maxRefs) {
+function isProofOfTasteNoFaceDetailShot(shot) {
+  const text = ((shot && shot.frame) || '') + ' ' + ((shot && shot.desc) || '');
+  const upper = text.toUpperCase();
+  const detail = /ECU|CU|INS|INSERT|MACRO|클로즈업|인서트|초근접|매크로/.test(upper);
+  const tactile = /손|손가락|펜|카드|문구|QR|종이|메뉴|오디오|서랍|자물쇠|쇼카드|블로터|LP|그릇|반상|식재료|우산|문자|폰|발|발걸음|손잡이/.test(text);
+  const face = /얼굴|표정|눈|시선|미소|웃|입술|눈물|반응|상반신|바스트|초상|portrait|face/i.test(text);
+  return !!(detail && tactile && !face);
+}
+
+function compactProofOfTasteRefs(images, maxRefs, shot) {
   const limit = Math.max(1, maxRefs || 5);
   const buckets = {face:[], character:[], costume:[], background:[], prop:[], other:[]};
   const seen = {};
@@ -19189,10 +19198,17 @@ function compactProofOfTasteRefs(images, maxRefs) {
     buckets[t].push(img);
   });
   const picked = [];
+  const noFaceDetail = isProofOfTasteNoFaceDetailShot(shot);
   function take(type, cap) {
     (buckets[type] || []).slice(0, cap).forEach(function(img) {
       if (picked.length < limit) picked.push(img);
     });
+  }
+  if (noFaceDetail) {
+    take('prop', Math.min(2, limit));
+    take('background', 1);
+    take('other', 1);
+    return picked.slice(0, Math.min(limit, 3));
   }
   take('face', limit <= 3 ? 1 : 2);
   take('character', limit <= 4 ? 1 : 2);
@@ -19215,10 +19231,11 @@ function buildSBRefManifest(images) {
 }
 
 function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative) {
+  const noFaceDetail = isProofOfTasteNoFaceDetailShot(shot);
   return [
     'CINEMATIC STORYBOARD FRAME — Proof of Taste fallback render',
     'SHOT: ' + (shot.id || ''),
-    'FACE LOCK: if face reference sheets are provided, they are the only authority for facial identity. Do not copy faces from outfit, prop, food, place, or moodboard references.',
+    noFaceDetail ? 'NO FACE VISIBLE: this is a tactile insert/detail shot. Render only hands, object, and surface details. Do not show a face or invent a portrait.' : 'FACE LOCK: if face reference sheets are provided, they are the only authority for facial identity. Do not copy faces from outfit, prop, food, place, or moodboard references.',
     'CAMERA: ' + (sbCam && sbCam.summary ? sbCam.summary : (shot.frame || '')),
     'LOCATION: ' + (resolveShotLoc(shot) || preset.loc || ''),
     'TIME: ' + (shot.time || preset.time || ''),
@@ -20850,7 +20867,7 @@ async function generateSBShot(shotId, _seq) {
   let images = rawRefs.map(r => r.inline_data
     ? {b64: r.inline_data.data, mime: r.inline_data.mime_type, _type: r._type, _label: r._label}
     : r);
-  if (isProofOfTasteProject()) images = compactProofOfTasteRefs(images, 5);
+  if (isProofOfTasteProject()) images = compactProofOfTasteRefs(images, 5, shot);
   // Build reference manifest for prompt
   let refManifest = buildSBRefManifest(images);
   // Character DNA injection
@@ -20913,8 +20930,10 @@ async function generateSBShot(shotId, _seq) {
       lockedCostumes.join('\n') + '\n' +
       'These outfits MUST appear EXACTLY as described above. Do NOT improvise variations. Same fit, same color, same texture, same accessories across all shots.\n\n';
   }
+  const noFaceDetailShot = isProofOfTasteProject() && isProofOfTasteNoFaceDetailShot(shot);
+  const noFaceHeader = noFaceDetailShot ? 'NO FACE VISIBLE: This shot is a tactile insert/detail shot. Render only hands, the specified object, and surface details. Do NOT show a face, portrait, bust, or full body. Do NOT import facial features from any reference.\n' : '';
   const faceLockHeader = hasFaceRef ? 'FACE IDENTITY LOCK — ABSOLUTE: The provided FACE reference sheet(s) are the ONLY authority for facial identity: ' + faceRefLabels.join(', ') + '. Preserve the exact eyes, nose, mouth, jawline, cheekbone, hairline, skin texture, age, and Korean facial proportions. DO NOT borrow or blend faces from costume sheets, prop sheets, background sheets, moodboards, or any non-face reference. Costume references are clothing-only; background references are space-only. Render one natural camera angle from the face sheet, not a multi-angle collage.\n' : '';
-  const lockHeader = (hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '';
+  const lockHeader = noFaceHeader + ((hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '');
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, silhouette, worn physical markings). Do NOT invent or copy illegible text; if lettering is unclear, leave it blank, smudged, or unreadable as photographed material detail.\n' : '';
   // Moodboard safety guide — references may be 12-photo concept sheets
   const moodGuideHeader = (hasBgRef || images.length > 0) ?
@@ -20971,7 +20990,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
     if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
     if (isProofOfTasteProject() && imgMode !== 'zimage') {
-      imgInputs = compactProofOfTasteRefs(imgInputs, (_seq && _seq.cont && _seq.cont.length) ? 6 : 5);
+      imgInputs = compactProofOfTasteRefs(imgInputs, (_seq && _seq.cont && _seq.cont.length) ? 6 : 5, shot);
     }
     let _finalPrompt = prompt;
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
@@ -20986,7 +21005,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
       });
     } catch(firstError) {
       if (!isProofOfTasteProject()) throw firstError;
-      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 3);
+      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 3, shot);
       const retryPrompt = buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative);
       progress('PoT 안정화 재시도... refs ' + retryInputs.length);
       result = await callImageGen({

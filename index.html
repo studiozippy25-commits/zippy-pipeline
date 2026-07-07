@@ -1033,9 +1033,6 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
     </label>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="local" onchange="onImgModeChange()"> 🖥 Local (ComfyUI/5080)
-    </label>
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
@@ -25127,7 +25124,8 @@ function downloadRefineImg(btn) {
 /* ════════ IMAGE MODE + COMFYUI LOCAL ════════ */
 function getImgMode() {
   const r = document.querySelector('input[name="imgMode"]:checked');
-  return r ? r.value : 'cloud';
+  if (r && r.value === 'local') return 'gpt';
+  return r ? r.value : 'gpt';
 }
 function getComfyHost() {
   const el = document.getElementById('comfyHost');
@@ -25146,16 +25144,20 @@ function getLocalModel(type) {
   return 'zimage-turbo';
 }
 function onImgModeChange() {
-  try { if (getImgMode()==='gpt' && typeof checkGtiBridge==='function') setTimeout(checkGtiBridge,50); } catch(e){}
-  const mode = getImgMode();
+  let mode = getImgMode();
+  if (mode === 'local') {
+    const gpt = document.querySelector('input[name="imgMode"][value="gpt"]');
+    if (gpt) gpt.checked = true;
+    mode = 'gpt';
+  }
+  try { if (mode==='gpt' && typeof checkGtiBridge==='function') setTimeout(checkGtiBridge,50); } catch(e){}
   try { localStorage.setItem('zippy_img_mode', mode); } catch(e){}
   const gptRow = document.getElementById('gptModelRow');
   if (gptRow) gptRow.style.display = (mode === 'gpt' || mode === 'gptapi') ? '' : 'none';
   const gtiRow = document.getElementById('gtiBridgeRow');
   if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
   const localRow = document.getElementById('localCfgRow');
-  if (localRow) localRow.style.display = (mode === 'local') ? '' : 'none';
-  try { if (mode === 'local' && typeof checkComfy === 'function') setTimeout(checkComfy, 50); } catch(e){}
+  if (localRow) localRow.style.display = 'none';
 }
 function chkImgKey() {
   const mode = getImgMode();
@@ -25687,11 +25689,24 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
 
 // 페이지 로드 시 이미지 모드 + OpenAI 키 복원
 (function(){
-  const saved = (function(){try{return localStorage.getItem('zippy_img_mode')||'cloud';}catch(e){return 'cloud';}})();
+  const saved = (function(){
+    try{
+      const v = localStorage.getItem('zippy_img_mode') || 'gpt';
+      if (v === 'local') {
+        localStorage.setItem('zippy_img_mode', 'gpt');
+        return 'gpt';
+      }
+      return v;
+    }catch(e){return 'gpt';}
+  })();
   try { var _ch=normalizeLocal5080GatewayValue(localStorage.getItem('zippy_comfy_host') || DEFAULT_LOCAL_VIDEO_GATEWAY); var _e=document.getElementById('comfyHost'); if(_e) _e.value=_ch; localStorage.setItem('zippy_comfy_host', _ch); } catch(e){}
   document.addEventListener('DOMContentLoaded', function(){
     const r = document.querySelector('input[name="imgMode"][value="' + saved + '"]');
     if (r) { r.checked = true; onImgModeChange(); }
+    else {
+      const gpt = document.querySelector('input[name="imgMode"][value="gpt"]');
+      if (gpt) { gpt.checked = true; onImgModeChange(); }
+    }
     try {
       const oKey = localStorage.getItem('zippy_openai_key');
       if (oKey) { const el = document.getElementById('openaiKey'); if (el) { el.value = oKey; chkOpenAIKey(); } }

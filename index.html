@@ -1039,7 +1039,7 @@ input[type=file]{display:none}
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
-    <input id="comfyHost" value="https://zippy-5080.studiozippy.co.kr/comfy" spellcheck="false" style="font-family:var(--font-mono);font-size:11px;width:250px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px" placeholder="ComfyUI/5080 host">
+    <input id="comfyHost" value="https://zippy-5080.studiozippy.co.kr" spellcheck="false" style="font-family:var(--font-mono);font-size:11px;width:250px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px" placeholder="ComfyUI/5080 host">
     <button class="btn bgh bsm" onclick="checkComfy()" style="font-size:11px;padding:3px 8px">연결확인</button>
     <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
     <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
@@ -22430,13 +22430,42 @@ async function generateRelight() {
 const DEFAULT_LOCAL_VIDEO_GATEWAY = 'https://zippy-5080.studiozippy.co.kr';
 const DEFAULT_GROK_BUILD_BRIDGE = 'http://127.0.0.1:8790';
 const DEFAULT_LOCAL_5080_PROXY_PATH = '/proxy/local5080';
+const DEFAULT_LOCAL_COMFY_PATH = '/comfy';
+function isLegacyComfyDirectUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+  try {
+    const u = new URL(raw);
+    const host = String(u.hostname || '').replace(/^\[|\]$/g, '');
+    return ['127.0.0.1', 'localhost', '::1'].includes(host) && (u.port === '8000' || u.port === '8188');
+  } catch(e) {
+    return /^(https?:\/\/)?(127\.0\.0\.1|localhost):(?:8000|8188)(?:\/|$)/i.test(raw);
+  }
+}
+function normalizeLocal5080GatewayValue(value) {
+  const raw = String(value || '').trim();
+  if (!raw || isLegacyComfyDirectUrl(raw)) return DEFAULT_LOCAL_VIDEO_GATEWAY;
+  let normalized = raw.replace(/\/+$/, '');
+  normalized = normalized.replace(/\/comfy$/i, '');
+  return normalized || DEFAULT_LOCAL_VIDEO_GATEWAY;
+}
+function isZippy5080Gateway(value) {
+  try { return new URL(normalizeLocal5080GatewayValue(value)).hostname === 'zippy-5080.studiozippy.co.kr'; } catch(e) { return false; }
+}
+function getComfyGatewayFetchBase(value) {
+  const base = normalizeLocal5080GatewayValue(value);
+  if (shouldProxyLocal5080(base)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH + DEFAULT_LOCAL_COMFY_PATH;
+  if (isZippy5080Gateway(base)) return base + DEFAULT_LOCAL_COMFY_PATH;
+  return base;
+}
 const DEFAULT_VIDEO_REALISM_PROMPT = 'Photorealistic live-action Instagram reel from this exact source frame. Keep the same person, face identity, body shape, outfit, hairstyle, background, lighting, colors, camera angle, and composition unchanged. Subtle handheld camera movement, gentle push-in, natural breathing, tiny eye/head movement, realistic hair and fabric micro-motion, real smartphone/ARRI-style footage, natural motion blur. No face morphing, no outfit change, no background change, no extra people, no text, no logo, no AI/CG look.';
 let vidSourceB64 = null;
 let vidSourceMime = 'image/png';
 
 function getLocalVideoGatewayBase() {
   const el = document.getElementById('vidLocalGatewayUrl');
-  const value = (el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY;
+  const value = normalizeLocal5080GatewayValue((el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY);
+  if (el && el.value.trim() !== value) el.value = value;
   try { localStorage.setItem('zippy_local_video_gateway', value); } catch(e) {}
   if (shouldProxyLocal5080(value)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH;
   return value.replace(/\/+$/, '');
@@ -22444,7 +22473,7 @@ function getLocalVideoGatewayBase() {
 function shouldProxyLocal5080(value) {
   try {
     const localPage = ['127.0.0.1', 'localhost', '::1'].includes(location.hostname);
-    const target = new URL(value || DEFAULT_LOCAL_VIDEO_GATEWAY);
+    const target = new URL(normalizeLocal5080GatewayValue(value || DEFAULT_LOCAL_VIDEO_GATEWAY));
     return localPage && target.hostname === 'zippy-5080.studiozippy.co.kr';
   } catch(e) {
     return false;
@@ -22543,7 +22572,7 @@ function initLocalVideoGatewayFields() {
   const sbGrokBridgeEl = document.getElementById('sbGrokBuildBridgeUrl');
   const sbGrokBridgeKeyEl = document.getElementById('sbGrokBuildBridgeKey');
   try {
-    const savedUrl = localStorage.getItem('zippy_local_video_gateway') || DEFAULT_LOCAL_VIDEO_GATEWAY;
+    const savedUrl = normalizeLocal5080GatewayValue(localStorage.getItem('zippy_local_video_gateway') || DEFAULT_LOCAL_VIDEO_GATEWAY);
     const savedKey = localStorage.getItem('zippy_local_video_gateway_key') || '';
     const savedGrokBridge = localStorage.getItem('zippy_grok_build_bridge') || DEFAULT_GROK_BUILD_BRIDGE;
     const savedGrokBridgeKey = localStorage.getItem('zippy_grok_build_bridge_key') || '';
@@ -22562,7 +22591,7 @@ function initLocalVideoGatewayFields() {
   }
   if (urlEl && !urlEl.dataset.boundSave) {
     urlEl.dataset.boundSave = '1';
-    urlEl.addEventListener('change', function(){try{localStorage.setItem('zippy_local_video_gateway', this.value.trim() || DEFAULT_LOCAL_VIDEO_GATEWAY);}catch(e){}});
+    urlEl.addEventListener('change', function(){const normalized=normalizeLocal5080GatewayValue(this.value.trim() || DEFAULT_LOCAL_VIDEO_GATEWAY); this.value=normalized; try{localStorage.setItem('zippy_local_video_gateway', normalized);}catch(e){}});
   }
   if (keyEl && !keyEl.dataset.boundSave) {
     keyEl.dataset.boundSave = '1';
@@ -24982,11 +25011,10 @@ function getImgMode() {
 }
 function getComfyHost() {
   const el = document.getElementById('comfyHost');
-  const h = (el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY;
-  try { localStorage.setItem('zippy_comfy_host', h); } catch(e) {}
-  // 영상용 5080 게이트웨이와 동일 경로: 로컬 페이지 → Grok 브릿지(8790) /proxy/local5080 경유
-  if (shouldProxyLocal5080(h)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH;
-  return h.replace(/\/+$/, '');
+  const displayValue = normalizeLocal5080GatewayValue((el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY);
+  if (el && el.value.trim() !== displayValue) el.value = displayValue;
+  try { localStorage.setItem('zippy_comfy_host', displayValue); } catch(e) {}
+  return getComfyGatewayFetchBase(displayValue);
 }
 function getLocalImgSize() {
   return parseInt(document.getElementById('localImgSize')?.value) || 1280;
@@ -25184,11 +25212,11 @@ async function checkComfy() {
     const isCors = e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
     const isFromHttp = location.protocol === 'http:' || location.protocol === 'https:';
     if (isCors && isFromHttp) {
-      statEl.textContent = 'CORS 차단 — file://로 열어야 함';
-      statEl.title = 'ComfyUI 데스크톱은 localhost Origin을 차단합니다.\n\n해결:\n1. HTML을 파일 더블클릭으로 열기 (file://)\n   또는\n2. ComfyUI 실행 시 --enable-cors-header "*" 인자 추가';
+      statEl.textContent = '5080 브릿지 연결 확인 필요';
+      statEl.title = '기본 연결은 https://zippy-5080.studiozippy.co.kr 입니다. 저장된 예전 ComfyUI 직접 주소는 자동으로 5080 브릿지로 전환됩니다. 브릿지 터널과 Gateway Key를 확인하세요.';
     } else if (isCors) {
-      statEl.textContent = 'ComfyUI 실행 확인 필요';
-      statEl.title = 'ComfyUI 데스크톱 앱이 실행되고 있는지 확인하세요.';
+      statEl.textContent = '5080 브릿지 실행 확인 필요';
+      statEl.title = '5080 브릿지 또는 ComfyUI 패스스루(/comfy)가 실행 중인지 확인하세요.';
     } else {
       statEl.textContent = '연결 실패: ' + e.message.substring(0, 40);
     }
@@ -25486,7 +25514,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
 // 페이지 로드 시 이미지 모드 + OpenAI 키 복원
 (function(){
   const saved = (function(){try{return localStorage.getItem('zippy_img_mode')||'cloud';}catch(e){return 'cloud';}})();
-  try { var _ch=localStorage.getItem('zippy_comfy_host'); if(_ch){ if(/zippy-5080\.studiozippy\.co\.kr\/?$/.test(_ch)) _ch=_ch.replace(/\/?$/,'/comfy'); var _e=document.getElementById('comfyHost'); if(_e) _e.value=_ch; } } catch(e){}
+  try { var _ch=normalizeLocal5080GatewayValue(localStorage.getItem('zippy_comfy_host') || DEFAULT_LOCAL_VIDEO_GATEWAY); var _e=document.getElementById('comfyHost'); if(_e) _e.value=_ch; localStorage.setItem('zippy_comfy_host', _ch); } catch(e){}
   document.addEventListener('DOMContentLoaded', function(){
     const r = document.querySelector('input[name="imgMode"][value="' + saved + '"]');
     if (r) { r.checked = true; onImgModeChange(); }

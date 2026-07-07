@@ -19340,6 +19340,96 @@ function compactProofOfTasteRefs(images, maxRefs, shot) {
   return picked.slice(0, Math.min(limit, 4));
 }
 
+function estimateImageRefBytes(ref) {
+  if (!ref || !ref.b64) return 0;
+  return Math.ceil(String(ref.b64).length * 0.75);
+}
+
+function dataUrlFromImageRef(ref) {
+  if (!ref || !ref.b64) return '';
+  return 'data:' + (ref.mime || 'image/png') + ';base64,' + ref.b64;
+}
+
+function canvasToJpegRef(ref, img, maxSide, quality) {
+  const naturalW = img.naturalWidth || img.width || 0;
+  const naturalH = img.naturalHeight || img.height || 0;
+  if (!naturalW || !naturalH) return ref;
+  const scale = Math.min(1, maxSide / Math.max(naturalW, naturalH));
+  const w = Math.max(1, Math.round(naturalW * scale));
+  const h = Math.max(1, Math.round(naturalH * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+  const dataUrl = canvas.toDataURL('image/jpeg', quality);
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) return ref;
+  const next = Object.assign({}, ref, {
+    b64: dataUrl.slice(comma + 1),
+    mime: 'image/jpeg',
+    _compressed: true,
+    _sourceMime: ref.mime || 'image/png'
+  });
+  return estimateImageRefBytes(next) < estimateImageRefBytes(ref) ? next : ref;
+}
+
+async function compressImageRefForGeneration(ref, opts) {
+  if (!ref || !ref.b64) return null;
+  const options = opts || {};
+  const maxSide = options.maxSide || 768;
+  const quality = options.quality || 0.76;
+  const currentBytes = estimateImageRefBytes(ref);
+  if (currentBytes <= (options.skipBelowBytes || 350000)) return ref;
+  if (typeof Image === 'undefined' || typeof document === 'undefined') return ref;
+  try {
+    const img = new Image();
+    const loaded = new Promise(function(resolve, reject) {
+      img.onload = function() { resolve(); };
+      img.onerror = function() { reject(new Error('reference decode failed')); };
+    });
+    img.src = dataUrlFromImageRef(ref);
+    await loaded;
+    return canvasToJpegRef(ref, img, maxSide, quality);
+  } catch(e) {
+    return ref;
+  }
+}
+
+async function prepareProofOfTasteRefsForGeneration(images, shot, opts) {
+  const options = opts || {};
+  const noFaceDetail = isProofOfTasteNoFaceDetailShot(shot);
+  const compacted = compactProofOfTasteRefs(images || [], options.maxRefs || (noFaceDetail ? 3 : 4), shot);
+  const byteBudget = options.byteBudget || (8 * 1024 * 1024);
+  const out = [];
+  let used = 0;
+  for (const ref of compacted) {
+    const compressed = await compressImageRefForGeneration(ref, {
+      maxSide: options.maxSide || (noFaceDetail ? 640 : 768),
+      quality: options.quality || 0.76,
+      skipBelowBytes: options.skipBelowBytes || 280000
+    });
+    if (!compressed || !compressed.b64) continue;
+    let finalRef = compressed;
+    let bytes = estimateImageRefBytes(finalRef);
+    if (bytes > byteBudget) {
+      finalRef = await compressImageRefForGeneration(finalRef, {
+        maxSide: options.fallbackMaxSide || 512,
+        quality: options.fallbackQuality || 0.68,
+        skipBelowBytes: 0
+      });
+      bytes = estimateImageRefBytes(finalRef);
+    }
+    if (out.length && used + bytes > byteBudget) continue;
+    if (!out.length && bytes > byteBudget) continue;
+    out.push(finalRef);
+    used += bytes;
+  }
+  return out;
+}
+
 function buildSBRefManifest(images) {
   if (!images || images.length === 0) return '';
   let refManifest = '\nREFERENCE IMAGES (in order):\n';
@@ -19575,9 +19665,12 @@ async function generateInsCut(insId) {
     if (ins.cat === 'night' && sbRefs['obj-umbrella']) {
       refs.push({b64: sbRefs['obj-umbrella'], mime: sbRefMimes['obj-umbrella'], _type:'prop', _label: '젖은 우산'});
     }
-    const moodGuide = refs.length > 0 ? 'REFERENCE HANDLING:\nReferences may include grid moodboards. Do NOT replicate grid layout. Do NOT include text/labels. Extract mood/color/material only.\n\n' : '';
+    const safeRefs = isProofOfTasteProject()
+      ? await prepareProofOfTasteRefsForGeneration(refs, { frame: ins.frame, desc: ins.desc, func: ins.label }, { maxRefs: 3, maxSide: 640, quality: 0.74, byteBudget: 6 * 1024 * 1024, fallbackMaxSide: 480, fallbackQuality: 0.66 })
+      : refs;
+    const moodGuide = safeRefs.length > 0 ? 'REFERENCE HANDLING:\nReferences may include grid moodboards. Do NOT replicate grid layout. Do NOT include text/labels. Extract mood/color/material only.\n\n' : '';
     const prompt = moodGuide + 'CINEMATIC INSERT CUT — ' + ins.id + '\n\nFRAME: ' + ins.frame + '\nDETAIL: ' + ins.desc + '\n\nSTYLE: Cinematic film still, ARRI ALEXA 35, Kodak Vision3 500T, photorealistic, visible texture detail, shallow depth of field. Single complete frame, no border, no watermark, no text overlay.';
-    const { imgB64 } = await callImageGen({images: refs, prompt: prompt, resVal: '1K'});
+    const { imgB64 } = await callImageGen({images: safeRefs, prompt: prompt, resVal: '1K'});
     if (!imgB64) throw new Error('이미지 없음');
     insGenImages[insId] = imgB64;
     renderInsertLibrary();
@@ -20988,7 +21081,7 @@ async function generateSBShot(shotId, _seq) {
   let images = rawRefs.map(r => r.inline_data
     ? {b64: r.inline_data.data, mime: r.inline_data.mime_type, _type: r._type, _label: r._label}
     : r);
-  if (isProofOfTasteProject()) images = compactProofOfTasteRefs(images, 5, shot);
+  if (isProofOfTasteProject()) images = compactProofOfTasteRefs(images, 4, shot);
   // Build reference manifest for prompt
   let refManifest = buildSBRefManifest(images);
   // Character DNA injection
@@ -21110,14 +21203,23 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
     if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
+    const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
     if (isProofOfTasteProject() && imgMode !== 'zimage') {
-      imgInputs = compactProofOfTasteRefs(imgInputs, (_seq && _seq.cont && _seq.cont.length) ? 6 : 5, shot);
+      progress('PoT 레퍼런스 압축 중...');
+      imgInputs = await prepareProofOfTasteRefsForGeneration(imgInputs, shot, {
+        maxRefs: (_seq && _seq.cont && _seq.cont.length) ? 5 : 4,
+        maxSide: 768,
+        quality: 0.76,
+        byteBudget: 8 * 1024 * 1024,
+        fallbackMaxSide: 512,
+        fallbackQuality: 0.68
+      });
+      progress('PoT 레퍼런스 ' + imgInputs.length + '개 준비 완료');
     }
     let _finalPrompt = isProofOfTasteProject()
       ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative)
       : prompt;
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
-    const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
     let result;
     try {
       result = await callImageGen({
@@ -21128,7 +21230,7 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
       });
     } catch(firstError) {
       if (!isProofOfTasteProject()) throw firstError;
-      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 2, shot);
+      const retryInputs = (imgMode === 'zimage') ? [] : await prepareProofOfTasteRefsForGeneration(imgInputs, shot, { maxRefs: 2, maxSide: 512, quality: 0.68, byteBudget: 4 * 1024 * 1024, fallbackMaxSide: 384, fallbackQuality: 0.62 });
       const retryPrompt = buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative);
       progress('PoT 안정화 재시도... refs ' + retryInputs.length);
       try {

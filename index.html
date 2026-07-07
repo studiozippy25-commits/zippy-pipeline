@@ -3249,6 +3249,22 @@ input[type=file]{display:none}
       <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">Voicebox Gateway URL :</span>
       <input id="vbPort" value="https://zippy-5080.studiozippy.co.kr/vb" class="ci" style="width:320px;margin:0;font-family:var(--font-mono)" placeholder="https://zippy-5080.studiozippy.co.kr/vb">
       <input id="vbGatewayKey" type="password" autocomplete="off" spellcheck="false" class="ci" style="width:210px;margin:0;font-family:var(--font-mono)" placeholder="Gateway Key">
+      <select id="vbLanguage" class="msel" style="width:150px;margin:0;font-family:var(--font-mono)" onchange="vbSaveLanguage()">
+        <option value="auto">자동 감지</option>
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="pt">Português</option>
+        <option value="ru">Русский</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="th">ไทย</option>
+        <option value="id">Bahasa Indonesia</option>
+      </select>
       <button class="btn bgh bsm" onclick="vbUse5080Gateway()">5080 /vb</button>
       <button class="btn bgh bsm" onclick="vbUseLocalBridge()">로컬 17494</button>
       <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">Voicebox 서버 17493</span>
@@ -26597,6 +26613,14 @@ function vbGatewayKey() {
   try { return String(localStorage.getItem('zippy_voicebox_gateway_key') || localStorage.getItem('zippy_local_video_gateway_key') || '').trim(); } catch(e) {}
   return '';
 }
+function vbLanguage() {
+  const el = vb$('vbLanguage');
+  const value = String(el?.value || '').trim();
+  return value || 'ko';
+}
+function vbSaveLanguage() {
+  try { localStorage.setItem('zippy_voicebox_language', vbLanguage()); } catch(e) {}
+}
 function vbHeaders(base, options) {
   const headers = {};
   const key = vbGatewayKey();
@@ -26692,6 +26716,10 @@ function vbInitVoiceTab() {
   if (keyEl) {
     try { keyEl.value = localStorage.getItem('zippy_voicebox_gateway_key') || localStorage.getItem('zippy_local_video_gateway_key') || ''; } catch(e) {}
   }
+  const langEl = vb$('vbLanguage');
+  if (langEl) {
+    try { langEl.value = localStorage.getItem('zippy_voicebox_language') || 'ko'; } catch(e) { langEl.value = 'ko'; }
+  }
   vbRenderCharSelect();
   vbRenderMap();
   vbDidInit = true;
@@ -26724,6 +26752,7 @@ async function vbConnect(silent) {
     }
     const key = vbGatewayKey();
     if (key) localStorage.setItem('zippy_voicebox_gateway_key', key);
+    vbSaveLanguage();
   } catch(e) {}
   let lastError = null;
   for (const base of vbCandidateBases()) {
@@ -26781,6 +26810,8 @@ async function vbTTS(charName, text, instruct) {
   const profileId = vbMap()[charName];
   if (!profileId) throw new Error('"' + charName + '" 프로필 미연결');
   const body = { text:text, profile_id:profileId };
+  const language = vbLanguage();
+  if (language && language !== 'auto') body.language = language;
   if (instruct) body.instruct = instruct;
   const base = vbApiBase();
   const res = await fetch(vbJoin(base, '/generate'), {
@@ -26793,8 +26824,10 @@ async function vbTTS(charName, text, instruct) {
   if (type.includes('audio')) return URL.createObjectURL(await res.blob());
   const data = await res.json();
   if (data.audio_base64 || data.audio) return 'data:audio/wav;base64,' + (data.audio_base64 || data.audio);
-  if (data.url) return vbJoin(base, data.url);
-  const path = data.path || data.file || data.output_path;
+  if (data.url || data.audio_url) return vbJoin(base, data.url || data.audio_url);
+  const nested = data.result || data.output || data.data || {};
+  const path = data.audio_path || data.path || data.file || data.output_path || data.audio_file || data.wav_path
+    || nested.audio_path || nested.path || nested.file || nested.output_path || nested.audio_file || nested.wav_path;
   if (path) return vbJoin(base, '/audio?path=' + encodeURIComponent(path));
   throw new Error('알 수 없는 응답: ' + JSON.stringify(data).slice(0, 150));
 }

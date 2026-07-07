@@ -3270,8 +3270,10 @@ input[type=file]{display:none}
       <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">Voicebox 서버 17493</span>
       <button class="btn bgh bsm" onclick="vbConnect()" style="border-color:var(--cy);color:var(--cy)">연결 확인</button>
       <button class="btn bgh bsm" onclick="vbRefreshCharacters()">캐릭터 새로고침</button>
+      <button class="btn bgh bsm" onclick="vbCopyLastResponse()">응답 복사</button>
       <span id="vbStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">— 미확인</span>
     </div>
+    <pre id="vbLastResponse" style="display:none;margin:0 16px 16px;padding:10px;border:1px solid var(--bd);border-radius:6px;background:rgba(0,0,0,.16);white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto;font-family:var(--font-mono);font-size:11px;color:var(--mu)">최근 Voicebox 응답 없음</pre>
   </div>
 
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
@@ -26552,8 +26554,10 @@ let vbBatchAbort = false;
 let vbDidInit = false;
 let vbDidAutoConnect = false;
 let vbActiveBase = '';
+let vbLastRawResponse = '';
 
 function vb$(id){ return document.getElementById(id); }
+function vbSleep(ms){ return new Promise(function(resolve){ setTimeout(resolve, ms || 500); }); }
 function vbNormalizeBase(value) {
   const raw = String(value || '').trim();
   if (!raw) return VB_DEFAULT_BRIDGE_URL;
@@ -26620,6 +26624,25 @@ function vbLanguage() {
 }
 function vbSaveLanguage() {
   try { localStorage.setItem('zippy_voicebox_language', vbLanguage()); } catch(e) {}
+}
+function vbSetLastResponse(label, value) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  vbLastRawResponse = (label ? label + '\n' : '') + text;
+  const el = vb$('vbLastResponse');
+  if (el) {
+    el.style.display = 'block';
+    el.textContent = vbLastRawResponse;
+  }
+}
+async function vbCopyLastResponse() {
+  const text = vbLastRawResponse || vb$('vbLastResponse')?.textContent || '';
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    vbSetStatus('vbStatus', '최근 응답 복사됨', 'var(--ok)');
+  } catch(e) {
+    vbSetStatus('vbStatus', '복사 실패 · 최근 응답 박스에서 직접 복사', 'var(--wn)');
+  }
 }
 function vbHeaders(base, options) {
   const headers = {};
@@ -26806,6 +26829,73 @@ function vbSetProfile(charName, profileId) {
   else delete map[charName];
   vbSaveMap(map);
 }
+function vbExtractAudioPath(data) {
+  const nested = data?.result || data?.output || data?.data || {};
+  return data?.audio_path || data?.path || data?.file || data?.output_path || data?.audio_file || data?.wav_path
+    || nested.audio_path || nested.path || nested.file || nested.output_path || nested.audio_file || nested.wav_path || '';
+}
+function vbExtractAudioUrl(data) {
+  const nested = data?.result || data?.output || data?.data || {};
+  return data?.url || data?.audio_url || data?.download_url || nested.url || nested.audio_url || nested.download_url || '';
+}
+function vbAudioUrlFromPath(base, path) {
+  const raw = String(path || '').trim();
+  if (!raw) return '';
+  if (/^data:audio\//i.test(raw) || /^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('/')) {
+    if (/^\/(audio|file|download|output|outputs|static|media|voice|generated)\b/i.test(raw)) return vbJoin(base, raw);
+    return vbJoin(base, '/audio?path=' + encodeURIComponent(raw));
+  }
+  if (/^[a-zA-Z]:[\\/]/.test(raw) || raw.includes('\\')) return vbJoin(base, '/audio?path=' + encodeURIComponent(raw));
+  if (/^(audio|file|download|output|outputs|static|media|voice|generated)\//i.test(raw)) return vbJoin(base, '/' + raw);
+  return vbJoin(base, '/audio?path=' + encodeURIComponent(raw));
+}
+async function vbResolveAudioFromJson(base, data) {
+  if (data?.audio_base64 || data?.audio) return 'data:audio/wav;base64,' + (data.audio_base64 || data.audio);
+  const audioUrl = vbExtractAudioUrl(data);
+  if (audioUrl) return vbJoin(base, audioUrl);
+  const path = vbExtractAudioPath(data);
+  if (path) return vbAudioUrlFromPath(base, path);
+  return '';
+}
+async function vbTryJobAudio(base, jobId) {
+  const id = String(jobId || '').trim();
+  if (!id) return '';
+  const directPaths = [
+    '/audio?id=' + encodeURIComponent(id),
+    '/audio?generation_id=' + encodeURIComponent(id),
+    '/audio?job_id=' + encodeURIComponent(id),
+    '/audio/' + encodeURIComponent(id),
+    '/download/' + encodeURIComponent(id)
+  ];
+  const jsonPaths = [
+    '/generate/' + encodeURIComponent(id),
+    '/generation/' + encodeURIComponent(id),
+    '/generations/' + encodeURIComponent(id),
+    '/jobs/' + encodeURIComponent(id),
+    '/status/' + encodeURIComponent(id),
+    '/tasks/' + encodeURIComponent(id)
+  ];
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const paths = attempt === 0 ? directPaths.concat(jsonPaths) : jsonPaths.concat(directPaths);
+    for (const path of paths) {
+      try {
+        const res = await fetch(vbJoin(base, path), { headers:vbHeaders(base), signal:vbTimeoutSignal(2200), cache:'no-store' });
+        if (!res.ok) continue;
+        const type = res.headers.get('content-type') || '';
+        if (type.includes('audio')) return URL.createObjectURL(await res.blob());
+        if (type.includes('json')) {
+          const data = await res.json();
+          vbSetLastResponse('Voicebox job lookup ' + path, data);
+          const src = await vbResolveAudioFromJson(base, data);
+          if (src) return src;
+        }
+      } catch(e) {}
+    }
+    await vbSleep(900);
+  }
+  return '';
+}
 async function vbTTS(charName, text, instruct) {
   const profileId = vbMap()[charName];
   if (!profileId) throw new Error('"' + charName + '" 프로필 미연결');
@@ -26823,13 +26913,13 @@ async function vbTTS(charName, text, instruct) {
   const type = res.headers.get('content-type') || '';
   if (type.includes('audio')) return URL.createObjectURL(await res.blob());
   const data = await res.json();
-  if (data.audio_base64 || data.audio) return 'data:audio/wav;base64,' + (data.audio_base64 || data.audio);
-  if (data.url || data.audio_url) return vbJoin(base, data.url || data.audio_url);
-  const nested = data.result || data.output || data.data || {};
-  const path = data.audio_path || data.path || data.file || data.output_path || data.audio_file || data.wav_path
-    || nested.audio_path || nested.path || nested.file || nested.output_path || nested.audio_file || nested.wav_path;
-  if (path) return vbJoin(base, '/audio?path=' + encodeURIComponent(path));
-  throw new Error('알 수 없는 응답: ' + JSON.stringify(data).slice(0, 150));
+  vbSetLastResponse('Voicebox POST /generate response', data);
+  const src = await vbResolveAudioFromJson(base, data);
+  if (src) return src;
+  const jobId = data.id || data.job_id || data.task_id || data.request_id || data.generation_id;
+  const jobSrc = await vbTryJobAudio(base, jobId);
+  if (jobSrc) return jobSrc;
+  throw new Error('오디오 경로 없음 · 최근 응답 박스에서 전체 JSON 확인');
 }
 function vbAudioRow(charName, text, src, index) {
   const file = (index != null ? String(index + 1).padStart(3, '0') + '_' : '') + charName + '.wav';

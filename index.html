@@ -3237,17 +3237,18 @@ input[type=file]{display:none}
   <div class="slbl" style="color:var(--or)">더빙 · VOICEBOX</div>
   <div style="padding:12px 16px;background:rgba(240,136,62,.07);border:1px solid rgba(240,136,62,.24);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--or);line-height:1.7">
     로컬 Voicebox 서버의 프로필을 캐릭터에 연결하고, 단일 대사 또는 배치 대사를 오디오로 생성합니다.<br>
-    <span style="font-size:11px;color:var(--mu)">기본 주소는 이 브라우저에서 접근 가능한 <b>127.0.0.1:17493</b> 입니다. Voicebox 서버가 CORS를 허용해야 합니다.</span>
+    <span style="font-size:11px;color:var(--mu)">기본 주소는 CORS 브릿지 <b>127.0.0.1:17494</b> 입니다. 실제 Voicebox 서버는 <b>127.0.0.1:17493</b>에서 실행됩니다.</span>
   </div>
 
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
       <span>CONNECTION</span>
-      <a href="#" onclick="window.open('http://127.0.0.1:'+document.getElementById('vbPort').value+'/docs');return false" style="font-family:var(--font-mono);font-size:11px;color:var(--cy);text-decoration:none;border:1px solid var(--cy);padding:4px 9px;border-radius:5px">API 문서</a>
+      <a href="#" onclick="window.open('http://127.0.0.1:17493/docs');return false" style="font-family:var(--font-mono);font-size:11px;color:var(--cy);text-decoration:none;border:1px solid var(--cy);padding:4px 9px;border-radius:5px">API 문서</a>
     </div>
     <div style="padding:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">127.0.0.1 :</span>
-      <input id="vbPort" value="17493" class="ci" style="width:86px;margin:0;font-family:var(--font-mono)">
+      <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">CORS 브릿지 :</span>
+      <input id="vbPort" value="17494" class="ci" style="width:86px;margin:0;font-family:var(--font-mono)">
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">서버 17493</span>
       <button class="btn bgh bsm" onclick="vbConnect()" style="border-color:var(--cy);color:var(--cy)">연결 확인</button>
       <button class="btn bgh bsm" onclick="vbRefreshCharacters()">캐릭터 새로고침</button>
       <span id="vbStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">— 미확인</span>
@@ -26523,13 +26524,19 @@ function setupDnD(id,cb){
 
 // ═══ VOICEBOX DUBBING ═════════════════════════════
 const VB_FALLBACK_CHARS = ['독고탄','서유진','한민재','독고하은','구태원','나레이션'];
+const VB_DEFAULT_BRIDGE_PORT = '17494';
+const VB_LEGACY_DIRECT_PORT = '17493';
 let vbProfiles = [];
 let vbBatchAbort = false;
 let vbDidInit = false;
 let vbDidAutoConnect = false;
 
 function vb$(id){ return document.getElementById(id); }
-function vbBase(){ return 'http://127.0.0.1:' + ((vb$('vbPort')?.value || '17493').trim() || '17493'); }
+function vbNormalizePort(port) {
+  const raw = String(port || '').trim();
+  return (!raw || raw === VB_LEGACY_DIRECT_PORT) ? VB_DEFAULT_BRIDGE_PORT : raw;
+}
+function vbBase(){ return 'http://127.0.0.1:' + vbNormalizePort(vb$('vbPort')?.value || VB_DEFAULT_BRIDGE_PORT); }
 function vbEsc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];}); }
 function vbMap(){ try { return JSON.parse(localStorage.getItem('zippy_voicebox_map') || '{}'); } catch(e) { return {}; } }
 function vbSaveMap(map){ try { localStorage.setItem('zippy_voicebox_map', JSON.stringify(map || {})); } catch(e) {} }
@@ -26574,7 +26581,13 @@ function vbTimeoutSignal(ms) {
 function vbInitVoiceTab() {
   const port = vb$('vbPort');
   if (port) {
-    try { const saved = localStorage.getItem('zippy_voicebox_port'); if (saved) port.value = saved; } catch(e) {}
+    try {
+      const saved = vbNormalizePort(localStorage.getItem('zippy_voicebox_port') || VB_DEFAULT_BRIDGE_PORT);
+      port.value = saved;
+      localStorage.setItem('zippy_voicebox_port', saved);
+    } catch(e) {
+      port.value = VB_DEFAULT_BRIDGE_PORT;
+    }
   }
   vbRenderCharSelect();
   vbRenderMap();
@@ -26601,7 +26614,12 @@ async function vbConnect(silent) {
   const status = vb$('vbStatus');
   const port = vb$('vbPort');
   if (status) { status.textContent = '연결 중...'; status.style.color = 'var(--mu)'; }
-  try { if (port) localStorage.setItem('zippy_voicebox_port', port.value.trim()); } catch(e) {}
+  try {
+    if (port) {
+      port.value = vbNormalizePort(port.value);
+      localStorage.setItem('zippy_voicebox_port', port.value.trim());
+    }
+  } catch(e) {}
   try {
     const res = await fetch(vbBase() + '/profiles', { signal: vbTimeoutSignal(6000) });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -26614,7 +26632,7 @@ async function vbConnect(silent) {
     vbRenderMap();
     if (status) {
       const cors = /fetch|NetworkError|Load failed|Failed to fetch/i.test(e.message || String(e));
-      status.textContent = '연결 실패 · Voicebox 실행/포트' + (cors ? '/CORS' : '') + ' 확인';
+      status.textContent = '연결 실패 · 17494 CORS 브릿지 / 17493 서버 확인';
       status.style.color = 'var(--er)';
     }
     if (!silent) console.warn('Voicebox connection failed', e);

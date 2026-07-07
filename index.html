@@ -25637,7 +25637,12 @@ async function generateSBSequence(shotId) {
         saveStoryboardFrameToHistory(shotId, b64, i + 1, 'sequence-generated');
         zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (i + 1), b64, 'image/png', {shotId: shotId, frameIndex: i + 1, reason: 'sequence-generated'});
       });
-      buildStoryboardTimeline();
+      try {
+        buildStoryboardTimeline();
+      } catch(renderErr) {
+        console.warn('Storyboard timeline render failed after sequence generation:', renderErr);
+        updateSBProgress();
+      }
       saveStoryboardState('sequence-generated');
     } else {
       throw new Error('생성 결과 없음');
@@ -27248,11 +27253,13 @@ function loadFromHistory(type) {
       modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
       let gridHtml = '<div style="max-width:800px;width:100%"><div style="font-family:var(--font-mono);font-size:14px;color:#fff;margin-bottom:12px;font-weight:700">이미지 선택 → ' + (type==='start'?'START':'END') + ' 프레임</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;max-height:70vh;overflow-y:auto">';
       items.sort((a,b) => b.timestamp - a.timestamp).slice(0, 30).forEach(img => {
-        gridHtml += '<div style="cursor:pointer;border:2px solid transparent;border-radius:6px;overflow:hidden;transition:all .12s" onmouseover="this.style.borderColor=\'var(--pu)\'" onmouseout="this.style.borderColor=\'transparent\'" onclick="selectHistForVideo(\'' + type + '\',' + img.id + ');this.closest(\'.hist-modal\').remove()"><img src="data:' + (img.mime||'image/png') + ';base64,' + img.b64 + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block"><div style="padding:4px 6px;background:rgba(0,0,0,.6);font-family:var(--font-mono);font-size:9px;color:#fff">' + (img.step||'') + ' · ' + (img.time||'') + '</div></div>';
+        histRenderImages[String(img.id)] = img;
+        gridHtml += '<div style="cursor:pointer;border:2px solid transparent;border-radius:6px;overflow:hidden;transition:all .12s" onmouseover="this.style.borderColor=\'var(--pu)\'" onmouseout="this.style.borderColor=\'transparent\'" onclick="selectHistForVideo(\'' + type + '\',' + img.id + ');this.closest(\'.hist-modal\').remove()">' + renderHistThumb(img.id, 'width:100%;aspect-ratio:16/9;object-fit:cover;display:block') + '<div style="padding:4px 6px;background:rgba(0,0,0,.6);font-family:var(--font-mono);font-size:9px;color:#fff">' + histEsc(img.step||'') + ' · ' + histEsc(img.time||'') + '</div></div>';
       });
       gridHtml += '</div></div>';
       modal.innerHTML = gridHtml;
       document.body.appendChild(modal);
+      hydrateHistoryImages(modal);
     };
   });
 }
@@ -28446,6 +28453,38 @@ async function clearHistory() {
 }
 
 let histFilter = 'all';
+const histRenderImages = {};
+
+function histEsc(v) {
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderHistThumb(id, style) {
+  const styleAttr = style ? ' style="' + histEsc(style) + '"' : '';
+  return '<img alt="" data-hist-img-id="' + histEsc(id) + '" loading="lazy"' + styleAttr + '>';
+}
+
+function hydrateHistoryImages(root) {
+  const scope = root || document.getElementById('hist-content') || document;
+  const nodes = Array.from(scope.querySelectorAll('img[data-hist-img-id]'));
+  let i = 0;
+  function step() {
+    let n = 0;
+    while (i < nodes.length && n < 12) {
+      const img = nodes[i++];
+      const id = img.getAttribute('data-hist-img-id');
+      const item = histRenderImages[id];
+      if (item && item.b64 && img.dataset.hydratedB64Len !== String(item.b64.length)) {
+        img.src = 'data:' + (item.mime || 'image/png') + ';base64,' + item.b64;
+        img.dataset.hydratedB64Len = String(item.b64.length);
+      }
+      n++;
+    }
+    if (i < nodes.length) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 function filterHistory(f, btn) {
   histFilter = f;
   document.querySelectorAll('#hist-filters .chip').forEach(c => c.classList.remove('on'));
@@ -28475,24 +28514,26 @@ async function refreshHistory() {
   // Group by date
   const groups = {};
   items.sort((a,b) => b.timestamp - a.timestamp);
+  Object.keys(histRenderImages).forEach(function(k) { delete histRenderImages[k]; });
   items.forEach(it => {
     const d = it.date || 'unknown';
     if (!groups[d]) groups[d] = [];
     groups[d].push(it);
+    histRenderImages[String(it.id)] = it;
   });
 
   let html = '';
   for (const [date, imgs] of Object.entries(groups)) {
     html += '<div class="hist-date-group">';
-    html += '<div class="hist-date-label">' + date + ' (' + imgs.length + '장)</div>';
+    html += '<div class="hist-date-label">' + histEsc(date) + ' (' + imgs.length + '장)</div>';
     html += '<div class="hist-grid">';
     imgs.forEach(img => {
       html += '<div class="hist-card" onclick="openHistModal('+img.id+')">';
-      html += '<img src="data:'+(img.mime||'image/png')+';base64,'+img.b64+'" loading="lazy">';
+      html += renderHistThumb(img.id);
       html += '<div class="hist-card-info">';
-      html += '<div class="hist-card-step">' + (img.step||'') + '</div>';
-      html += '<div class="hist-card-time">' + (img.time||'') + '</div>';
-      html += '<div class="hist-card-desc">' + (img.desc||'') + '</div>';
+      html += '<div class="hist-card-step">' + histEsc(img.step||'') + '</div>';
+      html += '<div class="hist-card-time">' + histEsc(img.time||'') + '</div>';
+      html += '<div class="hist-card-desc">' + histEsc(img.desc||'') + '</div>';
       html += '<div class="hist-card-actions">';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();downloadHistImg('+img.id+')">⬇ 저장</button>';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToAsset('+img.id+')">→ Asset</button>';
@@ -28502,6 +28543,7 @@ async function refreshHistory() {
     html += '</div></div>';
   }
   content.innerHTML = html;
+  hydrateHistoryImages(content);
 }
 
 async function openHistModal(id) {

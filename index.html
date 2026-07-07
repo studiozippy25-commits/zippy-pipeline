@@ -22508,9 +22508,9 @@ function isLegacyComfyDirectUrl(value) {
   try {
     const u = new URL(raw);
     const host = String(u.hostname || '').replace(/^\[|\]$/g, '');
-    return ['127.0.0.1', 'localhost', '::1'].includes(host) && (u.port === '8000' || u.port === '8188');
+    return ['127.0.0.1', 'localhost', '::1'].includes(host) && u.port === '8000';
   } catch(e) {
-    return /^(https?:\/\/)?(127\.0\.0\.1|localhost):(?:8000|8188)(?:\/|$)/i.test(raw);
+    return /^(https?:\/\/)?(127\.0\.0\.1|localhost):8000(?:\/|$)/i.test(raw);
   }
 }
 function normalizeLocal5080GatewayValue(value) {
@@ -22724,7 +22724,7 @@ async function requestLocalVideo(payload, onProgress, options) {
   throwIfVideoAborted(signal);
   if (!healthRes.ok || healthData.comfy_ok !== true) {
     if (healthRes.ok && healthData.comfy_ok == null) {
-      throw new Error('Local 5080 Gateway가 구버전입니다. Windows의 local-5080-gateway/server.mjs를 새 버전으로 교체해야 ComfyUI 큐 진입 여부를 확인할 수 있습니다.');
+      throw new Error('Local 5080 Gateway 응답 형식이 구버전입니다. Downloads 폴더의 임시 server.mjs로 덮어쓰지 말고, Windows 최종 폴더 ZIPPY_BRIDGE_FINAL_RECOVERED/02_Local_5080/zippy-local-5080/server.mjs 상태를 확인하세요.');
     }
     throw new Error(healthData.comfy_error || healthData.error || healthData.hint || ('ComfyUI 연결 실패: HTTP ' + healthRes.status));
   }
@@ -22801,7 +22801,7 @@ async function checkLocalVideoGateway() {
     const res = await fetch(getLocalVideoGatewayBase() + '/health', { headers: getLocalVideoGatewayHeaders() });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    if (data.comfy_ok == null) throw new Error('게이트웨이 구버전 · Windows local-5080-gateway/server.mjs 교체 필요');
+    if (data.comfy_ok == null) throw new Error('게이트웨이 구버전 · Windows 최종 폴더 ZIPPY_BRIDGE_FINAL_RECOVERED/02_Local_5080/zippy-local-5080/server.mjs 확인 필요');
     if (data.comfy_ok === false) throw new Error(data.comfy_error || data.hint || 'ComfyUI 연결 실패');
     const proxied = shouldProxyLocal5080(document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY);
     if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI') + (proxied ? ' · 로컬 프록시 경유' : ''); el.style.color = 'var(--ok)'; }

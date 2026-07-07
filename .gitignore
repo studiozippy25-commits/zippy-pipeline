@@ -11,3 +11,10 @@ pipeline_api.html
 worker.js
 zippy_universal_actor_profile_sheet_v1.0.md
 carmen-sans/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

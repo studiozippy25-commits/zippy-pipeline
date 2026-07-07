@@ -3237,7 +3237,7 @@ input[type=file]{display:none}
   <div class="slbl" style="color:var(--or)">더빙 · VOICEBOX</div>
   <div style="padding:12px 16px;background:rgba(240,136,62,.07);border:1px solid rgba(240,136,62,.24);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--or);line-height:1.7">
     로컬 Voicebox 서버의 프로필을 캐릭터에 연결하고, 단일 대사 또는 배치 대사를 오디오로 생성합니다.<br>
-    <span style="font-size:11px;color:var(--mu)">기본 주소는 5080 게이트웨이 <b>https://zippy-5080.studiozippy.co.kr/vb</b> 입니다. 실제 Voicebox 서버는 Windows의 <b>127.0.0.1:17493</b>에서 실행됩니다.</span>
+    <span style="font-size:11px;color:var(--mu)">기본 주소는 Windows 5080 게이트웨이 <b>https://zippy-5080.studiozippy.co.kr/vb</b> 입니다. 실제 Voicebox 서버는 Windows 내부 <b>127.0.0.1:17493</b>에서 실행됩니다.</span>
   </div>
 
   <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
@@ -3266,7 +3266,6 @@ input[type=file]{display:none}
         <option value="id">Bahasa Indonesia</option>
       </select>
       <button class="btn bgh bsm" onclick="vbUse5080Gateway()">5080 /vb</button>
-      <button class="btn bgh bsm" onclick="vbUseLocalBridge()">로컬 17494</button>
       <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">Voicebox 서버 17493</span>
       <button class="btn bgh bsm" onclick="vbConnect()" style="border-color:var(--cy);color:var(--cy)">연결 확인</button>
       <button class="btn bgh bsm" onclick="vbRefreshCharacters()">캐릭터 새로고침</button>
@@ -26561,7 +26560,7 @@ function vbSleep(ms){ return new Promise(function(resolve){ setTimeout(resolve, 
 function vbNormalizeBase(value) {
   const raw = String(value || '').trim();
   if (!raw) return VB_DEFAULT_BRIDGE_URL;
-  if (raw === VB_LEGACY_DIRECT_PORT || raw === '127.0.0.1:' + VB_LEGACY_DIRECT_PORT || raw === 'localhost:' + VB_LEGACY_DIRECT_PORT) return VB_LOCAL_BRIDGE_URL;
+  if (raw === VB_LEGACY_DIRECT_PORT || raw === '127.0.0.1:' + VB_LEGACY_DIRECT_PORT || raw === 'localhost:' + VB_LEGACY_DIRECT_PORT) return VB_DEFAULT_BRIDGE_URL;
   const withScheme = /^https?:\/\//i.test(raw) ? raw : (/^\d+$/.test(raw) ? 'http://127.0.0.1:' + raw : 'http://' + raw);
   try {
     const url = new URL(withScheme);
@@ -26573,6 +26572,14 @@ function vbNormalizeBase(value) {
   }
 }
 function vbBase(){ return vbNormalizeBase(vb$('vbPort')?.value || VB_DEFAULT_BRIDGE_URL); }
+function vbIsLoopbackBase(value) {
+  try {
+    const url = new URL(vbNormalizeBase(value));
+    return url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '::1';
+  } catch(e) {
+    return false;
+  }
+}
 function vbUse5080Gateway() {
   const el = vb$('vbPort');
   if (el) el.value = VB_DEFAULT_BRIDGE_URL;
@@ -26728,7 +26735,8 @@ function vbInitVoiceTab() {
   const port = vb$('vbPort');
   if (port) {
     try {
-      const saved = vbNormalizeBase(localStorage.getItem('zippy_voicebox_bridge_url') || localStorage.getItem('zippy_voicebox_port') || VB_DEFAULT_BRIDGE_URL);
+      const rawSaved = localStorage.getItem('zippy_voicebox_bridge_url') || localStorage.getItem('zippy_voicebox_port') || VB_DEFAULT_BRIDGE_URL;
+      const saved = vbIsLoopbackBase(rawSaved) ? VB_DEFAULT_BRIDGE_URL : vbNormalizeBase(rawSaved);
       port.value = saved;
       localStorage.setItem('zippy_voicebox_bridge_url', saved);
     } catch(e) {
@@ -26778,6 +26786,7 @@ async function vbConnect(silent) {
     vbSaveLanguage();
   } catch(e) {}
   let lastError = null;
+  const attemptErrors = [];
   for (const base of vbCandidateBases()) {
     try {
       const res = await fetch(vbJoin(base, '/profiles'), { headers:vbHeaders(base), signal: vbTimeoutSignal(6000), cache:'no-store' });
@@ -26790,6 +26799,7 @@ async function vbConnect(silent) {
       return;
     } catch(e) {
       lastError = e;
+      attemptErrors.push(base + ' -> ' + ((e && e.message) || String(e)));
     }
   }
   vbActiveBase = '';
@@ -26797,8 +26807,11 @@ async function vbConnect(silent) {
   vbRenderMap();
   if (status) {
     const msg = (lastError && lastError.message) || 'Failed to fetch';
-    status.textContent = '연결 실패 · 5080 /vb 또는 17494 확인 · ' + msg;
-    status.title = '권장값은 https://zippy-5080.studiozippy.co.kr/vb 입니다. Windows 최종 5080 게이트웨이에 /vb 패스스루가 있어야 하고 Gateway Key가 필요합니다. 임시 테스트는 같은 PC에서 http://127.0.0.1:17494 를 사용할 수 있습니다.';
+    const isMissingVb = attemptErrors.some(function(v){ return v.includes('zippy-5080.studiozippy.co.kr') && v.includes('HTTP 404'); });
+    status.textContent = isMissingVb
+      ? '연결 실패 · Windows 5080 게이트웨이에 /vb 패스스루 없음 · HTTP 404'
+      : '연결 실패 · Windows 5080 /vb 확인 · ' + msg;
+    status.title = '정식 경로는 https://zippy-5080.studiozippy.co.kr/vb 입니다. 127.0.0.1:17494는 브라우저가 실행 중인 이 컴퓨터의 개인 주소라서 옆 윈도우 PC로 가지 않습니다. Windows 최종 5080 게이트웨이에 /vb/* -> 127.0.0.1:17493/* 패스스루를 추가하고 Gateway Key를 전달해야 합니다.\n\n시도 내역:\n' + attemptErrors.join('\n');
     status.style.color = 'var(--er)';
   }
   if (!silent) console.warn('Voicebox connection failed', lastError);

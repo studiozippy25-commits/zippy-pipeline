@@ -19172,6 +19172,67 @@ function getSBRefsForShot(sceneNum, shotId) {
   return refs;
 }
 
+function isProofOfTasteProject() {
+  return currentProjectKey === 'proof-of-taste' || (currentProject && currentProject.name === '취향의 증거');
+}
+
+function compactProofOfTasteRefs(images, maxRefs) {
+  const limit = Math.max(1, maxRefs || 5);
+  const buckets = {face:[], character:[], costume:[], background:[], prop:[], other:[]};
+  const seen = {};
+  (images || []).forEach(function(img) {
+    if (!img || !img.b64) return;
+    const sig = (img._type || 'ref') + '|' + (img._label || '') + '|' + String(img.b64).slice(0, 96);
+    if (seen[sig]) return;
+    seen[sig] = true;
+    const t = buckets[img._type] ? img._type : 'other';
+    buckets[t].push(img);
+  });
+  const picked = [];
+  function take(type, cap) {
+    (buckets[type] || []).slice(0, cap).forEach(function(img) {
+      if (picked.length < limit) picked.push(img);
+    });
+  }
+  take('face', limit <= 3 ? 1 : 2);
+  take('character', limit <= 4 ? 1 : 2);
+  take('costume', limit <= 4 ? 1 : 2);
+  take('background', 1);
+  take('prop', limit <= 4 ? 1 : 2);
+  take('other', 1);
+  return picked.slice(0, limit);
+}
+
+function buildSBRefManifest(images) {
+  if (!images || images.length === 0) return '';
+  let refManifest = '\nREFERENCE IMAGES (in order):\n';
+  images.forEach((img, idx) => {
+    const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background/Location)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : img._type === 'face' ? '얼굴 (Face)' : 'Reference';
+    refManifest += `  ${idx+1}. ${typeLabel}: ${img._label || ''}\n`;
+  });
+  refManifest += '\n';
+  return refManifest;
+}
+
+function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative) {
+  return [
+    'CINEMATIC STORYBOARD FRAME — Proof of Taste fallback render',
+    'SHOT: ' + (shot.id || ''),
+    'FACE LOCK: if face reference sheets are provided, they are the only authority for facial identity. Do not copy faces from outfit, prop, food, place, or moodboard references.',
+    'CAMERA: ' + (sbCam && sbCam.summary ? sbCam.summary : (shot.frame || '')),
+    'LOCATION: ' + (resolveShotLoc(shot) || preset.loc || ''),
+    'TIME: ' + (shot.time || preset.time || ''),
+    'ACTION: ' + (shot.desc || ''),
+    'FUNCTION: ' + (shot.func || ''),
+    'SUBJECT DNA: ' + (charDnaBlock || '(no visible character)'),
+    'COSTUME: ' + (costumeDna || '(default from references and character DNA)'),
+    'SPACE DNA: ' + (spaceDna || resolveShotLoc(shot) || preset.loc || ''),
+    'STYLE: restrained Korean live-action romance film still, physical set, natural light, Kodak Vision3 500T, visible pores, fabric weave, real props, muted Seongsu palette, one complete frame.',
+    'REFERENCE HANDLING: use only the provided few references; do not copy grid layouts or readable text. Generate a single cinematic frame.',
+    'NEGATIVE: ' + (projNegative || '') + ', no collage, no text overlay, no logo, no watermark, no CGI, no anime, no plastic skin, no Instagram food styling.'
+  ].join('\n');
+}
+
 /* ═══ STORYBOARD DATA & FUNCTIONS ═══ */
 // ═══ 인서트 라이브러리 (44개 원본 소스 기반) ═══
 const INSERT_CUTS = [
@@ -20786,39 +20847,19 @@ async function generateSBShot(shotId, _seq) {
   const spaceDna = (currentProject && currentProject.spaceDNA && currentProject.spaceDNA[_sbLoc]) || SPACE_DNA[_sbLoc] || '';
   const costumeDna = (currentProject && currentProject.costumes && currentProject.costumes[preset.costume]) || COSTUME_DNA[preset.costume] || '';
   const rawRefs = getSBRefsForShot(shot.scene, shot.id);
-  const images = rawRefs.map(r => r.inline_data
+  let images = rawRefs.map(r => r.inline_data
     ? {b64: r.inline_data.data, mime: r.inline_data.mime_type, _type: r._type, _label: r._label}
     : r);
+  if (isProofOfTasteProject()) images = compactProofOfTasteRefs(images, 5);
   // Build reference manifest for prompt
-  let refManifest = '';
-  if (images.length > 0) {
-    refManifest = '\nREFERENCE IMAGES (in order):\n';
-    images.forEach((img, idx) => {
-      const typeLabel = img._type === 'character' ? '인물 (Character)' : img._type === 'background' ? '배경 (Background/Location)' : img._type === 'prop' ? '소품 (Prop)' : img._type === 'costume' ? '의상 (Costume)' : img._type === 'face' ? '얼굴 (Face)' : 'Reference';
-      // (label list)
-      refManifest += `  ${idx+1}. ${typeLabel}: ${img._label || ''}\n`;
-    });
-    refManifest += '\n';
-  }
+  let refManifest = buildSBRefManifest(images);
   // Character DNA injection
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
-    const seenDnaLocks = {};
-    function addCharacterDna(rawName) {
-      if (!rawName) return;
-      const real = (typeof sbCharReal === 'function') ? sbCharReal(rawName) : rawName;
-      const base = String(real || rawName || '').split(/[\s(（]/)[0];
-      const dna = currentProject.characterDNA[real] || currentProject.characterDNA[rawName] || currentProject.characterDNA[base];
-      if (dna && !seenDnaLocks[dna]) {
-        charDnaBlock += dna + '\n';
-        seenDnaLocks[dna] = true;
-      }
-    }
-    if (Array.isArray(shot.char) && shot.char.length) {
-      shot.char.forEach(addCharacterDna);
-    }
     Object.keys(currentProject.characterDNA).forEach(function(name) {
-      if (shot.desc && shot.desc.indexOf(name) !== -1) addCharacterDna(name);
+      if (shot.desc && shot.desc.indexOf(name) !== -1) {
+        charDnaBlock += currentProject.characterDNA[name] + '\n';
+      }
     });
   }
   // Emotional DNA
@@ -20837,10 +20878,11 @@ async function generateSBShot(shotId, _seq) {
   // BAENE Anatomy + ZIPPY DNA prompt
   const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : {summary: (shot.frame || ''), aperture: ''};
   const fStop = sbCam.aperture || '';
-  const hasCharRef = images.some(function(im){ return im._type === 'character'; });
-  const hasFaceRef = images.some(function(im){ return im._type === 'face'; });
-  const hasObjRef = images.some(function(im){ return im._type === 'prop'; });
-  const hasBgRef = images.some(function(im){ return im._type === 'background'; });
+  const hasCharRef = images.some(img => img._type === 'character') || (assetLib.char && assetLib.char.length > 0);
+  const faceRefLabels = images.filter(img => img._type === 'face').map(img => img._label || 'face sheet');
+  const hasFaceRef = faceRefLabels.length > 0;
+  const hasObjRef = images.some(img => img._type === 'prop');
+  const hasBgRef = images.some(img => img._type === 'background');
 
   // 의상 시트 없는 캐릭터 — 강제 텍스트 의상 락 (컷 간 통일성)
   let missingCostumeLock = '';
@@ -20871,8 +20913,8 @@ async function generateSBShot(shotId, _seq) {
       lockedCostumes.join('\n') + '\n' +
       'These outfits MUST appear EXACTLY as described above. Do NOT improvise variations. Same fit, same color, same texture, same accessories across all shots.\n\n';
   }
-  const lockHeader = hasCharRef ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces.\n' +
-    (hasFaceRef ? 'FACE LOCK: A separate face turnaround sheet (6 angles) is provided for facial identity. PRIORITIZE the face sheet for facial features (eyes, nose, mouth, jawline, hairline). Use the body/outfit sheet ONLY for body proportions and clothing. DO NOT blend multiple angles — render ONE consistent angle matching the SHOT description below.\n' : '') : '';
+  const faceLockHeader = hasFaceRef ? 'FACE IDENTITY LOCK — ABSOLUTE: The provided FACE reference sheet(s) are the ONLY authority for facial identity: ' + faceRefLabels.join(', ') + '. Preserve the exact eyes, nose, mouth, jawline, cheekbone, hairline, skin texture, age, and Korean facial proportions. DO NOT borrow or blend faces from costume sheets, prop sheets, background sheets, moodboards, or any non-face reference. Costume references are clothing-only; background references are space-only. Render one natural camera angle from the face sheet, not a multi-angle collage.\n' : '';
+  const lockHeader = (hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '';
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, silhouette, worn physical markings). Do NOT invent or copy illegible text; if lettering is unclear, leave it blank, smudged, or unreadable as photographed material detail.\n' : '';
   // Moodboard safety guide — references may be 12-photo concept sheets
   const moodGuideHeader = (hasBgRef || images.length > 0) ?
@@ -20924,47 +20966,44 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
   const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}
   if(!(_seq)) sbShowLoading(shotId, '생성 중...');
-  let _lastGenMeta = '';
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
     if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
-
-    const shotTextForRefs = [shot.id, shot.frame || '', shot.desc || '', shot.func || '', shot.time || '', shot.light || ''].join(' ');
-    const isTitleOrNoTextPlate = /타이틀용|무자막|텍스트 없음|글자|로고|title background|no readable text|no logo/i.test(shotTextForRefs);
-    const hasVisibleCharacters = Array.isArray(shot.char) && shot.char.length > 0;
-    if (imgMode === 'gpt' || imgMode === 'gptapi') {
-      if (!hasVisibleCharacters || isTitleOrNoTextPlate) {
-        const groundedRefs = imgInputs.filter(function(im){ return im._type === 'background' || im._type === 'prop'; });
-        if (groundedRefs.length > 0) imgInputs = groundedRefs.slice(0, 4);
-      } else if (imgInputs.length > 10) {
-        const faceRefs = imgInputs.filter(function(im){ return im._type === 'face'; }).slice(0, 4);
-        const charRefs = imgInputs.filter(function(im){ return im._type === 'character'; }).slice(0, 4);
-        const costumeRefs = imgInputs.filter(function(im){ return im._type === 'costume'; }).slice(0, 2);
-        const bgRefs = imgInputs.filter(function(im){ return im._type === 'background'; }).slice(0, 1);
-        const propRefs = imgInputs.filter(function(im){ return im._type === 'prop'; }).slice(0, 1);
-        imgInputs = [...faceRefs, ...charRefs, ...costumeRefs, ...bgRefs, ...propRefs].slice(0, 12);
-      }
+    if (isProofOfTasteProject() && imgMode !== 'zimage') {
+      imgInputs = compactProofOfTasteRefs(imgInputs, (_seq && _seq.cont && _seq.cont.length) ? 6 : 5);
     }
-
     let _finalPrompt = prompt;
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
-    _lastGenMeta = 'refs ' + imgInputs.length + ' / prompt ' + _finalPrompt.length;
-    const { imgB64 } = await callImageGen({
-      images: imgInputs,
-      prompt: _finalPrompt,
-      resVal: '1K',
-      onProgress: function(msg) { if(emptyEl) emptyEl.textContent = msg + ' · ' + _lastGenMeta; if(!(_seq)) sbShowLoading(shotId, msg + ' · ' + _lastGenMeta); }
-    });
+    const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
+    let result;
+    try {
+      result = await callImageGen({
+        images: imgInputs,
+        prompt: _finalPrompt,
+        resVal: '1K',
+        onProgress: progress
+      });
+    } catch(firstError) {
+      if (!isProofOfTasteProject()) throw firstError;
+      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 3);
+      const retryPrompt = buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative);
+      progress('PoT 안정화 재시도... refs ' + retryInputs.length);
+      result = await callImageGen({
+        images: retryInputs,
+        prompt: retryPrompt,
+        resVal: '1K',
+        onProgress: progress
+      });
+    }
+    const { imgB64 } = result;
     if(!imgB64) throw new Error('이미지 없음');
     if (_seq && _seq.returnOnly) return imgB64;
     sbGenImages[shotId] = imgB64;
-    saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
-    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
     buildStoryboardTimeline();
     saveStoryboardState('shot-generated');
   } catch(e) {
-    alert('Shot '+shotId+' 생성 실패: '+e.message + (_lastGenMeta ? ' · ' + _lastGenMeta : ''));
+    alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
     sbHideLoading(shotId);
   }
@@ -21963,6 +22002,39 @@ function composeVideoRealismPrompt(motionPrompt) {
   if (/Photorealistic live-action Instagram reel|Keep the same person, face identity/i.test(motion)) return motion;
   return DEFAULT_VIDEO_REALISM_PROMPT + '\n\nMotion direction: ' + motion;
 }
+function makeVideoPayloadId(prefix) {
+  return String(prefix || 'video_i2v').replace(/[^a-zA-Z0-9_.-]+/g, '_') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+function videoB64Hash(b64) {
+  const text = String(b64 || '');
+  let hash = 2166136261;
+  const step = Math.max(1, Math.floor(text.length / 4096));
+  for (let i = 0; i < text.length; i += step) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  hash ^= text.length;
+  hash = Math.imul(hash, 16777619);
+  return (hash >>> 0).toString(36);
+}
+function videoMimeExt(mime) {
+  const value = String(mime || 'image/png').toLowerCase();
+  if (value.includes('jpeg') || value.includes('jpg')) return 'jpg';
+  if (value.includes('webp')) return 'webp';
+  return 'png';
+}
+function makeVideoImagePayload(role, b64, mime, requestId, index) {
+  const safeRole = String(role || 'frame').replace(/[^a-zA-Z0-9_.-]+/g, '_');
+  const safeRequest = String(requestId || makeVideoPayloadId('video_i2v')).replace(/[^a-zA-Z0-9_.-]+/g, '_');
+  const hash = videoB64Hash(b64);
+  const ext = videoMimeExt(mime);
+  return {
+    name: 'zippy_' + safeRole + '_' + safeRequest + '_' + ((index || 0) + 1) + '_' + hash + '.' + ext,
+    mime: mime || 'image/png',
+    b64: b64 || '',
+    hash
+  };
+}
 function getVidTabPromptForGeneration() {
   return composeVideoRealismPrompt(document.getElementById('vidTabPrompt')?.value?.trim() || '');
 }
@@ -22201,9 +22273,15 @@ async function executeVideo() {
   status.textContent = 'Local 5080 Gateway 전송 중...';
 
   try {
+    const requestId = makeVideoPayloadId('overlay_i2v');
+    const startImage = makeVideoImagePayload('start', vidSourceB64, vidSourceMime, requestId, 0);
+    status.textContent = 'Local 5080 Gateway 전송 중... START ' + startImage.hash;
     const videoUrl = await requestLocalVideo({
+      request_id: requestId,
+      client_request_id: requestId,
+      source_image_hash: startImage.hash,
       model: 'local-5080-i2v',
-      image: 'data:' + vidSourceMime + ';base64,' + vidSourceB64,
+      image: startImage,
       prompt,
       duration: Number(cfg.duration || 5),
       mode: cfg.mode === 'pro' ? 'pro' : 'std',
@@ -22450,21 +22528,18 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
-function getSelectedVideoWorkflowProfile() {
-  const selected = document.querySelector('[data-g="vmodel"].on');
-  return selected?.dataset?.workflow || 'wan';
-}
-
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
   if (vidTabAbortController) vidTabAbortController.abort();
   vidTabAbortController = new AbortController();
 
   const prompt = getVidTabPromptForGeneration();
+  const payloadMeta = getVideoStartPayloadMeta(prompt);
+  const workflowPreset = getSelected('vmodel') || 'Gateway 고품질 5080';
   const dur = getSelected('vdur') || '5초';
+  const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
-  const workflowPreset = getSelectedVideoWorkflowProfile();
   const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
   const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
@@ -22479,17 +22554,22 @@ async function executeVideoTab() {
   status.textContent = 'Local 5080 Gateway 전송 중...' + (localGatewayProxied ? ' · 로컬 프록시 경유' : ' · 직접 호출');
 
   try {
+    const requestId = makeVideoPayloadId('video_tab_i2v');
+    const startImage = makeVideoImagePayload('start', vidStartB64, vidStartMime, requestId, 0);
     const refs = [];
-    if (vidEndB64) refs.push({ name:'end_frame.png', mime:vidEndMime, b64:vidEndB64 });
+    if (vidEndB64) refs.push(makeVideoImagePayload('end', vidEndB64, vidEndMime, requestId, 1));
+    status.textContent = 'Local 5080 Gateway 전송 중...' + (localGatewayProxied ? ' · 로컬 프록시 경유' : ' · 직접 호출') + ' · START ' + startImage.hash;
     const videoUrl = await requestLocalVideo({
+      request_id: requestId,
+      client_request_id: requestId,
+      source_image_hash: startImage.hash,
+      metadata: payloadMeta,
       model: modelName,
-      workflow_profile: workflowPreset,
       workflow_preset: workflowPreset,
-      image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
+      image: startImage,
       images: refs,
       prompt,
-      audio_text: prompt,
-      mode: 'std',
+      mode: mode === '전문가' ? 'pro' : 'std',
       duration: Number(String(dur).replace('초', '')) || 5,
       aspect_ratio: ratio
     }, msg => { status.textContent = msg; }, { signal: vidTabAbortController.signal });

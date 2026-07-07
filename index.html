@@ -599,6 +599,66 @@ input[type=file]{display:none}
 .sb-video-preview img,.sb-video-preview video{width:100%;height:100%;object-fit:cover;display:block}
 @media(max-width:900px){.sb-video-grid{grid-template-columns:1fr}}
 
+/* Camera movement reference */
+.cm-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:center;margin-bottom:14px}
+.cm-search{padding:11px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--sf);color:var(--tx);font-family:var(--font-mono);font-size:12px;outline:none}
+.cm-search:focus{border-color:var(--pu);box-shadow:0 0 0 2px rgba(124,58,237,.12)}
+.cm-filters{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cm-filter{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;font-weight:800;cursor:pointer}
+.cm-filter.on{border-color:var(--pu);background:rgba(124,58,237,.12);color:var(--pu)}
+.cm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.cm-card{border:1px solid var(--bd);border-radius:8px;background:var(--card);overflow:hidden;display:flex;flex-direction:column;min-height:360px}
+.cm-card.active{border-color:var(--pu);box-shadow:0 0 0 2px rgba(124,58,237,.16)}
+.cm-preview{position:relative;height:130px;overflow:hidden;background:#101820;border-bottom:1px solid var(--bd)}
+.cm-scene{position:absolute;inset:0;transform-origin:center;will-change:transform}
+.cm-horizon{position:absolute;left:0;right:0;top:45%;height:1px;background:rgba(255,255,255,.12)}
+.cm-layer{position:absolute;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
+.cm-layer.l1{left:8%;top:18%;width:24%;height:54%}
+.cm-layer.l2{right:10%;top:28%;width:18%;height:42%}
+.cm-subject{position:absolute;left:50%;top:50%;width:34px;height:58px;transform:translate(-50%,-42%);border-radius:18px 18px 8px 8px;background:linear-gradient(#E5E7EB,#94A3B8);box-shadow:0 10px 22px rgba(0,0,0,.25)}
+.cm-frame{position:absolute;inset:12px;border:1px solid rgba(255,255,255,.24);border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.cm-card-body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.cm-kicker{font-family:var(--font-mono);font-size:10px;color:var(--pu);font-weight:900;letter-spacing:.8px;text-transform:uppercase}
+.cm-name{font-family:var(--font-body);font-size:17px;color:var(--tx);font-weight:800;line-height:1.25}
+.cm-desc{font-size:12px;color:var(--mu);line-height:1.5}
+.cm-prompt{font-family:var(--font-mono);font-size:10px;color:var(--tx);line-height:1.55;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px;white-space:pre-wrap;max-height:92px;overflow:auto}
+.cm-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.cm-mini-row{border:1px solid rgba(124,58,237,.22);border-radius:8px;background:rgba(124,58,237,.05);padding:10px 12px;margin:10px 0;display:grid;grid-template-columns:minmax(200px,1fr) auto auto;gap:8px;align-items:end}
+.cm-mini-row label{display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)}
+.cm-select{padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono);font-size:12px}
+.cm-note{padding:12px 16px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--pu);line-height:1.7}
+.cm-preview.dolly-in .cm-scene{animation:cmZoomIn 2.4s ease-in-out infinite alternate}
+.cm-preview.dolly-out .cm-scene{animation:cmZoomOut 2.4s ease-in-out infinite alternate}
+.cm-preview.pan-right .cm-scene{animation:cmPanRight 2.2s ease-in-out infinite alternate}
+.cm-preview.pan-left .cm-scene{animation:cmPanLeft 2.2s ease-in-out infinite alternate}
+.cm-preview.tilt-up .cm-scene{animation:cmTiltUp 2.2s ease-in-out infinite alternate}
+.cm-preview.slider-left .cm-scene{animation:cmSliderLeft 2.4s ease-in-out infinite alternate}
+.cm-preview.slider-right .cm-scene{animation:cmSliderRight 2.4s ease-in-out infinite alternate}
+.cm-preview.orbit .cm-scene{animation:cmOrbit 2.8s ease-in-out infinite alternate}
+.cm-preview.handheld .cm-frame{animation:cmHandheld .8s ease-in-out infinite alternate}
+.cm-preview.chase .cm-frame{animation:cmChase .38s ease-in-out infinite alternate}
+.cm-preview.crane-up .cm-scene{animation:cmCraneUp 2.6s ease-in-out infinite alternate}
+.cm-preview.drone-in .cm-scene{animation:cmDroneIn 2.8s ease-in-out infinite alternate}
+.cm-preview.macro .cm-scene{animation:cmMacro 2.4s ease-in-out infinite alternate}
+.cm-preview.whip .cm-scene{animation:cmWhip 1.2s cubic-bezier(.2,.7,.2,1) infinite}
+.cm-preview.pov .cm-frame{animation:cmPov 1.5s ease-in-out infinite alternate}
+@keyframes cmZoomIn{from{transform:scale(1)}to{transform:scale(1.22)}}
+@keyframes cmZoomOut{from{transform:scale(1.22)}to{transform:scale(1)}}
+@keyframes cmPanRight{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
+@keyframes cmPanLeft{from{transform:translateX(8%)}to{transform:translateX(-8%)}}
+@keyframes cmTiltUp{from{transform:translateY(8%)}to{transform:translateY(-8%)}}
+@keyframes cmSliderLeft{from{transform:translateX(5%) scale(1.04)}to{transform:translateX(-6%) scale(1.04)}}
+@keyframes cmSliderRight{from{transform:translateX(-5%) scale(1.04)}to{transform:translateX(6%) scale(1.04)}}
+@keyframes cmOrbit{from{transform:perspective(420px) rotateY(-8deg) scale(1.04)}to{transform:perspective(420px) rotateY(8deg) scale(1.04)}}
+@keyframes cmHandheld{from{transform:translate(-1px,1px) rotate(-.25deg)}to{transform:translate(1px,-1px) rotate(.25deg)}}
+@keyframes cmChase{from{transform:translate(-4px,2px) rotate(-.6deg)}to{transform:translate(4px,-2px) rotate(.6deg)}}
+@keyframes cmCraneUp{from{transform:translateY(10%) scale(1.1)}to{transform:translateY(-10%) scale(.96)}}
+@keyframes cmDroneIn{from{transform:scale(.92) translateY(5%)}to{transform:scale(1.16) translateY(-3%)}}
+@keyframes cmMacro{from{transform:scale(1.05)}to{transform:scale(1.42) translateY(4%)}}
+@keyframes cmWhip{0%,35%{transform:translateX(-16%) skewX(-2deg);filter:blur(0)}50%{transform:translateX(16%) skewX(4deg);filter:blur(3px)}70%,100%{transform:translateX(16%);filter:blur(0)}}
+@keyframes cmPov{from{transform:scale(1) translateY(1px)}to{transform:scale(1.03) translateY(-2px)}}
+@media(max-width:760px){.cm-toolbar,.cm-mini-row{grid-template-columns:1fr}.cm-filters{justify-content:flex-start}}
+
 /* ═══ VIDEO MODE ═══ */
 .vid-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1.5px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;transition:all .12s;letter-spacing:.3px}
 .vid-btn:hover{background:rgba(124,58,237,.15);box-shadow:0 2px 8px rgba(124,58,237,.15)}
@@ -1039,6 +1099,7 @@ input[type=file]{display:none}
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
+  <button class="stab" id="tabCam" onclick="goStep('cam')" style="border-bottom-color:#A78BFA;color:#A78BFA">카메라 무빙</button>
   <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
@@ -1543,9 +1604,16 @@ input[type=file]{display:none}
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">품질
             <select id="sbVideoQuality" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="720p">720p</option><option value="1080p">1080p</option></select>
           </label>
+          <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">카메라 무빙
+            <select id="sbCameraMove" class="cm-select" onchange="applyCameraMoveToSBPrompt(this.value)"><option value="auto">자동 추천</option></select>
+          </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">비율
             <select id="sbVideoRatio" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="16:9">16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option></select>
           </label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:-2px 0 10px">
+          <button class="btn bgh bsm" onclick="goStep('cam')">무빙 라이브러리 열기</button>
+          <button class="btn bor bsm" onclick="applyCameraMoveToSBPrompt()">선택 무빙 반영</button>
         </div>
         <textarea id="sbVideoPrompt" class="cfg-ta" style="min-height:116px;margin-bottom:10px" placeholder="선택 쇼트의 카메라 움직임/액션 프롬프트가 자동으로 들어갑니다"></textarea>
         <div id="sbVideoStatus" style="display:none;font-family:var(--font-mono);font-size:12px;color:var(--cy);margin-bottom:10px"></div>
@@ -2891,6 +2959,26 @@ input[type=file]{display:none}
   </div>
 </div>
 
+<!-- ═══════════════ CAMERA MOVEMENT LIBRARY ═══════════════ -->
+<div class="panel" id="pCam">
+  <div class="slbl" style="color:#A78BFA">카메라 무빙 레퍼런스 — I2V 프롬프트 라이브러리</div>
+  <div class="cm-note">
+    직접 만든 CSS 프리뷰와 ZIPPY용 프롬프트를 사용합니다. 외부 GIF를 저장하지 않고도 영상 무빙을 고르고, 선택한 프리셋을 영상 제작 탭이나 스토리보드 영상 프롬프트에 바로 붙일 수 있습니다.
+  </div>
+  <div class="cm-toolbar">
+    <input id="cmSearch" class="cm-search" placeholder="무빙 검색: dolly, handheld, orbit, insert..." oninput="renderCameraMoveLibrary()">
+    <div class="cm-filters" id="cmFilters"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <div id="cmActiveInfo" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">선택된 무빙 없음</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn bgh bsm" onclick="applySelectedCameraMoveToVideo()">영상 탭에 적용</button>
+      <button class="btn bor bsm" onclick="applySelectedCameraMoveToStoryboard()">스토리보드 프롬프트에 적용</button>
+    </div>
+  </div>
+  <div id="cmLibraryGrid" class="cm-grid"></div>
+</div>
+
 <!-- ═══════════════ VIDEO PRODUCTION ═══════════════ -->
 <div class="panel" id="pVid">
   <div class="slbl" style="color:var(--pu)">영상 제작 — Local 5080 / Grok Build 왕복</div>
@@ -2937,6 +3025,13 @@ input[type=file]{display:none}
     </div>
     <div style="margin:10px 0 12px">
       <div class="cfg-lbl">Grok 전송 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">인스타그램/스토리보드 이미지와 함께 전송</span></div>
+      <div class="cm-mini-row">
+        <label>카메라 무빙
+          <select id="vidCameraMove" class="cm-select" onchange="applyCameraMoveToVideoPrompt(this.value)"><option value="">무빙 없음</option></select>
+        </label>
+        <button class="btn bgh bsm" onclick="goStep('cam')">라이브러리 열기</button>
+        <button class="btn bor bsm" onclick="applyCameraMoveToVideoPrompt()">프롬프트 반영</button>
+      </div>
       <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 예: subtle handheld vertical Instagram reel, gentle push-in, natural hair and fabric motion, keep face/outfit/location unchanged..." style="min-height:96px"></textarea>
       <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:6px">인스타그램 탭에서 넘어온 컷은 이 입력값과 함께 Grok Build로 전송됩니다. 필요하면 여기서 바로 수정한 뒤 전송하세요.</div>
     </div>
@@ -19185,6 +19280,13 @@ function isProofOfTasteNoFaceDetailShot(shot) {
   return !!(detail && tactile && !face);
 }
 
+function hasProofOfTasteVisibleCharacterCue(shot) {
+  const text = ((shot && shot.frame) || '') + ' ' + ((shot && shot.desc) || '') + ' ' + ((shot && shot.func) || '');
+  if (/@\s*(정우|하윤|오준|이나경|박준)|유정우|서하윤|정우|하윤|오준|이나경|박준/.test(text)) return true;
+  if (/두 사람|둘이|투샷|시선이 만난|같은 방향|정면 시선/.test(text)) return true;
+  return false;
+}
+
 function compactProofOfTasteRefs(images, maxRefs, shot) {
   const limit = Math.max(1, maxRefs || 5);
   const buckets = {face:[], character:[], costume:[], background:[], prop:[], other:[]};
@@ -19199,6 +19301,7 @@ function compactProofOfTasteRefs(images, maxRefs, shot) {
   });
   const picked = [];
   const noFaceDetail = isProofOfTasteNoFaceDetailShot(shot);
+  const hasVisibleCharacter = hasProofOfTasteVisibleCharacterCue(shot);
   function take(type, cap) {
     (buckets[type] || []).slice(0, cap).forEach(function(img) {
       if (picked.length < limit) picked.push(img);
@@ -19210,13 +19313,19 @@ function compactProofOfTasteRefs(images, maxRefs, shot) {
     take('other', 1);
     return picked.slice(0, Math.min(limit, 3));
   }
-  take('face', limit <= 3 ? 1 : 2);
-  take('character', limit <= 4 ? 1 : 2);
-  take('costume', limit <= 4 ? 1 : 2);
+  if (!hasVisibleCharacter) {
+    take('background', 2);
+    take('prop', 2);
+    take('other', 1);
+    return picked.slice(0, Math.min(limit, 3));
+  }
+  take('face', 1);
+  take('character', 1);
+  take('costume', 1);
   take('background', 1);
-  take('prop', limit <= 4 ? 1 : 2);
+  take('prop', 1);
   take('other', 1);
-  return picked.slice(0, limit);
+  return picked.slice(0, Math.min(limit, 4));
 }
 
 function buildSBRefManifest(images) {
@@ -20992,7 +21101,9 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
     if (isProofOfTasteProject() && imgMode !== 'zimage') {
       imgInputs = compactProofOfTasteRefs(imgInputs, (_seq && _seq.cont && _seq.cont.length) ? 6 : 5, shot);
     }
-    let _finalPrompt = prompt;
+    let _finalPrompt = isProofOfTasteProject()
+      ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative)
+      : prompt;
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
     const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
     let result;
@@ -21005,15 +21116,25 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
       });
     } catch(firstError) {
       if (!isProofOfTasteProject()) throw firstError;
-      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 3, shot);
+      const retryInputs = (imgMode === 'zimage') ? [] : compactProofOfTasteRefs(imgInputs, 2, shot);
       const retryPrompt = buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative);
       progress('PoT 안정화 재시도... refs ' + retryInputs.length);
-      result = await callImageGen({
-        images: retryInputs,
-        prompt: retryPrompt,
-        resVal: '1K',
-        onProgress: progress
-      });
+      try {
+        result = await callImageGen({
+          images: retryInputs,
+          prompt: retryPrompt,
+          resVal: '1K',
+          onProgress: progress
+        });
+      } catch(secondError) {
+        progress('PoT 긴급 텍스트 재시도... refs 0');
+        result = await callImageGen({
+          images: [],
+          prompt: retryPrompt,
+          resVal: '1K',
+          onProgress: progress
+        });
+      }
     }
     const { imgB64 } = result;
     if(!imgB64) throw new Error('이미지 없음');
@@ -21434,6 +21555,201 @@ async function downloadAllStoryboardImages() {
     if (btn) { btn.disabled = false; btn.textContent = oldText || '일괄 다운로드'; }
   }
 }
+const CAMERA_MOVE_CATEGORIES = ['전체','고정','인물','액션','디테일','공간','릴스'];
+const CAMERA_MOVES = [
+  {id:'locked-static', category:'고정', preview:'static', name:'Locked Static', ko:'고정 샷', desc:'정적인 감정, 소품, 문장, 공간의 밀도를 유지할 때 사용.', prompt:'locked-off static camera. Hold the exact same composition from the source frame. Keep angle, lens distance, horizon, subject size, identity, outfit, props, and lighting unchanged. Add only small natural live-action motion inside the frame.'},
+  {id:'slow-push-in', category:'인물', preview:'dolly-in', name:'Slow Push In', ko:'느린 전진', desc:'감정 클로즈업이나 인물의 반응을 천천히 강조.', prompt:'slow controlled push-in toward the main subject. Move physically forward with a subtle cinematic glide. Keep facial identity, outfit, pose logic, and background continuity stable. End on a slightly tighter emotional frame.'},
+  {id:'dolly-out', category:'공간', preview:'dolly-out', name:'Dolly Out', ko:'후진 공개', desc:'인물에서 공간으로 의미를 넓힐 때 사용.', prompt:'slow dolly-out from the subject. Move the camera physically backward while keeping the subject readable. Reveal more of the environment without changing location, lighting, identity, or outfit. End on a wider stable composition.'},
+  {id:'pan-right', category:'공간', preview:'pan-right', name:'Pan Right', ko:'오른쪽 팬', desc:'공간의 다음 정보가 오른쪽에서 들어올 때 사용.', prompt:'smooth pan right from one fixed camera position. Rotate horizontally with a level horizon. Let new space enter from the right while preserving the original scene continuity. End on a clean readable final composition.'},
+  {id:'pan-left', category:'공간', preview:'pan-left', name:'Pan Left', ko:'왼쪽 팬', desc:'왼쪽에 있는 인물, 소품, 출입구를 드러낼 때 사용.', prompt:'smooth pan left from one fixed camera position. Rotate horizontally with a level horizon. Let new space enter from the left while keeping the subject and background consistent. End on a stable final frame.'},
+  {id:'tilt-up', category:'공간', preview:'tilt-up', name:'Tilt Up', ko:'틸트 업', desc:'건물, 간판, 인물의 시선 상승 같은 세로 정보에 사용.', prompt:'gentle tilt up from the source frame. Rotate the camera upward from the same physical position. Keep vertical lines believable, preserve subject identity and scene lighting, and land on the intended upper visual target.'},
+  {id:'slider-left', category:'릴스', preview:'slider-left', name:'Slider Left', ko:'왼쪽 슬라이드', desc:'작은 시차와 세련된 릴스 움직임을 줄 때 사용.', prompt:'small slider move to the left. Slide the camera laterally with slow controlled parallax. Keep the subject, outfit, face, and location locked while foreground and background shift subtly.'},
+  {id:'slider-right', category:'릴스', preview:'slider-right', name:'Slider Right', ko:'오른쪽 슬라이드', desc:'제품, 의상, 장소 질감을 자연스럽게 훑을 때 사용.', prompt:'small slider move to the right. Slide the camera laterally with gentle parallax. Preserve the source frame identity, styling, location, lighting, and color while adding refined motion.'},
+  {id:'orbit-soft', category:'인물', preview:'orbit', name:'Soft Orbit', ko:'부드러운 오빗', desc:'인물 주변을 살짝 돌아 입체감과 배경 변화를 줄 때 사용.', prompt:'soft partial orbit around the main subject. Move on a shallow curved path while maintaining consistent distance and framing. Keep the face, body, outfit, and environment locked. Background angle may shift subtly but must remain the same location.'},
+  {id:'handheld-subtle', category:'릴스', preview:'handheld', name:'Subtle Handheld', ko:'잔잔한 핸드헬드', desc:'인스타 릴스, 일상 컷, 자연스러운 실사감 기본값.', prompt:'subtle handheld phone-camera motion. Add tiny human micro-sway, natural breathing, small focus breathing, and realistic motion blur. Keep the same person, outfit, location, lighting, and composition stable.'},
+  {id:'tracking-follow', category:'인물', preview:'dolly-in', name:'Follow Tracking', ko:'따라가기', desc:'걷는 인물이나 동선을 따라가는 쇼트에 사용.', prompt:'smooth follow tracking shot. Move with the subject at the same pace, keeping the body and face readable. The environment should move naturally around the subject while identity, outfit, and lighting remain unchanged.'},
+  {id:'reverse-walk', category:'인물', preview:'dolly-out', name:'Reverse Walk', ko:'마주 보며 후진', desc:'앞에서 걸어오는 인물을 따라 후진하는 대화/감정 컷.', prompt:'reverse tracking walk-and-talk movement. The camera moves backward in front of the subject at matching pace. Keep face and upper body stable, with realistic background motion and no facial drift.'},
+  {id:'low-tracking', category:'액션', preview:'slider-right', name:'Low Tracking', ko:'로우 트래킹', desc:'발걸음, 바퀴, 바닥 질감, 낮은 액션 디테일에 사용.', prompt:'low tracking camera near ground or below-waist height. Move with the action path while preserving the exact source subject and environment. Emphasize footsteps, floor texture, wheels, or low foreground details.'},
+  {id:'chase-handheld', category:'액션', preview:'chase', name:'Chase Handheld', ko:'추격 핸드헬드', desc:'추격, 도망, 긴박한 액션에 사용하는 빠른 반응형 움직임.', prompt:'reactive handheld chase movement. Follow the moving subject with energetic but readable framing, slight shake, and natural motion blur. Keep the subject visible and do not invent new people or change costumes.'},
+  {id:'whip-pan', category:'액션', preview:'whip', name:'Whip Pan', ko:'휩 팬', desc:'시선 전환, 충격, 빠른 대상 전환에 사용.', prompt:'fast whip pan transition. Snap the camera quickly toward the new target with a brief motion-blur streak, then settle into a sharp readable frame. Preserve continuity and avoid morphing the subject.'},
+  {id:'macro-insert', category:'디테일', preview:'macro', name:'Macro Insert', ko:'소품 인서트', desc:'손, 펜, 카드, QR, 메뉴, 작은 오브젝트 디테일에 사용.', prompt:'macro insert detail shot. Keep the camera close to hands, object, texture, or surface detail. Use very shallow physical movement and realistic focus breathing. Do not show or invent a face unless the source frame already clearly shows one.'},
+  {id:'pov-walk', category:'디테일', preview:'pov', name:'First Person', ko:'1인칭 시점', desc:'손, 문, 통로, 접근 동작을 주관식으로 보여줄 때 사용.', prompt:'first-person camera movement from human eye height. Move forward naturally with visible hands, arms, or body edges only if already implied by the frame. Keep the same space and action direction from the source.'},
+  {id:'crane-up', category:'공간', preview:'crane-up', name:'Crane Up', ko:'크레인 업', desc:'장소 규모를 위로 열어 보여주는 공간 공개 컷.', prompt:'slow crane-up movement. Travel vertically upward through the same space with a controlled lift. Keep the subject or location readable as the camera rises, and preserve lighting, geography, and color continuity.'},
+  {id:'drone-push-in', category:'공간', preview:'drone-in', name:'Drone Push In', ko:'드론 전진', desc:'랜드마크, 도시, 넓은 장소로 진입하는 영상에 사용.', prompt:'smooth aerial push-in toward the destination or subject. Glide forward through open space with stable horizon and realistic parallax. Keep the route, landmark, lighting, and subject continuity believable.'}
+];
+let cameraMoveFilter = '전체';
+let selectedCameraMoveId = 'handheld-subtle';
+
+function cmEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+function getCameraMove(id){return CAMERA_MOVES.find(function(m){return m.id===id;}) || null;}
+function getCameraMovePromptBlock(id) {
+  const move = getCameraMove(id);
+  if (!move) return '';
+  return 'CAMERA MOVEMENT PRESET: ' + move.name + ' / ' + move.ko + '\n' + move.prompt;
+}
+function stripCameraMovePromptBlock(prompt) {
+  return String(prompt || '').replace(/\n*CAMERA MOVEMENT PRESET:[\s\S]*$/m, '').trim();
+}
+function appendCameraMoveToPrompt(prompt, moveId) {
+  const base = stripCameraMovePromptBlock(prompt);
+  const block = getCameraMovePromptBlock(moveId);
+  return [base, block].filter(Boolean).join('\n\n');
+}
+function makeCameraPreviewHtml(move) {
+  return '<div class="cm-preview ' + cmEsc(move.preview || 'static') + '"><div class="cm-scene"><div class="cm-horizon"></div><div class="cm-layer l1"></div><div class="cm-layer l2"></div><div class="cm-subject"></div></div><div class="cm-frame"></div></div>';
+}
+function renderCameraMoveFilters() {
+  const el = document.getElementById('cmFilters');
+  if (!el) return;
+  el.innerHTML = CAMERA_MOVE_CATEGORIES.map(function(cat){
+    return '<button class="cm-filter ' + (cameraMoveFilter===cat?'on':'') + '" onclick="setCameraMoveFilter(\'' + cmEsc(cat) + '\')">' + cmEsc(cat) + '</button>';
+  }).join('');
+}
+function setCameraMoveFilter(cat) {
+  cameraMoveFilter = cat || '전체';
+  renderCameraMoveLibrary();
+}
+function selectCameraMove(id) {
+  if (!getCameraMove(id)) return;
+  selectedCameraMoveId = id;
+  try { localStorage.setItem('zippy_camera_move_selected', id); } catch(e) {}
+  renderCameraMoveLibrary();
+  syncCameraMoveSelects(id);
+}
+function renderCameraMoveLibrary() {
+  renderCameraMoveFilters();
+  const grid = document.getElementById('cmLibraryGrid');
+  if (!grid) return;
+  const q = (document.getElementById('cmSearch')?.value || '').trim().toLowerCase();
+  let items = CAMERA_MOVES.filter(function(move){
+    const catOk = cameraMoveFilter === '전체' || move.category === cameraMoveFilter;
+    const text = [move.name, move.ko, move.category, move.desc, move.prompt].join(' ').toLowerCase();
+    return catOk && (!q || text.includes(q));
+  });
+  if (!items.length) {
+    grid.innerHTML = '<div style="font-family:var(--font-mono);font-size:12px;color:var(--mu);padding:20px">검색 결과가 없습니다.</div>';
+    return;
+  }
+  grid.innerHTML = items.map(function(move){
+    const active = move.id === selectedCameraMoveId;
+    return '<div class="cm-card ' + (active?'active':'') + '">' +
+      makeCameraPreviewHtml(move) +
+      '<div class="cm-card-body">' +
+        '<div class="cm-kicker">' + cmEsc(move.category) + '</div>' +
+        '<div class="cm-name">' + cmEsc(move.ko) + ' · ' + cmEsc(move.name) + '</div>' +
+        '<div class="cm-desc">' + cmEsc(move.desc) + '</div>' +
+        '<div class="cm-prompt">' + cmEsc(getCameraMovePromptBlock(move.id)) + '</div>' +
+        '<div class="cm-actions">' +
+          '<button class="btn bpu bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\');applySelectedCameraMoveToVideo()">영상 탭 적용</button>' +
+          '<button class="btn bor bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\');applySelectedCameraMoveToStoryboard()">스토리보드 적용</button>' +
+          '<button class="btn bgh bsm" onclick="copyCameraMovePrompt(\'' + cmEsc(move.id) + '\')">복사</button>' +
+          '<button class="btn bgh bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\')">선택</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  const info = document.getElementById('cmActiveInfo');
+  const move = getCameraMove(selectedCameraMoveId);
+  if (info) info.textContent = move ? '선택: ' + move.ko + ' / ' + move.name : '선택된 무빙 없음';
+}
+function renderCameraMoveOptions() {
+  const opts = CAMERA_MOVES.map(function(move){return '<option value="' + cmEsc(move.id) + '">' + cmEsc(move.ko + ' · ' + move.name) + '</option>';}).join('');
+  const vid = document.getElementById('vidCameraMove');
+  const sb = document.getElementById('sbCameraMove');
+  if (vid) vid.innerHTML = '<option value="">무빙 없음</option>' + opts;
+  if (sb) sb.innerHTML = '<option value="auto">자동 추천</option>' + opts;
+  syncCameraMoveSelects(selectedCameraMoveId);
+}
+function syncCameraMoveSelects(id) {
+  const vid = document.getElementById('vidCameraMove');
+  if (vid && getCameraMove(id)) vid.value = id;
+}
+function copyCameraMovePrompt(id) {
+  const text = getCameraMovePromptBlock(id || selectedCameraMoveId);
+  if (!text) return;
+  navigator.clipboard?.writeText(text).then(function(){ alert('카메라 무빙 프롬프트를 복사했습니다.'); }).catch(function(){ alert(text); });
+}
+function applyCameraMoveToVideoPrompt(id) {
+  const moveId = id || document.getElementById('vidCameraMove')?.value || selectedCameraMoveId;
+  const el = document.getElementById('vidTabPrompt');
+  if (!el || !getCameraMove(moveId)) return;
+  el.value = appendCameraMoveToPrompt(el.value || '', moveId);
+  selectCameraMove(moveId);
+}
+function applySelectedCameraMoveToVideo() {
+  applyCameraMoveToVideoPrompt(selectedCameraMoveId);
+  if (typeof goStep === 'function') goStep('vid');
+}
+function currentSBVideoShot() {
+  const shotId = document.getElementById('sbVideoShotSelect')?.value;
+  const shots = (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS : [];
+  return shots.find(function(s){return s.id === shotId;}) || null;
+}
+function getSelectedSBCameraMoveId(shot) {
+  const raw = document.getElementById('sbCameraMove')?.value || 'auto';
+  if (raw && raw !== 'auto' && getCameraMove(raw)) return raw;
+  return recommendCameraMoveForShot(shot);
+}
+function applyCameraMoveToSBPrompt(id) {
+  const shot = currentSBVideoShot();
+  const moveId = (id && id !== 'auto') ? id : getSelectedSBCameraMoveId(shot);
+  const el = document.getElementById('sbVideoPrompt');
+  if (!el || !getCameraMove(moveId)) return;
+  const base = shot ? buildSBVideoPromptBase(shot) : (el.value || '');
+  el.value = appendCameraMoveToPrompt(base, moveId);
+  selectedCameraMoveId = moveId;
+  try { localStorage.setItem('zippy_camera_move_selected', moveId); } catch(e) {}
+  renderCameraMoveLibrary();
+}
+function applySelectedCameraMoveToStoryboard() {
+  const sb = document.getElementById('sbCameraMove');
+  if (sb) sb.value = selectedCameraMoveId;
+  applyCameraMoveToSBPrompt(selectedCameraMoveId);
+  if (typeof goStep === 'function') goStep('sb');
+  if (typeof setSBSubtab === 'function') setSBSubtab('video');
+}
+function recommendCameraMoveForShot(shot) {
+  const text = ((shot && shot.frame) || '') + ' ' + ((shot && shot.desc) || '') + ' ' + ((shot && shot.func) || '');
+  const faceDetail = /얼굴|표정|눈|시선|눈빛|미소|웃|입|입술|턱|고개|반응|상반신|바스트|클로즈|초상|응시|바라|portrait|face|eyes/i.test(text);
+  const tactileDetail = /손|손가락|펜|카드|QR|종이|메뉴|문구|소품|자물쇠|서랍|폰|휴대폰|발|발걸음|신발|문손잡이|손잡이|그릇|식재료|오디오|LP|턴테이블|컵|잔|향수|샘플|보드|노트|책|가방|표면|질감|텍스처|macro|object|prop/i.test(text);
+  const explicitInsert = /INS|INSERT|인서트|매크로|소품 클로즈업|디테일|ECU/i.test(text);
+  if (/추격|도망|질주|급박|전투|격투|습격|폭발|난입|덮치|뛰어|달리|chase|run|fight|action/i.test(text)) return 'chase-handheld';
+  if (/whip|휩|빠른 팬|급전환|스냅|휙|돌아보|고개를 돌|시선 전환|반사적으로/i.test(text)) return 'whip-pan';
+  if (explicitInsert || ((/ECU|CU/i.test(text)) && tactileDetail && !faceDetail)) return 'macro-insert';
+  if (/1인칭|POV|문을 열|문으로|다가가|접근|복도|통로|계단|입구|들어가|나가/i.test(text)) return 'pov-walk';
+  if (/걷|걸어|따라|따라가|동선|이동|진입|통과|가로질러|향해|접근|tracking|follow|walk|route/i.test(text)) return 'tracking-follow';
+  if (/OTS|뒤에서|뒤따라|어깨|등 뒤|follow from behind/i.test(text)) return 'tracking-follow';
+  if (/대화|마주|말하|묻|답하|서로|둘이|두 사람|투샷|walk-and-talk/i.test(text)) return 'reverse-walk';
+  if (/도시|상공|옥상|스카이라인|고가|대교|강변|랜드마크|스케일|drone|aerial/i.test(text)) return 'drone-push-in';
+  if (/WS|EWS|establishing|전경|와이드|전신|공간|골목|건물|거리|시장|카페|식당|사무실|방|하늘|밤거리/i.test(text)) return 'crane-up';
+  if (/옆으로|스쳐|훑|패닝|왼쪽|오른쪽|좌측|우측|진열|벽면|쇼윈도|테이블 위/i.test(text)) return 'slider-right';
+  if (/CU|감정|표정|시선|눈|눈빛|미소|반응|고개|침묵|정적|망설|숨|멈춘|떨림/i.test(text) || faceDetail) return 'slow-push-in';
+  if (/고정|LOCKED|정적 이미지|static/i.test(text)) return 'locked-static';
+  return 'handheld-subtle';
+}
+function buildSBVideoPromptBase(shot) {
+  const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
+  const camera = spec && spec.video ? spec.video : (shot.frame || 'storyboard-defined camera');
+  return [
+    '100% photorealistic live-action cinema footage from this exact source frame, not CGI, not animation, not illustration',
+    'cinematic storyboard image-to-video from this exact generated frame',
+    'SHOT ID: ' + (shot.id || ''),
+    'CAMERA: ' + camera,
+    'ACTION: ' + (shot.desc || ''),
+    'FUNCTION: ' + (shot.func || ''),
+    'Preserve the exact same characters, faces, costumes, props, location, lighting, framing, and color.',
+    'Add only natural motion implied by the shot: subtle body movement, fabric/hair motion, practical light flicker, atmosphere, and camera movement from the storyboard.',
+    'No face morph, no costume change, no extra people, no new text, no graphic overlays.'
+  ].filter(Boolean).join('\n');
+}
+function initCameraMovementLibrary() {
+  try {
+    selectedCameraMoveId = localStorage.getItem('zippy_camera_move_selected') || selectedCameraMoveId;
+  } catch(e) {}
+  if (!getCameraMove(selectedCameraMoveId)) selectedCameraMoveId = 'handheld-subtle';
+  renderCameraMoveOptions();
+  renderCameraMoveLibrary();
+}
 const sbVideoHistory = [];
 function setSBSubtab(mode) {
   const board = document.getElementById('sbBoardPanel');
@@ -21480,19 +21796,7 @@ function sbSelectVideoShot(shotId) {
   if (meta) meta.innerHTML = '<b>' + escSBText(shot.id) + '</b><br>' + escSBText(shot.frame || '') + '<br>' + escSBText(shot.desc || '');
 }
 function buildSBVideoPrompt(shot) {
-  const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
-  const camera = spec && spec.video ? spec.video : (shot.frame || 'storyboard-defined camera');
-  return [
-    '100% photorealistic live-action cinema footage from this exact source frame, not CGI, not animation, not illustration',
-    'cinematic storyboard image-to-video from this exact generated frame',
-    'SHOT ID: ' + (shot.id || ''),
-    'CAMERA: ' + camera,
-    'ACTION: ' + (shot.desc || ''),
-    'FUNCTION: ' + (shot.func || ''),
-    'Preserve the exact same characters, faces, costumes, props, location, lighting, framing, and color.',
-    'Add only natural motion implied by the shot: subtle body movement, fabric/hair motion, practical light flicker, atmosphere, and camera movement from the storyboard.',
-    'No face morph, no costume change, no extra people, no new text, no graphic overlays.'
-  ].filter(Boolean).join('\n');
+  return appendCameraMoveToPrompt(buildSBVideoPromptBase(shot), getSelectedSBCameraMoveId(shot));
 }
 function syncSBVideoGateway() {
   const sb = document.getElementById('sbGrokBuildBridgeUrl');
@@ -22016,7 +22320,7 @@ function getGrokBuildBridgeHeaders(json, keySourceId) {
   return headers;
 }
 function composeVideoRealismPrompt(motionPrompt) {
-  const motion = String(motionPrompt || '').trim();
+  const motion = stripCameraMovePromptBlock(motionPrompt).trim();
   if (!motion) return DEFAULT_VIDEO_REALISM_PROMPT;
   if (/Photorealistic live-action Instagram reel|Keep the same person, face identity/i.test(motion)) return motion;
   return DEFAULT_VIDEO_REALISM_PROMPT + '\n\nMotion direction: ' + motion;
@@ -22055,7 +22359,9 @@ function makeVideoImagePayload(role, b64, mime, requestId, index) {
   };
 }
 function getVidTabPromptForGeneration() {
-  return composeVideoRealismPrompt(document.getElementById('vidTabPrompt')?.value?.trim() || '');
+  const base = composeVideoRealismPrompt(document.getElementById('vidTabPrompt')?.value?.trim() || '');
+  const moveId = document.getElementById('vidCameraMove')?.value || selectedCameraMoveId;
+  return getCameraMove(moveId) ? appendCameraMoveToPrompt(base, moveId) : base;
 }
 function initLocalVideoGatewayFields() {
   const urlEl = document.getElementById('vidLocalGatewayUrl');
@@ -22633,8 +22939,10 @@ function renderVidTabHistory() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initLocalVideoGatewayFields);
+  document.addEventListener('DOMContentLoaded', initCameraMovementLibrary);
 } else {
   initLocalVideoGatewayFields();
+  initCameraMovementLibrary();
 }
 
 /* ═══ PREMIERE ROUGHCUT EXPORT ═══ */
@@ -25852,11 +26160,12 @@ function setupDnD(id,cb){
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pHist','pMB'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
+    else if(n==='cam') el.classList.toggle('active',id==='pCam');
     else if(n==='premiere') el.classList.toggle('active',id==='pPremiere');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
@@ -25868,6 +26177,7 @@ function goStep(n){
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
+  document.getElementById('tabCam').className='stab '+(n==='cam'?'a3':'');
   document.getElementById('tabPremiere').className='stab '+(n==='premiere'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
@@ -27872,7 +28182,7 @@ function updatePromptPreview() {
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pPremiere','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';

@@ -1038,8 +1038,8 @@ input[type=file]{display:none}
     </label>
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
-    <span class="al" style="color:var(--pu);font-size:11px">ComfyUI</span>
-    <input id="comfyHost" value="http://127.0.0.1:8790/proxy/local5080" spellcheck="false" style="font-family:var(--font-mono);font-size:11px;width:250px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px" placeholder="ComfyUI/5080 host">
+    <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
+    <input id="comfyHost" value="https://zippy-5080.studiozippy.co.kr" spellcheck="false" style="font-family:var(--font-mono);font-size:11px;width:250px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:3px 6px" placeholder="ComfyUI/5080 host">
     <button class="btn bgh bsm" onclick="checkComfy()" style="font-size:11px;padding:3px 8px">연결확인</button>
     <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
     <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
@@ -24982,7 +24982,10 @@ function getImgMode() {
 }
 function getComfyHost() {
   const el = document.getElementById('comfyHost');
-  const h = (el && el.value.trim()) || 'http://127.0.0.1:8000';
+  const h = (el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY;
+  try { localStorage.setItem('zippy_comfy_host', h); } catch(e) {}
+  // 영상용 5080 게이트웨이와 동일 경로: 로컬 페이지 → Grok 브릿지(8790) /proxy/local5080 경유
+  if (shouldProxyLocal5080(h)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH;
   return h.replace(/\/+$/, '');
 }
 function getLocalImgSize() {
@@ -25483,6 +25486,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
 // 페이지 로드 시 이미지 모드 + OpenAI 키 복원
 (function(){
   const saved = (function(){try{return localStorage.getItem('zippy_img_mode')||'cloud';}catch(e){return 'cloud';}})();
+  try { var _ch=localStorage.getItem('zippy_comfy_host'); if(_ch){ var _e=document.getElementById('comfyHost'); if(_e) _e.value=_ch; } } catch(e){}
   document.addEventListener('DOMContentLoaded', function(){
     const r = document.querySelector('input[name="imgMode"][value="' + saved + '"]');
     if (r) { r.checked = true; onImgModeChange(); }

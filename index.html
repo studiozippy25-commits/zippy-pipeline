@@ -610,6 +610,7 @@ input[type=file]{display:none}
 .cm-card{border:1px solid var(--bd);border-radius:8px;background:var(--card);overflow:hidden;display:flex;flex-direction:column;min-height:360px}
 .cm-card.active{border-color:var(--pu);box-shadow:0 0 0 2px rgba(124,58,237,.16)}
 .cm-preview{position:relative;height:130px;overflow:hidden;background:#101820;border-bottom:1px solid var(--bd)}
+.cm-preview video{width:100%;height:100%;object-fit:cover;display:block;background:#101820}
 .cm-scene{position:absolute;inset:0;transform-origin:center;will-change:transform}
 .cm-horizon{position:absolute;left:0;right:0;top:45%;height:1px;background:rgba(255,255,255,.12)}
 .cm-layer{position:absolute;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06)}
@@ -632,31 +633,43 @@ input[type=file]{display:none}
 .cm-preview.pan-right .cm-scene{animation:cmPanRight 2.2s ease-out 1 forwards}
 .cm-preview.pan-left .cm-scene{animation:cmPanLeft 2.2s ease-out 1 forwards}
 .cm-preview.tilt-up .cm-scene{animation:cmTiltUp 2.2s ease-out 1 forwards}
+.cm-preview.tilt-down .cm-scene{animation:cmTiltDown 2.2s ease-out 1 forwards}
 .cm-preview.slider-left .cm-scene{animation:cmSliderLeft 2.4s ease-out 1 forwards}
 .cm-preview.slider-right .cm-scene{animation:cmSliderRight 2.4s ease-out 1 forwards}
 .cm-preview.orbit .cm-scene{animation:cmOrbit 2.8s ease-out 1 forwards}
+.cm-preview.orbit-ccw .cm-scene{animation:cmOrbitCCW 2.8s ease-out 1 forwards}
 .cm-preview.handheld .cm-frame{animation:cmHandheld .8s ease-out 1 forwards}
 .cm-preview.chase .cm-frame{animation:cmChase .38s ease-out 1 forwards}
 .cm-preview.crane-up .cm-scene{animation:cmCraneUp 2.6s ease-out 1 forwards}
+.cm-preview.crane-down .cm-scene{animation:cmCraneDown 2.6s ease-out 1 forwards}
 .cm-preview.drone-in .cm-scene{animation:cmDroneIn 2.8s ease-out 1 forwards}
+.cm-preview.drone-out .cm-scene{animation:cmDroneOut 2.8s ease-out 1 forwards}
 .cm-preview.macro .cm-scene{animation:cmMacro 2.4s ease-out 1 forwards}
 .cm-preview.whip .cm-scene{animation:cmWhip 1.2s cubic-bezier(.2,.7,.2,1) 1 forwards}
+.cm-preview.whip-left .cm-scene{animation:cmWhipLeft 1.2s cubic-bezier(.2,.7,.2,1) 1 forwards}
 .cm-preview.pov .cm-frame{animation:cmPov 1.5s ease-out 1 forwards}
+.cm-preview.timelapse .cm-scene{animation:cmTimelapse 2.4s steps(4,end) 1 forwards}
 @keyframes cmZoomIn{from{transform:scale(1)}to{transform:scale(1.22)}}
 @keyframes cmZoomOut{from{transform:scale(1.22)}to{transform:scale(1)}}
 @keyframes cmPanRight{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
 @keyframes cmPanLeft{from{transform:translateX(8%)}to{transform:translateX(-8%)}}
 @keyframes cmTiltUp{from{transform:translateY(8%)}to{transform:translateY(-8%)}}
+@keyframes cmTiltDown{from{transform:translateY(-8%)}to{transform:translateY(8%)}}
 @keyframes cmSliderLeft{from{transform:translateX(5%) scale(1.04)}to{transform:translateX(-6%) scale(1.04)}}
 @keyframes cmSliderRight{from{transform:translateX(-5%) scale(1.04)}to{transform:translateX(6%) scale(1.04)}}
 @keyframes cmOrbit{from{transform:perspective(420px) rotateY(-8deg) scale(1.04)}to{transform:perspective(420px) rotateY(8deg) scale(1.04)}}
+@keyframes cmOrbitCCW{from{transform:perspective(420px) rotateY(8deg) scale(1.04)}to{transform:perspective(420px) rotateY(-8deg) scale(1.04)}}
 @keyframes cmHandheld{from{transform:translate(-1px,1px) rotate(-.25deg)}to{transform:translate(1px,-1px) rotate(.25deg)}}
 @keyframes cmChase{from{transform:translate(-4px,2px) rotate(-.6deg)}to{transform:translate(4px,-2px) rotate(.6deg)}}
 @keyframes cmCraneUp{from{transform:translateY(10%) scale(1.1)}to{transform:translateY(-10%) scale(.96)}}
+@keyframes cmCraneDown{from{transform:translateY(-10%) scale(.96)}to{transform:translateY(10%) scale(1.1)}}
 @keyframes cmDroneIn{from{transform:scale(.92) translateY(5%)}to{transform:scale(1.16) translateY(-3%)}}
+@keyframes cmDroneOut{from{transform:scale(1.16) translateY(-3%)}to{transform:scale(.92) translateY(5%)}}
 @keyframes cmMacro{from{transform:scale(1.05)}to{transform:scale(1.42) translateY(4%)}}
 @keyframes cmWhip{0%,35%{transform:translateX(-16%) skewX(-2deg);filter:blur(0)}50%{transform:translateX(16%) skewX(4deg);filter:blur(3px)}70%,100%{transform:translateX(16%);filter:blur(0)}}
+@keyframes cmWhipLeft{0%,35%{transform:translateX(16%) skewX(2deg);filter:blur(0)}50%{transform:translateX(-16%) skewX(-4deg);filter:blur(3px)}70%,100%{transform:translateX(-16%);filter:blur(0)}}
 @keyframes cmPov{from{transform:scale(1) translateY(1px)}to{transform:scale(1.03) translateY(-2px)}}
+@keyframes cmTimelapse{0%{filter:brightness(.85) saturate(.9)}35%{filter:brightness(1.15) saturate(1.05)}70%{filter:brightness(.95) saturate(1.25)}100%{filter:brightness(1.25) saturate(.8)}}
 @media(max-width:760px){.cm-toolbar,.cm-mini-row{grid-template-columns:1fr}.cm-filters{justify-content:flex-start}}
 
 /* ═══ VIDEO MODE ═══ */
@@ -2963,7 +2976,7 @@ input[type=file]{display:none}
 <div class="panel" id="pCam">
   <div class="slbl" style="color:#A78BFA">카메라 무빙 레퍼런스 — I2V 프롬프트 라이브러리</div>
   <div class="cm-note">
-    직접 만든 CSS 프리뷰와 ZIPPY용 프롬프트를 사용합니다. 외부 GIF를 저장하지 않고도 영상 무빙을 고르고, 선택한 프리셋을 영상 제작 탭이나 스토리보드 영상 프롬프트에 바로 붙일 수 있습니다.
+    이 탭은 <a href="https://aicameramovements.com/" target="_blank" rel="noopener noreferrer" style="color:#A78BFA;font-weight:900">https://aicameramovements.com/ 의 내용</a>입니다. 내부 검수용 임시 레퍼런스로 46개 MP4 프리뷰를 직접 연결했습니다. 추후 우리 영상으로 교체할 때는 각 프리셋의 media/poster 경로만 바꾸면 됩니다.
   </div>
   <div class="cm-toolbar">
     <input id="cmSearch" class="cm-search" placeholder="무빙 검색: dolly, handheld, orbit, insert..." oninput="renderCameraMoveLibrary()">
@@ -21554,33 +21567,65 @@ async function downloadAllStoryboardImages() {
     if (btn) { btn.disabled = false; btn.textContent = oldText || '일괄 다운로드'; }
   }
 }
-const CAMERA_MOVE_CATEGORIES = ['전체','고정','인물','액션','디테일','공간','릴스'];
+const CAMERA_MOVE_SOURCE_URL = 'https://aicameramovements.com/';
+const CAMERA_MOVE_CATEGORIES = ["전체","Dolly/Track","Zoom/Lens","Drone/Crane","Pan/Tilt","Physical Moves","Human Camera","Specials"];
 const CAMERA_MOVES = [
-  {id:'locked-static', category:'고정', preview:'static', name:'Locked Static', ko:'고정 샷', desc:'정적인 감정, 소품, 문장, 공간의 밀도를 유지할 때 사용.', prompt:'locked-off static camera. Hold the exact same composition from the source frame. Keep angle, lens distance, horizon, subject size, identity, outfit, props, and lighting unchanged. Add only small natural live-action motion inside the frame.'},
-  {id:'slow-push-in', category:'인물', preview:'dolly-in', name:'Slow Push In', ko:'느린 전진', desc:'감정 클로즈업이나 인물의 반응을 천천히 강조.', prompt:'slow controlled push-in toward the main subject. Move physically forward with a subtle cinematic glide. Keep facial identity, outfit, pose logic, and background continuity stable. End on a slightly tighter emotional frame.'},
-  {id:'dolly-out', category:'공간', preview:'dolly-out', name:'Dolly Out', ko:'후진 공개', desc:'인물에서 공간으로 의미를 넓힐 때 사용.', prompt:'slow dolly-out from the subject. Move the camera physically backward while keeping the subject readable. Reveal more of the environment without changing location, lighting, identity, or outfit. End on a wider stable composition.'},
-  {id:'pan-right', category:'공간', preview:'pan-right', name:'Pan Right', ko:'오른쪽 팬', desc:'공간의 다음 정보가 오른쪽에서 들어올 때 사용.', prompt:'smooth pan right from one fixed camera position. Rotate horizontally with a level horizon. Let new space enter from the right while preserving the original scene continuity. End on a clean readable final composition.'},
-  {id:'pan-left', category:'공간', preview:'pan-left', name:'Pan Left', ko:'왼쪽 팬', desc:'왼쪽에 있는 인물, 소품, 출입구를 드러낼 때 사용.', prompt:'smooth pan left from one fixed camera position. Rotate horizontally with a level horizon. Let new space enter from the left while keeping the subject and background consistent. End on a stable final frame.'},
-  {id:'tilt-up', category:'공간', preview:'tilt-up', name:'Tilt Up', ko:'틸트 업', desc:'건물, 간판, 인물의 시선 상승 같은 세로 정보에 사용.', prompt:'gentle tilt up from the source frame. Rotate the camera upward from the same physical position. Keep vertical lines believable, preserve subject identity and scene lighting, and land on the intended upper visual target.'},
-  {id:'slider-left', category:'릴스', preview:'slider-left', name:'Slider Left', ko:'왼쪽 슬라이드', desc:'작은 시차와 세련된 릴스 움직임을 줄 때 사용.', prompt:'small slider move to the left. Slide the camera laterally with slow controlled parallax. Keep the subject, outfit, face, and location locked while foreground and background shift subtly.'},
-  {id:'slider-right', category:'릴스', preview:'slider-right', name:'Slider Right', ko:'오른쪽 슬라이드', desc:'제품, 의상, 장소 질감을 자연스럽게 훑을 때 사용.', prompt:'small slider move to the right. Slide the camera laterally with gentle parallax. Preserve the source frame identity, styling, location, lighting, and color while adding refined motion.'},
-  {id:'orbit-soft', category:'인물', preview:'orbit', name:'Soft Orbit', ko:'부드러운 오빗', desc:'인물 주변을 살짝 돌아 입체감과 배경 변화를 줄 때 사용.', prompt:'soft partial orbit around the main subject. Move on a shallow curved path while maintaining consistent distance and framing. Keep the face, body, outfit, and environment locked. Background angle may shift subtly but must remain the same location.'},
-  {id:'handheld-subtle', category:'릴스', preview:'handheld', name:'Subtle Handheld', ko:'잔잔한 핸드헬드', desc:'인스타 릴스, 일상 컷, 자연스러운 실사감 기본값.', prompt:'subtle handheld phone-camera motion. Add tiny human micro-sway, natural breathing, small focus breathing, and realistic motion blur. Keep the same person, outfit, location, lighting, and composition stable.'},
-  {id:'tracking-follow', category:'인물', preview:'dolly-in', name:'Follow Tracking', ko:'따라가기', desc:'걷는 인물이나 동선을 따라가는 쇼트에 사용.', prompt:'smooth follow tracking shot. Move with the subject at the same pace, keeping the body and face readable. The environment should move naturally around the subject while identity, outfit, and lighting remain unchanged.'},
-  {id:'reverse-walk', category:'인물', preview:'dolly-out', name:'Reverse Walk', ko:'마주 보며 후진', desc:'앞에서 걸어오는 인물을 따라 후진하는 대화/감정 컷.', prompt:'reverse tracking walk-and-talk movement. The camera moves backward in front of the subject at matching pace. Keep face and upper body stable, with realistic background motion and no facial drift.'},
-  {id:'low-tracking', category:'액션', preview:'slider-right', name:'Low Tracking', ko:'로우 트래킹', desc:'발걸음, 바퀴, 바닥 질감, 낮은 액션 디테일에 사용.', prompt:'low tracking camera near ground or below-waist height. Move with the action path while preserving the exact source subject and environment. Emphasize footsteps, floor texture, wheels, or low foreground details.'},
-  {id:'chase-handheld', category:'액션', preview:'chase', name:'Chase Handheld', ko:'추격 핸드헬드', desc:'추격, 도망, 긴박한 액션에 사용하는 빠른 반응형 움직임.', prompt:'reactive handheld chase movement. Follow the moving subject with energetic but readable framing, slight shake, and natural motion blur. Keep the subject visible and do not invent new people or change costumes.'},
-  {id:'whip-pan', category:'액션', preview:'whip', name:'Whip Pan', ko:'휩 팬', desc:'시선 전환, 충격, 빠른 대상 전환에 사용.', prompt:'fast whip pan transition. Snap the camera quickly toward the new target with a brief motion-blur streak, then settle into a sharp readable frame. Preserve continuity and avoid morphing the subject.'},
-  {id:'macro-insert', category:'디테일', preview:'macro', name:'Macro Insert', ko:'소품 인서트', desc:'손, 펜, 카드, QR, 메뉴, 작은 오브젝트 디테일에 사용.', prompt:'macro insert detail shot. Keep the camera close to hands, object, texture, or surface detail. Use very shallow physical movement and realistic focus breathing. Do not show or invent a face unless the source frame already clearly shows one.'},
-  {id:'pov-walk', category:'디테일', preview:'pov', name:'First Person', ko:'1인칭 시점', desc:'손, 문, 통로, 접근 동작을 주관식으로 보여줄 때 사용.', prompt:'first-person camera movement from human eye height. Move forward naturally with visible hands, arms, or body edges only if already implied by the frame. Keep the same space and action direction from the source.'},
-  {id:'crane-up', category:'공간', preview:'crane-up', name:'Crane Up', ko:'크레인 업', desc:'장소 규모를 위로 열어 보여주는 공간 공개 컷.', prompt:'slow crane-up movement. Travel vertically upward through the same space with a controlled lift. Keep the subject or location readable as the camera rises, and preserve lighting, geography, and color continuity.'},
-  {id:'drone-push-in', category:'공간', preview:'drone-in', name:'Drone Push In', ko:'드론 전진', desc:'랜드마크, 도시, 넓은 장소로 진입하는 영상에 사용.', prompt:'smooth aerial push-in toward the destination or subject. Glide forward through open space with stable horizon and realistic parallax. Keep the route, landmark, lighting, and subject continuity believable.'}
+  {id:"locked-static",category:"Pan/Tilt",preview:"static",name:"Static shot",ko:"고정 샷",desc:"카메라를 고정하고 인물/공간 내부 움직임만 볼 때.",media:"https://aicameramovements.com/previews/hq/01-static-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/01-static-shot-hq.jpg",prompt:"locked-off static shot. Keep one fixed camera position and preserve the exact source framing, lens distance, horizon, subject size, identity, outfit, props, and lighting. Add only natural motion inside the frame."},
+  {id:"pan-right",category:"Pan/Tilt",preview:"pan-right",name:"Pan right",ko:"오른쪽 팬",desc:"고정 위치에서 오른쪽 공간을 드러낼 때.",media:"https://aicameramovements.com/previews/hq/02-pan-right-hq.mp4",poster:"https://aicameramovements.com/previews/hq/02-pan-right-hq.jpg",prompt:"pan right from a fixed camera point. Rotate horizontally left-to-right with a level horizon, revealing new space on the right while preserving scene continuity and ending on a readable final composition."},
+  {id:"pan-left",category:"Pan/Tilt",preview:"pan-left",name:"Pan left",ko:"왼쪽 팬",desc:"고정 위치에서 왼쪽 공간을 드러낼 때.",media:"https://aicameramovements.com/previews/hq/2b-pan-left-hq.mp4",poster:"https://aicameramovements.com/previews/hq/2b-pan-left-hq.jpg",prompt:"pan left from a fixed camera point. Rotate horizontally right-to-left with a level horizon, revealing new space on the left while keeping the subject and background coherent."},
+  {id:"whip-pan-right",category:"Pan/Tilt",preview:"whip",name:"Whip pan right",ko:"오른쪽 휩 팬",desc:"빠른 시선 전환이나 충격적인 대상 전환.",media:"https://aicameramovements.com/previews/hq/03-whip-pan-right-hq.mp4",poster:"https://aicameramovements.com/previews/hq/03-whip-pan-right-hq.jpg",prompt:"whip pan right. Snap rapidly toward a new target on the right with brief motion blur, then settle into a sharp readable final frame without morphing the subject."},
+  {id:"whip-pan-left",category:"Pan/Tilt",preview:"whip-left",name:"Whip pan left",ko:"왼쪽 휩 팬",desc:"왼쪽 대상/반응으로 급전환할 때.",media:"https://aicameramovements.com/previews/hq/3b-whip-pan-left-hq.mp4",poster:"https://aicameramovements.com/previews/hq/3b-whip-pan-left-hq.jpg",prompt:"whip pan left. Snap rapidly toward a new target on the left with a short blur streak, then land on a stable readable composition."},
+  {id:"tilt-up",category:"Pan/Tilt",preview:"tilt-up",name:"Tilt up",ko:"틸트 업",desc:"건물, 인물 시선, 세로 정보를 위로 열 때.",media:"https://aicameramovements.com/previews/hq/04-tilt-up-hq.mp4",poster:"https://aicameramovements.com/previews/hq/04-tilt-up-hq.jpg",prompt:"tilt up from one fixed position. Rotate upward smoothly while keeping vertical lines believable and landing on the intended upper subject or architectural target."},
+  {id:"tilt-down",category:"Pan/Tilt",preview:"tilt-down",name:"Tilt down",ko:"틸트 다운",desc:"상단 정보에서 손/소품/낮은 대상으로 내려올 때.",media:"https://aicameramovements.com/previews/hq/4b-tilt-down-hq.mp4",poster:"https://aicameramovements.com/previews/hq/4b-tilt-down-hq.jpg",prompt:"tilt down from one fixed position. Rotate downward smoothly from the starting frame and finish on the lower target while maintaining continuity and a level camera feel."},
+  {id:"slow-zoom-in",category:"Zoom/Lens",preview:"dolly-in",name:"Slow zoom in",ko:"느린 줌 인",desc:"렌즈 줌으로 감정/디테일을 조용히 조이는 컷.",media:"https://aicameramovements.com/previews/hq/05-slow-zoom-in-hq.mp4",poster:"https://aicameramovements.com/previews/hq/05-slow-zoom-in-hq.jpg",prompt:"slow lens zoom in. Gradually tighten focal length toward the main visual target while keeping the subject readable, identity stable, and composition controlled."},
+  {id:"slow-zoom-out",category:"Zoom/Lens",preview:"dolly-out",name:"Slow zoom out",ko:"느린 줌 아웃",desc:"렌즈 줌으로 주변 맥락을 넓히는 컷.",media:"https://aicameramovements.com/previews/hq/5b-slow-zoom-out-hq.mp4",poster:"https://aicameramovements.com/previews/hq/5b-slow-zoom-out-hq.jpg",prompt:"slow lens zoom out. Gradually widen the frame so more surrounding space appears while preserving the target, lighting, identity, and location continuity."},
+  {id:"fast-zoom-in",category:"Zoom/Lens",preview:"dolly-in",name:"Fast zoom in",ko:"빠른 줌 인",desc:"빠른 강조, 발견, 리액션 포인트.",media:"https://aicameramovements.com/previews/hq/06-fast-zoom-in-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/06-fast-zoom-in-v2-hq.jpg",prompt:"fast zoom in. Quickly tighten the lens toward the main target with a decisive energy, ending on a stable tighter frame that keeps the target readable."},
+  {id:"fast-zoom-out",category:"Zoom/Lens",preview:"dolly-out",name:"Fast zoom out",ko:"빠른 줌 아웃",desc:"갑작스러운 상황 공개나 코믹/액션 리듬.",media:"https://aicameramovements.com/previews/hq/06b-fast-zoom-out-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/06b-fast-zoom-out-v2-hq.jpg",prompt:"fast zoom out. Quickly widen the lens away from the target, revealing more environment while keeping the original subject visually connected."},
+  {id:"crash-zoom-in",category:"Zoom/Lens",preview:"dolly-in",name:"Crash zoom in",ko:"크래시 줌 인",desc:"강한 충격, 깨달음, 액션 포인트.",media:"https://aicameramovements.com/previews/hq/07a-crash-zoom-in-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/07a-crash-zoom-in-v2-hq.jpg",prompt:"crash zoom in. Snap the lens inward with punchy speed toward the center target, preserving readability through the sudden scale change and ending bold and tight."},
+  {id:"crash-zoom-out",category:"Zoom/Lens",preview:"dolly-out",name:"Crash zoom out",ko:"크래시 줌 아웃",desc:"급격한 스케일 공개나 반전.",media:"https://aicameramovements.com/previews/hq/07b-crash-zoom-out-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/07b-crash-zoom-out-v2-hq.jpg",prompt:"crash zoom out. Snap the lens outward with punchy speed, rapidly revealing context while keeping the starting subject anchored and recognizable."},
+  {id:"dolly-in",category:"Dolly/Track",preview:"dolly-in",name:"Dolly in",ko:"돌리 인",desc:"물리적으로 전진하며 인물/대상에 다가감.",media:"https://aicameramovements.com/previews/hq/08-dolly-in-hq.mp4",poster:"https://aicameramovements.com/previews/hq/08-dolly-in-hq.jpg",prompt:"dolly in. Move the camera physically forward in a straight controlled push, keeping camera height, lens direction, subject identity, outfit, and background continuity stable."},
+  {id:"dolly-out",category:"Dolly/Track",preview:"dolly-out",name:"Dolly out",ko:"돌리 아웃",desc:"물리적으로 후진하며 공간/상황을 공개.",media:"https://aicameramovements.com/previews/hq/09-dolly-out-hq.mp4",poster:"https://aicameramovements.com/previews/hq/09-dolly-out-hq.jpg",prompt:"dolly out. Move the camera physically backward away from the subject, keeping lens direction and height consistent while more environment enters the frame."},
+  {id:"truck-right",category:"Physical Moves",preview:"slider-right",name:"Truck right",ko:"트럭 라이트",desc:"카메라 전체가 오른쪽으로 이동하는 횡이동.",media:"https://aicameramovements.com/previews/hq/10-truck-right-hq.mp4",poster:"https://aicameramovements.com/previews/hq/10-truck-right-hq.jpg",prompt:"truck right. Move the whole camera to the right on a straight horizontal path while the lens keeps facing forward and the scene slides across frame naturally."},
+  {id:"truck-left",category:"Physical Moves",preview:"slider-left",name:"Truck left",ko:"트럭 레프트",desc:"카메라 전체가 왼쪽으로 이동하는 횡이동.",media:"https://aicameramovements.com/previews/hq/10b-truck-left-hq.mp4",poster:"https://aicameramovements.com/previews/hq/10b-truck-left-hq.jpg",prompt:"truck left. Move the whole camera to the left on a straight horizontal path while preserving lens direction, subject scale, and spatial continuity."},
+  {id:"pedestal-up",category:"Physical Moves",preview:"crane-up",name:"Pedestal up",ko:"페데스탈 업",desc:"렌즈는 수평 유지, 카메라가 수직 상승.",media:"https://aicameramovements.com/previews/hq/11a-pedestal-up-hq.mp4",poster:"https://aicameramovements.com/previews/hq/11a-pedestal-up-hq.jpg",prompt:"pedestal up. Move the entire camera vertically upward in a straight line with the lens level and pointed the same way, finishing on a higher readable frame."},
+  {id:"pedestal-down",category:"Physical Moves",preview:"crane-down",name:"Pedestal down",ko:"페데스탈 다운",desc:"렌즈는 수평 유지, 카메라가 수직 하강.",media:"https://aicameramovements.com/previews/hq/11b-pedestal-down-hq.mp4",poster:"https://aicameramovements.com/previews/hq/11b-pedestal-down-hq.jpg",prompt:"pedestal down. Move the entire camera vertically downward in a straight line while keeping the lens level and the subject/location continuous."},
+  {id:"slider-right",category:"Physical Moves",preview:"slider-right",name:"Slider right",ko:"오른쪽 슬라이더",desc:"작은 패럴랙스로 오른쪽 시차를 줌.",media:"https://aicameramovements.com/previews/hq/12-slider-right-hq.mp4",poster:"https://aicameramovements.com/previews/hq/12-slider-right-hq.jpg",prompt:"slider right. Slide the camera a short distance to the right with controlled parallax, keeping foreground, subject, and background layers readable."},
+  {id:"slider-left",category:"Physical Moves",preview:"slider-left",name:"Slider left",ko:"왼쪽 슬라이더",desc:"작은 패럴랙스로 왼쪽 시차를 줌.",media:"https://aicameramovements.com/previews/hq/12b-slider-left-hq.mp4",poster:"https://aicameramovements.com/previews/hq/12b-slider-left-hq.jpg",prompt:"slider left. Slide the camera a short distance to the left with refined parallax while preserving subject, face, outfit, location, and lighting."},
+  {id:"push-past",category:"Physical Moves",preview:"pov",name:"Push past / pass-by",ko:"밀고 지나가기",desc:"전경 오브젝트를 지나 공간 안쪽으로 진입.",media:"https://aicameramovements.com/previews/hq/13-push-past-pass-by-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/13-push-past-pass-by-shot-hq.jpg",prompt:"push past. Glide forward past a close foreground object, edge, doorway, or opening so the foreground crosses the lens and the space beyond becomes clear."},
+  {id:"arc-right",category:"Physical Moves",preview:"orbit",name:"Arc right",ko:"오른쪽 아크",desc:"대상 주변을 얕게 오른쪽으로 돌며 각도 변화.",media:"https://aicameramovements.com/previews/hq/14-arc-right-hq.mp4",poster:"https://aicameramovements.com/previews/hq/14-arc-right-hq.jpg",prompt:"arc right. Move on a shallow curved path around the main subject toward the right, keeping distance, height, and subject readability consistent."},
+  {id:"arc-left",category:"Physical Moves",preview:"orbit-ccw",name:"Arc left",ko:"왼쪽 아크",desc:"대상 주변을 얕게 왼쪽으로 돌며 각도 변화.",media:"https://aicameramovements.com/previews/hq/14b-arc-left-hq.mp4",poster:"https://aicameramovements.com/previews/hq/14b-arc-left-hq.jpg",prompt:"arc left. Move on a shallow curved path around the main subject toward the left, preserving identity, distance, and stable framing."},
+  {id:"orbit-clockwise",category:"Physical Moves",preview:"orbit",name:"Orbit clockwise",ko:"시계방향 오빗",desc:"인물을 중심에 두고 시계방향 회전.",media:"https://aicameramovements.com/previews/hq/15-orbit-clockwise-hq.mp4",poster:"https://aicameramovements.com/previews/hq/15-orbit-clockwise-hq.jpg",prompt:"clockwise orbit. Circle around the subject at a consistent radius, keeping the subject centered while the background angle rotates smoothly."},
+  {id:"orbit-counterclockwise",category:"Physical Moves",preview:"orbit-ccw",name:"Orbit counterclockwise",ko:"반시계 오빗",desc:"인물을 중심에 두고 반시계방향 회전.",media:"https://aicameramovements.com/previews/hq/15b-orbit-counterclockwise-hq.mp4",poster:"https://aicameramovements.com/previews/hq/15b-orbit-counterclockwise-hq.jpg",prompt:"counterclockwise orbit. Circle around the subject in the opposite direction at a stable radius while maintaining face, outfit, and environment continuity."},
+  {id:"tracking-shot",category:"Dolly/Track",preview:"dolly-in",name:"Tracking shot",ko:"트래킹 샷",desc:"인물 동선과 함께 움직이는 기본 추적.",media:"https://aicameramovements.com/previews/hq/16-tracking-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/16-tracking-shot-hq.jpg",prompt:"tracking shot. Move through the scene with the main subject at a matching pace, keeping the subject readable while the environment moves naturally around them."},
+  {id:"follow-shot",category:"Dolly/Track",preview:"dolly-in",name:"Follow shot / OTS",ko:"뒤따라가기 / OTS",desc:"뒤나 어깨 너머에서 경로를 따라감.",media:"https://aicameramovements.com/previews/hq/17-follow-shot-over-the-shoulder-hq.mp4",poster:"https://aicameramovements.com/previews/hq/17-follow-shot-over-the-shoulder-hq.jpg",prompt:"follow shot from behind. Move behind the subject along their route at shoulder height, using the back, shoulder, or head as a foreground guide."},
+  {id:"reverse-tracking",category:"Dolly/Track",preview:"dolly-out",name:"Reverse tracking",ko:"마주 보며 후진",desc:"걸어오는 인물을 앞에서 맞춰 후진.",media:"https://aicameramovements.com/previews/hq/18-reverse-tracking-walk-and-talk-hq.mp4",poster:"https://aicameramovements.com/previews/hq/18-reverse-tracking-walk-and-talk-hq.jpg",prompt:"reverse tracking. Move backward in front of the walking subject at the same pace, keeping the front-facing face and body framing stable."},
+  {id:"side-tracking",category:"Dolly/Track",preview:"slider-right",name:"Side tracking",ko:"사이드 트래킹",desc:"인물 옆을 같은 속도로 병렬 이동.",media:"https://aicameramovements.com/previews/hq/19-side-tracking-hq.mp4",poster:"https://aicameramovements.com/previews/hq/19-side-tracking-hq.jpg",prompt:"side tracking. Move parallel beside the subject along their direction of travel, holding a stable side or three-quarter profile distance."},
+  {id:"low-tracking",category:"Dolly/Track",preview:"slider-right",name:"Low tracking",ko:"로우 트래킹",desc:"발, 바퀴, 바닥 질감 등 낮은 추적.",media:"https://aicameramovements.com/previews/hq/20-low-tracking-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/20-low-tracking-v2-hq.jpg",prompt:"low tracking. Move near ground or below-waist height with the action path, emphasizing footsteps, wheels, floor texture, or low foreground details."},
+  {id:"vehicle-tracking",category:"Dolly/Track",preview:"dolly-in",name:"Vehicle tracking",ko:"비히클 트래킹",desc:"차량과 같은 속도로 이동하며 추적.",media:"https://aicameramovements.com/previews/hq/21-vehicle-tracking-hq.mp4",poster:"https://aicameramovements.com/previews/hq/21-vehicle-tracking-hq.jpg",prompt:"vehicle tracking. Move with the vehicle along its route, keeping the vehicle stable while road, city, or landscape passes naturally around it."},
+  {id:"chase-shot",category:"Dolly/Track",preview:"chase",name:"Chase shot",ko:"추격 샷",desc:"빠른 피사체를 가까이 따라가는 액션.",media:"https://aicameramovements.com/previews/hq/22-chase-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/22-chase-shot-hq.jpg",prompt:"chase shot. Follow a moving subject quickly and physically close, allowing energetic reframing while keeping the subject visible and connected."},
+  {id:"handheld-shot",category:"Human Camera",preview:"handheld",name:"Handheld shot",ko:"핸드헬드",desc:"사람이 든 카메라의 유기적 흔들림.",media:"https://aicameramovements.com/previews/hq/23-handheld-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/23-handheld-shot-hq.jpg",prompt:"handheld shot. Use natural operator-height body movement, subtle sway, responsive reframing, and realistic motion blur while preserving the subject and scene."},
+  {id:"snorricam",category:"Human Camera",preview:"handheld",name:"Body-mounted / Snorricam",ko:"스노리캠",desc:"몸에 고정된 카메라처럼 얼굴/몸은 고정, 배경이 움직임.",media:"https://aicameramovements.com/previews/hq/24-snorricam-v2-hq.mp4",poster:"https://aicameramovements.com/previews/hq/24-snorricam-v2-hq.jpg",prompt:"body-mounted Snorricam. Keep the camera locked relative to the subject torso or face while the background moves around them, preserving close centered framing."},
+  {id:"crane-up",category:"Drone/Crane",preview:"crane-up",name:"Crane up",ko:"크레인 업",desc:"공간을 위로 열어 규모를 보여줌.",media:"https://aicameramovements.com/previews/hq/25-crane-up-hq.mp4",poster:"https://aicameramovements.com/previews/hq/25-crane-up-hq.jpg",prompt:"crane up. Travel smoothly upward through open space, keeping the subject or location readable as the camera rises and scale expands."},
+  {id:"crane-down",category:"Drone/Crane",preview:"crane-down",name:"Crane down",ko:"크레인 다운",desc:"상공/상단에서 대상 쪽으로 내려감.",media:"https://aicameramovements.com/previews/hq/25b-crane-down-hq.mp4",poster:"https://aicameramovements.com/previews/hq/25b-crane-down-hq.jpg",prompt:"crane down. Travel smoothly downward through open space, preserving geography and landing on the lower subject or destination."},
+  {id:"drone-push-in",category:"Drone/Crane",preview:"drone-in",name:"Drone push in",ko:"드론 전진",desc:"상공에서 목적지/랜드마크로 전진.",media:"https://aicameramovements.com/previews/hq/26-drone-push-in-hq.mp4",poster:"https://aicameramovements.com/previews/hq/26-drone-push-in-hq.jpg",prompt:"drone push in. Glide forward through open aerial space toward the subject or destination, holding a stable horizon and believable parallax."},
+  {id:"drone-pull-back",category:"Drone/Crane",preview:"drone-out",name:"Drone pull back",ko:"드론 후퇴",desc:"상공에서 뒤로 물러나 풍경을 넓힘.",media:"https://aicameramovements.com/previews/hq/26b-drone-pull-back-hq.mp4",poster:"https://aicameramovements.com/previews/hq/26b-drone-pull-back-hq.jpg",prompt:"drone pull back. Fly backward away from the subject or destination, revealing wider landscape while keeping the starting point readable."},
+  {id:"helicopter-shot",category:"Drone/Crane",preview:"drone-out",name:"Helicopter shot",ko:"헬리콥터 샷",desc:"높은 고도에서 넓은 경로를 따라 이동.",media:"https://aicameramovements.com/previews/hq/27-helicopter-shot-hq.mp4",poster:"https://aicameramovements.com/previews/hq/27-helicopter-shot-hq.jpg",prompt:"helicopter-style aerial shot. Move from high altitude along a broad steady flight path, keeping landscape or distant action readable at wide scale."},
+  {id:"first-person-view",category:"Specials",preview:"pov",name:"First-person view",ko:"1인칭 시점",desc:"눈높이 주관 시점으로 손/팔/몸 일부가 기준.",media:"https://aicameramovements.com/previews/hq/s1-first-person-view-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s1-first-person-view-hq.jpg",prompt:"first-person view. Move from human eye height at a natural walking or reaching pace, using hands or body edges only when implied by the source frame."},
+  {id:"tilt-shift",category:"Specials",preview:"crane-up",name:"Tilt-shift",ko:"틸트시프트",desc:"미니어처처럼 좁은 초점 띠로 공간을 보여줌.",media:"https://aicameramovements.com/previews/hq/s2-tilt-shift-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s2-tilt-shift-hq.jpg",prompt:"tilt-shift miniature view. Hold or glide from a high angle with a narrow band of sharp focus and soft blur above and below the key subject area."},
+  {id:"infinite-zoom",category:"Specials",preview:"dolly-in",name:"Infinite zoom",ko:"인피니트 줌",desc:"중앙 타깃으로 계속 안쪽 세계로 들어감.",media:"https://aicameramovements.com/previews/hq/s3-infinite-zoom-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s3-infinite-zoom-hq.jpg",prompt:"infinite zoom. Continuously zoom inward toward the exact center target with smooth acceleration until the next visual world fills the frame."},
+  {id:"earth-zoom-out",category:"Specials",preview:"drone-out",name:"Earth zoom out",ko:"어스 줌 아웃",desc:"거리/도시/행성 스케일까지 빠르게 확장.",media:"https://aicameramovements.com/previews/hq/s4-earth-zoom-out-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s4-earth-zoom-out-hq.jpg",prompt:"earth zoom out. Pull upward from the starting point through street, city, landscape, and planet scale while keeping the original location centered."},
+  {id:"time-lapse",category:"Specials",preview:"timelapse",name:"Time-lapse",ko:"타임랩스",desc:"고정 카메라에서 시간만 빠르게 흐름.",media:"https://aicameramovements.com/previews/hq/s5-time-lapse-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s5-time-lapse-hq.jpg",prompt:"locked-camera time-lapse. Hold a fixed composition while time rapidly compresses through light, crowd, weather, or environmental changes."},
+  {id:"pass-through-objects",category:"Specials",preview:"pov",name:"Pass-through objects",ko:"오브젝트 통과",desc:"표면/문/장벽을 향해 전진해 안쪽 공간으로 통과.",media:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.jpg",prompt:"pass-through movement. Move forward toward a visible object, surface, or barrier and continue into the revealed space beyond with a centered smooth glide."}
 ];
+const CAMERA_MOVE_ALIASES = {
+  'slow-push-in':'dolly-in', 'orbit-soft':'orbit-clockwise', 'handheld-subtle':'handheld-shot',
+  'tracking-follow':'tracking-shot', 'reverse-walk':'reverse-tracking', 'chase-handheld':'chase-shot',
+  'whip-pan':'whip-pan-right', 'macro-insert':'slow-zoom-in', 'pov-walk':'first-person-view'
+};
 let cameraMoveFilter = '전체';
-let selectedCameraMoveId = 'handheld-subtle';
-
+let selectedCameraMoveId = 'handheld-shot';
 function cmEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
-function getCameraMove(id){return CAMERA_MOVES.find(function(m){return m.id===id;}) || null;}
+function getCameraMove(id){const resolved = CAMERA_MOVE_ALIASES[id] || id; return CAMERA_MOVES.find(function(m){return m.id===resolved;}) || null;}
 function getCameraMovePromptBlock(id) {
   const move = getCameraMove(id);
   if (!move) return '';
@@ -21595,6 +21640,11 @@ function appendCameraMoveToPrompt(prompt, moveId) {
   return [base, block].filter(Boolean).join('\n\n');
 }
 function makeCameraPreviewHtml(move) {
+  if (move && move.media) {
+    return '<div class="cm-preview cm-video-preview ' + cmEsc(move.preview || 'static') + '">' +
+      '<video src="' + cmEsc(move.media) + '" poster="' + cmEsc(move.poster || '') + '" muted playsinline preload="metadata" aria-label="' + cmEsc(move.name + ' preview from aicameramovements.com') + '" onmouseenter="this.currentTime=0;this.play()" onclick="this.currentTime=0;this.play()"></video>' +
+      '<div class="cm-frame"></div></div>';
+  }
   return '<div class="cm-preview ' + cmEsc(move.preview || 'static') + '"><div class="cm-scene"><div class="cm-horizon"></div><div class="cm-layer l1"></div><div class="cm-layer l2"></div><div class="cm-subject"></div></div><div class="cm-frame"></div></div>';
 }
 function renderCameraMoveFilters() {
@@ -21609,11 +21659,12 @@ function setCameraMoveFilter(cat) {
   renderCameraMoveLibrary();
 }
 function selectCameraMove(id) {
-  if (!getCameraMove(id)) return;
-  selectedCameraMoveId = id;
-  try { localStorage.setItem('zippy_camera_move_selected', id); } catch(e) {}
+  const move = getCameraMove(id);
+  if (!move) return;
+  selectedCameraMoveId = move.id;
+  try { localStorage.setItem('zippy_camera_move_selected', move.id); } catch(e) {}
   renderCameraMoveLibrary();
-  syncCameraMoveSelects(id);
+  syncCameraMoveSelects(move.id);
 }
 function renderCameraMoveLibrary() {
   renderCameraMoveFilters();
@@ -21659,8 +21710,9 @@ function renderCameraMoveOptions() {
   syncCameraMoveSelects(selectedCameraMoveId);
 }
 function syncCameraMoveSelects(id) {
+  const move = getCameraMove(id);
   const vid = document.getElementById('vidCameraMove');
-  if (vid && getCameraMove(id)) vid.value = id;
+  if (vid && move) vid.value = move.id;
 }
 function copyCameraMovePrompt(id) {
   const text = getCameraMovePromptBlock(id || selectedCameraMoveId);
@@ -21711,19 +21763,23 @@ function recommendCameraMoveForShot(shot) {
   const faceDetail = /얼굴|표정|눈|시선|눈빛|미소|웃|입|입술|턱|고개|반응|상반신|바스트|클로즈|초상|응시|바라|portrait|face|eyes/i.test(text);
   const tactileDetail = /손|손가락|펜|카드|QR|종이|메뉴|문구|소품|자물쇠|서랍|폰|휴대폰|발|발걸음|신발|문손잡이|손잡이|그릇|식재료|오디오|LP|턴테이블|컵|잔|향수|샘플|보드|노트|책|가방|표면|질감|텍스처|macro|object|prop/i.test(text);
   const explicitInsert = /INS|INSERT|인서트|매크로|소품 클로즈업|디테일|ECU/i.test(text);
-  if (/추격|도망|질주|급박|전투|격투|습격|폭발|난입|덮치|뛰어|달리|chase|run|fight|action/i.test(text)) return 'chase-handheld';
-  if (/whip|휩|빠른 팬|급전환|스냅|휙|돌아보|고개를 돌|시선 전환|반사적으로/i.test(text)) return 'whip-pan';
-  if (explicitInsert || ((/ECU|CU/i.test(text)) && tactileDetail && !faceDetail)) return 'macro-insert';
-  if (/1인칭|POV|문을 열|문으로|다가가|접근|복도|통로|계단|입구|들어가|나가/i.test(text)) return 'pov-walk';
-  if (/걷|걸어|따라|따라가|동선|이동|진입|통과|가로질러|향해|접근|tracking|follow|walk|route/i.test(text)) return 'tracking-follow';
-  if (/OTS|뒤에서|뒤따라|어깨|등 뒤|follow from behind/i.test(text)) return 'tracking-follow';
-  if (/대화|마주|말하|묻|답하|서로|둘이|두 사람|투샷|walk-and-talk/i.test(text)) return 'reverse-walk';
+  if (/차량|자동차|바이크|오토바이|열차|기차|트럭|버스|vehicle|car|train|bike/i.test(text)) return 'vehicle-tracking';
+  if (/추격|도망|질주|급박|전투|격투|습격|폭발|난입|덮치|뛰어|달리|chase|run|fight|action/i.test(text)) return 'chase-shot';
+  if (/왼쪽|좌측|left/i.test(text) && /whip|휩|빠른 팬|급전환|스냅|휙|돌아보|고개를 돌|시선 전환|반사적으로/i.test(text)) return 'whip-pan-left';
+  if (/whip|휩|빠른 팬|급전환|스냅|휙|돌아보|고개를 돌|시선 전환|반사적으로/i.test(text)) return 'whip-pan-right';
+  if (/문을 통과|장벽|유리 너머|통과|pass-through|through object/i.test(text)) return 'pass-through-objects';
+  if (/1인칭|POV|문을 열|문으로|다가가|접근|복도|통로|계단|입구|들어가|나가/i.test(text)) return 'first-person-view';
+  if (explicitInsert || ((/ECU|CU/i.test(text)) && tactileDetail && !faceDetail)) return 'slow-zoom-in';
+  if (/OTS|뒤에서|뒤따라|어깨|등 뒤|follow from behind/i.test(text)) return 'follow-shot';
+  if (/대화|마주|말하|묻|답하|서로|둘이|두 사람|투샷|walk-and-talk/i.test(text)) return 'reverse-tracking';
+  if (/걷|걸어|따라|따라가|동선|이동|진입|통과|가로질러|향해|접근|tracking|follow|walk|route/i.test(text)) return 'tracking-shot';
   if (/도시|상공|옥상|스카이라인|고가|대교|강변|랜드마크|스케일|drone|aerial/i.test(text)) return 'drone-push-in';
   if (/WS|EWS|establishing|전경|와이드|전신|공간|골목|건물|거리|시장|카페|식당|사무실|방|하늘|밤거리/i.test(text)) return 'crane-up';
-  if (/옆으로|스쳐|훑|패닝|왼쪽|오른쪽|좌측|우측|진열|벽면|쇼윈도|테이블 위/i.test(text)) return 'slider-right';
-  if (/CU|감정|표정|시선|눈|눈빛|미소|반응|고개|침묵|정적|망설|숨|멈춘|떨림/i.test(text) || faceDetail) return 'slow-push-in';
+  if (/왼쪽|좌측|left/i.test(text) && /옆으로|스쳐|훑|패닝|진열|벽면|쇼윈도|테이블 위/i.test(text)) return 'slider-left';
+  if (/옆으로|스쳐|훑|패닝|오른쪽|좌측|우측|진열|벽면|쇼윈도|테이블 위/i.test(text)) return 'slider-right';
+  if (/CU|감정|표정|시선|눈|눈빛|미소|반응|고개|침묵|정적|망설|숨|멈춘|떨림/i.test(text) || faceDetail) return 'dolly-in';
   if (/고정|LOCKED|정적 이미지|static/i.test(text)) return 'locked-static';
-  return 'handheld-subtle';
+  return 'handheld-shot';
 }
 function buildSBVideoPromptBase(shot) {
   const spec = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, {}) : null;
@@ -21744,7 +21800,8 @@ function initCameraMovementLibrary() {
   try {
     selectedCameraMoveId = localStorage.getItem('zippy_camera_move_selected') || selectedCameraMoveId;
   } catch(e) {}
-  if (!getCameraMove(selectedCameraMoveId)) selectedCameraMoveId = 'handheld-subtle';
+  const move = getCameraMove(selectedCameraMoveId);
+  selectedCameraMoveId = move ? move.id : 'handheld-shot';
   renderCameraMoveOptions();
   renderCameraMoveLibrary();
 }

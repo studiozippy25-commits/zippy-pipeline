@@ -627,21 +627,21 @@ input[type=file]{display:none}
 .cm-mini-row label{display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)}
 .cm-select{padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono);font-size:12px}
 .cm-note{padding:12px 16px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--pu);line-height:1.7}
-.cm-preview.dolly-in .cm-scene{animation:cmZoomIn 2.4s ease-in-out infinite alternate}
-.cm-preview.dolly-out .cm-scene{animation:cmZoomOut 2.4s ease-in-out infinite alternate}
-.cm-preview.pan-right .cm-scene{animation:cmPanRight 2.2s ease-in-out infinite alternate}
-.cm-preview.pan-left .cm-scene{animation:cmPanLeft 2.2s ease-in-out infinite alternate}
-.cm-preview.tilt-up .cm-scene{animation:cmTiltUp 2.2s ease-in-out infinite alternate}
-.cm-preview.slider-left .cm-scene{animation:cmSliderLeft 2.4s ease-in-out infinite alternate}
-.cm-preview.slider-right .cm-scene{animation:cmSliderRight 2.4s ease-in-out infinite alternate}
-.cm-preview.orbit .cm-scene{animation:cmOrbit 2.8s ease-in-out infinite alternate}
-.cm-preview.handheld .cm-frame{animation:cmHandheld .8s ease-in-out infinite alternate}
-.cm-preview.chase .cm-frame{animation:cmChase .38s ease-in-out infinite alternate}
-.cm-preview.crane-up .cm-scene{animation:cmCraneUp 2.6s ease-in-out infinite alternate}
-.cm-preview.drone-in .cm-scene{animation:cmDroneIn 2.8s ease-in-out infinite alternate}
-.cm-preview.macro .cm-scene{animation:cmMacro 2.4s ease-in-out infinite alternate}
-.cm-preview.whip .cm-scene{animation:cmWhip 1.2s cubic-bezier(.2,.7,.2,1) infinite}
-.cm-preview.pov .cm-frame{animation:cmPov 1.5s ease-in-out infinite alternate}
+.cm-preview.dolly-in .cm-scene{animation:cmZoomIn 2.4s ease-out 1 forwards}
+.cm-preview.dolly-out .cm-scene{animation:cmZoomOut 2.4s ease-out 1 forwards}
+.cm-preview.pan-right .cm-scene{animation:cmPanRight 2.2s ease-out 1 forwards}
+.cm-preview.pan-left .cm-scene{animation:cmPanLeft 2.2s ease-out 1 forwards}
+.cm-preview.tilt-up .cm-scene{animation:cmTiltUp 2.2s ease-out 1 forwards}
+.cm-preview.slider-left .cm-scene{animation:cmSliderLeft 2.4s ease-out 1 forwards}
+.cm-preview.slider-right .cm-scene{animation:cmSliderRight 2.4s ease-out 1 forwards}
+.cm-preview.orbit .cm-scene{animation:cmOrbit 2.8s ease-out 1 forwards}
+.cm-preview.handheld .cm-frame{animation:cmHandheld .8s ease-out 1 forwards}
+.cm-preview.chase .cm-frame{animation:cmChase .38s ease-out 1 forwards}
+.cm-preview.crane-up .cm-scene{animation:cmCraneUp 2.6s ease-out 1 forwards}
+.cm-preview.drone-in .cm-scene{animation:cmDroneIn 2.8s ease-out 1 forwards}
+.cm-preview.macro .cm-scene{animation:cmMacro 2.4s ease-out 1 forwards}
+.cm-preview.whip .cm-scene{animation:cmWhip 1.2s cubic-bezier(.2,.7,.2,1) 1 forwards}
+.cm-preview.pov .cm-frame{animation:cmPov 1.5s ease-out 1 forwards}
 @keyframes cmZoomIn{from{transform:scale(1)}to{transform:scale(1.22)}}
 @keyframes cmZoomOut{from{transform:scale(1.22)}to{transform:scale(1)}}
 @keyframes cmPanRight{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
@@ -2973,7 +2973,6 @@ input[type=file]{display:none}
     <div id="cmActiveInfo" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">선택된 무빙 없음</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn bgh bsm" onclick="applySelectedCameraMoveToVideo()">영상 탭에 적용</button>
-      <button class="btn bor bsm" onclick="applySelectedCameraMoveToStoryboard()">스토리보드 프롬프트에 적용</button>
     </div>
   </div>
   <div id="cmLibraryGrid" class="cm-grid"></div>
@@ -21641,7 +21640,6 @@ function renderCameraMoveLibrary() {
         '<div class="cm-prompt">' + cmEsc(getCameraMovePromptBlock(move.id)) + '</div>' +
         '<div class="cm-actions">' +
           '<button class="btn bpu bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\');applySelectedCameraMoveToVideo()">영상 탭 적용</button>' +
-          '<button class="btn bor bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\');applySelectedCameraMoveToStoryboard()">스토리보드 적용</button>' +
           '<button class="btn bgh bsm" onclick="copyCameraMovePrompt(\'' + cmEsc(move.id) + '\')">복사</button>' +
           '<button class="btn bgh bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\')">선택</button>' +
         '</div>' +

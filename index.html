@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="cloudrider-deploy-20260708-091412">
+<meta name="zippy-deploy-marker" content="cloudrider-assets-153-20260708-091954">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -1230,6 +1230,18 @@ input[type=file]{display:none}
   <div style="padding:12px 16px;background:rgba(5,150,105,.06);border:1px solid rgba(5,150,101,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--ok);line-height:1.7">
     등록된 에셋은 Step 2 씬 생성 시 <strong>자동으로 레퍼런스 슬롯에 주입</strong>됩니다.<br>
     인물 → Omni Reference | 공간 → Style Reference | 사물 → Omni Reference
+  </div>
+
+  <!-- 프로젝트 전체 레퍼런스 갤러리 -->
+  <div id="projectRefAssetSection" style="display:none;margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
+    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--font-mono);font-size:14px;color:var(--cy);letter-spacing:1.5px;font-weight:700">PROJECT REFERENCE GALLERY</div>
+      <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)" id="asset-projectref-count">0개</div>
+    </div>
+    <div style="padding:14px">
+      <div style="font-size:13px;color:var(--mu);margin-bottom:8px">프로젝트 패키지에 포함된 전체 기본 레퍼런스입니다. 생성 슬롯 자동 주입용 핵심 레퍼런스와 별도로, 누락 확인용 전체 갤러리로 표시됩니다.</div>
+      <div id="asset-projectref-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px"></div>
+    </div>
   </div>
 
   <!-- 인물 에셋 -->
@@ -8112,7 +8124,1080 @@ const PROJECTS = {
             "ryo_rescue": "cream/charcoal/denim rescue gear, winch gloves",
             "mira_comm": "red/charcoal/icy-blue comm suit, headset, crescent antenna (no horns)"
       },
-      "stability": "PROJECT LOCK: CloudRider is a 20-episode, 100-minute 2.5D animation package dated 260707. HAON LOCK: final fixed craft only: four circular ducted drone-wings, two-seat rounded cockpit, cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, NO orange, no random redesign. HANA LOCK: human Korean girl, never mechanical or android. DAON LOCK: young Korean female humanoid, black low bun, fabric costume, elegant visible mechanical joints, never faceless robot. FRIEND CRAFT LOCK: Naran tan/turquoise nomad craft; Kai forest-green/leather-brown cliff runner; Ryo cream/charcoal/denim rescue skimmer with winch/stretcher; Mira red/charcoal/icy-blue communication craft with NO horns/antlers/animal protrusions. REGION LOCK: real Earth cultures + modest future devices; no alien city; keep lyrical smooth 2.5D/semi-3D texture."
+      "stability": "PROJECT LOCK: CloudRider is a 20-episode, 100-minute 2.5D animation package dated 260707. HAON LOCK: final fixed craft only: four circular ducted drone-wings, two-seat rounded cockpit, cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, NO orange, no random redesign. HANA LOCK: human Korean girl, never mechanical or android. DAON LOCK: young Korean female humanoid, black low bun, fabric costume, elegant visible mechanical joints, never faceless robot. FRIEND CRAFT LOCK: Naran tan/turquoise nomad craft; Kai forest-green/leather-brown cliff runner; Ryo cream/charcoal/denim rescue skimmer with winch/stretcher; Mira red/charcoal/icy-blue communication craft with NO horns/antlers/animal protrusions. REGION LOCK: real Earth cultures + modest future devices; no alien city; keep lyrical smooth 2.5D/semi-3D texture.",
+      "allAssetRefs": [
+            {
+                  "no": 1,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "001_CR_CHAR_HANA_EMOTION_ARC_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/001_CR_CHAR_HANA_EMOTION_ARC_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 2,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "002_CR_CHAR_HANA_EXPRESSIONS_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/002_CR_CHAR_HANA_EXPRESSIONS_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 3,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "003_CR_CHAR_HANA_GOGGLES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/003_CR_CHAR_HANA_GOGGLES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 4,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "004_CR_CHAR_HANA_HANDS_GLOVES_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/004_CR_CHAR_HANA_HANDS_GLOVES_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 5,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "005_CR_CHAR_HANA_OUTFIT_FLIGHT_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/005_CR_CHAR_HANA_OUTFIT_FLIGHT_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 6,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "006_CR_CHAR_HANA_OUTFIT_MAINTENANCE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/006_CR_CHAR_HANA_OUTFIT_MAINTENANCE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 7,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "007_CR_CHAR_HANA_PILOT_POSE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/007_CR_CHAR_HANA_PILOT_POSE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 8,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "008_CR_CHAR_HANA_TURNAROUND_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/008_CR_CHAR_HANA_TURNAROUND_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 9,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "009_CR_CHAR_DAON_FACE_EYES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/009_CR_CHAR_DAON_FACE_EYES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 10,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "010_CR_CHAR_DAON_INTERNAL_LIGHT_STATES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/010_CR_CHAR_DAON_INTERNAL_LIGHT_STATES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 11,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "011_CR_CHAR_DAON_OVERHEAT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/011_CR_CHAR_DAON_OVERHEAT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 12,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "012_CR_CHAR_DAON_PROTECT_GESTURE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/012_CR_CHAR_DAON_PROTECT_GESTURE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 13,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "013_CR_CHAR_DAON_SHUTDOWN_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/013_CR_CHAR_DAON_SHUTDOWN_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 14,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "014_CR_CHAR_DAON_TURNAROUND_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/014_CR_CHAR_DAON_TURNAROUND_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 15,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "015_CR_CHAR_SPARK_EMOTION_WAVEFORM_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/015_CR_CHAR_SPARK_EMOTION_WAVEFORM_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 16,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "016_CR_CHAR_SPARK_STATE_COLORS_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/016_CR_CHAR_SPARK_STATE_COLORS_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 17,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "017_CR_CHAR_SPARK_UI_AVATAR_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/017_CR_CHAR_SPARK_UI_AVATAR_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 18,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "018_CR_CHAR_SPARK_WARN_DOWN_REBOOT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/018_CR_CHAR_SPARK_WARN_DOWN_REBOOT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 19,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "019_CR_CHAR_FATHER_AIRSHOW_LOOK_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/019_CR_CHAR_FATHER_AIRSHOW_LOOK_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 20,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "020_CR_CHAR_FATHER_FLASHBACK_FULL_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/020_CR_CHAR_FATHER_FLASHBACK_FULL_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 21,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "021_CR_CHAR_FATHER_HANDS_CLOSEUP_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/021_CR_CHAR_FATHER_HANDS_CLOSEUP_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 22,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "022_CR_CHAR_FATHER_VOICE_LOG_SILHOUETTE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/022_CR_CHAR_FATHER_VOICE_LOG_SILHOUETTE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 23,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "023_CR_CHAR_FATHER_WORKWEAR_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/023_CR_CHAR_FATHER_WORKWEAR_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 24,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "024_CR_CHAR_CHILD_HANA_FULL_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/024_CR_CHAR_CHILD_HANA_FULL_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 25,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "025_CR_CHAR_CHILDHANA_AIRSHOW_EXPR_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/025_CR_CHAR_CHILDHANA_AIRSHOW_EXPR_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 26,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "026_CR_CHAR_CHILDHANA_LOOKUP_SKY_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/026_CR_CHAR_CHILDHANA_LOOKUP_SKY_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 27,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "027_CR_CHAR_CHILDHANA_TWOSHOT_FATHER_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/027_CR_CHAR_CHILDHANA_TWOSHOT_FATHER_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 28,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "028_CR_CHAR_NARAN_DRONE_MAINT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/028_CR_CHAR_NARAN_DRONE_MAINT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 29,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "029_CR_CHAR_NARAN_EXPRESSIONS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/029_CR_CHAR_NARAN_EXPRESSIONS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 30,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "030_CR_CHAR_NARAN_LOCAL_PROPS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/030_CR_CHAR_NARAN_LOCAL_PROPS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 31,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "031_CR_CHAR_NARAN_WITH_AIRCRAFT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/031_CR_CHAR_NARAN_WITH_AIRCRAFT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 32,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "032_CR_CHAR_KAI_FORMATION_POSE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/032_CR_CHAR_KAI_FORMATION_POSE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 33,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "033_CR_CHAR_KAI_PUB_EXPR_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/033_CR_CHAR_KAI_PUB_EXPR_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 34,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "034_CR_CHAR_KAI_WITH_AIRCRAFT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/034_CR_CHAR_KAI_WITH_AIRCRAFT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 35,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "035_CR_CHAR_RYO_RESCUE_POSE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/035_CR_CHAR_RYO_RESCUE_POSE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 36,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "036_CR_CHAR_RYO_SCALE_WITH_CRAFT_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/036_CR_CHAR_RYO_SCALE_WITH_CRAFT_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 37,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "037_CR_CHAR_RYO_WITH_AIRCRAFT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/037_CR_CHAR_RYO_WITH_AIRCRAFT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 38,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "038_CR_CHAR_MIRA_COMM_SUPPORT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/038_CR_CHAR_MIRA_COMM_SUPPORT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 39,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "039_CR_CHAR_MIRA_FORMATION_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/039_CR_CHAR_MIRA_FORMATION_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 40,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "040_CR_CHAR_MIRA_WITH_AIRCRAFT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/040_CR_CHAR_MIRA_WITH_AIRCRAFT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 41,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "041_CR_CHAR_GLOBALPILOTS_HELMET_CALLSIGN_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/041_CR_CHAR_GLOBALPILOTS_HELMET_CALLSIGN_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 42,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "042_CR_CHAR_GLOBALPILOTS_REGIONAL_VARIANTS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/042_CR_CHAR_GLOBALPILOTS_REGIONAL_VARIANTS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 43,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "043_CR_CHAR_GLOBALPILOTS_SILHOUETTE_GROUP_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/char/043_CR_CHAR_GLOBALPILOTS_SILHOUETTE_GROUP_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 44,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "044_CR_CHAR_MULLAE_CROWD_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/044_CR_CHAR_MULLAE_CROWD_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 45,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "045_CR_CHAR_GOBI_NOMADS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/045_CR_CHAR_GOBI_NOMADS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 46,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "046_CR_CHAR_DRONE_PUB_CROWD_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/046_CR_CHAR_DRONE_PUB_CROWD_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 47,
+                  "category": "등장인물",
+                  "kind": "char",
+                  "file": "047_CR_CHAR_AIRSHOW_CROWD_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/char/047_CR_CHAR_AIRSHOW_CROWD_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 48,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "048_CR_ENV_MULLAE_GARAGE_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/048_CR_ENV_MULLAE_GARAGE_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 49,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "049_CR_ENV_MULLAE_GARAGE_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/049_CR_ENV_MULLAE_GARAGE_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 50,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "050_CR_ENV_MULLAE_GARAGE_NIGHT_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/050_CR_ENV_MULLAE_GARAGE_NIGHT_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 51,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "051_CR_ENV_ROOF_TAKEOFF_HERO_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/051_CR_ENV_ROOF_TAKEOFF_HERO_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 52,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "052_CR_ENV_ROOF_TAKEOFF_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/052_CR_ENV_ROOF_TAKEOFF_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 53,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "053_CR_ENV_HAN_RIVER_AERIAL_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/053_CR_ENV_HAN_RIVER_AERIAL_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 54,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "054_CR_ENV_HAN_RIVER_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/054_CR_ENV_HAN_RIVER_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 55,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "055_CR_ENV_MULLAE_ALLEY_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/055_CR_ENV_MULLAE_ALLEY_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 56,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "056_CR_ENV_MULLAE_ALLEY_NIGHT_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/056_CR_ENV_MULLAE_ALLEY_NIGHT_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 57,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "057_CR_ENV_AIRSHOW_FIELD_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/057_CR_ENV_AIRSHOW_FIELD_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 58,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "058_CR_ENV_AIRSHOW_FIELD_MEMORY_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/058_CR_ENV_AIRSHOW_FIELD_MEMORY_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 59,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "059_CR_ENV_GOBI_STATION_INTERIOR_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/059_CR_ENV_GOBI_STATION_INTERIOR_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 60,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "060_CR_ENV_GOBI_STATION_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/060_CR_ENV_GOBI_STATION_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 61,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "061_CR_ENV_DESERT_ROUTE_DUSK_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/061_CR_ENV_DESERT_ROUTE_DUSK_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 62,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "062_CR_ENV_DESERT_ROUTE_MASTER_WIDE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/space/062_CR_ENV_DESERT_ROUTE_MASTER_WIDE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 63,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "063_CR_ENV_SANDSTORM_INSIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/063_CR_ENV_SANDSTORM_INSIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 64,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "064_CR_ENV_SANDSTORM_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/064_CR_ENV_SANDSTORM_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 65,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "065_CR_ENV_STORM_EYE_CLIMAX_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/065_CR_ENV_STORM_EYE_CLIMAX_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 66,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "066_CR_ENV_STORM_EYE_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/066_CR_ENV_STORM_EYE_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 67,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "067_CR_ENV_CLIFF_PUB_EXT_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/067_CR_ENV_CLIFF_PUB_EXT_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 68,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "068_CR_ENV_CLIFF_PUB_EXT_NIGHT_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/068_CR_ENV_CLIFF_PUB_EXT_NIGHT_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 69,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "069_CR_ENV_PUB_INTERIOR_CROWD_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/069_CR_ENV_PUB_INTERIOR_CROWD_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 70,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "070_CR_ENV_PUB_INTERIOR_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/070_CR_ENV_PUB_INTERIOR_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 71,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "071_CR_ENV_DOCKING_DECK_DEPART_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/071_CR_ENV_DOCKING_DECK_DEPART_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 72,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "072_CR_ENV_DOCKING_DECK_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/072_CR_ENV_DOCKING_DECK_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 73,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "073_CR_ENV_ALPS_APPROACH_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/073_CR_ENV_ALPS_APPROACH_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 74,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "074_CR_ENV_ALPS_APPROACH_STORM_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/074_CR_ENV_ALPS_APPROACH_STORM_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 75,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "075_CR_ENV_FREEZING_COCKPIT_DAON_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/075_CR_ENV_FREEZING_COCKPIT_DAON_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 76,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "076_CR_ENV_FREEZING_COCKPIT_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/076_CR_ENV_FREEZING_COCKPIT_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 77,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "077_CR_ENV_SLIPSTREAM_FORMATION_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/077_CR_ENV_SLIPSTREAM_FORMATION_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 78,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "078_CR_ENV_SLIPSTREAM_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/078_CR_ENV_SLIPSTREAM_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 79,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "079_CR_ENV_NORTH_SEA_DAON_ERR_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/079_CR_ENV_NORTH_SEA_DAON_ERR_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 80,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "080_CR_ENV_NORTH_SEA_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/080_CR_ENV_NORTH_SEA_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 81,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "081_CR_ENV_GLACIER_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/081_CR_ENV_GLACIER_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 82,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "082_CR_ENV_GLACIER_STILL_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/082_CR_ENV_GLACIER_STILL_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 83,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "083_CR_ENV_MAGNETIC_STORM_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/083_CR_ENV_MAGNETIC_STORM_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 84,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "084_CR_ENV_MAGNETIC_STORM_SPARK_DOWN_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/084_CR_ENV_MAGNETIC_STORM_SPARK_DOWN_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 85,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "085_CR_ENV_AURORA_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/085_CR_ENV_AURORA_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 86,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "086_CR_ENV_AURORA_STARNAV_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/space/086_CR_ENV_AURORA_STARNAV_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 87,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "087_CR_ENV_BLACK_BEACH_DAWN_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/087_CR_ENV_BLACK_BEACH_DAWN_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 88,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "088_CR_ENV_BLACK_BEACH_MASTER_WIDE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/space/088_CR_ENV_BLACK_BEACH_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 89,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "089_CR_ENV_COCKPIT_SPACE_LIGHTSTATE_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/089_CR_ENV_COCKPIT_SPACE_LIGHTSTATE_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 90,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "090_CR_ENV_COCKPIT_SPACE_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/090_CR_ENV_COCKPIT_SPACE_MASTER_WIDE_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 91,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "091_CR_ENV_MAINT_BAY_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/091_CR_ENV_MAINT_BAY_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 92,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "092_CR_ENV_MAINT_BAY_REPAIR_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/092_CR_ENV_MAINT_BAY_REPAIR_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 93,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "093_CR_ENV_LOCKED_ROOM_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/093_CR_ENV_LOCKED_ROOM_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 94,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "094_CR_ENV_LOCKED_ROOM_REVEAL_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/094_CR_ENV_LOCKED_ROOM_REVEAL_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 95,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "095_CR_ENV_UI_SCREENS_FUNDING324_v001_v5_0_final__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/095_CR_ENV_UI_SCREENS_FUNDING324_v001_v5_0_final__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 96,
+                  "category": "공간/배경",
+                  "kind": "space",
+                  "file": "096_CR_ENV_UI_SCREENS_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/space/096_CR_ENV_UI_SCREENS_MASTER_WIDE_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 97,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "097_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png",
+                  "url": "assets/cloudrider/obj/097_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png?v=260707"
+            },
+            {
+                  "no": 98,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "098_HAON_FINAL_EXTRA_01_TURNAROUND_PROPORTION_LOCK_260706.png",
+                  "url": "assets/cloudrider/obj/098_HAON_FINAL_EXTRA_01_TURNAROUND_PROPORTION_LOCK_260706.png?v=260707"
+            },
+            {
+                  "no": 99,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "099_HAON_FINAL_EXTRA_02_FUNCTIONAL_DETAIL_SHEET_260706.png",
+                  "url": "assets/cloudrider/obj/099_HAON_FINAL_EXTRA_02_FUNCTIONAL_DETAIL_SHEET_260706.png?v=260707"
+            },
+            {
+                  "no": 100,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "100_CR_MECH_SPARK_EMOTION_WAVEFORM_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/100_CR_MECH_SPARK_EMOTION_WAVEFORM_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 101,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "101_CR_MECH_SPARK_HOLOGRAM_UI_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/101_CR_MECH_SPARK_HOLOGRAM_UI_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 102,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "102_CR_MECH_SPARK_NAVIGATION_MAP_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/102_CR_MECH_SPARK_NAVIGATION_MAP_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 103,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "103_CR_MECH_SPARK_REBOOT_SEQUENCE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/103_CR_MECH_SPARK_REBOOT_SEQUENCE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 104,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "104_CR_MECH_SPARK_WEATHER_WARNING_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/104_CR_MECH_SPARK_WEATHER_WARNING_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 105,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "105_CR_MECH_DAON_CORE_GLOW_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/105_CR_MECH_DAON_CORE_GLOW_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 106,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "106_CR_MECH_DAON_LOCKED_MEMORY_MODULE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/106_CR_MECH_DAON_LOCKED_MEMORY_MODULE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 107,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "107_CR_MECH_DAON_OVERHEAT_DAMAGE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/107_CR_MECH_DAON_OVERHEAT_DAMAGE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 108,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "108_CR_MECH_WORLD_BATTERY_HEATER_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/108_CR_MECH_WORLD_BATTERY_HEATER_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 109,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "109_CR_MECH_WORLD_G_LFA_PERMIT_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/109_CR_MECH_WORLD_G_LFA_PERMIT_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 110,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "110_CR_MECH_WORLD_NOMAD_DRONES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/110_CR_MECH_WORLD_NOMAD_DRONES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 111,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "111_CR_MECH_WORLD_PILOT_AIRCRAFT_VARIANTS_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/111_CR_MECH_WORLD_PILOT_AIRCRAFT_VARIANTS_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 112,
+                  "category": "기체/메카닉",
+                  "kind": "obj",
+                  "file": "112_CR_MECH_WORLD_REPAIR_TOOLS_MACHINES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/112_CR_MECH_WORLD_REPAIR_TOOLS_MACHINES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 113,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "113_CR_PROP_GOGGLES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/113_CR_PROP_GOGGLES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 114,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "114_CR_PROP_GLOVES_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/114_CR_PROP_GLOVES_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 115,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "115_CR_PROP_JACKET_WORKWEAR_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/115_CR_PROP_JACKET_WORKWEAR_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 116,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "116_CR_PROP_TABLET_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/116_CR_PROP_TABLET_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 117,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "117_CR_PROP_PHONE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/117_CR_PROP_PHONE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 118,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "118_CR_PROP_BACKPACK_HELMET_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/118_CR_PROP_BACKPACK_HELMET_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 119,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "119_CR_PROP_BLUEPRINTS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/119_CR_PROP_BLUEPRINTS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 120,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "120_CR_PROP_DESIGN_MEMO_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/120_CR_PROP_DESIGN_MEMO_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 121,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "121_CR_PROP_POLAROID_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/121_CR_PROP_POLAROID_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 122,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "122_CR_PROP_SECRET_LOG_DEVICE_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/122_CR_PROP_SECRET_LOG_DEVICE_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 123,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "123_CR_PROP_OLD_TOOLS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/123_CR_PROP_OLD_TOOLS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 124,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "124_CR_PROP_TOOL_WALL_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/124_CR_PROP_TOOL_WALL_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 125,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "125_CR_PROP_ENGINE_PARTS_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/125_CR_PROP_ENGINE_PARTS_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 126,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "126_CR_PROP_CABLES_LABELS_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/126_CR_PROP_CABLES_LABELS_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 127,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "127_CR_PROP_LAPTOP_324_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/127_CR_PROP_LAPTOP_324_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 128,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "128_CR_PROP_CROWDFUNDING_PAGE_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/128_CR_PROP_CROWDFUNDING_PAGE_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 129,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "129_CR_PROP_MAP_ROUTE_BOARD_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/129_CR_PROP_MAP_ROUTE_BOARD_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 130,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "130_CR_PROP_ROUTE_MAPS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/130_CR_PROP_ROUTE_MAPS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 131,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "131_CR_PROP_PASSPORT_PERMIT_v001_v5_0_final.png",
+                  "url": "assets/cloudrider/obj/131_CR_PROP_PASSPORT_PERMIT_v001_v5_0_final.png?v=260707"
+            },
+            {
+                  "no": 132,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "132_CR_PROP_NOMAD_ITEMS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/132_CR_PROP_NOMAD_ITEMS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 133,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "133_CR_PROP_DRONE_PUB_SIGNS_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/133_CR_PROP_DRONE_PUB_SIGNS_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 134,
+                  "category": "소품",
+                  "kind": "obj",
+                  "file": "134_CR_PROP_SOS_BEACON_v001_v5_0_final_candidate.png",
+                  "url": "assets/cloudrider/obj/134_CR_PROP_SOS_BEACON_v001_v5_0_final_candidate.png?v=260707"
+            },
+            {
+                  "no": 135,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "135_CR_KV_EP01_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/135_CR_KV_EP01_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 136,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "136_CR_KV_EP02_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/136_CR_KV_EP02_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 137,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "137_CR_KV_EP03_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/137_CR_KV_EP03_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 138,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "138_CR_KV_EP04_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/138_CR_KV_EP04_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 139,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "139_CR_KV_EP05_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/139_CR_KV_EP05_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 140,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "140_CR_KV_EP06_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/140_CR_KV_EP06_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 141,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "141_CR_KV_EP07_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/141_CR_KV_EP07_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 142,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "142_CR_KV_EP08_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/142_CR_KV_EP08_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 143,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "143_CR_KV_EP09_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/143_CR_KV_EP09_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 144,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "144_CR_KV_EP10_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/144_CR_KV_EP10_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 145,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "145_CR_KV_EP11_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/145_CR_KV_EP11_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 146,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "146_CR_KV_EP12_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/146_CR_KV_EP12_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 147,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "147_CR_KV_EP13_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/147_CR_KV_EP13_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 148,
+                  "category": "회차 키비주얼",
+                  "kind": "keyvisual",
+                  "file": "148_CR_KV_EP14_v001_v5_0_final_candidate__REWORKED_260707.png",
+                  "url": "assets/cloudrider/keyvisual/148_CR_KV_EP14_v001_v5_0_final_candidate__REWORKED_260707.png?v=260707"
+            },
+            {
+                  "no": 149,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "149_HAON_FINAL_INTERIOR_COCKPIT_TWO_SEAT_REWORKED_260706.png",
+                  "url": "assets/cloudrider/lock/149_HAON_FINAL_INTERIOR_COCKPIT_TWO_SEAT_REWORKED_260706.png?v=260707"
+            },
+            {
+                  "no": 150,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "150_CR_MECH_FRIEND_AIRCRAFT_MATCH_MASTER_REWORKED_260706.png",
+                  "url": "assets/cloudrider/lock/150_CR_MECH_FRIEND_AIRCRAFT_MATCH_MASTER_REWORKED_260706.png?v=260707"
+            },
+            {
+                  "no": 151,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "151_CR_CHAR_GLOBALPILOTS_REGIONAL_VARIANTS_REWORKED_260706.png",
+                  "url": "assets/cloudrider/lock/151_CR_CHAR_GLOBALPILOTS_REGIONAL_VARIANTS_REWORKED_260706.png?v=260707"
+            },
+            {
+                  "no": 152,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "152_CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707.png",
+                  "url": "assets/cloudrider/lock/152_CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707.png?v=260707"
+            },
+            {
+                  "no": 153,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "153_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png",
+                  "url": "assets/cloudrider/lock/153_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png?v=260707"
+            }
+      ]
 },
   'today-love': {
       "name": "오늘은 왠지 LOVE.",
@@ -22230,6 +23315,42 @@ const PROJECTS = {
   }
 };
 
+function zippyAssetEsc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderProjectReferenceGallery() {
+  const section = document.getElementById('projectRefAssetSection');
+  const countEl = document.getElementById('asset-projectref-count');
+  const container = document.getElementById('asset-projectref-container');
+  if (!section || !countEl || !container) return;
+  const refs = (currentProject && currentProject.allAssetRefs) || [];
+  if (!refs.length) {
+    section.style.display = 'none';
+    countEl.textContent = '0개';
+    container.innerHTML = '';
+    return;
+  }
+  section.style.display = '';
+  countEl.textContent = refs.length + '개';
+  container.innerHTML = refs.map(function(ref) {
+    const no = String(ref.no || '').padStart(3, '0');
+    const file = ref.file || '';
+    const label = (no ? no + ' · ' : '') + file.replace(/\.[^.]+$/, '');
+    const category = ref.category || ref.kind || '';
+    const url = ref.url || '';
+    return '<div class="titem" title="' + zippyAssetEsc(file) + '">' +
+      '<img src="' + zippyAssetEsc(url) + '" alt="' + zippyAssetEsc(label) + '" loading="lazy" decoding="async">' +
+      '<div class="tlbl">' + zippyAssetEsc(label) + '</div>' +
+      '<div class="tlbl" style="opacity:.65">' + zippyAssetEsc(category) + '</div>' +
+      '</div>';
+  }).join('');
+}
+
 function selectProject(key) {
   currentProjectKey = key;
   currentProject = PROJECTS[key];
@@ -22428,6 +23549,7 @@ function selectProject(key) {
   // Build storyboard reference UI dynamically
   buildSBRefUI();
   if (typeof buildAssetSpaceSlots === 'function') buildAssetSpaceSlots();
+  if (typeof renderProjectReferenceGallery === 'function') renderProjectReferenceGallery();
 
   // Load DNA constants
   if (typeof SPACE_DNA !== 'undefined' && currentProject.spaceDNA) {
@@ -23707,6 +24829,81 @@ async function prepareProofOfTasteRefsForGeneration(images, shot, opts) {
     if (out.length && used + bytes > byteBudget) continue;
     if (!out.length && bytes > byteBudget) continue;
     out.push(finalRef);
+    used += bytes;
+  }
+  return out;
+}
+
+function isStringLimitError(err) {
+  const text = ((err && err.name) || '') + ' ' + ((err && err.message) || String(err || ''));
+  return /Invalid string length|RangeError/i.test(text);
+}
+
+function imageRefTypeLabel(img) {
+  if (!img) return 'Reference';
+  if (img._type === 'character') return '인물 (Character)';
+  if (img._type === 'face') return '얼굴 (Face)';
+  if (img._type === 'costume') return '의상 (Outfit)';
+  if (img._type === 'background') return '배경 (Background)';
+  if (img._type === 'prop') return '소품 (Prop)';
+  return 'Reference';
+}
+
+function buildImageRefManifestForPrompt(images) {
+  const refs = (images || []).filter(function(im) { return im && im._type && im._label; });
+  if (!refs.length) return '';
+  let manifestPrefix = 'REFERENCE IMAGES (in order):\n';
+  refs.forEach(function(im, idx) {
+    manifestPrefix += '  ' + (idx + 1) + '. ' + imageRefTypeLabel(im) + ': ' + (im._label || '') + '\n';
+  });
+  return manifestPrefix + '\n';
+}
+
+async function prepareImageRefsForJsonBridge(images, opts) {
+  const options = opts || {};
+  const source = Array.isArray(images) ? images.filter(function(ref) { return ref && ref.b64; }) : [];
+  const maxRefs = Math.max(0, Number(options.maxRefs || 4));
+  if (!source.length || maxRefs <= 0) return [];
+  const byteBudget = Number(options.byteBudget || (4 * 1024 * 1024));
+  const singleRefMaxBytes = Number(options.singleRefMaxBytes || Math.min(byteBudget, 2 * 1024 * 1024));
+  const hardInputMaxBytes = Number(options.hardInputMaxBytes || (24 * 1024 * 1024));
+  const sourceLimit = Math.min(source.length, Math.max(maxRefs * 3, 8));
+  const out = [];
+  let used = 0;
+  for (let i = 0; i < sourceLimit && out.length < maxRefs; i++) {
+    const original = source[i];
+    if (!original || !original.b64) continue;
+    if (estimateImageRefBytes(original) > hardInputMaxBytes) {
+      console.warn('GTI reference skipped before bridge: too large', original._label || original.name || i);
+      continue;
+    }
+    let ref = original;
+    try {
+      ref = await compressImageRefForGeneration(original, {
+        maxSide: options.maxSide || 640,
+        quality: options.quality || 0.72,
+        skipBelowBytes: options.skipBelowBytes || 220000
+      }) || original;
+    } catch(e) {
+      ref = original;
+    }
+    let bytes = estimateImageRefBytes(ref);
+    if (bytes > singleRefMaxBytes) {
+      try {
+        ref = await compressImageRefForGeneration(ref, {
+          maxSide: options.fallbackMaxSide || 384,
+          quality: options.fallbackQuality || 0.6,
+          skipBelowBytes: 0
+        }) || ref;
+      } catch(e) {}
+      bytes = estimateImageRefBytes(ref);
+    }
+    if (!ref || !ref.b64 || bytes > singleRefMaxBytes) {
+      console.warn('GTI reference skipped before bridge: over budget', original._label || original.name || i);
+      continue;
+    }
+    if (used + bytes > byteBudget) continue;
+    out.push(ref);
     used += bytes;
   }
   return out;
@@ -25540,12 +26737,12 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
 	      progress('PoT 레퍼런스 압축 중...');
 	      const potLateShot = isProofOfTasteLateShot(shot);
 	      imgInputs = await prepareProofOfTasteRefsForGeneration(imgInputs, shot, {
-	        maxRefs: potLateShot ? ((_seq && _seq.cont && _seq.cont.length) ? 3 : 2) : ((_seq && _seq.cont && _seq.cont.length) ? 5 : 4),
-	        maxSide: potLateShot ? 512 : 768,
-	        quality: potLateShot ? 0.68 : 0.76,
-	        byteBudget: potLateShot ? 3 * 1024 * 1024 : 8 * 1024 * 1024,
-	        fallbackMaxSide: potLateShot ? 384 : 512,
-	        fallbackQuality: potLateShot ? 0.62 : 0.68
+	        maxRefs: potLateShot ? ((_seq && _seq.cont && _seq.cont.length) ? 2 : 1) : ((_seq && _seq.cont && _seq.cont.length) ? 4 : 3),
+	        maxSide: potLateShot ? 384 : 704,
+	        quality: potLateShot ? 0.62 : 0.74,
+	        byteBudget: potLateShot ? 1536 * 1024 : 6 * 1024 * 1024,
+	        fallbackMaxSide: potLateShot ? 320 : 480,
+	        fallbackQuality: potLateShot ? 0.58 : 0.66
 	      });
 	      progress('PoT 레퍼런스 ' + imgInputs.length + '개 준비 완료');
 	    }
@@ -29538,24 +30735,54 @@ async function checkGtiBridge() {
   if(dot) dot.style.background='#DC2626';
   if(st) st.textContent='꺼짐 — 바탕화면 런처 더블클릭 · ' + ((lastError && lastError.message) || '연결 실패');
 }
-async function callGtiBridge({images=[], prompt, signal=null}) {
+async function callGtiBridge({images=[], prompt, signal=null, onProgress=null}) {
   const size = document.getElementById('gptImgSize')?.value || 'auto';
-  // 레퍼런스 매니페스트 주입 (callGPTImage와 동일 규칙)
-  let manifestPrefix = '';
-  if (images.some(im => im._type && im._label)) {
-    manifestPrefix = 'REFERENCE IMAGES (in order):\n';
-    images.forEach((im, idx) => {
-      const t = im._type === 'character' ? '\uC778\uBB3C (Character)' : im._type === 'face' ? '\uC5BC\uAD74 (Face)' : im._type === 'costume' ? '\uC758\uC0C1 (Outfit)' : im._type === 'background' ? '\uBC30\uACBD (Background)' : im._type === 'prop' ? '\uC18C\uD488 (Prop)' : 'Reference';
-      manifestPrefix += `  ${idx+1}. ${t}: ${im._label || ''}\n`;
-    });
-    manifestPrefix += '\n';
-  }
-  const payload = {
-    prompt: manifestPrefix + prompt,
-    size: size,
-    images: (images || []).slice(0, 16).map(im => ({ b64: im.b64, mime: im.mime || 'image/png' }))
+  const sourceImages = Array.isArray(images) ? images.filter(function(im) { return im && im.b64; }) : [];
+  if (onProgress && sourceImages.length) onProgress('GTI 레퍼런스 압축 중... ' + sourceImages.length + '개');
+  let bridgeImages = await prepareImageRefsForJsonBridge(sourceImages, {
+    maxRefs: sourceImages.length > 8 ? 6 : 4,
+    maxSide: sourceImages.length > 8 ? 512 : 640,
+    quality: sourceImages.length > 8 ? 0.66 : 0.72,
+    byteBudget: sourceImages.length > 8 ? 5 * 1024 * 1024 : 4 * 1024 * 1024,
+    singleRefMaxBytes: sourceImages.length > 8 ? 1200 * 1024 : 1536 * 1024,
+    fallbackMaxSide: 384,
+    fallbackQuality: 0.6,
+    hardInputMaxBytes: 18 * 1024 * 1024
+  });
+  if (onProgress && sourceImages.length) onProgress('GTI 전송 준비... refs ' + bridgeImages.length + '/' + sourceImages.length);
+  const buildPayload = function(refs, note) {
+    const prefix = buildImageRefManifestForPrompt(refs);
+    return {
+      prompt: (note || '') + prefix + prompt,
+      size: size,
+      images: (refs || []).map(function(im) { return { b64: im.b64, mime: im.mime || 'image/png' }; })
+    };
   };
-  const body = JSON.stringify(payload);
+  let body;
+  try {
+    body = JSON.stringify(buildPayload(bridgeImages));
+  } catch(e) {
+    if (!isStringLimitError(e)) throw e;
+    console.warn('GTI payload hit browser string limit; retrying with one compressed reference.', e);
+    bridgeImages = await prepareImageRefsForJsonBridge(sourceImages, {
+      maxRefs: 1,
+      maxSide: 320,
+      quality: 0.56,
+      byteBudget: 900 * 1024,
+      singleRefMaxBytes: 900 * 1024,
+      fallbackMaxSide: 256,
+      fallbackQuality: 0.52,
+      hardInputMaxBytes: 18 * 1024 * 1024,
+      skipBelowBytes: 0
+    });
+    try {
+      body = JSON.stringify(buildPayload(bridgeImages, 'REFERENCE PAYLOAD SAFETY MODE: image references were reduced because the browser payload was too large. Follow all textual identity, face, outfit, place, and continuity locks with maximum priority.\n\n'));
+    } catch(e2) {
+      if (!isStringLimitError(e2)) throw e2;
+      bridgeImages = [];
+      body = JSON.stringify(buildPayload([], 'REFERENCE PAYLOAD EMERGENCY MODE: image references were omitted because the browser payload was too large. Follow all textual identity, face, outfit, place, and continuity locks with maximum priority.\n\n'));
+    }
+  }
   let lastError = null;
   const tried = [];
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -29941,7 +31168,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
     return await callGemini({images, prompt, textOnly: false, resVal, signal});
   }
   if (mode === 'gpt') {
-    return await callGtiBridge({images, prompt, signal});
+    return await callGtiBridge({images, prompt, signal, onProgress});
   }
   if (mode === 'gptapi') {
     return await callGPTImage({images, prompt, signal});
@@ -33442,7 +34669,7 @@ function updatePromptPreview() {
         if(out) out.innerHTML='<span>GTI가 의상만 분리해 6전도 시트 생성 중...</span>';
         setStatus('GTI 의상 6전도 분리 중... 원본 의상 사진 속 인물은 제거합니다.');
         const prompt='Create a production-ready CLOTHING-ONLY 6-view turnaround sheet from the uploaded outfit reference images.\n\nTASK:\n- Extract ONLY the wardrobe: garments, shoes, bag, accessories, fabric, silhouette, color, fit details.\n- Completely remove the wearer/model/person from the outfit references.\n- Reconstruct the clothes as an empty outfit reference, like an invisible ghost-mannequin or clean flat-lay production sheet.\n\nLAYOUT: clean 3 columns x 2 rows, no text labels.\nPanel 1: front view full outfit.\nPanel 2: front-left 45 degree view.\nPanel 3: left side view.\nPanel 4: back view.\nPanel 5: right side view.\nPanel 6: front-right 45 degree view plus key accessory/fabric details if visible.\n\nABSOLUTE NEGATIVE:\nNo face, no head, no hair, no skin, no hands, no feet, no human body, no model identity, no copied person, no portrait, no mannequin face, no text, no watermark.\n\nPreserve the exact outfit design from the uploaded images: cut, fabric, color, pattern, seams, buttons, waistline, sleeves, pants/skirt shape, shoes, bag, and accessories. Neutral studio background, high-resolution realistic wardrobe reference, not fashion editorial.';
-        const r=await callImageGen({images:state.outfit.slice(0,6),prompt:prompt,resVal:'1K'});
+        const r=await callImageGen({images:state.outfit.slice(0,4),prompt:prompt,resVal:'1K'});
         if(!r.imgB64) throw new Error('이미지 응답 없음');
         if(version!==state.outfitVersion) throw new Error('의상 레퍼런스가 변경되어 분리 결과를 버렸습니다. 다시 실행하세요.');
         state.outfitSheet={name:'outfit_6view_sheet.png',mime:'image/png',b64:r.imgB64,url:'data:image/png;base64,'+r.imgB64,_type:'costume',_label:'Instagram clothing-only 6-view outfit sheet'};
@@ -33473,7 +34700,7 @@ function updatePromptPreview() {
     try{
       if(!state.identityDna) await ipExtractIdentity();
       const prompt='Create a production-ready identity lock sheet for the exact same person in the reference images. Layout: clean 6-view turnaround sheet, 3 columns x 2 rows, neutral studio background. Views: front, 45-degree left, left profile, back, right profile, 45-degree right. Keep same face, hair silhouette, body proportions, skin tone. No text labels. IDENTITY DNA:\n'+(state.identityDna||'Use visible traits from references.')+'\nRealistic, not anime, no face drift, no extra limbs.';
-      const r=await callImageGen({images:state.person.slice(0,12),prompt:prompt,resVal:'1K'});
+      const r=await callImageGen({images:state.person.slice(0,6),prompt:prompt,resVal:'1K'});
       if(!r.imgB64) throw new Error('이미지 응답 없음');
       state.identitySheet={name:'identity_6view.png',mime:'image/png',b64:r.imgB64,_type:'character',_label:'Instagram identity 6-view sheet'};
       out.innerHTML='<img src="data:image/png;base64,'+r.imgB64+'" alt="" onclick="ipOpenImageViewer(this.src,\'인물 6전도 시트\')">';
@@ -33500,11 +34727,13 @@ function updatePromptPreview() {
         await ipGenerateIdentitySheet();
         if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
       }
-      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
+      identityRefs=[state.identitySheet].concat(state.person.slice(0,2).map(function(img,i){
+        return Object.assign({},img,{_type:'face',_label:'Instagram supporting person/face reference '+(i+1)+' - identity only'});
+      }));
       busy('ipBatchBtn',true,'의상 6전도 중...');
       outfitRefs=await ensureOutfitSheet(false);
-      placeRefs=getPlaceRefs();
-      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
+      placeRefs=getPlaceRefs().slice(0,2);
+      refs=identityRefs.concat(outfitRefs.slice(0,1),placeRefs).slice(0,6);
       loc=getCurrentLoc();
       vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
       state.sessionSeed=buildSessionSeed(loc,vibe);
@@ -33547,11 +34776,13 @@ function updatePromptPreview() {
         await ipGenerateIdentitySheet();
         if(!state.identitySheet) throw new Error('인물 6전도 시트 생성이 필요합니다');
       }
-      identityRefs=[state.identitySheet].concat(state.person.slice(0,8));
+      identityRefs=[state.identitySheet].concat(state.person.slice(0,2).map(function(img,i){
+        return Object.assign({},img,{_type:'face',_label:'Instagram supporting person/face reference '+(i+1)+' - identity only'});
+      }));
       busy('ipSingleBtn',true,'의상 6전도 중...');
       outfitRefs=await ensureOutfitSheet(false);
-      placeRefs=getPlaceRefs();
-      refs=identityRefs.concat(outfitRefs,placeRefs).slice(0,16);
+      placeRefs=getPlaceRefs().slice(0,2);
+      refs=identityRefs.concat(outfitRefs.slice(0,1),placeRefs).slice(0,6);
       loc=getCurrentLoc();
       vibe=VIBES[document.getElementById('ipVibe').value]||VIBES.daily;
     }catch(e){

@@ -1045,6 +1045,9 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="radio" name="imgMode" value="local" onchange="onImgModeChange()"> 🖥 Local 5080
+    </label>
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
@@ -3467,6 +3470,7 @@ input[type=file]{display:none}
   <div class="hist-modal-actions">
     <button class="hist-modal-btn" onclick="downloadHistModalImg()">⬇ 다운로드</button>
     <button class="hist-modal-btn" onclick="sendToAssetLib()">→ Asset Library로</button>
+    <button class="hist-modal-btn" onclick="sendHistModalToStoryboard()">→ 스토리보드로</button>
   </div>
 </div>
 
@@ -29805,6 +29809,7 @@ async function refreshHistory() {
       html += '<div class="hist-card-actions">';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();downloadHistImg('+img.id+')">⬇ 저장</button>';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToAsset('+img.id+')">→ Asset</button>';
+      html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToStoryboard('+img.id+')">→ 스토리보드</button>';
       html += '<button class="hist-card-btn del" onclick="event.stopPropagation();deleteFromHistory('+img.id+')">✕</button>';
       html += '</div></div></div>';
     });
@@ -29851,9 +29856,57 @@ async function sendHistToAsset(id) {
   updateAssetCounts();
   alert('Asset Library 인물 에셋에 추가되었습니다.');
 }
+async function sendHistToStoryboard(id) {
+  const items = await loadHistory();
+  const img = items.find(function(i) { return i.id === id; });
+  if (!img) return;
+  const ok = putHistoryImageToStoryboard(img, ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4']);
+  if (!ok) {
+    alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
+    return;
+  }
+  if (typeof goStep === 'function') goStep('sb');
+}
+
+function putHistoryImageToStoryboard(img, preferredOrder) {
+  if (!img || !img.b64) return false;
+  if (typeof sbRefs === 'undefined' || !sbRefs || !Object.keys(sbRefs).length) return false;
+
+  const allKeys = Object.keys(sbRefs);
+  const fallbackOrder = ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4', 'obj'];
+  const orderedKeys = (Array.isArray(preferredOrder) && preferredOrder.length) ? preferredOrder.concat(fallbackOrder) : fallbackOrder;
+
+  let target = orderedKeys.find(function(k) {
+    return allKeys.indexOf(k) !== -1 && !sbRefs[k];
+  });
+  if (!target) target = allKeys.find(function(k) { return /^((char|cos|face|loc|obj)-?|obj)/.test(k); });
+  if (!target) return false;
+
+  const mime = img.mime || 'image/png';
+  const cap = target.charAt(0).toUpperCase() + target.slice(1);
+  const el = document.getElementById('sbRef' + cap);
+
+  sbRefs[target] = img.b64;
+  sbRefMimes[target] = mime;
+  if (el) {
+    el.innerHTML = '<img src="data:' + mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+  }
+  return true;
+}
+
 function sendToAssetLib() {
   if (!histModalData) return;
   sendHistToAsset(histModalData.id);
+  closeHistModal();
+}
+function sendHistModalToStoryboard() {
+  if (!histModalData) return;
+  const ok = putHistoryImageToStoryboard(histModalData, ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4']);
+  if (!ok) {
+    alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
+    return;
+  }
+  if (typeof goStep === 'function') goStep('sb');
   closeHistModal();
 }
 async function exportHistory() {
@@ -31427,11 +31480,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
   const saved = (function(){
     try{
       const v = localStorage.getItem('zippy_img_mode') || 'gpt';
-      if (v === 'local') {
-        localStorage.setItem('zippy_img_mode', 'gpt');
-        return 'gpt';
-      }
-      return v;
+      return (v === 'cloud' || v === 'gpt' || v === 'gptapi' || v === 'local') ? v : 'gpt';
     }catch(e){return 'gpt';}
   })();
   try { var _ch=normalizeLocal5080GatewayValue(localStorage.getItem('zippy_comfy_host') || DEFAULT_LOCAL_VIDEO_GATEWAY); var _e=document.getElementById('comfyHost'); if(_e) _e.value=_ch; localStorage.setItem('zippy_comfy_host', _ch); } catch(e){}

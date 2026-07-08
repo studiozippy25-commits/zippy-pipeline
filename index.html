@@ -24021,7 +24021,8 @@ function filterSBEp(epNum, btn) {
       sbTitleEl.textContent = 'STORYBOARD — ' + sbGroupChipLabel(epNum) + ' · ' + shown + '쇼트';
     }
   }
-  if (typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(timeline, {visibleOnly:true});
+  if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon(timeline);
+  else if (typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(timeline, {visibleOnly:true});
 }
 
 async function fetchImageAsB64(url) {
@@ -25770,6 +25771,7 @@ const SB_STATE_STORE = 'state';
 let sbStateDB = null;
 let sbStateDBNameOpen = '';
 let sbStateRestored = false;
+let sbStateRestorePromise = null;
 
 function sbStateProjectKey() {
   let key = 'default';
@@ -25847,10 +25849,22 @@ function saveStoryboardFrameToHistory(shotId, b64, frameIndex, reason) {
   return saveToHistory(b64, step, sbHistoryDescription(shotId, seqIndex), {
     dedupeKey: sbHistoryDedupeKey(shotId, seqIndex),
     source: 'storyboard',
+    projectKey: sbStateProjectKey(),
     shotId: shotId,
     frameIndex: seqIndex,
     reason: reason || ''
   });
+}
+
+function sbHistoryItemBelongsToCurrentProject(item) {
+  if (!item) return false;
+  const meta = item.meta || {};
+  const key = sbStateProjectKey();
+  const expected = 'storyboard:' + key + ':';
+  const dedupe = String(item.dedupeKey || meta.dedupeKey || '');
+  if (dedupe) return dedupe.indexOf(expected) === 0;
+  if (meta.projectKey) return String(meta.projectKey) === key;
+  return false;
 }
 async function syncStoryboardToHistory(opts) {
   const options = opts || {};
@@ -25914,6 +25928,7 @@ async function restoreStoryboardFromHistory(opts) {
       const meta = item.meta || {};
       const isStoryboard = meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1;
       if (!isStoryboard) return;
+      if (!sbHistoryItemBelongsToCurrentProject(item)) return;
       let shotId = meta.shotId || '';
       if (!shotId && item.desc) shotId = String(item.desc).split('·')[0].trim().replace(/\s+#\d+$/, '');
       if (!shotId) return;
@@ -25931,6 +25946,7 @@ async function restoreStoryboardFromHistory(opts) {
       if (typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
     });
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
     await saveStoryboardState('history-recovery', {localOnly: true});
     const total = restoredImages + restoredFrames;
@@ -25942,6 +25958,32 @@ async function restoreStoryboardFromHistory(opts) {
     return {ok: false, error: e};
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = oldText || '히스토리에서 복구'; }
+  }
+}
+
+async function autoRestoreStoryboardFromHistoryIfMissing() {
+  try {
+    if (typeof loadHistory !== 'function' || typeof SB_SHOTS === 'undefined') return;
+    const items = await loadHistory();
+    const known = {};
+    Object.keys(sbGenImages || {}).forEach(function(id) { if (sbGenImages[id]) known[id] = true; });
+    const hasMissingCurrentHistory = (items || []).some(function(item) {
+      if (!item || !item.b64) return false;
+      const meta = item.meta || {};
+      const isStoryboard = meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1;
+      if (!isStoryboard || !sbHistoryItemBelongsToCurrentProject(item)) return false;
+      let shotId = meta.shotId || '';
+      if (!shotId && item.desc) shotId = String(item.desc).split('·')[0].trim().replace(/\s+#\d+$/, '');
+      if (!shotId) return false;
+      shotId = (typeof zippyNasResolveStoryboardShotId === 'function') ? zippyNasResolveStoryboardShotId(shotId) : shotId;
+      const existsInProject = SB_SHOTS.some(function(s) { return s && s.id === shotId; });
+      return existsInProject && !known[shotId];
+    });
+    if (hasMissingCurrentHistory && typeof restoreStoryboardFromHistory === 'function') {
+      await restoreStoryboardFromHistory({silent:true, auto:true});
+    }
+  } catch(e) {
+    console.warn('Auto storyboard history recovery failed:', e);
   }
 }
 async function saveStoryboardState(reason, opts) {
@@ -25993,15 +26035,21 @@ async function restoreStoryboardState() {
       });
     }
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
   } catch(e) {
     console.warn('Storyboard state restore failed:', e);
   }
 }
 function ensureStoryboardStateRestored() {
-  if (sbStateRestored) return;
+  if (sbStateRestored) return sbStateRestorePromise || Promise.resolve();
   sbStateRestored = true;
-  restoreStoryboardState();
+  sbStateRestorePromise = restoreStoryboardState().then(function() {
+    return autoRestoreStoryboardFromHistoryIfMissing();
+  }).catch(function(e) {
+    console.warn('Storyboard restore chain failed:', e);
+  });
+  return sbStateRestorePromise;
 }
 function bindStoryboardStatePersistence() {
   if (window.__zippyStoryboardPersistBound) return;
@@ -26134,7 +26182,10 @@ function hydrateSBTimelineImages(root, opts) {
     while (i < nodes.length && n < 12) {
       const img = nodes[i++];
       if (!visible(img)) {
-        img.removeAttribute('src');
+        if (options.unloadHidden) {
+          img.removeAttribute('src');
+          delete img.dataset.hydratedB64Len;
+        }
         continue;
       }
       let b64 = '';
@@ -26146,7 +26197,7 @@ function hydrateSBTimelineImages(root, opts) {
         const arr = sbSeqImages[seqKey];
         if (arr && arr[idx]) b64 = arr[idx];
       }
-      if (b64 && img.dataset.hydratedB64Len !== String(b64.length)) {
+      if (b64 && (options.force || !img.getAttribute('src') || img.dataset.hydratedB64Len !== String(b64.length))) {
         img.src = 'data:image/png;base64,' + b64;
         img.dataset.hydratedB64Len = String(b64.length);
       }
@@ -26155,6 +26206,18 @@ function hydrateSBTimelineImages(root, opts) {
     if (i < nodes.length) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
+}
+
+function hydrateVisibleSBTimelineImagesSoon(root) {
+  const scope = root || document.getElementById('sbTimelineInner');
+  if (!scope || typeof hydrateSBTimelineImages !== 'function') return;
+  hydrateSBTimelineImages(scope, {visibleOnly:true, force:true});
+  requestAnimationFrame(function() {
+    hydrateSBTimelineImages(scope, {visibleOnly:true, force:true});
+  });
+  setTimeout(function() {
+    hydrateSBTimelineImages(scope, {visibleOnly:true, force:true});
+  }, 120);
 }
 
 function renderShotCard(shot, sceneVal) {
@@ -26515,7 +26578,8 @@ function buildStoryboardTimeline() {
         hydratedByFilter = true;
       }
     }
-    if (!hydratedByFilter && typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(inner, {visibleOnly:true});
+    if (!hydratedByFilter && typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon(inner);
+    else if (!hydratedByFilter && typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(inner, {visibleOnly:true});
     return;
 		  }
 
@@ -26574,7 +26638,8 @@ function buildStoryboardTimeline() {
 		      hydratedByFilter = true;
 		    }
 		  }
-		  if (!hydratedByFilter && typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(inner, {visibleOnly:true});
+		  if (!hydratedByFilter && typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon(inner);
+		  else if (!hydratedByFilter && typeof hydrateSBTimelineImages === 'function') hydrateSBTimelineImages(inner, {visibleOnly:true});
 	}
 function updateSBProgress() {
   const total = SB_SHOTS.filter(s=>s.pri==='must').length;
@@ -26792,12 +26857,16 @@ Single frame, no text overlay, no border, no watermark. Photorealistic film stil
 	    if(!imgB64) throw new Error('이미지 없음');
 	    if (_seq && _seq.returnOnly) return imgB64;
 	    sbGenImages[shotId] = imgB64;
+	    await saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
+	    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
 	    try {
 	      buildStoryboardTimeline();
+	      if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
 	    } catch(renderErr) {
 	      console.warn('Storyboard timeline render failed after generation:', renderErr);
 	      updateSBProgress();
 	    }
+	    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
 	    saveStoryboardState('shot-generated');
   } catch(e) {
     alert('Shot '+shotId+' 생성 실패: '+e.message);
@@ -26836,10 +26905,12 @@ async function generateSBSequence(shotId) {
       });
       try {
         buildStoryboardTimeline();
+        if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
       } catch(renderErr) {
         console.warn('Storyboard timeline render failed after sequence generation:', renderErr);
         updateSBProgress();
       }
+      if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
       saveStoryboardState('sequence-generated');
     } else {
       throw new Error('생성 결과 없음');
@@ -32555,7 +32626,15 @@ function goStep(n){
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
-  if(n==='sb') { ensureStoryboardStateRestored(); buildStoryboardTimeline(); refreshEpSelector(); renderInsertLibrary(); if (typeof zippyNasScheduleAutoLoad === 'function') zippyNasScheduleAutoLoad('storyboard-tab'); }
+  if(n==='sb') {
+    ensureStoryboardStateRestored().then(function() {
+      buildStoryboardTimeline();
+      refreshEpSelector();
+      renderInsertLibrary();
+      if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
+      if (typeof zippyNasScheduleAutoLoad === 'function') zippyNasScheduleAutoLoad('storyboard-tab');
+    });
+  }
   if(n==='premiere') premiereRenderItems();
   if(n==='voice') vbInitVoiceTab();
   if(n==='hist') refreshHistory();

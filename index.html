@@ -29865,7 +29865,6 @@ async function sendHistToStoryboard(id) {
     alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
     return;
   }
-  if (typeof goStep === 'function') goStep('sb');
 }
 
 function putHistoryImageToStoryboard(img, preferredOrder) {
@@ -29906,7 +29905,6 @@ function sendHistModalToStoryboard() {
     alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
     return;
   }
-  if (typeof goStep === 'function') goStep('sb');
   closeHistModal();
 }
 async function exportHistory() {

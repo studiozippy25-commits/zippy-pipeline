@@ -20,6 +20,7 @@
 
 - `wrangler`로 수동 배포하지 않는다. **push가 곧 배포**다. `wrangler`/Pages 배포 흔적은 홈페이지(`studiozippy-site`) 쪽일 수 있으므로 파이프라인 배포에 쓰지 않는다.
 - 이 repo에는 `wrangler.toml`/`wrangler.jsonc`가 없다. 수동 Wrangler 배포를 시도하지 말고 GitHub 연동 자동배포만 사용한다.
+- Cloudflare 빌드 로그에 `npx wrangler deploy`가 계속 보이면, 레포 문제가 아니라 Cloudflare 배포 설정 문제일 가능성이 큽니다. 배포 프로젝트 설정에서 빌드 커맨드를 `npx wrangler deploy`에서 자동 빌드 방식으로 되돌려야 합니다.
 - 강제 재배포가 필요해도 빈 커밋(`--allow-empty`)에 의존하지 않는다. Cloudflare GitHub 연동이 트리 변경 없는 커밋을 새 HTML 게시로 처리하지 않을 수 있으므로, `index.html`에 무해한 고유 marker/meta 같은 **실제 바이트 변경**을 넣고 push한다.
 - 데이터 구조: `index.html` 안 `const PROJECTS = { ... }` 객체에 프로젝트별로 들어있음. N시 = `ncity` 프로젝트.
 

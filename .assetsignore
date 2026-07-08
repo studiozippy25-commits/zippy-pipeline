@@ -1,5 +1,4 @@
 # Files excluded from Cloudflare Workers static-assets upload
-# (wrangler reads the repo root as the assets dir; keep .git and non-servable files out)
 .git
 .gitignore
 .assetsignore
@@ -7,8 +6,6 @@
 ._*
 *.pack
 node_modules
-.wrangler
-wrangler.jsonc
 studioZIPPY_Pipeline_v1.html
 STUDIO_ZIPPY_AI_LIMITATIONS_v1.0.md
 DEPLOY.md

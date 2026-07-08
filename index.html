@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<!-- Deploy trigger: 2026-07-08 11:52:29 UTC -->
 <html lang="ko">
 <head>
-<meta name="zippy-deploy-marker" content="redeploy-pending-index-20260708-112808">
+<meta name="zippy-deploy-marker" content="deploy-marker-20260708-150629">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>studioZIPPY AI PIPELINE · API</title>
@@ -763,7 +762,7 @@ input[type=file]{display:none}
 .hist-card-step{font-family:var(--font-mono);font-size:10px;color:var(--bl);font-weight:700;letter-spacing:.5px}
 .hist-card-time{font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:2px}
 .hist-card-desc{font-size:11px;color:var(--tx);margin-top:3px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hist-card-actions{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.hist-card-actions{display:flex;gap:4px;margin-top:6px}
 .hist-card-btn{padding:3px 8px;border:1px solid var(--bd);background:var(--s2);color:var(--mu);font-family:var(--font-mono);font-size:9px;border-radius:4px;cursor:pointer;transition:all .12s}
 .hist-card-btn:hover{border-color:var(--bl);color:var(--bl)}
 .hist-card-btn.del:hover{border-color:var(--er);color:var(--er)}
@@ -1046,9 +1045,6 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
     </label>
-    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="local" onchange="onImgModeChange()"> Local 5080 Comfy
-    </label>
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
@@ -1057,10 +1053,9 @@ input[type=file]{display:none}
     <button class="btn bgh bsm" onclick="checkComfy()" style="font-size:11px;padding:3px 8px">연결확인</button>
     <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
     <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
-    <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
-    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
-    <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
-    <span id="localImageModelBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:3px 8px;background:rgba(34,211,238,.08)">Model: Z-Image Turbo bf16</span>
+    <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
   </div>
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
@@ -3127,10 +3122,9 @@ input[type=file]{display:none}
       <div>
         <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateComfyModelBadges()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateComfyModelBadges()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel')">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel')">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
         </div>
-        <div id="localVideoModelBadge" style="margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:4px 8px;background:rgba(34,211,238,.08);display:inline-block">Model: Wan 2.2 I2V 14B</div>
       </div>
       <div>
         <div class="cfg-lbl">길이</div>
@@ -3473,7 +3467,6 @@ input[type=file]{display:none}
   <div class="hist-modal-actions">
     <button class="hist-modal-btn" onclick="downloadHistModalImg()">⬇ 다운로드</button>
     <button class="hist-modal-btn" onclick="sendToAssetLib()">→ Asset Library로</button>
-    <button class="hist-modal-btn" onclick="sendHistModalToStoryboard()">→ 스토리보드로</button>
   </div>
 </div>
 
@@ -28707,8 +28700,6 @@ async function executeVideoTab() {
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
-  const videoWorkflowId = getSelectedVideoWorkflowId();
-  const videoModelLabel = LOCAL_VIDEO_MODEL_LABELS[videoWorkflowId] || workflowPreset;
   const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
   const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
@@ -28735,8 +28726,6 @@ async function executeVideoTab() {
       metadata: payloadMeta,
       model: modelName,
       workflow_preset: workflowPreset,
-      model_profile: videoWorkflowId,
-      model_display_name: videoModelLabel,
       image: startImage,
       images: refs,
       prompt,
@@ -28756,7 +28745,7 @@ async function executeVideoTab() {
       </div>
     `;
 
-    vidTabVideos.unshift({url: videoUrl, model: videoModelLabel, prompt: prompt, time: new Date().toLocaleTimeString()});
+    vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
   } catch(e) {
     status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
@@ -29764,147 +29753,6 @@ function hydrateHistoryImages(root) {
   requestAnimationFrame(step);
 }
 
-async function getHistoryItemById(id) {
-  const items = await loadHistory();
-  const sid = String(id);
-  return (items || []).find(function(item) { return String(item && item.id) === sid; }) || null;
-}
-
-function normalizeStoryboardShotId(raw) {
-  let id = String(raw || '').trim();
-  if (!id) return '';
-  id = id.replace(/^Shot\s+/i, '');
-  id = id.replace(/[·|].*$/, '').trim().replace(/\s+#\d+$/, '').trim();
-  id = id.replace(/[^\w가-힣-]+$/g, '');
-  if (typeof zippyNasResolveStoryboardShotId === 'function') {
-    id = zippyNasResolveStoryboardShotId(id);
-  }
-  return id;
-}
-
-function resolveHistoryStoryboardShotId(item) {
-  if (!item) return '';
-  const meta = item.meta || {};
-  let id = normalizeStoryboardShotId(meta.shotId || item.shotId || '');
-  if (id) return id;
-
-  const dedupe = String(item.dedupeKey || meta.dedupeKey || '');
-  const dedupeMatch = dedupe.match(/^storyboard:[^:]+:([^:]+):/);
-  if (dedupeMatch) {
-    id = normalizeStoryboardShotId(dedupeMatch[1]);
-    if (id) return id;
-  }
-
-  const desc = String(item.desc || '');
-  const descMatch = desc.match(/^\s*([A-Za-z]*\d+[-_]\d+[A-Za-z0-9_-]*|\d+[-_]\d+[A-Za-z0-9_-]*|SH\d+[A-Za-z0-9_-]*)\s*(?:[·|]|$)/i);
-  if (descMatch) {
-    id = normalizeStoryboardShotId(descMatch[1]);
-    if (id) return id;
-  }
-
-  const step = String(item.step || '');
-  const stepMatch = step.match(/([A-Za-z]*\d+[-_]\d+[A-Za-z0-9_-]*|\d+[-_]\d+[A-Za-z0-9_-]*|SH\d+[A-Za-z0-9_-]*)/i);
-  if (stepMatch) {
-    id = normalizeStoryboardShotId(stepMatch[1]);
-    if (id) return id;
-  }
-  return '';
-}
-
-function findStoryboardShotByHistoryId(rawId) {
-  const id = normalizeStoryboardShotId(rawId);
-  if (!id || typeof SB_SHOTS === 'undefined') return null;
-  let shot = SB_SHOTS.find(function(s) { return s && s.id === id; }) || null;
-  if (shot) return shot;
-  const compact = id.replace(/[^a-z0-9가-힣]/gi, '').toLowerCase();
-  return SB_SHOTS.find(function(s) {
-    const sid = String((s && s.id) || '');
-    return sid.replace(/[^a-z0-9가-힣]/gi, '').toLowerCase() === compact;
-  }) || null;
-}
-
-function historyFrameIndex(item) {
-  if (!item) return 0;
-  const meta = item.meta || {};
-  let idx = Number(meta.frameIndex || item.frameIndex || 0);
-  if (idx > 0) return idx;
-  const dedupe = String(item.dedupeKey || meta.dedupeKey || '');
-  const m = dedupe.match(/:seq-(\d+)$/);
-  if (m) return Number(m[1]) || 0;
-  const desc = String(item.desc || '');
-  const d = desc.match(/\s+#(\d+)\s*(?:[·|]|$)/);
-  return d ? (Number(d[1]) || 0) : 0;
-}
-
-async function sendHistToStoryboard(id, opts) {
-  const options = opts || {};
-  try {
-    const img = await getHistoryItemById(id);
-    if (!img || !img.b64) {
-      alert('히스토리 이미지를 찾지 못했습니다.');
-      return false;
-    }
-    if (typeof sbGenImages === 'undefined' || typeof SB_SHOTS === 'undefined') {
-      alert('스토리보드가 아직 로드되지 않았습니다.');
-      return false;
-    }
-
-    let shotId = resolveHistoryStoryboardShotId(img);
-    let shot = findStoryboardShotByHistoryId(shotId);
-    if (!shot && options.ask !== false) {
-      const entered = prompt('붙일 스토리보드 쇼트 ID를 입력하세요. 예: 17-5', shotId || '');
-      if (!entered) return false;
-      shotId = normalizeStoryboardShotId(entered);
-      shot = findStoryboardShotByHistoryId(shotId);
-    }
-    if (!shot) {
-      alert('매칭되는 스토리보드 쇼트를 찾지 못했습니다: ' + (shotId || 'ID 없음'));
-      return false;
-    }
-
-    shotId = shot.id;
-    const frameIndex = historyFrameIndex(img);
-    if (frameIndex > 0) {
-      if (typeof sbSeqImages !== 'undefined') {
-        if (!sbSeqImages[shotId]) sbSeqImages[shotId] = [];
-        sbSeqImages[shotId][frameIndex - 1] = img.b64;
-      }
-      if (!sbGenImages[shotId]) sbGenImages[shotId] = img.b64;
-    } else {
-      sbGenImages[shotId] = img.b64;
-    }
-    if (typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
-
-    if (typeof saveStoryboardFrameToHistory === 'function') {
-      await saveStoryboardFrameToHistory(shotId, img.b64, frameIndex, 'history-to-storyboard');
-    }
-    if (typeof saveStoryboardState === 'function') {
-      await saveStoryboardState('history-to-storyboard', {localOnly:true});
-    }
-    if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
-    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
-    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
-    if (typeof goStep === 'function') goStep('sb');
-    if (typeof shot.ep !== 'undefined' && typeof findSBEpChip === 'function' && typeof filterSBEp === 'function') {
-      const btn = findSBEpChip(Number(shot.ep));
-      if (btn) filterSBEp(Number(shot.ep), btn);
-    } else if (typeof shot.scene !== 'undefined' && typeof findSBEpChip === 'function' && typeof filterSBEp === 'function') {
-      const btn = findSBEpChip(Number(shot.scene));
-      if (btn) filterSBEp(Number(shot.scene), btn);
-    }
-    setTimeout(function() {
-      const card = document.getElementById('sb-shot-' + String(shotId).replace(/[^a-z0-9]/gi,'-'));
-      if (card) card.scrollIntoView({behavior:'smooth', block:'center'});
-    }, 160);
-    if (!options.silent) alert('히스토리 이미지를 스토리보드 ' + shotId + '에 붙였습니다.');
-    return true;
-  } catch(e) {
-    console.warn('Send history to storyboard failed:', e);
-    alert('스토리보드 전송 실패: ' + (e && e.message ? e.message : e));
-    return false;
-  }
-}
-
 function filterHistory(f, btn) {
   histFilter = f;
   document.querySelectorAll('#hist-filters .chip').forEach(c => c.classList.remove('on'));
@@ -29957,7 +29805,6 @@ async function refreshHistory() {
       html += '<div class="hist-card-actions">';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();downloadHistImg('+img.id+')">⬇ 저장</button>';
       html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToAsset('+img.id+')">→ Asset</button>';
-      html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToStoryboard('+img.id+')" style="border-color:var(--pu);color:var(--pu)">→ SB</button>';
       html += '<button class="hist-card-btn del" onclick="event.stopPropagation();deleteFromHistory('+img.id+')">✕</button>';
       html += '</div></div></div>';
     });
@@ -30008,12 +29855,6 @@ function sendToAssetLib() {
   if (!histModalData) return;
   sendHistToAsset(histModalData.id);
   closeHistModal();
-}
-function sendHistModalToStoryboard() {
-  if (!histModalData) return;
-  sendHistToStoryboard(histModalData.id).then(function(ok) {
-    if (ok) closeHistModal();
-  });
 }
 async function exportHistory() {
   const items = await loadHistory();
@@ -30850,6 +30691,30 @@ function getComfyHost() {
   try { localStorage.setItem('zippy_comfy_host', displayValue); } catch(e) {}
   return getComfyGatewayFetchBase(displayValue);
 }
+function getComfyHostCandidates() {
+  const el = document.getElementById('comfyHost');
+  const configured = normalizeLocal5080GatewayValue((el && el.value && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY);
+  const proxiedHost = getComfyGatewayFetchBase(configured);
+  const directHost = (() => {
+    if (!configured) return '';
+    if (isZippy5080Gateway(configured)) return configured + DEFAULT_LOCAL_COMFY_PATH;
+    if (DEFAULT_LOCAL_COMFY_PATH && configured.endsWith(DEFAULT_LOCAL_COMFY_PATH)) return configured;
+    return configured;
+  })();
+  const rawHost = (() => {
+    const raw = (el && el.value && el.value.trim()) || '';
+    return raw ? raw.replace(/\/+$/, '') : '';
+  })();
+  const list = [proxiedHost];
+  if (rawHost && rawHost !== proxiedHost && rawHost !== directHost) list.push(rawHost);
+  if (directHost && directHost !== proxiedHost) list.push(directHost);
+  const seen = {};
+  return list.filter(function(host) {
+    if (!host || seen[host]) return false;
+    seen[host] = true;
+    return true;
+  });
+}
 function getLocalImgSize() {
   return parseInt(document.getElementById('localImgSize')?.value) || 1280;
 }
@@ -30859,39 +30724,67 @@ function getLocalModel(type) {
   if (type === 'inpaint') return document.getElementById('localInpaintModel')?.value || 'flux-fill';
   return 'zimage-turbo';
 }
-const LOCAL_MODEL_LABELS = {
-  'zimage-turbo': 'Z-Image Turbo bf16',
-  'zimage-turbo-nvfp4': 'Z-Image Turbo nvfp4',
-  'qwen-image-turbo': 'Qwen-Image 2512 fp8 + Turbo LoRA',
-  'qwen-image-lightning': 'Qwen-Image 2512 fp8 + Lightning 4step',
-  'flux-klein': 'FLUX.2 Klein 4B fp8',
-  'qwen-edit-2509-l4': 'Qwen-Image Edit 2509 + Lightning 4step',
-  'qwen-edit-2509-l8': 'Qwen-Image Edit 2509 + Lightning 8step',
-  'qwen-edit-2511': 'Qwen-Image Edit 2511',
-  'flux-fill': 'FLUX.1 Fill dev'
-};
-const LOCAL_VIDEO_MODEL_LABELS = {
-  wan: 'Wan 2.2 I2V 14B high+low noise',
-  ltx23: 'LTX 2.3 22B dev/distilled fp8'
-};
-function getLocalModelLabel(type) {
-  const id = getLocalModel(type || 'txt2img');
-  return LOCAL_MODEL_LABELS[id] || id;
-}
-function getSelectedVideoWorkflowId() {
-  const chip = document.querySelector('[data-g="vmodel"].on');
-  return chip?.dataset?.workflow || 'wan';
-}
-function updateComfyModelBadges() {
-  const imageBadge = document.getElementById('localImageModelBadge');
-  if (imageBadge) {
-    imageBadge.textContent = 'Model: ' + getLocalModelLabel('txt2img') + ' / Edit: ' + getLocalModelLabel('img2img');
+function summarizeComfyStatusMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return '';
+  const lines = [];
+  for (let i = 0; i < messages.length; i++) {
+    const entry = messages[i];
+    if (!Array.isArray(entry) || entry.length < 2) {
+      try { lines.push(JSON.stringify(entry)); } catch(e) {}
+      continue;
+    }
+    const evtType = String(entry[0] || '').trim();
+    const payload = entry[1];
+    if (evtType === 'execution_error' && payload && typeof payload === 'object') {
+      const nodeId = payload.node_id || payload.nodeId || '';
+      const title = nodeId ? ('node ' + nodeId) : 'node ?';
+      const emsg = payload.exception_message || payload.exception_type || payload.message || payload.type || '';
+      if (emsg) {
+        lines.push('execution_error [' + title + '] ' + String(emsg).slice(0, 500));
+        continue;
+      }
+    }
+    if (typeof payload === 'string') {
+      lines.push(evtType + ': ' + payload);
+      continue;
+    }
+    try {
+      const txt = JSON.stringify(payload).replace(/\\\"/g, '"').slice(0, 500);
+      if (txt) lines.push(evtType + ': ' + txt);
+    } catch(e) {}
   }
-  const videoBadge = document.getElementById('localVideoModelBadge');
-  if (videoBadge) {
-    const workflow = getSelectedVideoWorkflowId();
-    videoBadge.textContent = 'Model: ' + (LOCAL_VIDEO_MODEL_LABELS[workflow] || workflow);
+  return lines.join(' | ');
+}
+function shouldFallbackModelOnComfyError(errMsg) {
+  const msg = String(errMsg || '').toLowerCase();
+  if (!msg) return false;
+  return msg.includes('checkpoint') || msg.includes('no such file') || msg.includes('not found') || msg.includes('does not exist') || msg.includes('error loading') || msg.includes('not loaded') || msg.includes('missing model') || msg.includes('failed to load') || msg.includes('failed to load model') || msg.includes('unet') || msg.includes('clip') || msg.includes('vae') || msg.includes('lora') || msg.includes('node 1') || msg.includes('execution_error');
+}
+function getLocalModelFallbacks(taskType, selectedModel) {
+  const models = [];
+  const pushUnique = (id) => {
+    if (id && models.indexOf(id) === -1) models.push(id);
+  };
+  if (taskType === 'txt2img') {
+    pushUnique(selectedModel);
+    pushUnique('zimage-turbo');
+    pushUnique('zimage-turbo-nvfp4');
+    pushUnique('qwen-image-lightning');
+    pushUnique('qwen-image-turbo');
+    pushUnique('flux-klein');
+    return models;
   }
+  if (taskType === 'inpaint') {
+    pushUnique(selectedModel);
+    pushUnique('flux-fill');
+    pushUnique('qwen-edit-2511');
+    return models;
+  }
+  pushUnique(selectedModel);
+  pushUnique('qwen-edit-2509-l8');
+  pushUnique('qwen-edit-2509-l4');
+  pushUnique('qwen-edit-2511');
+  return models;
 }
 function onImgModeChange() {
   let mode = getImgMode();
@@ -30903,7 +30796,6 @@ function onImgModeChange() {
   if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
   const localRow = document.getElementById('localCfgRow');
   if (localRow) localRow.style.display = (mode === 'local') ? '' : 'none';
-  updateComfyModelBadges();
 }
 function chkImgKey() {
   const mode = getImgMode();
@@ -31139,44 +31031,54 @@ async function callGPTImage({images=[], prompt, signal=null}) {
   return { imgB64, textOut: '' };
 }
 async function checkComfy() {
-  const host = getComfyHost();
+  const hosts = getComfyHostCandidates();
   const statEl = document.getElementById('comfyStat');
   if (!statEl) return;
   statEl.className = 'ast sno';
   statEl.textContent = '확인 중...';
-  try {
-    const res = await fetch(host + '/system_stats', {method:'GET', headers:getLocal5080GatewayHeaders()});
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const vram = ((data?.devices?.[0]?.vram_total || 0) / 1e9).toFixed(1);
-    const vramFree = ((data?.devices?.[0]?.vram_free || 0) / 1e9).toFixed(1);
-    statEl.className = 'ast sok';
-    statEl.textContent = '✓ VRAM ' + vramFree + '/' + vram + 'GB';
-    if (!window.comfyClientId) window.comfyClientId = 'zippy_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-  } catch (e) {
-    statEl.className = 'ast sno';
-    const isCors = e.message.includes('Failed to fetch') || e.message.includes('NetworkError');
-    const isFromHttp = location.protocol === 'http:' || location.protocol === 'https:';
-    if (isCors && isFromHttp) {
-      statEl.textContent = '5080 브릿지 연결 확인 필요';
-      statEl.title = '기본 연결은 https://zippy-5080.studiozippy.co.kr 입니다. 저장된 예전 ComfyUI 직접 주소는 자동으로 5080 브릿지로 전환됩니다. 브릿지 터널과 Gateway Key를 확인하세요.';
-    } else if (isCors) {
-      statEl.textContent = '5080 브릿지 실행 확인 필요';
-      statEl.title = '5080 브릿지 또는 ComfyUI 패스스루(/comfy)가 실행 중인지 확인하세요.';
-    } else if (e.message.includes('HTTP 401')) {
-      statEl.textContent = 'Gateway Key 필요 / 권한 실패';
-      statEl.title = '5080 Gateway Key가 비었거나 맞지 않습니다. 키를 다시 입력한 뒤 상태 확인을 눌러주세요.';
-    } else if (e.message.includes('HTTP 403')) {
-      statEl.textContent = 'ComfyUI Origin 403 · 브릿지 패치 필요';
-      statEl.title = 'Gateway Key는 전달됐지만 ComfyUI가 브라우저 Origin/Referer를 거부하는 상태일 수 있습니다. Windows 5080 게이트웨이의 /comfy 패스스루에서 Origin/Referer 제거가 필요합니다.';
-    } else {
-      statEl.textContent = '연결 실패: ' + e.message.substring(0, 40);
+  let lastError = null;
+  const tried = [];
+  for (const host of hosts) {
+    tried.push(host);
+    try {
+      const res = await fetch(host + '/system_stats', {method:'GET', headers:getLocal5080GatewayHeaders()});
+      if (!res.ok) throw new Error('HTTP ' + res.status + ' @ ' + host);
+      const data = await res.json();
+      const vram = ((data?.devices?.[0]?.vram_total || 0) / 1e9).toFixed(1);
+      const vramFree = ((data?.devices?.[0]?.vram_free || 0) / 1e9).toFixed(1);
+      statEl.className = 'ast sok';
+      statEl.textContent = '✓ VRAM ' + vramFree + '/' + vram + 'GB';
+      if (!window.comfyClientId) window.comfyClientId = 'zippy_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      statEl.title = '연결됨 · ' + host;
+      return;
+    } catch (e) {
+      lastError = e;
     }
+  }
+  statEl.className = 'ast sno';
+  const msg = (lastError && lastError.message) || '';
+  const isCors = msg.includes('Failed to fetch') || msg.includes('NetworkError');
+  const isFromHttp = location.protocol === 'http:' || location.protocol === 'https:';
+  if (isCors && isFromHttp) {
+    statEl.textContent = '5080 브릿지 연결 확인 필요';
+    statEl.title = '기본 연결은 https://zippy-5080.studiozippy.co.kr 입니다. 저장된 예전 ComfyUI 직접 주소는 자동으로 5080 브릿지로 전환됩니다. 브릿지 터널과 Gateway Key를 확인하세요.';
+  } else if (isCors) {
+    statEl.textContent = '5080 브릿지 실행 확인 필요';
+    statEl.title = '5080 브릿지 또는 ComfyUI 패스스루(/comfy)가 실행 중인지 확인하세요.';
+  } else if (msg.includes('HTTP 401')) {
+    statEl.textContent = 'Gateway Key 필요 / 권한 실패';
+    statEl.title = '5080 Gateway Key가 비었거나 맞지 않습니다. 키를 다시 입력한 뒤 상태 확인을 눌러주세요.';
+  } else if (msg.includes('HTTP 403')) {
+    statEl.textContent = 'ComfyUI Origin 403 · 브릿지 패치 필요';
+    statEl.title = 'Gateway Key는 전달됐지만 ComfyUI가 브라우저 Origin/Referer를 거부하는 상태일 수 있습니다. Windows 5080 게이트웨이의 /comfy 패스스루에서 Origin/Referer 제거가 필요합니다.';
+  } else {
+    statEl.textContent = '연결 실패: ' + msg.substring(0, 40) + ' (tried: ' + tried.join(' → ') + ')';
+    if (!statEl.title) statEl.title = msg || '연결 실패';
   }
 }
 // base64 이미지를 ComfyUI input 폴더에 업로드 → 파일명 반환
 async function uploadImageToComfy(b64, mime='image/png', signal=null) {
-  const host = getComfyHost();
+  const hosts = getComfyHostCandidates();
   const bin = atob(b64);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
@@ -31187,10 +31089,24 @@ async function uploadImageToComfy(b64, mime='image/png', signal=null) {
   form.append('image', blob, filename);
   form.append('type', 'input');
   form.append('overwrite', 'true');
-  const res = await fetch(host + '/upload/image', {method:'POST', headers:getLocal5080GatewayHeaders(), body: form, signal});
-  if (!res.ok) throw new Error('업로드 실패');
-  const data = await res.json();
-  return data.name || filename;
+  let lastError = null;
+  const tried = [];
+  for (const host of hosts) {
+    tried.push(host);
+    try {
+      const res = await fetch(host + '/upload/image', {method:'POST', headers:getLocal5080GatewayHeaders(), body: form, signal});
+      if (!res.ok) {
+        const errText = await res.text().catch(()=>'');
+        throw new Error('HTTP ' + res.status + ' @ ' + host + ' : ' + (errText || 'Upload failed'));
+      }
+      const data = await res.json();
+      return data.name || filename;
+    } catch (e) {
+      if (e && e.name === 'AbortError') throw e;
+      lastError = e;
+    }
+  }
+  throw new Error('업로드 실패 (' + tried.join(' → ') + '). ' + ((lastError && lastError.message) || 'Failed to fetch'));
 }
 
 /* ════════ WORKFLOW BUILDERS ════════ */
@@ -31353,65 +31269,87 @@ const TASK_LORAS = {
 
 /* ComfyUI API: /prompt → /history → /view → base64 */
 async function runComfyWorkflow(workflow, signal=null, onProgress=null) {
-  const host = getComfyHost();
+  const hosts = getComfyHostCandidates();
+  if (!hosts.length) throw new Error('ComfyUI 호스트 후보가 없습니다');
   const clientId = window.comfyClientId || ('zippy_' + Date.now());
   window.comfyClientId = clientId;
-  const submitRes = await fetch(host + '/prompt', {
-    method:'POST', headers:getLocal5080GatewayHeaders({json:true}),
-    body: JSON.stringify({prompt: workflow, client_id: clientId}), signal
-  });
-  if (!submitRes.ok) {
-    const txt = await submitRes.text().catch(()=>'');
-    throw new Error('ComfyUI 제출 실패: ' + txt.substring(0, 300));
-  }
-  const submitData = await submitRes.json();
-  const promptId = submitData.prompt_id;
-  if (!promptId) throw new Error('prompt_id 없음');
-  if (onProgress) onProgress('대기열 진입...');
-  const maxWait = 300000; // 5분
-  const pollStart = Date.now();
-  let historyEntry = null;
-  while (Date.now() - pollStart < maxWait) {
-    if (signal && signal.aborted) throw new Error('사용자 중단');
-    await new Promise(r => setTimeout(r, 1500));
-    const histRes = await fetch(host + '/history/' + promptId, {headers:getLocal5080GatewayHeaders(), signal});
-    if (!histRes.ok) continue;
-    const histData = await histRes.json();
-    if (histData && histData[promptId]) {
-      historyEntry = histData[promptId];
+  const payload = JSON.stringify({prompt: workflow, client_id: clientId});
+  let lastError = null;
+  const tried = [];
+
+  const runWorkflowOnHost = async function(host) {
+    const submitRes = await fetch(host + '/prompt', {
+      method:'POST', headers:getLocal5080GatewayHeaders({json:true}),
+      body: payload, signal
+    });
+    if (!submitRes.ok) {
+      const txt = await submitRes.text().catch(()=>'');
+      throw new Error('ComfyUI 제출 실패: ' + txt.substring(0, 300));
+    }
+    const submitData = await submitRes.json();
+    const promptId = submitData.prompt_id;
+    if (!promptId) throw new Error('prompt_id 없음');
+    if (onProgress) onProgress('대기열 진입...');
+
+    const maxWait = 300000; // 5분
+    const pollStart = Date.now();
+    let historyEntry = null;
+    while (Date.now() - pollStart < maxWait) {
+      if (signal && signal.aborted) throw new Error('사용자 중단');
+      await new Promise(r => setTimeout(r, 1500));
+      const histRes = await fetch(host + '/history/' + promptId, {headers:getLocal5080GatewayHeaders(), signal});
+      if (!histRes.ok) continue;
+      const histData = await histRes.json();
+      if (histData && histData[promptId]) {
+        historyEntry = histData[promptId];
       if (historyEntry.status?.completed) break;
-      if (historyEntry.status?.status_str === 'error') {
-        const msgs = historyEntry.status?.messages||[];
-        throw new Error('ComfyUI 오류: ' + JSON.stringify(msgs).substring(0, 300));
+        if (historyEntry.status?.status_str === 'error') {
+          const msgs = historyEntry.status?.messages || [];
+          const reason = summarizeComfyStatusMessages(msgs);
+          throw new Error('ComfyUI 오류: ' + (reason ? reason : JSON.stringify(msgs).substring(0, 300)));
+        }
+      }
+      if (onProgress) {
+        const elapsed = Math.floor((Date.now()-pollStart)/1000);
+        onProgress('생성 중... ' + elapsed + 's');
       }
     }
-    if (onProgress) {
-      const elapsed = Math.floor((Date.now()-pollStart)/1000);
-      onProgress('생성 중... ' + elapsed + 's');
+    if (!historyEntry || !historyEntry.status?.completed) throw new Error('타임아웃 (5분)');
+
+    const outputs = historyEntry.outputs || {};
+    let imgInfo = null;
+    for (const nodeId in outputs) {
+      if (outputs[nodeId].images && outputs[nodeId].images.length) {
+        imgInfo = outputs[nodeId].images[0];
+        break;
+      }
+    }
+    if (!imgInfo) throw new Error('출력 이미지 없음');
+    const params = new URLSearchParams({
+      filename: imgInfo.filename, subfolder: imgInfo.subfolder || '', type: imgInfo.type || 'output'
+    });
+    const imgRes = await fetch(host + '/view?' + params.toString(), {headers:getLocal5080GatewayHeaders(), signal});
+    if (!imgRes.ok) throw new Error('이미지 다운로드 실패');
+    const blob = await imgRes.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve({imgB64: reader.result.split(',')[1], mime: blob.type || 'image/png', textOut: ''});
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  for (const host of hosts) {
+    tried.push(host);
+    try {
+      return await runWorkflowOnHost(host);
+    } catch (e) {
+      if (e && (e.name === 'AbortError' || /abort/i.test(e.message || ''))) throw e;
+      if (signal && signal.aborted) throw e;
+      lastError = e;
     }
   }
-  if (!historyEntry || !historyEntry.status?.completed) throw new Error('타임아웃 (5분)');
-  const outputs = historyEntry.outputs || {};
-  let imgInfo = null;
-  for (const nodeId in outputs) {
-    if (outputs[nodeId].images && outputs[nodeId].images.length) {
-      imgInfo = outputs[nodeId].images[0];
-      break;
-    }
-  }
-  if (!imgInfo) throw new Error('출력 이미지 없음');
-  const params = new URLSearchParams({
-    filename: imgInfo.filename, subfolder: imgInfo.subfolder || '', type: imgInfo.type || 'output'
-  });
-  const imgRes = await fetch(host + '/view?' + params.toString(), {headers:getLocal5080GatewayHeaders(), signal});
-  if (!imgRes.ok) throw new Error('이미지 다운로드 실패');
-  const blob = await imgRes.blob();
-  return await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve({imgB64: reader.result.split(',')[1], mime: blob.type || 'image/png', textOut: ''});
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  throw new Error('ComfyUI 실행 실패 (' + tried.join(' → ') + '). ' + ((lastError && lastError.message) || 'Failed to fetch'));
 }
 
 /* 통합 이미지 생성/편집 디스패처
@@ -31436,9 +31374,8 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
   const taskType = (task === 'txt2img') ? 'txt2img'
     : (task === 'inpaint' || task === 'outpaint' || task === 'brush') ? 'inpaint'
     : 'img2img';
-  const modelId = getLocalModel(taskType);
-  const builder = WF_BUILDERS[modelId];
-  if (!builder) throw new Error('워크플로우 빌더 없음: ' + modelId);
+  const selectedModelId = getLocalModel(taskType);
+  const fallbackModels = getLocalModelFallbacks(taskType, selectedModelId);
   const size = width || getLocalImgSize();
   const H = height || size;
   const seed = Math.floor(Math.random() * 0xffffffff);
@@ -31456,11 +31393,33 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
     ctx.mask_filename = await uploadImageToComfy(mask.b64, mask.mime || 'image/png', signal);
   }
   // 태스크별 LoRA 자동 추가
-  if (TASK_LORAS[task] && modelId.startsWith('qwen-edit')) {
-    ctx.loras = TASK_LORAS[task];
+  if (TASK_LORAS[task]) ctx.loras = TASK_LORAS[task];
+
+  let lastError = null;
+  let attempt = 0;
+  for (const modelId of fallbackModels) {
+    attempt += 1;
+    const builder = WF_BUILDERS[modelId];
+    if (!builder) {
+      lastError = new Error('워크플로우 빌더 없음: ' + modelId);
+      continue;
+    }
+    const useCtx = {
+      ...ctx,
+      loras: TASK_LORAS[task] && modelId.startsWith('qwen-edit') ? ctx.loras : []
+    };
+    if (onProgress && modelId !== selectedModelId) onProgress('Comfy 모델 변경 시도 (' + attempt + '/' + fallbackModels.length + '): ' + modelId);
+    try {
+      const workflow = builder(useCtx);
+      return await runComfyWorkflow(workflow, signal, onProgress);
+    } catch (err) {
+      if (err && (err.name === 'AbortError' || /abort/i.test(err.message || ''))) throw err;
+      lastError = err;
+      if (!shouldFallbackModelOnComfyError(err.message)) break;
+      continue;
+    }
   }
-  const workflow = builder(ctx);
-  return await runComfyWorkflow(workflow, signal, onProgress);
+  throw lastError || new Error('ComfyUI 작업 실패');
 }
 
 // 페이지 로드 시 이미지 모드 + OpenAI 키 복원
@@ -31468,6 +31427,10 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
   const saved = (function(){
     try{
       const v = localStorage.getItem('zippy_img_mode') || 'gpt';
+      if (v === 'local') {
+        localStorage.setItem('zippy_img_mode', 'gpt');
+        return 'gpt';
+      }
       return v;
     }catch(e){return 'gpt';}
   })();
@@ -31483,7 +31446,6 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
       const oKey = localStorage.getItem('zippy_openai_key');
       if (oKey) { const el = document.getElementById('openaiKey'); if (el) { el.value = oKey; chkOpenAIKey(); } }
     } catch(e){}
-    updateComfyModelBadges();
   });
 })();
 

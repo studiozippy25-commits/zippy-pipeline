@@ -1046,6 +1046,9 @@ input[type=file]{display:none}
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
     </label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
+      <input type="radio" name="imgMode" value="local" onchange="onImgModeChange()"> Local 5080 Comfy
+    </label>
   </div>
   <div class="ar" id="localCfgRow" style="margin-top:6px;display:none;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">ComfyUI/5080</span>
@@ -1054,9 +1057,10 @@ input[type=file]{display:none}
     <button class="btn bgh bsm" onclick="checkComfy()" style="font-size:11px;padding:3px 8px">연결확인</button>
     <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
     <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
-    <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
-    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
-    <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" onchange="updateComfyModelBadges()" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
+    <span id="localImageModelBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:3px 8px;background:rgba(34,211,238,.08)">Model: Z-Image Turbo bf16</span>
   </div>
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
@@ -3123,9 +3127,10 @@ input[type=file]{display:none}
       <div>
         <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel')">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel')">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateComfyModelBadges()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateComfyModelBadges()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
         </div>
+        <div id="localVideoModelBadge" style="margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--cy);border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:4px 8px;background:rgba(34,211,238,.08);display:inline-block">Model: Wan 2.2 I2V 14B</div>
       </div>
       <div>
         <div class="cfg-lbl">길이</div>
@@ -28702,6 +28707,8 @@ async function executeVideoTab() {
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
   const modelName = 'local-5080-i2v';
+  const videoWorkflowId = getSelectedVideoWorkflowId();
+  const videoModelLabel = LOCAL_VIDEO_MODEL_LABELS[videoWorkflowId] || workflowPreset;
   const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
   const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
@@ -28728,6 +28735,8 @@ async function executeVideoTab() {
       metadata: payloadMeta,
       model: modelName,
       workflow_preset: workflowPreset,
+      model_profile: videoWorkflowId,
+      model_display_name: videoModelLabel,
       image: startImage,
       images: refs,
       prompt,
@@ -28747,7 +28756,7 @@ async function executeVideoTab() {
       </div>
     `;
 
-    vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
+    vidTabVideos.unshift({url: videoUrl, model: videoModelLabel, prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
   } catch(e) {
     status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);
@@ -30832,7 +30841,6 @@ function downloadRefineImg(btn) {
 /* ════════ IMAGE MODE + COMFYUI LOCAL ════════ */
 function getImgMode() {
   const r = document.querySelector('input[name="imgMode"]:checked');
-  if (r && r.value === 'local') return 'gpt';
   return r ? r.value : 'gpt';
 }
 function getComfyHost() {
@@ -30851,13 +30859,42 @@ function getLocalModel(type) {
   if (type === 'inpaint') return document.getElementById('localInpaintModel')?.value || 'flux-fill';
   return 'zimage-turbo';
 }
+const LOCAL_MODEL_LABELS = {
+  'zimage-turbo': 'Z-Image Turbo bf16',
+  'zimage-turbo-nvfp4': 'Z-Image Turbo nvfp4',
+  'qwen-image-turbo': 'Qwen-Image 2512 fp8 + Turbo LoRA',
+  'qwen-image-lightning': 'Qwen-Image 2512 fp8 + Lightning 4step',
+  'flux-klein': 'FLUX.2 Klein 4B fp8',
+  'qwen-edit-2509-l4': 'Qwen-Image Edit 2509 + Lightning 4step',
+  'qwen-edit-2509-l8': 'Qwen-Image Edit 2509 + Lightning 8step',
+  'qwen-edit-2511': 'Qwen-Image Edit 2511',
+  'flux-fill': 'FLUX.1 Fill dev'
+};
+const LOCAL_VIDEO_MODEL_LABELS = {
+  wan: 'Wan 2.2 I2V 14B high+low noise',
+  ltx23: 'LTX 2.3 22B dev/distilled fp8'
+};
+function getLocalModelLabel(type) {
+  const id = getLocalModel(type || 'txt2img');
+  return LOCAL_MODEL_LABELS[id] || id;
+}
+function getSelectedVideoWorkflowId() {
+  const chip = document.querySelector('[data-g="vmodel"].on');
+  return chip?.dataset?.workflow || 'wan';
+}
+function updateComfyModelBadges() {
+  const imageBadge = document.getElementById('localImageModelBadge');
+  if (imageBadge) {
+    imageBadge.textContent = 'Model: ' + getLocalModelLabel('txt2img') + ' / Edit: ' + getLocalModelLabel('img2img');
+  }
+  const videoBadge = document.getElementById('localVideoModelBadge');
+  if (videoBadge) {
+    const workflow = getSelectedVideoWorkflowId();
+    videoBadge.textContent = 'Model: ' + (LOCAL_VIDEO_MODEL_LABELS[workflow] || workflow);
+  }
+}
 function onImgModeChange() {
   let mode = getImgMode();
-  if (mode === 'local') {
-    const gpt = document.querySelector('input[name="imgMode"][value="gpt"]');
-    if (gpt) gpt.checked = true;
-    mode = 'gpt';
-  }
   try { if (mode==='gpt' && typeof checkGtiBridge==='function') setTimeout(checkGtiBridge,50); } catch(e){}
   try { localStorage.setItem('zippy_img_mode', mode); } catch(e){}
   const gptRow = document.getElementById('gptModelRow');
@@ -30865,7 +30902,8 @@ function onImgModeChange() {
   const gtiRow = document.getElementById('gtiBridgeRow');
   if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
   const localRow = document.getElementById('localCfgRow');
-  if (localRow) localRow.style.display = 'none';
+  if (localRow) localRow.style.display = (mode === 'local') ? '' : 'none';
+  updateComfyModelBadges();
 }
 function chkImgKey() {
   const mode = getImgMode();
@@ -31430,10 +31468,6 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
   const saved = (function(){
     try{
       const v = localStorage.getItem('zippy_img_mode') || 'gpt';
-      if (v === 'local') {
-        localStorage.setItem('zippy_img_mode', 'gpt');
-        return 'gpt';
-      }
       return v;
     }catch(e){return 'gpt';}
   })();
@@ -31449,6 +31483,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
       const oKey = localStorage.getItem('zippy_openai_key');
       if (oKey) { const el = document.getElementById('openaiKey'); if (el) { el.value = oKey; chkOpenAIKey(); } }
     } catch(e){}
+    updateComfyModelBadges();
   });
 })();
 

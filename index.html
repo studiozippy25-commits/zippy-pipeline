@@ -921,7 +921,7 @@ input[type=file]{display:none}
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">MV편성</span>
       </div>
     </div>
-        <div class="project-card" onclick="selectProject('proof-of-taste')">
+                <div class="project-card" onclick="selectProject('proof-of-taste')">
       <div class="pc-name">취향의 증거</div>
       <div class="pc-name-en">Proof of Taste</div>
       <div class="pc-desc">40분 확장판 단편영화<br>현대 로맨스 · 성수동</div>
@@ -1161,7 +1161,6 @@ input[type=file]{display:none}
   <button class="stab" id="tabCam" onclick="goStep('cam')" style="border-bottom-color:#A78BFA;color:#A78BFA">카메라 무빙</button>
   <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
-  <button class="stab" id="tabSuno" onclick="goStep('suno')" style="border-bottom-color:#22C55E;color:#22C55E">Suno</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
 </div>
@@ -3369,55 +3368,6 @@ input[type=file]{display:none}
 </div>
 
 <!-- ═══════════════ HISTORY GALLERY ═══════════════ -->
-<div class="panel" id="pSuno">
-  <div class="slbl" style="color:#22C55E">Suno Music Generation</div>
-  <div style="padding:12px 16px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.26);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--ok);line-height:1.7">
-    Suno generation runs through 5080 bridge (<b>/suno/*</b>) and calls <b>custom_generate</b> + polling <b>/api/get</b>.<br>
-    기본 모델 체인: <b>gcui-art/suno-api</b> → Suno backend. API 로그/상태에서 반영 모델명을 확인할 수 있습니다.
-  </div>
-
-  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:18px">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
-      <span>CONNECTION</span>
-      <span style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">Gateway: <b>/suno</b></span>
-    </div>
-    <div style="padding:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">Suno Gateway URL :</span>
-      <input id="sunoGateway" value="https://zippy-5080.studiozippy.co.kr/suno" class="ci" style="width:320px;margin:0;font-family:var(--font-mono)" placeholder="https://zippy-5080.studiozippy.co.kr/suno">
-      <button class="btn bgh bsm" onclick="sunoUse5080Gateway()">5080 /suno</button>
-      <button class="btn bgh bsm" onclick="sunoUseLocal3000()">local 3000</button>
-      <button class="btn bgh bsm" onclick="sunoCheckGateway()">연결 확인</button>
-      <span id="sunoStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">Suno 대기</span>
-      <button class="btn bgh bsm" onclick="sunoInit()" style="border-color:var(--cy);color:var(--cy)">설정 반영</button>
-    </div>
-  </div>
-
-  <div style="border:1px solid var(--bd);border-radius:10px;overflow:hidden">
-    <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--tx)">CUSTOM GENERATE</div>
-    <div style="padding:16px;display:grid;gap:10px">
-      <input id="sunoTitle" class="ci" placeholder="Song title (optional)" maxlength="180" style="margin:0">
-      <input id="sunoTags" class="ci" placeholder="Suno style tags (예: 80s Japanese City Pop, Rhodes, slap bass, Korean vocals)" maxlength="260" style="margin:0">
-      <textarea id="sunoPrompt" class="cfg-ta" rows="7" style="min-height:150px" placeholder="[Verse]
-Write lyrics and arrangement prompt here...
-
-[Chorus]
-Keep it concise and realistic melody description."></textarea>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <label style="font-family:var(--font-mono);font-size:12px;color:var(--mu);display:flex;align-items:center;gap:6px">
-          <input id="sunoMakeInstrumental" type="checkbox"> Instrumental
-        </label>
-        <label style="font-family:var(--font-mono);font-size:12px;color:var(--mu);display:flex;align-items:center;gap:6px">
-          <input id="sunoWaitAudio" type="checkbox" checked> wait_audio true
-        </label>
-        <button id="sunoGenerateBtn" class="btn bbl" onclick="sunoGenerate()">Generate</button>
-        <button class="btn bor" onclick="sunoAbortAll()" style="border-color:var(--er);color:var(--er)">중단</button>
-        <span id="sunoGenStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">대기</span>
-      </div>
-      <div id="sunoOut" style="display:grid;gap:10px"></div>
-    </div>
-  </div>
-</div>
-
 <div class="panel" id="pHist">
   <div class="slbl">히스토리 — 생성 이미지 갤러리</div>
   <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap" id="hist-filters">
@@ -52494,251 +52444,8 @@ async function vbGenBatch() {
 }
 
 // ═══ NAV ═════════════════════════════════════════
-const SUNO_DEFAULT_BRIDGE_URL = 'https://zippy-5080.studiozippy.co.kr/suno';
-const SUNO_LOCAL_BRIDGE_URL = 'http://127.0.0.1:3000/suno';
-const SUNO_STORAGE_KEY = 'zippy_suno_bridge_url';
-let sunoAbortCtrl = null;
-let sunoBusy = false;
-
-function suno$(id){ return document.getElementById(id); }
-function sunoNormalizeBase(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return SUNO_DEFAULT_BRIDGE_URL;
-  if (/^\d+$/.test(raw)) return 'http://127.0.0.1:' + raw + '/suno';
-  const withScheme = /^https?:\/\//i.test(raw) ? raw : (raw.startsWith('/') ? 'https://zippy-5080.studiozippy.co.kr' + raw : 'http://' + raw);
-  try {
-    const url = new URL(withScheme);
-    let path = (url.pathname || '').replace(/\/+$/, '');
-    if (!path) path = '/suno';
-    if (path !== '/suno' && !path.startsWith('/suno/')) {
-      if (path === '/api') path = '/suno/api';
-      else if (!path.startsWith('/api/')) path = '/suno' + (path.startsWith('/') ? path : '/' + path);
-    }
-    url.pathname = path;
-    return (url.origin + url.pathname).replace(/\/+$/, '');
-  } catch(e) {
-    return SUNO_DEFAULT_BRIDGE_URL;
-  }
-}
-function sunoBase(){ return sunoNormalizeBase(suno$('sunoGateway')?.value || SUNO_DEFAULT_BRIDGE_URL); }
-function sunoHeaders() { return { 'Content-Type': 'application/json' }; }
-function sunoJoin(base, path) {
-  if (!path) return base;
-  if (/^https?:\/\//i.test(path)) return path;
-  const p = String(path).startsWith('/') ? String(path) : '/' + String(path);
-  return String(base || '').replace(/\/+$/, '') + p;
-}
-function sunoSetStatus(id, text, color) {
-  const el = suno$(id);
-  if (!el) return;
-  el.textContent = text;
-  el.style.color = color || 'var(--mu)';
-}
-function sunoEsc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];}); }
-function isBusySuno(){ return !!sunoBusy; }
-function sunoUse5080Gateway() {
-  const el = suno$('sunoGateway');
-  if (el) el.value = SUNO_DEFAULT_BRIDGE_URL;
-  sunoInit();
-}
-function sunoUseLocal3000() {
-  const el = suno$('sunoGateway');
-  if (el) el.value = SUNO_LOCAL_BRIDGE_URL;
-  sunoInit();
-}
-function sunoExtractIds(data) {
-  if (!data) return [];
-  const arr = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : null);
-  const target = arr || (typeof data === 'object' ? [data] : []);
-  return target
-    .map(function(v){ return String(v?.id || v?.generation_id || v?.job_id || v?.task_id || '').trim(); })
-    .filter(Boolean);
-}
-function sunoNormalizeItems(ids, data) {
-  const existing = new Map();
-  if (Array.isArray(data)) data.forEach(function(v){
-    const id = String(v?.id || v?.generation_id || v?.job_id || v?.task_id || '').trim();
-    if (!id) return;
-    existing.set(id, {
-      id:id,
-      status:String(v?.status || 'submitted'),
-      title:String(v?.title || v?.song_title || ('Request ' + id.slice(0, 8))),
-      model:String(v?.model || v?.model_name || 'suno-api'),
-      audio_url:String(v?.audio_url || v?.url || v?.output_url || v?.audio || '').trim()
-    });
-  });
-  const rows = [];
-  ids.forEach(function(id, idx) {
-    const found = existing.get(id);
-    if (found) rows.push(found);
-    else rows.push({
-      id:id,
-      status:'submitted',
-      title:'Request ' + (idx + 1),
-      model:'suno-api',
-      audio_url:''
-    });
-  });
-  return rows;
-}
-function sunoRenderRow(item, idx) {
-  const id = sunoEsc(item.id || '');
-  const title = sunoEsc(item.title || ('Song ' + (idx + 1)));
-  const status = sunoEsc(item.status || 'queued');
-  const model = sunoEsc(item.model || 'suno-api');
-  const audioUrl = sunoEsc(item.audio_url || '');
-  const safeTitle = sunoEsc((item.title || 'suno-result').replace(/[\\/"\\?%*:|<>]/g, '_'));
-  return '<div style="padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--card);display:grid;gap:6px">'
-    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">'
-    + '<b style="color:var(--cy);font-size:12px;font-family:var(--font-mono)">' + title + '</b>'
-    + '<span style="font-size:11px;color:var(--mu);font-family:var(--font-mono)">id: ' + id + '</span>'
-    + '</div>'
-    + '<div style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">status: ' + status + ' / model: ' + model + '</div>'
-    + (audioUrl ? '<audio controls src="' + audioUrl + '" style="width:100%;max-width:480px;height:30px"></audio><a href="' + audioUrl + '" download="' + safeTitle + '.mp3" style="font-family:var(--font-mono);font-size:11px;color:var(--cy);text-decoration:none;border:1px solid var(--cy);padding:4px 8px;border-radius:5px;display:inline-block;width:max-content">Download</a>' : '<span style="font-size:11px;color:var(--mu)">audio_url 없음</span>')
-    + '</div>';
-}
-function sunoRenderRows(items, fallbackText) {
-  const out = suno$('sunoOut');
-  if (!out) return;
-  if (!Array.isArray(items) || !items.length) {
-    out.innerHTML = '<div style="padding:10px;color:var(--mu);font-family:var(--font-mono);font-size:12px">' + sunoEsc(fallbackText || '대기 중인 결과가 없습니다.') + '</div>';
-    return;
-  }
-  out.innerHTML = items.map(function(item, i){ return sunoRenderRow(item, i); }).join('');
-}
-function sunoSetBusyState(working){
-  sunoBusy = working;
-  const btn = suno$('sunoGenerateBtn');
-  if (btn) btn.disabled = !!working;
-}
-async function sunoCheckGateway() {
-  const base = sunoBase();
-  sunoSetStatus('sunoStatus', '연결 확인중...', 'var(--cy)');
-  if (suno$('sunoGateway')) suno$('sunoGateway').value = base;
-  try {
-    const res = await fetch(sunoJoin(base, '/api/get_limit'), { method:'GET', headers:sunoHeaders(), cache:'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    let pretty = '';
-    try { pretty = JSON.stringify(JSON.parse(text)); } catch(e) { pretty = text; }
-    sunoSetStatus('sunoStatus', '연결 성공', 'var(--ok)');
-    sunoSetStatus('sunoGenStatus', 'get_limit OK: ' + (pretty || 'OK'), 'var(--ok)');
-  } catch(e) {
-    sunoSetStatus('sunoStatus', '연결 실패: ' + (e.message || e), 'var(--er)');
-  }
-}
-async function sunoGetByIds(base, ids) {
-  const url = sunoJoin(base, '/api/get?ids=' + encodeURIComponent(ids.join(',')));
-  const res = await fetch(url, {
-    method:'GET',
-    headers:sunoHeaders(),
-    signal:sunoAbortCtrl?.signal,
-    cache:'no-store'
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []);
-}
-async function sunoPollUntilDone(base, ids) {
-  const started = Date.now();
-  const maxMs = 180000;
-  let rows = [];
-  while (Date.now() - started < maxMs) {
-    if (sunoAbortCtrl?.signal?.aborted) throw new Error('사용자 중단');
-    const latest = await sunoGetByIds(base, ids);
-    rows = sunoNormalizeItems(ids, latest);
-    sunoRenderRows(rows, '요청 처리중...');
-    const doneAll = rows.every(function(item) {
-      const s = String(item.status || '').toLowerCase();
-      return s === 'complete' || s === 'completed' || s === 'error' || s === 'failed';
-    });
-    const hasPlayable = rows.some(function(item){ return (item.status === 'complete' || item.status === 'completed') && String(item.audio_url || '').trim(); });
-    sunoSetStatus('sunoGenStatus', rows.map(function(item){ return item.id + ':' + item.status; }).join(' / ') || '생성 중', 'var(--mu)');
-    if (doneAll && hasPlayable) break;
-    await vbSleep(2200);
-  }
-  return rows;
-}
-async function sunoGenerate() {
-  const base = sunoBase();
-  if (sunoBusy) return;
-  const prompt = String(suno$('sunoPrompt')?.value || '').trim();
-  if (!prompt) { sunoSetStatus('sunoGenStatus', '프롬프트를 입력해 주세요', 'var(--er)'); return; }
-  const tags = String(suno$('sunoTags')?.value || '').trim();
-  const title = String(suno$('sunoTitle')?.value || '').trim();
-  const makeInstrumental = !!suno$('sunoMakeInstrumental')?.checked;
-  const waitAudio = !!suno$('sunoWaitAudio')?.checked;
-  if (suno$('sunoGateway')) suno$('sunoGateway').value = base;
-
-  sunoSetBusyState(true);
-  if (suno$('sunoOut')) suno$('sunoOut').innerHTML = '';
-  sunoSetStatus('sunoStatus', '요청 준비', 'var(--mu)');
-  sunoSetStatus('sunoGenStatus', '요청 전송 중...', 'var(--mu)');
-  sunoAbortCtrl = new AbortController();
-  try {
-    localStorage.setItem(SUNO_STORAGE_KEY, base);
-    const res = await fetch(sunoJoin(base, '/api/custom_generate'), {
-      method:'POST',
-      headers:sunoHeaders(),
-      body:JSON.stringify({
-        prompt:prompt,
-        tags:tags,
-        title:title,
-        make_instrumental:makeInstrumental,
-        wait_audio:waitAudio
-      }),
-      signal:sunoAbortCtrl.signal,
-      cache:'no-store'
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' - ' + (await res.text()).slice(0, 180));
-    const data = await res.json();
-    const ids = sunoExtractIds(data);
-    if (!ids.length) throw new Error('응답에서 id를 찾지 못했습니다.');
-    const pending = ids.map(function(id, idx){ return { id:id, status:'submitted', title:'Request ' + (idx + 1), model:'suno-api', audio_url:'' }; });
-    sunoRenderRows(pending, '요청이 접수되었습니다');
-    sunoSetStatus('sunoStatus', '요청 등록됨', 'var(--ok)');
-
-    if (!waitAudio) {
-      sunoSetStatus('sunoGenStatus', '요청됨 (wait_audio=false)', 'var(--cy)');
-      return;
-    }
-
-    const rows = await sunoPollUntilDone(base, ids);
-    const completed = rows.some(function(item){ return String(item.audio_url || '').trim(); });
-    sunoSetStatus('sunoGenStatus', completed ? '완료됨' : '완료/타임아웃', completed ? 'var(--ok)' : 'var(--wn)');
-  } catch(e) {
-    if (String(e.message || '').includes('중단')) {
-      sunoSetStatus('sunoGenStatus', '중단됨', 'var(--wn)');
-    } else {
-      sunoSetStatus('sunoGenStatus', '실패: ' + (e.message || e), 'var(--er)');
-    }
-    const out = suno$('sunoOut');
-    if (out) out.insertAdjacentHTML('beforeend', '<div style="font-size:12px;color:var(--er);font-family:var(--font-mono)">오류: ' + sunoEsc(e.message || e) + '</div>');
-  } finally {
-    if (sunoAbortCtrl) sunoAbortCtrl = null;
-    sunoSetBusyState(false);
-  }
-}
-function sunoAbortAll() {
-  if (sunoAbortCtrl && !sunoAbortCtrl.signal.aborted) {
-    sunoAbortCtrl.abort();
-    sunoSetStatus('sunoGenStatus', '중단 요청됨', 'var(--wn)');
-  }
-}
-function sunoInit() {
-  const input = suno$('sunoGateway');
-  if (input) {
-    try {
-      const saved = localStorage.getItem(SUNO_STORAGE_KEY) || SUNO_DEFAULT_BRIDGE_URL;
-      input.value = sunoNormalizeBase(saved);
-    } catch(e) {
-      input.value = SUNO_DEFAULT_BRIDGE_URL;
-    }
-  }
-}
-
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pSuno','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -52746,7 +52453,6 @@ function goStep(n){
     else if(n==='cam') el.classList.toggle('active',id==='pCam');
     else if(n==='premiere') el.classList.toggle('active',id==='pPremiere');
     else if(n==='voice') el.classList.toggle('active',id==='pVoice');
-    else if(n==='suno') el.classList.toggle('active',id==='pSuno');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
     else el.classList.toggle('active', id==='p'+n);
@@ -52760,7 +52466,6 @@ function goStep(n){
   document.getElementById('tabCam').className='stab '+(n==='cam'?'a3':'');
   document.getElementById('tabPremiere').className='stab '+(n==='premiere'?'a1':'');
   document.getElementById('tabVoice').className='stab '+(n==='voice'?'a1':'');
-  document.getElementById('tabSuno').className='stab '+(n==='suno'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
@@ -52776,7 +52481,6 @@ function goStep(n){
   }
   if(n==='premiere') premiereRenderItems();
   if(n==='voice') vbInitVoiceTab();
-  if(n==='suno') sunoInit();
   if(n==='hist') refreshHistory();
 }
 function setSt(pfx,idx){
@@ -54774,7 +54478,7 @@ function updatePromptPreview() {
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pSuno','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';
@@ -55337,415 +55041,358 @@ function updatePromptPreview() {
 })();
 </script>
 
+
+
 <!--MVSTUDIO_START-->
 <style id="mvsStyle">
 #mvStudio{position:fixed;inset:0;z-index:9000;display:none;overflow-y:auto;
-  --mvs-a:#e85aa0;--mvs-a2:#3ad0c0;--mvs-bg:#0b0c10;--mvs-panel:#14151c;--mvs-panel2:#1a1c25;
-  --mvs-line:rgba(255,255,255,.11);--mvs-ink:#ECECF2;--mvs-dim:#8A8B99;--mvs-dim2:#5c5d6a;--mvs-rec:#FF3B30;
+  --mvs-a:#5b7cff;--mvs-a2:#3ad0c0;--mvs-bg:#0b0c10;--mvs-panel:#14151c;--mvs-panel2:#1a1c25;
+  --mvs-line:rgba(255,255,255,.11);--mvs-ink:#ECECF2;--mvs-dim:#8A8B99;--mvs-dim2:#5c5d6a;--mvs-rec:#FF3B30;--mvs-ok:#22C55E;
   --mvs-disp:Impact,Haettenschweiler,"Arial Narrow Bold","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --mvs-mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   --mvs-body:"Helvetica Neue",Arial,"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
-  background:radial-gradient(120% 80% at 50% -10%,#16131f 0%,var(--mvs-bg) 55%),var(--mvs-bg);
+  background:radial-gradient(120% 80% at 50% -10%,#131622 0%,var(--mvs-bg) 55%),var(--mvs-bg);
   color:var(--mvs-ink);font-family:var(--mvs-body);-webkit-font-smoothing:antialiased}
 #mvStudio.mvs-open{display:block}
 #mvStudio *{box-sizing:border-box}
-#mvStudio .mvs-crt{position:fixed;inset:0;pointer-events:none;z-index:2;
-  background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);mix-blend-mode:multiply;opacity:.5}
-#mvStudio .mvs-wrap{max-width:1120px;margin:0 auto;padding:0 22px 80px;position:relative;z-index:3}
-#mvStudio .mvs-head{display:flex;align-items:center;gap:14px;padding:20px 0 12px;flex-wrap:wrap;position:sticky;top:0;z-index:5;
-  background:var(--mvs-bg);border-bottom:1px solid var(--mvs-line);margin-bottom:2px}
-#mvStudio .mvs-mark{font-family:var(--mvs-disp);font-size:34px;line-height:.82;letter-spacing:.5px;transform:skewX(-6deg);display:flex;gap:2px}
+#mvStudio .mvs-crt{position:fixed;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);mix-blend-mode:multiply;opacity:.5}
+#mvStudio .mvs-wrap{max-width:1060px;margin:0 auto;padding:0 22px 90px;position:relative;z-index:3}
+#mvStudio .mvs-head{display:flex;align-items:center;gap:13px;padding:20px 0 12px;flex-wrap:wrap;position:sticky;top:0;z-index:5;background:var(--mvs-bg);border-bottom:1px solid var(--mvs-line)}
+#mvStudio .mvs-mark{font-family:var(--mvs-disp);font-size:32px;line-height:.82;letter-spacing:.5px;transform:skewX(-6deg);display:flex;gap:2px}
 #mvStudio .mvs-mark b{color:var(--mvs-bg);background:var(--mvs-a);padding:2px 8px 4px;box-shadow:3px 3px 0 var(--mvs-a2)}
 #mvStudio .mvs-mark span{-webkit-text-stroke:1.2px var(--mvs-ink)}
-#mvStudio .mvs-rec{display:flex;align-items:center;gap:6px;font-family:var(--mvs-mono);font-size:11px;letter-spacing:2px;color:var(--mvs-rec)}
-#mvStudio .mvs-rec i{width:8px;height:8px;border-radius:50%;background:var(--mvs-rec);box-shadow:0 0 8px var(--mvs-rec);animation:mvsblink 1.1s steps(2) infinite;font-style:normal}
-@keyframes mvsblink{50%{opacity:.15}}
 #mvStudio .mvs-sub{width:100%;font-family:var(--mvs-mono);font-size:10.5px;letter-spacing:2.5px;color:var(--mvs-dim);text-transform:uppercase}
-#mvStudio .mvs-x{margin-left:auto;cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-panel);color:var(--mvs-ink);
-  width:40px;height:40px;border-radius:9px;font-size:18px;line-height:1;transition:.13s}
+#mvStudio .mvs-x{margin-left:auto;cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-panel);color:var(--mvs-ink);width:40px;height:40px;border-radius:9px;font-size:18px;line-height:1;transition:.13s}
 #mvStudio .mvs-x:hover{border-color:var(--mvs-rec);color:var(--mvs-rec)}
-#mvStudio .mvs-sec-l{font-family:var(--mvs-mono);font-size:10.5px;letter-spacing:2px;color:var(--mvs-dim);text-transform:uppercase;margin:20px 0 9px}
-
-/* genre palette */
-#mvStudio .mvs-genres{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:8px}
-#mvStudio .mvs-g{cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-panel);border-radius:11px;padding:12px 13px;text-align:left;transition:.14s;color:var(--mvs-dim)}
-#mvStudio .mvs-g:hover{transform:translateY(-2px);color:var(--mvs-ink);border-color:var(--mvs-a)}
-#mvStudio .mvs-g .gn{font-size:14px;font-weight:700;color:var(--mvs-ink);line-height:1.2}
-#mvStudio .mvs-g .ge{font-family:var(--mvs-mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mvs-dim2);margin-top:3px}
-#mvStudio .mvs-g[aria-pressed="true"]{background:linear-gradient(155deg,var(--gc1),var(--gc2));border-color:transparent;color:#0a0a0f}
-#mvStudio .mvs-g[aria-pressed="true"] .gn{color:#0a0a0f}
-#mvStudio .mvs-g[aria-pressed="true"] .ge{color:rgba(0,0,0,.55)}
-#mvStudio .mvs-g:focus-visible,#mvStudio button:focus-visible,#mvStudio input:focus-visible,#mvStudio select:focus-visible{outline:2px solid var(--mvs-a2);outline-offset:2px}
-
-/* input panel */
-#mvStudio .mvs-inp{border:1px solid var(--mvs-line);border-radius:14px;background:linear-gradient(180deg,var(--mvs-panel2),var(--mvs-panel));padding:16px 18px 18px;margin-top:8px}
-#mvStudio .mvs-modes{display:inline-flex;border:1px solid var(--mvs-line);border-radius:9px;overflow:hidden;margin-bottom:14px}
-#mvStudio .mvs-mode{cursor:pointer;border:0;background:transparent;color:var(--mvs-dim);padding:8px 15px;font-size:12.5px;font-family:var(--mvs-body)}
-#mvStudio .mvs-mode+.mvs-mode{border-left:1px solid var(--mvs-line)}
-#mvStudio .mvs-mode[aria-selected="true"]{background:var(--mvs-a);color:#0a0a0f;font-weight:700}
-#mvStudio .mvs-fields{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-#mvStudio input[type=text],#mvStudio select{background:var(--mvs-bg);color:var(--mvs-ink);border:1px solid var(--mvs-line);border-radius:9px;
-  padding:10px 13px;font-size:13px;font-family:var(--mvs-body)}
-#mvStudio input[type=text]{min-width:180px}
-#mvStudio input::placeholder{color:var(--mvs-dim2)}
-#mvStudio select{min-width:250px;cursor:pointer;appearance:none;padding-right:30px;
-  background-image:linear-gradient(45deg,transparent 50%,var(--mvs-dim) 50%),linear-gradient(135deg,var(--mvs-dim) 50%,transparent 50%);
-  background-position:calc(100% - 16px) center,calc(100% - 11px) center;background-size:5px 5px;background-repeat:no-repeat}
-#mvStudio .mvs-btn{cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-panel);color:var(--mvs-ink);border-radius:9px;
-  padding:10px 16px;font-size:13px;font-family:var(--mvs-body);transition:.13s;display:inline-flex;align-items:center;gap:7px}
+#mvStudio .mvs-step{border:1px solid var(--mvs-line);border-radius:14px;background:linear-gradient(180deg,var(--mvs-panel2),var(--mvs-panel));padding:16px 18px 18px;margin-top:14px}
+#mvStudio .mvs-step.off{opacity:.45;pointer-events:none}
+#mvStudio .mvs-sl{font-family:var(--mvs-mono);font-size:11px;letter-spacing:2px;color:var(--mvs-a2);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+#mvStudio .mvs-sl b{background:var(--mvs-a);color:#0a0a0f;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mvs-body);font-size:12px}
+#mvStudio .mvs-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#mvStudio input[type=text],#mvStudio select,#mvStudio textarea{background:var(--mvs-bg);color:var(--mvs-ink);border:1px solid var(--mvs-line);border-radius:9px;padding:10px 13px;font-size:13px;font-family:var(--mvs-body)}
+#mvStudio textarea{width:100%;min-height:64px;resize:vertical;margin-top:10px}
+#mvStudio input::placeholder,#mvStudio textarea::placeholder{color:var(--mvs-dim2)}
+#mvStudio select{cursor:pointer;appearance:none;padding-right:30px;min-width:240px;background-image:linear-gradient(45deg,transparent 50%,var(--mvs-dim) 50%),linear-gradient(135deg,var(--mvs-dim) 50%,transparent 50%);background-position:calc(100% - 16px) center,calc(100% - 11px) center;background-size:5px 5px;background-repeat:no-repeat}
+#mvStudio .mvs-up{cursor:pointer;border:1px dashed var(--mvs-line);background:var(--mvs-bg);color:var(--mvs-dim);border-radius:9px;padding:11px 16px;font-size:13px;transition:.13s}
+#mvStudio .mvs-up:hover{border-color:var(--mvs-a);color:var(--mvs-ink)}
+#mvStudio audio{height:34px;vertical-align:middle}
+#mvStudio .mvs-btn{cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-panel);color:var(--mvs-ink);border-radius:9px;padding:10px 16px;font-size:13px;font-family:var(--mvs-body);transition:.13s;display:inline-flex;align-items:center;gap:7px}
 #mvStudio .mvs-btn:hover{border-color:var(--mvs-a);transform:translateY(-1px)}
 #mvStudio .mvs-btn.p{background:linear-gradient(155deg,var(--mvs-a),var(--mvs-a2));color:#0a0a0f;border-color:transparent;font-weight:700}
-#mvStudio .mvs-artist{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--mvs-line)}
-#mvStudio .mvs-artist .al{font-family:var(--mvs-mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mvs-a2);width:100%}
-#mvStudio .mvs-up{cursor:pointer;border:1px dashed var(--mvs-line);background:var(--mvs-bg);color:var(--mvs-dim);border-radius:9px;padding:10px 14px;font-size:12.5px;transition:.13s}
-#mvStudio .mvs-up:hover{border-color:var(--mvs-a);color:var(--mvs-ink)}
-#mvStudio .mvs-athumb{display:none;width:46px;height:46px;border-radius:8px;object-fit:cover;border:2px solid var(--mvs-a)}
-#mvStudio .mvs-artist .note{font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)}
-
-/* output */
-#mvStudio .mvs-out{display:none;margin-top:22px;flex-direction:column;gap:14px}
-#mvStudio .mvs-out.show{display:flex;animation:mvspop .3s ease}
-@keyframes mvspop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-#mvStudio .mvs-title{border:1px solid var(--mvs-a);border-radius:13px;overflow:hidden;background:var(--mvs-panel);display:grid;grid-template-columns:1fr auto;align-items:center}
-#mvStudio .mvs-title .tt{padding:16px 18px}
-#mvStudio .mvs-title .tk{font-family:var(--mvs-mono);font-size:10px;letter-spacing:2px;color:var(--mvs-a2);text-transform:uppercase;margin-bottom:5px}
-#mvStudio .mvs-title .tv{font-family:var(--mvs-disp);font-size:26px;letter-spacing:.3px;transform:skewX(-3deg);line-height:1;word-break:break-word}
-#mvStudio .mvs-block{border:1px solid var(--mvs-line);border-radius:12px;background:var(--mvs-bg);overflow:hidden}
-#mvStudio .mvs-bh{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;border-bottom:1px solid var(--mvs-line);background:var(--mvs-panel)}
-#mvStudio .mvs-bh .lab{font-family:var(--mvs-mono);font-size:10.5px;letter-spacing:2px;color:var(--mvs-a2);text-transform:uppercase;display:flex;align-items:center;gap:8px}
-#mvStudio .mvs-bh .lab b{background:var(--mvs-a);color:#0a0a0f;padding:2px 7px;border-radius:4px;letter-spacing:1px}
-#mvStudio .mvs-cpy{cursor:pointer;border:1px solid var(--mvs-line);background:transparent;color:var(--mvs-dim);border-radius:6px;padding:4px 11px;font-size:11px;font-family:var(--mvs-mono);transition:.12s}
+#mvStudio .mvs-btn:disabled{opacity:.5;cursor:default;transform:none}
+#mvStudio button:focus-visible,#mvStudio select:focus-visible,#mvStudio input:focus-visible,#mvStudio textarea:focus-visible{outline:2px solid var(--mvs-a2);outline-offset:2px}
+#mvStudio .note{font-family:var(--mvs-mono);font-size:11px;color:var(--mvs-dim)}
+#mvStudio .mvs-analysis{display:none;margin-top:12px;padding:11px 13px;border:1px solid rgba(58,208,192,.3);background:rgba(58,208,192,.06);border-radius:9px;font-family:var(--mvs-mono);font-size:12px;line-height:1.6;color:var(--mvs-ink)}
+#mvStudio .mvs-analysis b{color:var(--mvs-a2)}
+/* storyboard */
+#mvStudio .mvs-sb{display:none;margin-top:14px;flex-direction:column}
+#mvStudio .mvs-sb.show{display:flex}
+#mvStudio .mvs-sbhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+#mvStudio .mvs-sbhead .t{font-family:var(--mvs-disp);font-size:20px;letter-spacing:.4px;transform:skewX(-3deg)}
+#mvStudio .mvs-list{border:1px solid var(--mvs-line);border-radius:12px;overflow:hidden;max-height:440px;overflow-y:auto;background:var(--mvs-bg)}
+#mvStudio .mvs-cut{display:grid;grid-template-columns:34px 1fr auto;gap:11px;align-items:center;padding:10px 13px;border-bottom:1px solid var(--mvs-line)}
+#mvStudio .mvs-cut:last-child{border-bottom:0}
+#mvStudio .mvs-cut:hover{background:var(--mvs-panel)}
+#mvStudio .mvs-cut .cno{font-family:var(--mvs-disp);font-size:22px;color:var(--mvs-a);text-align:center;line-height:1}
+#mvStudio .mvs-cut .cmid{min-width:0}
+#mvStudio .mvs-cut .ctop{display:flex;gap:7px;align-items:center;margin-bottom:3px;flex-wrap:wrap}
+#mvStudio .mvs-cut .csec{font-family:var(--mvs-mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#0a0a0f;background:var(--mvs-a2);padding:2px 6px;border-radius:4px;font-weight:700}
+#mvStudio .mvs-cut .ctc{font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim);font-variant-numeric:tabular-nums}
+#mvStudio .mvs-cut .cchar{font-family:var(--mvs-mono);font-size:9.5px;color:#0a0a0f;background:var(--mvs-a);padding:2px 6px;border-radius:4px}
+#mvStudio .mvs-cut .cshot{font-family:var(--mvs-mono);font-size:10px;color:var(--mvs-dim2)}
+#mvStudio .mvs-cut .cdesc{font-size:13px;color:var(--mvs-ink);line-height:1.4}
+#mvStudio .mvs-cut .cloc{font-family:var(--mvs-mono);font-size:10px;color:var(--mvs-a2);margin-top:2px}
+#mvStudio .mvs-cpy{cursor:pointer;border:1px solid var(--mvs-line);background:transparent;color:var(--mvs-dim);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--mvs-mono)}
 #mvStudio .mvs-cpy:hover{border-color:var(--mvs-a2);color:var(--mvs-ink)}
 #mvStudio .mvs-cpy.ok{background:var(--mvs-a2);color:#0a0a0f;border-color:transparent}
-#mvStudio .mvs-block pre{margin:0;padding:13px;font-family:var(--mvs-mono);font-size:12.5px;line-height:1.65;color:var(--mvs-ink);white-space:pre-wrap;word-break:break-word}
-#mvStudio .mvs-sliders{display:flex;gap:10px;flex-wrap:wrap;padding:12px 13px}
-#mvStudio .mvs-slid{flex:1;min-width:140px;border:1px solid var(--mvs-line);border-radius:9px;padding:10px 12px;background:var(--mvs-panel)}
-#mvStudio .mvs-slid .sn{font-family:var(--mvs-mono);font-size:9.5px;letter-spacing:1.5px;color:var(--mvs-dim);text-transform:uppercase}
-#mvStudio .mvs-slid .sv{font-family:var(--mvs-disp);font-size:24px;color:var(--mvs-a2);line-height:1;margin:3px 0 6px}
-#mvStudio .mvs-slid .tr{height:5px;border-radius:3px;background:var(--mvs-panel2);overflow:hidden}
-#mvStudio .mvs-slid .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--mvs-a),var(--mvs-a2))}
-#mvStudio .mvs-shots{display:flex;flex-direction:column;gap:8px;padding:13px}
-#mvStudio .mvs-shot{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:baseline}
-#mvStudio .mvs-shot .ss{font-family:var(--mvs-mono);font-size:10px;letter-spacing:1px;color:var(--mvs-a);text-transform:uppercase;padding-top:2px}
-#mvStudio .mvs-shot .sd{font-size:13px;color:var(--mvs-ink);line-height:1.45}
-#mvStudio .mvs-sb{display:flex;flex-direction:column;max-height:420px;overflow-y:auto}
-#mvStudio .mvs-sbrow{display:grid;grid-template-columns:34px 1fr auto;gap:11px;align-items:center;padding:10px 13px;border-bottom:1px solid var(--mvs-line)}
-#mvStudio .mvs-sbrow:last-child{border-bottom:0}
-#mvStudio .mvs-sbrow:hover{background:var(--mvs-panel)}
-#mvStudio .mvs-sbrow .cno{font-family:var(--mvs-disp);font-size:22px;color:var(--mvs-a);text-align:center;line-height:1}
-#mvStudio .mvs-sbrow .cmid{min-width:0}
-#mvStudio .mvs-sbrow .ctop{display:flex;gap:8px;align-items:center;margin-bottom:3px;flex-wrap:wrap}
-#mvStudio .mvs-sbrow .csec{font-family:var(--mvs-mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:#0a0a0f;background:var(--mvs-a2);padding:2px 6px;border-radius:4px;font-weight:700}
-#mvStudio .mvs-sbrow .ctc{font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim);font-variant-numeric:tabular-nums}
-#mvStudio .mvs-sbrow .ctype{font-size:12.5px;font-weight:600;color:var(--mvs-ink)}
-#mvStudio .mvs-sbrow .cpr{font-family:var(--mvs-mono);font-size:10.5px;line-height:1.5;color:var(--mvs-dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#mvStudio .mvs-sbfoot{display:flex;align-items:center;gap:12px;padding:12px 13px;border-top:1px solid var(--mvs-line);flex-wrap:wrap}
-#mvStudio .mvs-sbfoot .note{font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)}
-#mvStudio .mvs-addrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px}
-
-/* playlist */
-#mvStudio .mvs-pl{margin-top:14px;border:1px dashed var(--mvs-line);border-radius:13px;padding:14px 16px 16px}
-#mvStudio .mvs-pl h4{margin:0 0 10px;font-family:var(--mvs-disp);font-size:20px;letter-spacing:.5px;transform:skewX(-4deg)}
-#mvStudio .mvs-pl .empty{font-family:var(--mvs-mono);font-size:12px;color:var(--mvs-dim2)}
-#mvStudio .mvs-plitem{display:flex;align-items:center;gap:11px;padding:9px 11px;border:1px solid var(--mvs-line);border-radius:9px;background:var(--mvs-panel);margin-bottom:7px}
-#mvStudio .mvs-plitem .no{font-family:var(--mvs-disp);font-size:20px;color:var(--mvs-a);min-width:24px}
-#mvStudio .mvs-plitem .tx{flex:1;min-width:0}
-#mvStudio .mvs-plitem .tx .a{font-size:13px;font-weight:600;color:var(--mvs-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#mvStudio .mvs-plitem .tx .b{font-family:var(--mvs-mono);font-size:10px;color:var(--mvs-dim)}
-#mvStudio .mvs-plitem .gchip{font-family:var(--mvs-mono);font-size:9.5px;padding:3px 8px;border-radius:4px;color:#0a0a0f;font-weight:700}
-#mvStudio .mvs-plitem .rm{cursor:pointer;border:0;background:transparent;color:var(--mvs-dim2);font-size:16px;padding:0 4px}
-#mvStudio .mvs-plitem .rm:hover{color:var(--mvs-rec)}
-#mvStudio .mvs-foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--mvs-line);font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2);letter-spacing:.5px}
-@media(max-width:640px){#mvStudio .mvs-title{grid-template-columns:1fr}#mvStudio select{min-width:0;width:100%}}
+/* optional genre/suno */
+#mvStudio .mvs-genres{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px;margin-bottom:12px}
+#mvStudio .mvs-g{cursor:pointer;border:1px solid var(--mvs-line);background:var(--mvs-bg);border-radius:10px;padding:10px 11px;text-align:left;color:var(--mvs-dim);transition:.13s}
+#mvStudio .mvs-g:hover{color:var(--mvs-ink);border-color:var(--mvs-a)}
+#mvStudio .mvs-g .gn{font-size:13px;font-weight:700;color:var(--mvs-ink)}
+#mvStudio .mvs-g .ge{font-family:var(--mvs-mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mvs-dim2);margin-top:2px}
+#mvStudio .mvs-g[aria-pressed="true"]{background:linear-gradient(155deg,var(--gc1),var(--gc2));border-color:transparent;color:#0a0a0f}
+#mvStudio .mvs-g[aria-pressed="true"] .gn,#mvStudio .mvs-g[aria-pressed="true"] .ge{color:#0a0a0f}
+#mvStudio .mvs-rec{border:1px solid var(--mvs-line);border-radius:10px;background:var(--mvs-bg);overflow:hidden;margin-top:8px}
+#mvStudio .mvs-rec .rh{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--mvs-line);background:var(--mvs-panel);font-family:var(--mvs-mono);font-size:10px;letter-spacing:2px;color:var(--mvs-a2);text-transform:uppercase}
+#mvStudio .mvs-rec pre{margin:0;padding:12px;font-family:var(--mvs-mono);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:var(--mvs-ink)}
+#mvStudio .mvs-foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--mvs-line);font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)}
+#mvStudio .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--mvs-dim2);border-top-color:var(--mvs-a2);border-radius:50%;animation:mvspin .7s linear infinite;vertical-align:-1px;margin-right:6px}
+@keyframes mvspin{to{transform:rotate(360deg)}}
+@media(max-width:640px){#mvStudio select{min-width:0;width:100%}}
 </style>
 
-<div id="mvStudio" role="dialog" aria-label="리메이크 MV 스튜디오" aria-modal="true">
+<div id="mvStudio" role="dialog" aria-label="MV 스튜디오" aria-modal="true">
   <div class="mvs-crt"></div>
   <div class="mvs-wrap">
     <header class="mvs-head">
-      <div class="mvs-mark"><b>RE</b><span>MAKE</span></div>
-      <div class="mvs-rec"><i></i>STUDIO · Z-TV</div>
+      <div class="mvs-mark"><b>MV</b><span>STUDIO</span></div>
       <button class="mvs-x" id="mvsClose" aria-label="닫기">✕</button>
-      <div class="mvs-sub">명곡 리메이크 · 뮤직비디오 제작 스튜디오 · Suno + 영상 프롬프트 · STUDIO ZIPPY</div>
+      <div class="mvs-sub">음원 업로드 → 오디오 분석 → 씬 생성 → 프로젝트 에셋 연동 → 얼굴락 스토리보드 · STUDIO ZIPPY</div>
     </header>
 
-    <div class="mvs-sec-l">① 리메이크 장르-시대 선택</div>
-    <div class="mvs-genres" id="mvsGenres"></div>
-
-    <div class="mvs-sec-l">② 곡 입력</div>
-    <div class="mvs-inp">
-      <div class="mvs-modes" id="mvsModes" role="tablist">
-        <button class="mvs-mode" data-m="remake" role="tab">🎤 명곡 리메이크</button>
-        <button class="mvs-mode" data-m="orig" role="tab">🎬 우리 오리지널</button>
+    <!-- ① 음원 -->
+    <div class="mvs-step" id="mvsStep1">
+      <div class="mvs-sl"><b>1</b> 음원 업로드</div>
+      <div class="mvs-row">
+        <label class="mvs-up" id="mvsAudLbl">🎵 음원 파일 선택 (mp3 권장 · wav 가능)<input type="file" id="mvsAudio" accept="audio/*" hidden></label>
+        <audio id="mvsPlayer" controls style="display:none"></audio>
       </div>
-      <div class="mvs-fields" id="mvsFields"></div>
-      <div class="mvs-artist">
-        <div class="al">🎤 아티스트 등록 · 얼굴 고정</div>
-        <input type="text" id="mvsArtName" placeholder="아티스트 이름 (예: 우리 배우 A)">
-        <label class="mvs-up" id="mvsUpLbl">📷 얼굴 이미지 업로드<input type="file" id="mvsArtImg" accept="image/*" hidden></label>
-        <img id="mvsArtThumb" class="mvs-athumb" alt="아티스트 미리보기">
-        <span class="note" id="mvsArtNote">얼굴 레퍼런스를 등록하면 모든 컷에 같은 인물이 고정됩니다 (FACE LOCK)</span>
+      <div class="note" id="mvsAudNote" style="margin-top:8px">mp3 권장. wav는 용량이 커서(≈20MB↑) 분석 전송이 제한될 수 있습니다.</div>
+      <textarea id="mvsContext" placeholder="(선택) 곡 컨텍스트·가사·주제를 넣으면 분석이 더 정확해집니다"></textarea>
+      <div class="mvs-row" style="margin-top:10px">
+        <span class="note">컷 수</span>
+        <select id="mvsCount" style="min-width:0;width:auto"><option>24</option><option selected>30</option><option>40</option></select>
+        <button class="mvs-btn p" id="mvsAnalyze" disabled>🎬 오디오 분석 &amp; 씬 생성</button>
+        <span class="note" id="mvsAnStat"></span>
+      </div>
+      <div class="mvs-analysis" id="mvsAnalysis"></div>
+    </div>
+
+    <!-- 스토리보드 (분석 결과) -->
+    <div class="mvs-sb" id="mvsSB">
+      <div class="mvs-sbhead"><div class="t" id="mvsSBTitle">🎞 스토리보드</div>
+        <button class="mvs-cpy" id="mvsCopyAll">전체 프롬프트 복사</button></div>
+      <div class="mvs-list" id="mvsList"></div>
+    </div>
+
+    <!-- ② 프로젝트 연동 -->
+    <div class="mvs-step off" id="mvsStep2">
+      <div class="mvs-sl"><b>2</b> 파이프라인 프로젝트 선택 → 에셋 연동</div>
+      <div class="mvs-row">
+        <select id="mvsProj"><option value="">프로젝트 선택…</option></select>
+        <button class="mvs-btn p" id="mvsLink" disabled>🔗 이 프로젝트의 인물·공간을 컷에 연동</button>
+        <span class="note" id="mvsLinkStat"></span>
+      </div>
+      <div class="note" id="mvsProjInfo" style="margin-top:8px"></div>
+    </div>
+
+    <!-- ③ 편입 -->
+    <div class="mvs-step off" id="mvsStep3">
+      <div class="mvs-sl"><b>3</b> 스토리보드 프로젝트로 편입 → 이미지 생성</div>
+      <div class="mvs-row">
+        <button class="mvs-btn p" id="mvsToProject">📋 MV 전용 프로젝트로 편입 (얼굴락 이미지 생성)</button>
+        <span class="note">선택 프로젝트의 인물/공간/얼굴락을 복사한 MV 전용 프로젝트가 열립니다 (원본 스토리보드 안 건드림)</span>
       </div>
     </div>
 
-    <div class="mvs-out" id="mvsOut"></div>
-
-    <div class="mvs-pl">
-      <h4>📺 채널 편성 (플레이리스트)</h4>
-      <div id="mvsPlaylist"><div class="empty">아직 편성된 곡이 없습니다. 위에서 곡을 만들고 "편성에 추가"를 누르세요.</div></div>
+    <!-- ④ (선택) 리메이크 장르 + Suno 레시피 -->
+    <div class="mvs-step" id="mvsStep4">
+      <div class="mvs-sl"><b>+</b> (선택) 리메이크 장르 &amp; Suno 레시피</div>
+      <div class="mvs-genres" id="mvsGenres"></div>
+      <div id="mvsRecipe"></div>
     </div>
 
-    <div class="mvs-foot">Z-TV REMAKE STUDIO · 곡=Suno / 영상=제작 프롬프트(5080·Grok) · 제목 포맷: [아티스트] - [곡] [장르 Cover] [MV]</div>
+    <div class="mvs-foot">MV STUDIO · 오디오=Gemini 분석 / 영상=파이프라인 얼굴락 생성 / Suno 레시피=복사용 · STUDIO ZIPPY</div>
   </div>
 </div>
 
 <script>
 (function(){
   const GEN=[
-    {id:'njs',name:'New Jack Swing', era:'90s Urban',tag:'New Jack Swing Cover',ktag:'뉴잭스윙 커버',c:['#e85aa0','#3ad0c0'],
-      suno:'New Jack Swing, late-80s/early-90s R&B, Teddy Riley swingbeat; swung 16th hi-hats, big gated snare, funky synth bass, brass stabs; smooth soulful lead with group harmonies; bright punchy studio production',tempo:'112 BPM swing',excl:'trap, heavy autotune, lofi, edm',
-      mv:{lens:'케이블 방송 캠 + 소프트 디퓨전',color:'따뜻한 텅스텐 + 네온 사인',set:'90s 어반 스튜디오, 격자창·계단·크롬',tex:'VHS 트래킹 라인, 필름 그레인',hom:'90s MTV Jams / Teddy Riley'}},
-    {id:'city',name:'80s City Pop',era:'80s Seaside',tag:"80's City Pop Cover",ktag:'시티팝 커버',c:['#ff6ea6','#5ad0ff'],
-      suno:'80s Japanese City Pop, lush jazzy AOR; slap bass, Rhodes electric piano, clean funk guitar, sax solo, gated reverb drums; smooth mellow vocals; warm analog production, Mariya Takeuchi / Tatsuro Yamashita vibe',tempo:'103 BPM',excl:'edm, trap, distorted guitar, lofi',
-      mv:{lens:'아나모픽 소프트, 렌즈 플레어',color:'선셋 마젠타·시안 네온',set:'밤 해안 드라이브, 도시 야경, 수영장',tex:'80s 애니메이션 셀 + VHS 노이즈',hom:'시티팝 LP 재킷 / 80s 애니 OP'}},
-    {id:'y2k',name:"2000's R&B",era:'Y2K Bling',tag:"2000's R&B Cover",ktag:'2000년대 R&B 커버',c:['#c0c6ff','#8a5cff'],
-      suno:'early-2000s R&B, Timbaland/Neptunes style; stuttering syncopated beats, alien synth blips, deep sub bass, finger snaps; smooth melismatic vocals with ad-libs; glossy Y2K production',tempo:'96 BPM',excl:'rock, acoustic, lofi, orchestral',
-      mv:{lens:'8mm 어안 왜곡',color:'하이채도 크롬·실버, 컬러 플래시',set:'블랙 무한배경, 샤이니 셋, 스포트라이트',tex:'매끈 디지털, 렌즈 하이라이트',hom:'Hype Williams'}},
-    {id:'synth',name:'80s Synthwave',era:'80s Neon',tag:"80's Synthwave Cover",ktag:'신스웨이브 커버',c:['#b45cff','#ff5ca8'],
-      suno:'80s synthwave/synth-pop; analog synth arpeggios, gated reverb drums, punchy synth bass, DX7 bells; dreamy reverbed vocals; nostalgic neon production',tempo:'112 BPM',excl:'acoustic, trap, orchestral',
-      mv:{lens:'와이드 아나모픽, 스캔라인',color:'네온 퍼플·핑크 그리드, 석양',set:'레트로퓨처 도시, 그리드 지평선, 스포츠카',tex:'CRT 글로우, 그레인',hom:'Miami Vice / Outrun'}},
-    {id:'disco',name:'70s Disco/Funk',era:'70s Groove',tag:"70's Disco Cover",ktag:'디스코 커버',c:['#f0b429','#e0507a'],
-      suno:'70s disco/funk; four-on-the-floor kick, lush string section, wah funk guitar, syncopated bass, congas; soulful group vocals; warm analog',tempo:'120 BPM',excl:'trap, edm, lofi, autotune',
-      mv:{lens:'줌 렌즈, 소프트 글로우',color:'골드·미러볼 스파클, 원색',set:'디스코 플로어, 미러볼, 무대',tex:'필름 그레인, 라이트 스타버스트',hom:'Soul Train'}},
-    {id:'trot',name:'트로트/뽕짝',era:'가요무대',tag:'Trot Cover',ktag:'트로트 커버',c:['#ff4d6d','#ffb03a'],
-      suno:'Korean Trot (뽕짝); shuffle two-beat, brass band, electric organ, tremolo guitar, string synth; emotive belting vocals with heavy vibrato; retro gayo production',tempo:'128 BPM shuffle',excl:'trap, edm, heavy autotune',
-      mv:{lens:'방송 3카메라, 소프트',color:'화려한 원색 무대조명',set:'가요무대 세트, 반짝이 커튼, LED 배경',tex:'SD 방송 룩, 라이트 블룸',hom:'전국노래자랑 / 가요무대'}},
-    {id:'motown',name:'60s Motown/Soul',era:'60s Soul',tag:"60's Motown Cover",ktag:'모타운 커버',c:['#d8a24a','#c85a5a'],
-      suno:'60s Motown soul; tight rhythm section, tambourine on backbeat, punchy upright bass, horn stabs, group backing vocals; warm vintage production',tempo:'124 BPM',excl:'synth, edm, trap, autotune',
-      mv:{lens:'빈티지 방송, 소프트',color:'따뜻한 세피아, 무대 스팟',set:'레트로 방송무대, 밴드, 빈티지 마이크',tex:'16mm 그레인, 게이트',hom:'The Ed Sullivan Show'}},
-    {id:'kbal',name:'90s K-발라드',era:'90s Ballad',tag:"90's K-Ballad Cover",ktag:'90년대 발라드 커버',c:['#5a86c8','#9a7ad0'],
-      suno:'90s Korean ballad; grand piano, sweeping strings, soft rock band, sax solo; powerful emotive vocals building to a belt; lush reverb production',tempo:'68 BPM',excl:'edm, trap, autotune, distorted',
-      mv:{lens:'35mm 시네마, 소프트 포커스',color:'블루 톤, 비·창가 빛',set:'빗속 창가, 도시 야경, 흑백 회상',tex:'필름 그레인, 소프트 블룸',hom:'90s 가요톱10 발라드 MV'}},
-    {id:'gfunk',name:'90s G-Funk',era:'90s West',tag:"90's G-Funk Cover",ktag:'지펑크 커버',c:['#e0902a','#7ab0d0'],
-      suno:'90s West-coast G-Funk; high whiny synth lead, deep P-funk bass, laid-back boom-bap drums, talkbox; smooth laid-back vocals; warm analog',tempo:'94 BPM',excl:'edm, trap, lofi, orchestral',
-      mv:{lens:'와이드, 로우앵글',color:'선셋 오렌지, 팜트리 실루엣',set:'LA 로라이더, 팜트리, 백야드 파티',tex:'VHS, 필름',hom:'90s West Coast MV'}},
-    {id:'bossa',name:'Bossa/Jazz Lounge',era:'Lounge',tag:'Bossa Nova Cover',ktag:'보사노바 커버',c:['#d0a860','#6ab0a0'],
-      suno:'Bossa Nova / jazz lounge; nylon guitar, brushed drums, upright bass, soft Rhodes, subtle flute; breathy intimate vocals; warm acoustic production',tempo:'126 BPM bossa',excl:'edm, distorted, trap, heavy drums',
-      mv:{lens:'소프트 35mm, 얕은 심도',color:'따뜻한 앰버, 카페 조명',set:'카페·라운지, 창가, 해질녘',tex:'필름, 소프트 글로우',hom:'60s 보사노바 LP 무드'}},
-    {id:'euro',name:'90s Eurodance',era:'90s Club',tag:"90's Eurodance Cover",ktag:'유로댄스 커버',c:['#3ad0ff','#ff4dd0'],
-      suno:'90s Eurodance; four-on-the-floor, rave synth stabs, piano hooks, diva female vocals plus male rap; energetic club production',tempo:'137 BPM',excl:'acoustic, lofi, trap, ballad',
-      mv:{lens:'빠른 컷, 스트로브',color:'네온 클럽 레이저, 원색',set:'90s 클럽, 레이저, 댄스 크루',tex:'VHS, 라이트 스트릭',hom:'90s Euro MTV'}},
-    {id:'grunge',name:'90s Grunge',era:'90s Alt',tag:"90's Grunge Cover",ktag:'그런지 커버',c:['#9aa84a','#c86a3a'],
-      suno:'90s grunge/alt-rock; distorted guitars, raw live-room drums, gritty bass, loud-quiet dynamics; raw emotive vocals; lo-fi analog production',tempo:'112 BPM',excl:'edm, autotune, polished pop, synth',
-      mv:{lens:'16mm 핸드헬드',color:'디새추레이트, 형광등',set:'지하 클럽, 창고, 펩랠리',tex:'필름 그레인, 스모크',hom:'Nirvana / 90s alt MTV'}}
-  ];
-  // our originals (LOVE 60min OST)
-  const ORIG=[
-    {a:'오늘은 왠지 LOVE',t:'오늘은 왠지',mood:'설렘·향수'},
-    {a:'오늘은 왠지 LOVE',t:'오늘을 걸어둘게',mood:'소망·멜랑콜리'},
-    {a:'오늘은 왠지 LOVE',t:'전략적 낙하',mood:'질주·스포티'},
-    {a:'오늘은 왠지 LOVE',t:'동선이 자꾸 꼬여',mood:'코믹·듀엣'},
-    {a:'오늘은 왠지 LOVE',t:'조명이 별로야',mood:'질투·드라마'},
-    {a:'오늘은 왠지 LOVE',t:'아직 안 온 내일',mood:'고백·발라드'},
-    {a:'오늘은 왠지 LOVE',t:'오늘답게',mood:'환희·피날레'}
+    {id:'njs',name:'New Jack Swing',era:'90s Urban',tag:'New Jack Swing Cover',ktag:'뉴잭스윙',c:['#e85aa0','#3ad0c0'],suno:'New Jack Swing, late-80s/early-90s R&B, Teddy Riley swingbeat; swung 16th hi-hats, gated snare, funky synth bass, brass stabs; smooth soulful vocals; bright studio production',tempo:'112 BPM swing',excl:'trap, heavy autotune, lofi, edm'},
+    {id:'city',name:'80s City Pop',era:'80s Seaside',tag:"80's City Pop Cover",ktag:'시티팝',c:['#ff6ea6','#5ad0ff'],suno:'80s Japanese City Pop, lush jazzy AOR; slap bass, Rhodes, clean funk guitar, sax, gated reverb drums; smooth mellow vocals; warm analog',tempo:'103 BPM',excl:'edm, trap, distorted, lofi'},
+    {id:'y2k',name:"2000's R&B",era:'Y2K Bling',tag:"2000's R&B Cover",ktag:'2000s R&B',c:['#c0c6ff','#8a5cff'],suno:'early-2000s R&B, Timbaland/Neptunes; stuttering beats, alien synth blips, sub bass, finger snaps; melismatic vocals with ad-libs; glossy Y2K production',tempo:'96 BPM',excl:'rock, acoustic, lofi'},
+    {id:'synth',name:'80s Synthwave',era:'80s Neon',tag:"80's Synthwave Cover",ktag:'신스웨이브',c:['#b45cff','#ff5ca8'],suno:'80s synthwave/synth-pop; analog arpeggios, gated reverb drums, synth bass, DX7 bells; dreamy reverbed vocals; nostalgic neon production',tempo:'112 BPM',excl:'acoustic, trap, orchestral'},
+    {id:'disco',name:'70s Disco/Funk',era:'70s Groove',tag:"70's Disco Cover",ktag:'디스코',c:['#f0b429','#e0507a'],suno:'70s disco/funk; four-on-the-floor, lush strings, wah funk guitar, syncopated bass, congas; soulful group vocals; warm analog',tempo:'120 BPM',excl:'trap, edm, lofi'},
+    {id:'trot',name:'트로트/뽕짝',era:'가요무대',tag:'Trot Cover',ktag:'트로트',c:['#ff4d6d','#ffb03a'],suno:'Korean Trot (뽕짝); shuffle two-beat, brass band, electric organ, tremolo guitar; emotive belting vocals with vibrato; retro gayo production',tempo:'128 BPM shuffle',excl:'trap, edm, heavy autotune'},
+    {id:'motown',name:'60s Motown',era:'60s Soul',tag:"60's Motown Cover",ktag:'모타운',c:['#d8a24a','#c85a5a'],suno:'60s Motown soul; tight rhythm, tambourine backbeat, upright bass, horn stabs, group backing vocals; warm vintage',tempo:'124 BPM',excl:'synth, edm, trap'},
+    {id:'kbal',name:'90s K-발라드',era:'90s Ballad',tag:"90's K-Ballad Cover",ktag:'90s 발라드',c:['#5a86c8','#9a7ad0'],suno:'90s Korean ballad; grand piano, sweeping strings, soft rock band, sax; powerful emotive vocals to a belt; lush reverb',tempo:'68 BPM',excl:'edm, trap, autotune'},
+    {id:'gfunk',name:'90s G-Funk',era:'90s West',tag:"90's G-Funk Cover",ktag:'지펑크',c:['#e0902a','#7ab0d0'],suno:'90s West-coast G-Funk; whiny synth lead, deep P-funk bass, boom-bap drums, talkbox; smooth laid-back vocals; warm analog',tempo:'94 BPM',excl:'edm, trap, lofi'},
+    {id:'euro',name:'90s Eurodance',era:'90s Club',tag:"90's Eurodance Cover",ktag:'유로댄스',c:['#3ad0ff','#ff4dd0'],suno:'90s Eurodance; four-on-the-floor, rave synth stabs, piano hooks, diva vocals plus male rap; energetic club production',tempo:'137 BPM',excl:'acoustic, lofi, trap'},
+    {id:'grunge',name:'90s Grunge',era:'90s Alt',tag:"90's Grunge Cover",ktag:'그런지',c:['#9aa84a','#c86a3a'],suno:'90s grunge/alt-rock; distorted guitars, raw live-room drums, gritty bass, loud-quiet dynamics; raw vocals; lo-fi analog',tempo:'112 BPM',excl:'edm, autotune, polished pop'},
+    {id:'bossa',name:'Bossa/Jazz',era:'Lounge',tag:'Bossa Nova Cover',ktag:'보사노바',c:['#d0a860','#6ab0a0'],suno:'Bossa Nova / jazz lounge; nylon guitar, brushed drums, upright bass, soft Rhodes, flute; breathy intimate vocals; warm acoustic',tempo:'126 BPM bossa',excl:'edm, distorted, trap'}
   ];
 
-  let gi=0, mode='remake', playlist=[], artistReg={name:'',img:null};
-  const $=s=>document.getElementById(s);
-  const el=(h)=>{const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;};
+  const $=id=>document.getElementById(id);
+  let audio={b64:null,mime:'',name:'',dataUrl:''};
+  let cuts=[], analysis=null, selProjKey='', gi=-1;
 
-  function paintAccent(){const g=GEN[gi];const s=$('mvStudio').style;s.setProperty('--mvs-a',g.c[0]);s.setProperty('--mvs-a2',g.c[1]);}
+  function parseJSONObject(t){ if(!t)return null; const s=t.indexOf('{'),e=t.lastIndexOf('}'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
+  function parseJSONArray(t){ if(!t)return null; const s=t.indexOf('['),e=t.lastIndexOf(']'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
 
-  function renderGenres(){
-    $('mvsGenres').innerHTML=GEN.map((g,i)=>
-      `<button class="mvs-g" data-i="${i}" aria-pressed="${i===gi}" style="--gc1:${g.c[0]};--gc2:${g.c[1]}">
-        <div class="gn">${g.name}</div><div class="ge">${g.era}</div></button>`).join('');
+  function copyText(txt,btn){
+    const done=()=>{if(btn){btn.classList.add('ok');const o=btn.textContent;btn.textContent='복사됨!';setTimeout(()=>{btn.classList.remove('ok');btn.textContent=o;},1300);}};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fb());}else fb();
+    function fb(){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}
   }
-  function renderFields(){
-    document.querySelectorAll('#mvsModes .mvs-mode').forEach(b=>b.setAttribute('aria-selected',b.dataset.m===mode));
-    const f=$('mvsFields');
-    if(mode==='remake'){
-      f.innerHTML=`<input type="text" id="mvsArtist" placeholder="원곡 아티스트 (예: 이효리)">
-        <input type="text" id="mvsSong" placeholder="곡명 (예: 10 Minutes)">
-        <button class="mvs-btn p" id="mvsGen">▶ 리메이크 뽑기</button>`;
-    }else{
-      f.innerHTML=`<select id="mvsOrig">${ORIG.map((o,i)=>`<option value="${i}">♪ ${o.t} — ${o.mood}</option>`).join('')}</select>
-        <button class="mvs-btn p" id="mvsGen">▶ MV 뽑기</button>`;
+
+  // ── ① 오디오 분석 + 씬 생성 (Gemini audio) ──
+  async function analyzeAudio(){
+    if(!audio.b64) return;
+    const count=parseInt($('mvsCount').value||'30',10);
+    const context=($('mvsContext').value||'').trim();
+    const btn=$('mvsAnalyze'); btn.disabled=true;
+    $('mvsAnStat').innerHTML='<span class="spin"></span>Gemini가 음원을 듣고 분석 중…';
+    const model='gemini-2.5-flash';
+    const prompt=
+`너는 뮤직비디오 감독이다. 첨부된 음원을 실제로 듣고 분석한 뒤 뮤직비디오 스토리보드를 짠다.
+먼저 분석: 추정 BPM, 무드, 에너지 곡선, 곡 구조(인트로/벌스/훅/브릿지/아웃트로 + 대략 타임코드), 가사가 있으면 주제.
+${context?('참고 컨텍스트: '+context):''}
+그 분석에 근거해 정확히 ${count}개의 서로 다른 컷을 작성. 곡의 에너지·구조·무드 변화에 맞춰 컷 강도/내용이 변해야 하고, 훅엔 시각적 하이라이트를 둔다. 모든 컷은 장소·피사체·행동·카메라가 서로 다르게(반복 금지). 이 단계에선 특정 인물명 없이 '주인공/퍼포머' 수준으로.
+반드시 아래 JSON만 출력(설명 금지):
+{"analysis":{"bpm":"~120","mood":"...","structure":"...","lyricsTheme":"..."},"cuts":[{"sec":"섹션","tc":"m:ss","shot":"샷 앵글 렌즈 무빙","desc":"구체 한국어 한 문장(장소+피사체+행동+빛)","energy":"low|mid|high"}]}`;
+    try{
+      const res=await fetch(`https://pipeline.studiozippy25.workers.dev/proxy/gemini/${model}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:audio.mime,data:audio.b64}},{text:prompt}]}],generationConfig:{responseModalities:['TEXT']}})
+      });
+      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error((e&&e.error&&e.error.message)||('HTTP '+res.status));}
+      const data=await res.json();
+      const parts=(((data.candidates||[])[0]||{}).content||{}).parts||[];
+      let txt=''; parts.forEach(p=>{if(p.text)txt+=p.text;});
+      const obj=parseJSONObject(txt);
+      if(!obj||!obj.cuts||!obj.cuts.length) throw new Error('분석 파싱 실패');
+      analysis=obj.analysis||{};
+      cuts=obj.cuts.map((c,i)=>({no:i+1,sec:String(c.sec||''),tc:String(c.tc||''),type:String(c.shot||''),desc:String(c.desc||''),energy:String(c.energy||''),char:[],loc:''}));
+      renderAnalysis(); renderCuts();
+      $('mvsStep2').classList.remove('off');
+      $('mvsAnStat').textContent='✓ '+cuts.length+'컷 생성됨 — 아래 2단계에서 프로젝트를 연동하세요';
+    }catch(e){
+      $('mvsAnStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
-    $('mvsGen').onclick=generate;
+    btn.disabled=false;
   }
 
-  function copyBtn(id,text){
-    return `<button class="mvs-cpy" data-cp="${encodeURIComponent(text)}">복사</button>`;
-  }
-  function doCopy(btn){
-    const txt=decodeURIComponent(btn.dataset.cp);
-    const done=()=>{btn.classList.add('ok');btn.textContent='복사됨!';setTimeout(()=>{btn.classList.remove('ok');btn.textContent='복사';},1400);};
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(()=>fallback(txt,done));}
-    else fallback(txt,done);
-  }
-  function fallback(txt,done){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}
-
-  function sliders(g){
-    const stylized=['synth','euro','city','y2k','disco'].includes(g.id);
-    const w=stylized?58:46, s=68;
-    return `<div class="mvs-sliders">
-      <div class="mvs-slid"><div class="sn">Weirdness</div><div class="sv">${w}%</div><div class="tr"><i style="width:${w}%"></i></div></div>
-      <div class="mvs-slid"><div class="sn">Style Influence</div><div class="sv">${s}%</div><div class="tr"><i style="width:${s}%"></i></div></div>
-      <div class="mvs-slid"><div class="sn">Audio Influence</div><div class="sv">—</div><div class="tr"><i style="width:0"></i></div></div>
-    </div>`;
+  function renderAnalysis(){
+    if(!analysis) return;
+    const a=analysis, el=$('mvsAnalysis'); el.style.display='block';
+    el.innerHTML=`<b>BPM</b> ${a.bpm||'-'} · <b>무드</b> ${a.mood||'-'}<br><b>구조</b> ${a.structure||'-'}${a.lyricsTheme?('<br><b>가사</b> '+a.lyricsTheme):''}`;
   }
 
-  function fmtTc(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-  function genSB(g,song){
-    const SECS=[['Intro',2,'est'],['Verse 1',3,'nar'],['Pre-Chorus',2,'bld'],['Chorus 1',3,'hook'],
-      ['Verse 2',3,'nar'],['Chorus 2',3,'hook'],['Bridge',3,'emo'],['Final Chorus',4,'clx'],['Outro',2,'res']];
-    const TYPE={
-      est:['설정샷 와이드','로케이션 부감','아티스트 실루엣 등장'],
-      nar:['미디엄 퍼포먼스','트래킹 워크','오버숄더 내러티브','클로즈업 립싱크'],
-      bld:['로우앵글 히어로샷','핸드헬드 어프로치','디테일 인서트'],
-      hook:['풀샷 안무','다이내믹 트래킹','크레인 부감','크루·댄서 와이드','컬러 플래시 컷'],
-      emo:['감정 클로즈업','실루엣 역광','슬로우모 디테일'],
-      clx:['풀 앙상블 와이드','관객·군중 리액션','키라이트 히어로','래피드 컷 몽타주','이펙트 폭발'],
-      res:['풀백 와이드','시그니처 오마주','페이드 아웃']};
-    const total=160, sum=SECS.reduce((a,x)=>a+x[1],0);
-    let t=0,n=0,cuts=[];
-    SECS.forEach(([sec,cnt,it])=>{
-      const per=total*(cnt/sum)/cnt, pool=TYPE[it];
-      for(let i=0;i<cnt;i++){
-        const type=pool[i%pool.length], tc=fmtTc(t); t+=per;
-        const prompt=`"${song}" music video — ${type}; ${g.mv.set}; ${g.mv.color}; shot on ${g.mv.lens}; ${g.mv.tex}; ${g.era} aesthetic; homage to ${g.mv.hom}; [${sec}]`;
-        cuts.push({no:++n,sec,tc,type,prompt});
-      }
-    });
-    return cuts;
+  function renderCuts(){
+    $('mvsSB').classList.add('show');
+    $('mvsSBTitle').textContent='🎞 스토리보드 · '+cuts.length+'컷'+(selProjKey?(' · '+(PROJECTS[selProjKey].name)):'');
+    $('mvsList').innerHTML=cuts.map(c=>`<div class="mvs-cut">
+      <div class="cno">${String(c.no).padStart(2,'0')}</div>
+      <div class="cmid">
+        <div class="ctop"><span class="csec">${c.sec}</span><span class="ctc">${c.tc}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
+        <div class="cdesc">${c.desc}</div>${c.loc?('<div class="cloc">📍 '+c.loc+'</div>'):''}
+      </div>
+      <button class="mvs-cpy" data-cp="${encodeURIComponent(cutPrompt(c))}">복사</button>
+    </div>`).join('');
+    $('mvsList').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>copyText(decodeURIComponent(b.dataset.cp),b));
   }
+  function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
 
-  function generate(){
-    const g=GEN[gi];
-    let artist,song,moodline='';
-    if(mode==='remake'){
-      artist=($('mvsArtist').value||'').trim()||'원곡 아티스트';
-      song=($('mvsSong').value||'').trim()||'원곡명';
-    }else{
-      const o=ORIG[+$('mvsOrig').value];artist=o.a;song=o.t;moodline=', mood: '+o.mood;
+  // ── ② 프로젝트 에셋 연동 (2차 LLM 패스로 인물·공간 반영) ──
+  async function linkProject(){
+    const key=$('mvsProj').value; if(!key||!cuts.length) return;
+    selProjKey=key; const src=PROJECTS[key];
+    const btn=$('mvsLink'); btn.disabled=true;
+    $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간을 컷에 반영 중…';
+    const chars=Object.keys(src.characterPresets||src.characterDNA||{});
+    const spaces=(src.spaceNames||src.locations||[]);
+    const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
+    const cutList=cuts.map(c=>`${c.no}. [${c.sec} ${c.tc}] ${c.desc}`).join('\n');
+    const prompt=
+`아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
+등장인물(이 이름만 사용): ${chars.join(', ')||'(없음)'}
+공간(이 이름만 사용): ${spaces.join(' / ')||'(없음)'}
+인물 DNA 요약:
+${dna||'(없음)'}
+
+각 컷의 desc를 위 인물·공간을 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡의 흐름 유지). 각 컷에 등장 인물(char: 위 이름들 중 0~2명)과 공간(loc: 위 공간명 중 가장 맞는 1개)을 지정. 인물이 없는 설정샷은 char를 빈 배열로.
+컷들:
+${cutList}
+반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명"}]`;
+    try{
+      if(typeof callLLM!=='function') throw new Error('callLLM 없음');
+      const r=await callLLM({prompt});
+      const arr=parseJSONArray(r&&r.textOut);
+      if(!arr||!arr.length) throw new Error('연동 파싱 실패');
+      const byNo={}; arr.forEach(x=>{byNo[x.no]=x;});
+      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||''}):c;});
+      renderCuts();
+      $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 → 컷에 반영';
+      $('mvsStep3').classList.remove('off');
+      $('mvsLinkStat').textContent='✓ 연동 완료 — 3단계에서 편입하세요';
+    }catch(e){
+      $('mvsLinkStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
-    const title=`${artist} - ${song} [${g.tag}] (${g.ktag}) [MV]`;
-    const styleField=`${g.suno}; ${g.tempo}; Korean vocals${moodline}`;
-    const vprompt=`"${song}" music video — ${g.mv.set}; ${g.mv.color}; shot on ${g.mv.lens}; ${g.mv.tex}; ${g.era} aesthetic; homage to ${g.mv.hom}; cinematic music-video framing, performance + narrative cuts`;
-    const sb=genSB(g,song);
-    const allPrompts=sb.map(c=>`${String(c.no).padStart(2,'0')}. [${c.sec} ${c.tc}] ${c.prompt}`).join('\n\n');
-    $('mvsOut').innerHTML=`
-      <div class="mvs-title">
-        <div class="tt"><div class="tk">영상 제목 · TITLE</div><div class="tv">${title}</div></div>
-        <div style="padding:0 16px">${copyBtn('t',title)}</div>
-      </div>
-      <div class="mvs-block">
-        <div class="mvs-bh"><div class="lab"><b>SUNO</b> STYLE 필드</div>${copyBtn('s',styleField)}</div>
-        <pre>${styleField}</pre>
-      </div>
-      <div class="mvs-block">
-        <div class="mvs-bh"><div class="lab"><b>SUNO</b> EXCLUDE STYLES</div>${copyBtn('e',g.excl)}</div>
-        <pre>${g.excl}</pre>
-        ${sliders(g)}
-        <div style="padding:0 13px 12px;font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)">가사 구조: [Intro] · [Verse 1] · [Pre-Chorus] · [Chorus] · [Verse 2] · [Chorus] · [Bridge] · [Final Chorus] · [Outro] — 원곡 가사 유지 or 번안</div>
-      </div>
-      <div class="mvs-block">
-        <div class="mvs-bh"><div class="lab"><b>MV</b> 마스터 룩 프롬프트</div>${copyBtn('v',vprompt)}</div>
-        <pre>${vprompt}</pre>
-      </div>
-      <div class="mvs-block">
-        <div class="mvs-bh"><div class="lab"><b>MV</b> 스토리보드 · ${sb.length}컷 자동편성</div>${copyBtn('all',allPrompts)}</div>
-        <div class="mvs-sb">${sb.map(c=>`<div class="mvs-sbrow">
-          <div class="cno">${String(c.no).padStart(2,'0')}</div>
-          <div class="cmid"><div class="ctop"><span class="csec">${c.sec}</span><span class="ctc">${c.tc}</span><span class="ctype">${c.type}</span></div><div class="cpr">${c.prompt}</div></div>
-          <button class="mvs-cpy" data-cp="${encodeURIComponent(c.prompt)}">복사</button></div>`).join('')}</div>
-        <div class="mvs-sbfoot"><button class="mvs-btn p" id="mvsToProject">📋 스토리보드 프로젝트로 편입 → 이미지 생성</button>
-          <span class="note">편입하면 파이프라인 스토리보드 페이지에서 ${sb.length}컷을 아티스트 얼굴 고정으로 전체 생성</span></div>
-      </div>
-      <div class="mvs-addrow">
-        <button class="mvs-btn p" id="mvsAdd">📺 이 리메이크를 편성에 추가</button>
-        <span style="font-family:var(--mvs-mono);font-size:11px;color:var(--mvs-dim)">${g.name} · ${g.era}</span>
-      </div>`;
-    $('mvsOut').classList.add('show');
-    $('mvsOut').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>doCopy(b));
-    const toProj=document.getElementById('mvsToProject');
-    if(toProj)toProj.onclick=()=>toProject(g,song,title,sb);
-    $('mvsAdd').onclick=()=>{playlist.push({title,artist,song,g:g.name,c:g.c,cuts:sb.length});renderPlaylist();};
-    $('mvsOut').scrollIntoView({behavior:'smooth',block:'nearest'});
+    btn.disabled=false;
   }
 
-  function toProject(g,song,title,sb){
-    var P=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake'])||(window.PROJECTS&&window.PROJECTS['mv-remake']);
-    if(!P){alert('mv-remake 프로젝트를 찾지 못했습니다. 배포 후 사용하세요.');return;}
-    var AN=(artistReg.name||'아티스트').trim();
-    var LOC='[MV] '+String(g.mv.set).split(',')[0].trim();
-    P.name='🎬 '+song+' — '+g.name;
-    P.spaceNames=[LOC]; P.locations=[LOC];
-    P.spaceDNA={}; P.spaceDNA[LOC]=g.era+' music video set — '+g.mv.set+'; '+g.mv.color+'; '+g.mv.tex;
-    P.characterPresets={}; P.characterPresets[AN]={eth:'Korean (AI actor)',gender:'',age:'',height:'average',build:'average',face:'',eyes:'',skin:'',hcol:'',hlen:'',hstyle:'',extra:'music video performing artist — keep identical identity across all cuts'};
-    P.characterDNA={}; P.characterDNA[AN]='[DNA MV '+AN+'] Music-video performing artist. ABSOLUTE FACE LOCK: the provided FACE reference is the ONLY authority for facial identity — zero face/feature/age drift, the SAME person appears in every cut. Do NOT invent new faces.';
-    P.defaultFaceRefs={}; if(artistReg.img)P.defaultFaceRefs[AN]=artistReg.img;
-    P.defaultCharRefs={};
-    P.scenePresets={}; P.scenePresets['1']={loc:LOC,time:'',emo:[],light:[],shot:'',angle:'High',lens:g.mv.lens,costume:'',scene:'MV — '+g.name+' ['+g.tag+']'};
-    P.epTitles={}; P.epTitles['1']=song+' ['+g.tag+']';
-    P.quality=g.era+' music video, '+g.name+' aesthetic, '+g.mv.color+', '+g.mv.tex+', cinematic performance framing, film photography texture';
-    P.storyboardShots=sb.map(function(c){return {ep:1,scene:1,sceneName:'MV — '+g.name,id:'MV-'+String(c.no).padStart(2,'0'),frame:c.type+' · '+g.mv.lens,desc:c.type+' — '+g.name+' MV. '+g.mv.set+'. '+g.mv.color+'. ['+c.sec+' '+c.tc+']',func:c.sec,pri:'key',char:[AN],loc:LOC,time:'',mv:true};});
+  // ── ③ 편입: 선택 프로젝트 에셋을 복사한 MV 전용 프로젝트 ──
+  function toProject(){
+    const P=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake']);
+    if(!P){alert('mv-remake 프로젝트 없음 (배포 후 사용)');return;}
+    const src=selProjKey?PROJECTS[selProjKey]:null;
+    if(src){
+      P.characterPresets=JSON.parse(JSON.stringify(src.characterPresets||{}));
+      P.characterDNA=Object.assign({},src.characterDNA||{});
+      P.defaultFaceRefs=Object.assign({},src.defaultFaceRefs||{});
+      P.defaultCharRefs=Object.assign({},src.defaultCharRefs||{});
+      P.defaultSpaceRefs=Object.assign({},src.defaultSpaceRefs||{});
+      P.spaceNames=(src.spaceNames||[]).slice();
+      P.locations=(src.locations||src.spaceNames||[]).slice();
+      P.spaceDNA=Object.assign({},src.spaceDNA||{});
+      P.quality=src.quality||P.quality; P.negative=src.negative||P.negative;
+      if(src.lightMap)P.lightMap=Object.assign({},src.lightMap);
+      if(src.emoMap)P.emoMap=Object.assign({},src.emoMap);
+    }
+    const fallbackLoc=(P.spaceNames&&P.spaceNames[0])||'';
+    P.name='🎬 '+(audio.name||'MV').replace(/\.(mp3|wav|m4a|aac|ogg)$/i,'')+(src?(' — '+src.name):'');
+    P.epTitles={'1':(audio.name||'MV')};
+    P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
+    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),loc:c.loc||fallbackLoc,time:'',mv:true}));
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);
-    if(sp){
-      sp('mv-remake');
-      // selectProject가 sbRefs를 리셋하므로 이후에 아티스트 얼굴을 face1 슬롯에 직접 로드
-      if(artistReg.img){
-        try{
-          var mm=/^data:([^;]+);base64,(.*)$/.exec(artistReg.img);
-          if(mm && typeof sbRefs!=='undefined'){ sbRefs['face1']=mm[2]; if(typeof sbRefMimes!=='undefined') sbRefMimes['face1']=mm[1]; }
-        }catch(e){}
-        try{ if(typeof loadDefaultFaceRefs==='function') loadDefaultFaceRefs(); }catch(e){}
-      }
-      setTimeout(function(){try{var tb=document.getElementById('tabSB');if(tb&&tb.click)tb.click();}catch(e){}},120);
-    }
+    if(sp){ sp('mv-remake'); if(typeof loadDefaultFaceRefs==='function'){ try{loadDefaultFaceRefs();}catch(e){} } setTimeout(function(){try{var tb=document.getElementById('tabSB');if(tb&&tb.click)tb.click();}catch(e){}},150); }
   }
 
-  function renderPlaylist(){
-    const host=$('mvsPlaylist');
-    if(!playlist.length){host.innerHTML='<div class="empty">아직 편성된 곡이 없습니다. 위에서 곡을 만들고 "편성에 추가"를 누르세요.</div>';return;}
-    host.innerHTML=playlist.map((p,i)=>`
-      <div class="mvs-plitem">
-        <div class="no">${String(i+1).padStart(2,'0')}</div>
-        <div class="tx"><div class="a">${p.artist} - ${p.song}</div><div class="b">${p.title}</div></div>
-        <span class="gchip" style="background:linear-gradient(155deg,${p.c[0]},${p.c[1]})">${p.g}</span>
-        <button class="rm" data-i="${i}" aria-label="삭제">✕</button>
-      </div>`).join('');
-    host.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{playlist.splice(+b.dataset.i,1);renderPlaylist();});
+  // ── ④ (선택) 장르 + Suno 레시피 ──
+  function renderGenres(){
+    $('mvsGenres').innerHTML=GEN.map((g,i)=>`<button class="mvs-g" data-i="${i}" aria-pressed="${i===gi}" style="--gc1:${g.c[0]};--gc2:${g.c[1]}"><div class="gn">${g.name}</div><div class="ge">${g.era}</div></button>`).join('');
+  }
+  function renderRecipe(){
+    if(gi<0){$('mvsRecipe').innerHTML='<div class="note">장르를 고르면 Suno 리메이크 레시피가 생성됩니다 (복사용).</div>';return;}
+    const g=GEN[gi];
+    const style=`${g.suno}; ${g.tempo}; Korean vocals`;
+    $('mvsRecipe').innerHTML=`
+      <div class="mvs-rec"><div class="rh"><span>SUNO STYLE — ${g.name}</span><button class="mvs-cpy" data-cp="${encodeURIComponent(style)}">복사</button></div><pre>${style}</pre></div>
+      <div class="mvs-rec"><div class="rh"><span>EXCLUDE STYLES</span><button class="mvs-cpy" data-cp="${encodeURIComponent(g.excl)}">복사</button></div><pre>${g.excl}</pre></div>`;
+    $('mvsRecipe').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>copyText(decodeURIComponent(b.dataset.cp),b));
   }
 
-  // wire
-  function open(){$('mvStudio').classList.add('mvs-open');document.body.style.overflow='hidden';window.scrollTo(0,0);}
-  function close(){$('mvStudio').classList.remove('mvs-open');document.body.style.overflow='';}
-  window.openMVStudio=function(){renderGenres();renderFields();paintAccent();open();};
+  // ── wire ──
+  function fillProjects(){
+    const skip={'mv-remake':1};
+    const opts=Object.keys(PROJECTS||{}).filter(k=>!skip[k]).map(k=>`<option value="${k}">${(PROJECTS[k].icon||'')} ${PROJECTS[k].name}</option>`).join('');
+    $('mvsProj').innerHTML='<option value="">프로젝트 선택…</option>'+opts;
+  }
+  function open(){ $('mvStudio').classList.add('mvs-open'); document.body.style.overflow='hidden'; window.scrollTo(0,0); }
+  function close(){ $('mvStudio').classList.remove('mvs-open'); document.body.style.overflow=''; }
+  window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); open(); };
 
   function init(){
     if(!$('mvsClose'))return;
     $('mvsClose').onclick=close;
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mvStudio').classList.contains('mvs-open'))close();});
-    $('mvsGenres').addEventListener('click',e=>{const b=e.target.closest('.mvs-g');if(!b)return;gi=+b.dataset.i;
-      document.querySelectorAll('#mvsGenres .mvs-g').forEach(x=>x.setAttribute('aria-pressed',x===b));paintAccent();});
-    $('mvsModes').addEventListener('click',e=>{const b=e.target.closest('.mvs-mode');if(!b)return;mode=b.dataset.m;renderFields();});
-    const nm=$('mvsArtName'); if(nm)nm.addEventListener('input',()=>{artistReg.name=nm.value;});
-    const fi=$('mvsArtImg');
-    if(fi)fi.addEventListener('change',e=>{
+    $('mvsAudio').addEventListener('change',e=>{
       const f=e.target.files&&e.target.files[0]; if(!f)return;
+      audio.name=f.name; audio.mime=f.type||'audio/mpeg';
       const r=new FileReader();
-      r.onload=ev=>{artistReg.img=ev.target.result;const th=$('mvsArtThumb');if(th){th.src=artistReg.img;th.style.display='inline-block';}
-        const note=$('mvsArtNote');if(note)note.textContent='✓ 얼굴 등록됨 — 편입 시 모든 컷에 이 인물 고정';
-        const lbl=$('mvsUpLbl');if(lbl)lbl.textContent='📷 이미지 변경';};
+      r.onload=ev=>{ audio.dataUrl=ev.target.result; audio.b64=String(ev.target.result).split(',')[1]||'';
+        const pl=$('mvsPlayer'); pl.src=audio.dataUrl; pl.style.display='inline-block';
+        $('mvsAudLbl').textContent='🎵 '+f.name+' ('+Math.round(f.size/1024/1024*10)/10+'MB)';
+        $('mvsAnalyze').disabled=false;
+        const big=(audio.b64.length>18*1024*1024);
+        $('mvsAudNote').innerHTML=big?'<span style="color:var(--mvs-rec)">⚠ 파일이 큽니다(≈'+Math.round(f.size/1024/1024)+'MB). mp3 버전 권장 — 분석이 실패할 수 있습니다.</span>':'✓ 업로드됨 — 컷 수를 고르고 분석을 누르세요.';
+      };
       r.readAsDataURL(f);
     });
+    $('mvsAnalyze').onclick=analyzeAudio;
+    $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; });
+    $('mvsLink').onclick=linkProject;
+    $('mvsToProject').onclick=toProject;
+    $('mvsCopyAll').onclick=()=>copyText(cuts.map(c=>String(c.no).padStart(2,'0')+'. ['+c.sec+' '+c.tc+'] '+cutPrompt(c)).join('\n\n'),$('mvsCopyAll'));
+    $('mvsGenres').addEventListener('click',e=>{const b=e.target.closest('.mvs-g');if(!b)return;gi=+b.dataset.i;document.querySelectorAll('#mvsGenres .mvs-g').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRecipe();});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+
 <!--MVSTUDIO_END-->
 </body>
 </html>

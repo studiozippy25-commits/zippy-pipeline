@@ -921,7 +921,7 @@ input[type=file]{display:none}
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">MV편성</span>
       </div>
     </div>
-                                <div class="project-card" onclick="selectProject('proof-of-taste')">
+                                    <div class="project-card" onclick="selectProject('proof-of-taste')">
       <div class="pc-name">취향의 증거</div>
       <div class="pc-name-en">Proof of Taste</div>
       <div class="pc-desc">40분 확장판 단편영화<br>현대 로맨스 · 성수동</div>
@@ -55064,6 +55064,7 @@ function updatePromptPreview() {
 
 
 
+
 <!--MVSTUDIO_START-->
 <style id="mvsStyle">
 #mvStudio{position:fixed;inset:0;z-index:9000;display:none;overflow-y:auto;
@@ -55365,7 +55366,10 @@ ${cutList}
       P.quality=src.quality||P.quality; P.negative=src.negative||P.negative;
       if(src.lightMap)P.lightMap=Object.assign({},src.lightMap);
       if(src.emoMap)P.emoMap=Object.assign({},src.emoMap);
-    }
+      // ★스타일 모드 복사 — 애니 프로젝트(클라우드라이더)는 실사강제 우회, 실사 프로젝트는 해제
+      if(src.styleMode) P.styleMode=src.styleMode; else delete P.styleMode;
+      if(src.defaultRatio)P.defaultRatio=src.defaultRatio;
+    }else{ delete P.styleMode; }
     const fallbackLoc=(P.spaceNames&&P.spaceNames[0])||'';
     P.name='🎬 '+(audio.name||'MV').replace(/\.(mp3|wav|m4a|aac|ogg)$/i,'')+(src?(' — '+src.name):'');
     P.epTitles={'1':(audio.name||'MV')};

@@ -921,7 +921,7 @@ input[type=file]{display:none}
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">MV편성</span>
       </div>
     </div>
-                <div class="project-card" onclick="selectProject('proof-of-taste')">
+                            <div class="project-card" onclick="selectProject('proof-of-taste')">
       <div class="pc-name">취향의 증거</div>
       <div class="pc-name-en">Proof of Taste</div>
       <div class="pc-desc">40분 확장판 단편영화<br>현대 로맨스 · 성수동</div>
@@ -55043,6 +55043,9 @@ function updatePromptPreview() {
 
 
 
+
+
+
 <!--MVSTUDIO_START-->
 <style id="mvsStyle">
 #mvStudio{position:fixed;inset:0;z-index:9000;display:none;overflow-y:auto;
@@ -55135,10 +55138,12 @@ function updatePromptPreview() {
     <div class="mvs-step" id="mvsStep1">
       <div class="mvs-sl"><b>1</b> 음원 업로드</div>
       <div class="mvs-row">
-        <label class="mvs-up" id="mvsAudLbl">🎵 음원 파일 선택 (mp3 권장 · wav 가능)<input type="file" id="mvsAudio" accept="audio/*" hidden></label>
+        <label class="mvs-up" for="mvsAudio"><span id="mvsAudLblTxt">🎵 음원 파일 선택 (mp3·wav)</span></label>
+        <input type="file" id="mvsAudio" accept="audio/*" hidden>
         <audio id="mvsPlayer" controls style="display:none"></audio>
+        <button class="mvs-btn" id="mvsClear" style="display:none;border-color:var(--mvs-rec);color:var(--mvs-rec)">✕ 음원 제거</button>
       </div>
-      <div class="note" id="mvsAudNote" style="margin-top:8px">mp3 권장. wav는 용량이 커서(≈20MB↑) 분석 전송이 제한될 수 있습니다.</div>
+      <div class="note" id="mvsAudNote" style="margin-top:8px">mp3 권장. 큰 wav는 자동으로 모노·16kHz로 경량화한 뒤 분석합니다.</div>
       <textarea id="mvsContext" placeholder="(선택) 곡 컨텍스트·가사·주제를 넣으면 분석이 더 정확해집니다"></textarea>
       <div class="mvs-row" style="margin-top:10px">
         <span class="note">컷 수</span>
@@ -55327,6 +55332,13 @@ ${cutList}
       P.spaceNames=(src.spaceNames||[]).slice();
       P.locations=(src.locations||src.spaceNames||[]).slice();
       P.spaceDNA=Object.assign({},src.spaceDNA||{});
+      // 오브제(차량·기체·소품·스크린) + 의상 복사 — 편입 후 에셋 라이브러리에서 선택 가능
+      P.objectAssets=JSON.parse(JSON.stringify(src.objectAssets||[]));
+      P.defaultObjRefs=Object.assign({},src.defaultObjRefs||{});
+      P.costumeAssets=JSON.parse(JSON.stringify(src.costumeAssets||[]));
+      P.defaultCostumeRefs=Object.assign({},src.defaultCostumeRefs||{});
+      P.hasCostumes=(src.hasCostumes!==false);
+      if(src.costumes)P.costumes=Object.assign({},src.costumes);
       P.quality=src.quality||P.quality; P.negative=src.negative||P.negative;
       if(src.lightMap)P.lightMap=Object.assign({},src.lightMap);
       if(src.emoMap)P.emoMap=Object.assign({},src.emoMap);
@@ -55361,6 +55373,47 @@ ${cutList}
     const opts=Object.keys(PROJECTS||{}).filter(k=>!skip[k]).map(k=>`<option value="${k}">${(PROJECTS[k].icon||'')} ${PROJECTS[k].name}</option>`).join('');
     $('mvsProj').innerHTML='<option value="">프로젝트 선택…</option>'+opts;
   }
+  // ── 오디오 헬퍼: 큰/​wav 파일은 모노 16kHz 소형 wav로 경량화(분석용, 라이브러리 없이 Web Audio) ──
+  function fileToDataUrl(f){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(f);});}
+  function blobToB64(b){return new Promise(res=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.readAsDataURL(b);});}
+  function encodeWav(abuf){
+    const ch=abuf.getChannelData(0), len=ch.length, rate=abuf.sampleRate;
+    const buffer=new ArrayBuffer(44+len*2), view=new DataView(buffer);
+    const ws=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
+    ws(0,'RIFF');view.setUint32(4,36+len*2,true);ws(8,'WAVE');ws(12,'fmt ');
+    view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
+    view.setUint32(24,rate,true);view.setUint32(28,rate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
+    ws(36,'data');view.setUint32(40,len*2,true);
+    let o=44;for(let i=0;i<len;i++){let s=Math.max(-1,Math.min(1,ch[i]));view.setInt16(o,s<0?s*0x8000:s*0x7FFF,true);o+=2;}
+    return new Blob([buffer],{type:'audio/wav'});
+  }
+  async function toAnalysisAudio(f){
+    const isWav=/wav/i.test(f.type)||/\.wav$/i.test(f.name);
+    const big=f.size>8*1024*1024;
+    if(!isWav && !big){ const b64=await blobToB64(f); return {b64,mime:f.type||'audio/mpeg',note:'원본 사용'}; }
+    const AC=window.AudioContext||window.webkitAudioContext;
+    const actx=new AC();
+    const decoded=await actx.decodeAudioData(await f.arrayBuffer());
+    const rate=16000, off=new OfflineAudioContext(1,Math.max(1,Math.ceil(decoded.duration*rate)),rate);
+    const src=off.createBufferSource(); src.buffer=decoded; src.connect(off.destination); src.start(0);
+    const rendered=await off.startRendering();
+    const blob=encodeWav(rendered);
+    try{actx.close();}catch(e){}
+    const b64=await blobToB64(blob);
+    return {b64,mime:'audio/wav',note:'wav 경량화(모노 16kHz · '+Math.round(blob.size/1024/1024*10)/10+'MB)'};
+  }
+  function clearAudio(){
+    audio={b64:null,mime:'',name:'',dataUrl:''}; cuts=[]; analysis=null; selProjKey=''; gi=gi;
+    const pl=$('mvsPlayer'); try{pl.pause();}catch(e){} pl.removeAttribute('src'); pl.style.display='none';
+    $('mvsClear').style.display='none'; $('mvsAudio').value='';
+    $('mvsAudLblTxt').textContent='🎵 음원 파일 선택 (mp3·wav)';
+    $('mvsAudNote').textContent='mp3 권장. 큰 wav는 자동으로 모노·16kHz로 경량화한 뒤 분석합니다.';
+    $('mvsAnalyze').disabled=true; $('mvsAnStat').textContent='';
+    $('mvsAnalysis').style.display='none'; $('mvsSB').classList.remove('show'); $('mvsList').innerHTML='';
+    $('mvsStep2').classList.add('off'); $('mvsStep3').classList.add('off');
+    $('mvsProj').value=''; $('mvsLink').disabled=true; $('mvsLinkStat').textContent=''; $('mvsProjInfo').textContent='';
+  }
+
   function open(){ $('mvStudio').classList.add('mvs-open'); document.body.style.overflow='hidden'; window.scrollTo(0,0); }
   function close(){ $('mvStudio').classList.remove('mvs-open'); document.body.style.overflow=''; }
   window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); open(); };
@@ -55369,19 +55422,26 @@ ${cutList}
     if(!$('mvsClose'))return;
     $('mvsClose').onclick=close;
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mvStudio').classList.contains('mvs-open'))close();});
-    $('mvsAudio').addEventListener('change',e=>{
+    $('mvsAudio').addEventListener('change', async e=>{
       const f=e.target.files&&e.target.files[0]; if(!f)return;
-      audio.name=f.name; audio.mime=f.type||'audio/mpeg';
-      const r=new FileReader();
-      r.onload=ev=>{ audio.dataUrl=ev.target.result; audio.b64=String(ev.target.result).split(',')[1]||'';
-        const pl=$('mvsPlayer'); pl.src=audio.dataUrl; pl.style.display='inline-block';
-        $('mvsAudLbl').textContent='🎵 '+f.name+' ('+Math.round(f.size/1024/1024*10)/10+'MB)';
-        $('mvsAnalyze').disabled=false;
-        const big=(audio.b64.length>18*1024*1024);
-        $('mvsAudNote').innerHTML=big?'<span style="color:var(--mvs-rec)">⚠ 파일이 큽니다(≈'+Math.round(f.size/1024/1024)+'MB). mp3 버전 권장 — 분석이 실패할 수 있습니다.</span>':'✓ 업로드됨 — 컷 수를 고르고 분석을 누르세요.';
-      };
-      r.readAsDataURL(f);
+      audio.name=f.name;
+      const url=await fileToDataUrl(f); audio.dataUrl=url;
+      const pl=$('mvsPlayer'); pl.src=url; pl.style.display='inline-block';
+      $('mvsClear').style.display='inline-flex';
+      $('mvsAudLblTxt').textContent='🎵 '+f.name+' ('+Math.round(f.size/1024/1024*10)/10+'MB)';
+      $('mvsAnStat').textContent=''; $('mvsAnalyze').disabled=true;
+      $('mvsAudNote').innerHTML='<span class="spin"></span>분석용 오디오 준비 중…';
+      try{
+        const a=await toAnalysisAudio(f);
+        audio.b64=a.b64; audio.mime=a.mime;
+        $('mvsAudNote').innerHTML='✓ 준비됨 · '+a.note+' — 컷 수 고르고 분석하세요';
+      }catch(err){
+        audio.b64=String(url).split(',')[1]||''; audio.mime=f.type||'audio/mpeg';
+        $('mvsAudNote').innerHTML='<span style="color:var(--mvs-rec)">경량화 실패 — 원본으로 시도 ('+(err&&err.message||err)+')</span>';
+      }
+      $('mvsAnalyze').disabled=false;
     });
+    $('mvsClear').onclick=clearAudio;
     $('mvsAnalyze').onclick=analyzeAudio;
     $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; });
     $('mvsLink').onclick=linkProject;

@@ -45868,6 +45868,7 @@ function renderShotCard(shot, sceneVal) {
   html += `<div class="sb-shot-desc">${shot.desc}</div>`;
   html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func||''}</div>`;
   html += `<div style="margin-top:5px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--bl);margin-bottom:2px">📍 장소 (선택)</div><select onchange="setShotLoc('${shot.id}', this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(14,165,233,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">${sbLocOptions(resolveShotLoc(shot))}</select></div>`;
+  html += renderShotObjControl(shot);
   html += renderSBCameraControl(shot);
   html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
@@ -45994,6 +45995,22 @@ function setShotLoc(shotId, val) {
   var s = SB_SHOTS.find(function(x){ return x.id === shotId; });
   if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); saveStoryboardState('shot-location'); }
 }
+function sbObjName(key){var oa=(currentProject&&currentProject.objectAssets)||[];for(var i=0;i<oa.length;i++){if(oa[i].key===key)return oa[i].name;}return key;}
+function renderShotObjControl(shot){
+  var oa=(currentProject&&currentProject.objectAssets)||[];
+  if(!oa.length)return '';
+  var sel=(shot&&Array.isArray(shot.obj))?shot.obj:[];
+  var sid=sbEscJs(String(shot.id||''));
+  var chips=sel.map(function(k){return '<span style="display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono);font-size:9px;background:rgba(139,92,246,.15);border:1px solid var(--pu);color:var(--tx);padding:2px 4px 2px 6px;border-radius:4px;margin:0 3px 3px 0">'+sbEscHtml(sbObjName(k))+'<button onclick="event.stopPropagation();removeShotObj(\''+sid+'\',\''+sbEscJs(k)+'\')" style="border:0;background:transparent;color:var(--mu);cursor:pointer;font-size:11px;padding:0;line-height:1">×</button></span>';}).join('');
+  var opts='<option value="">+ 오브제 추가…</option>';
+  oa.forEach(function(o){if(sel.indexOf(o.key)===-1)opts+='<option value="'+sbEscHtml(o.key)+'">'+sbEscHtml(o.name)+'</option>';});
+  var h='<div style="margin-top:5px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--pu);margin-bottom:2px">🎬 오브제 (선택·다중)</div>';
+  if(chips)h+='<div style="display:flex;flex-wrap:wrap;margin-bottom:2px">'+chips+'</div>';
+  h+='<select onchange="if(this.value){addShotObj(\''+sid+'\',this.value);}" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(139,92,246,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">'+opts+'</select></div>';
+  return h;
+}
+function addShotObj(shotId,key){if(typeof SB_SHOTS==='undefined')return;var s=SB_SHOTS.find(function(x){return x.id===shotId;});if(!s)return;if(!Array.isArray(s.obj))s.obj=[];if(s.obj.indexOf(key)===-1)s.obj.push(key);if(typeof buildStoryboardTimeline==='function')buildStoryboardTimeline();if(typeof saveStoryboardState==='function')saveStoryboardState('shot-obj');}
+function removeShotObj(shotId,key){if(typeof SB_SHOTS==='undefined')return;var s=SB_SHOTS.find(function(x){return x.id===shotId;});if(!s||!Array.isArray(s.obj))return;s.obj=s.obj.filter(function(k){return k!==key;});if(typeof buildStoryboardTimeline==='function')buildStoryboardTimeline();if(typeof saveStoryboardState==='function')saveStoryboardState('shot-obj');}
 var SB_SP_MAP = {'SP-ALLEY':'SP-POLY','SP-ALLEY43':'SP-POLY','SP-BAR':'SP-LS-BAR','SP-LS':'SP-LS-BAR','SP-FAC-IN':'SP-FACIN','SP-FAC-OUT':'SP-FACOUT','SP-BORDER':'SP-BORDER-CHK','SP-WASTE':'SP-GRAY'};
 function sbCodeOf(s){ var m=(s||'').match(/\[(SP-[A-Z0-9-]+|\uC5F4\uCC28)\]/i); return m?m[1].toUpperCase():''; }
 function resolveShotLoc(shot){

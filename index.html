@@ -921,7 +921,7 @@ input[type=file]{display:none}
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">MV편성</span>
       </div>
     </div>
-                            <div class="project-card" onclick="selectProject('proof-of-taste')">
+                                <div class="project-card" onclick="selectProject('proof-of-taste')">
       <div class="pc-name">취향의 증거</div>
       <div class="pc-name-en">Proof of Taste</div>
       <div class="pc-desc">40분 확장판 단편영화<br>현대 로맨스 · 성수동</div>
@@ -55063,6 +55063,7 @@ function updatePromptPreview() {
 
 
 
+
 <!--MVSTUDIO_START-->
 <style id="mvsStyle">
 #mvStudio{position:fixed;inset:0;z-index:9000;display:none;overflow-y:auto;
@@ -55289,13 +55290,14 @@ ${context?('참고 컨텍스트: '+context):''}
       <div class="cno">${String(c.no).padStart(2,'0')}</div>
       <div class="cmid">
         <div class="ctop"><span class="csec">${c.sec}</span><span class="ctc">${c.tc}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
-        <div class="cdesc">${c.desc}</div>${c.loc?('<div class="cloc">📍 '+c.loc+'</div>'):''}
+        <div class="cdesc">${c.desc}</div>${c.loc?('<div class="cloc">📍 '+c.loc+'</div>'):''}${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
       </div>
       <button class="mvs-cpy" data-cp="${encodeURIComponent(cutPrompt(c))}">복사</button>
     </div>`).join('');
     $('mvsList').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>copyText(decodeURIComponent(b.dataset.cp),b));
   }
-  function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
+  function objNm(k){ var src=selProjKey&&PROJECTS[selProjKey]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
+  function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
 
   // ── ② 프로젝트 에셋 연동 (2차 LLM 패스로 인물·공간 반영) ──
   async function linkProject(){
@@ -55305,28 +55307,32 @@ ${context?('참고 컨텍스트: '+context):''}
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간을 컷에 반영 중…';
     const chars=Object.keys(src.characterPresets||src.characterDNA||{});
     const spaces=(src.spaceNames||src.locations||[]);
+    const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
     const cutList=cuts.map(c=>`${c.no}. [${c.sec} ${c.tc}] ${c.desc}`).join('\n');
+    $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
 등장인물(이 이름만 사용): ${chars.join(', ')||'(없음)'}
 공간(이 이름만 사용): ${spaces.join(' / ')||'(없음)'}
+오브제(등장 시 아래 '키'만 사용): ${objs.join(' / ')||'(없음)'}
 인물 DNA 요약:
 ${dna||'(없음)'}
 
-각 컷의 desc를 위 인물·공간을 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡의 흐름 유지). 각 컷에 등장 인물(char: 위 이름들 중 0~2명)과 공간(loc: 위 공간명 중 가장 맞는 1개)을 지정. 인물이 없는 설정샷은 char를 빈 배열로.
+각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡 흐름 유지). 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열.
 컷들:
 ${cutList}
-반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명"}]`;
+반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"]}]`;
     try{
       if(typeof callLLM!=='function') throw new Error('callLLM 없음');
       const r=await callLLM({prompt});
       const arr=parseJSONArray(r&&r.textOut);
       if(!arr||!arr.length) throw new Error('연동 파싱 실패');
       const byNo={}; arr.forEach(x=>{byNo[x.no]=x;});
-      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||''}):c;});
+      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||'',obj:Array.isArray(x.obj)?x.obj:[]}):c;});
       renderCuts();
-      $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 → 컷에 반영';
+      const objTagged=cuts.reduce((n,c)=>n+((c.obj&&c.obj.length)?1:0),0);
+      $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 / 오브제 '+objs.length+'개 → 컷 반영 (오브제 태깅 '+objTagged+'컷)';
       $('mvsStep3').classList.remove('off');
       $('mvsLinkStat').textContent='✓ 연동 완료 — 3단계에서 편입하세요';
     }catch(e){
@@ -55364,7 +55370,7 @@ ${cutList}
     P.name='🎬 '+(audio.name||'MV').replace(/\.(mp3|wav|m4a|aac|ogg)$/i,'')+(src?(' — '+src.name):'');
     P.epTitles={'1':(audio.name||'MV')};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),loc:c.loc||fallbackLoc,time:'',mv:true}));
+    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true}));
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);
     if(sp){ sp('mv-remake'); if(typeof loadDefaultFaceRefs==='function'){ try{loadDefaultFaceRefs();}catch(e){} } setTimeout(function(){try{var tb=document.getElementById('tabSB');if(tb&&tb.click)tb.click();}catch(e){}},150); }

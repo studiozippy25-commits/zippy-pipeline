@@ -1591,6 +1591,7 @@ input[type=file]{display:none}
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
     <button class="btn bor" onclick="generateAllStoryboard()" id="btnSBAll">필수 생성</button>
     <button class="btn bgh" onclick="generateFullStoryboard()" id="btnSBAllShots" style="border-color:var(--wn);color:var(--wn)">전체 생성</button>
+    <button class="btn bgh" onclick="generateEpisodeStoryboard()" id="btnSBEpisode" style="border-color:var(--cy);color:var(--cy)">에피소드 생성</button>
     <button class="btn bgh" onclick="window.__sbAllAborted=true" id="btnSBStop" style="display:none;border-color:var(--er);color:var(--er)">■ 중단</button>
     <button class="btn bgh" onclick="downloadAllStoryboardImages()" id="btnSBBulkDownload" style="border-color:var(--ok);color:var(--ok)">일괄 다운로드</button>
     <button class="btn bgh" onclick="syncStoryboardToHistory()" id="btnSBHistory" style="border-color:var(--pu);color:var(--pu)">히스토리에 저장</button>
@@ -46524,18 +46525,50 @@ async function generateAllStoryboard() {
 async function generateFullStoryboard() {
   return generateStoryboardBatch('all');
 }
-async function generateStoryboardBatch(scope) {
-  const isAll = scope === 'all';
-  const sourceShots = isAll ? SB_SHOTS : SB_SHOTS.filter(s=>s.pri==='must');
+function getStoryboardShotEpisode(shot) {
+  if (!shot) return NaN;
+  const raw = typeof shot.ep !== 'undefined' ? shot.ep : shot.scene;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : NaN;
+}
+function getStoryboardEpisodeNumbers() {
+  const seen = {};
+  SB_SHOTS.forEach(function(shot) {
+    const ep = getStoryboardShotEpisode(shot);
+    if (Number.isFinite(ep)) seen[ep] = true;
+  });
+  return Object.keys(seen).map(Number).sort(function(a,b){ return a-b; });
+}
+function getSelectedStoryboardEpisodeNumber() {
+  const epNums = getStoryboardEpisodeNumbers();
+  if (!epNums.length) return 0;
+  const activeEp = getSBActiveEp(epNums, epNums[0]);
+  return activeEp === 0 ? 0 : activeEp;
+}
+async function generateEpisodeStoryboard() {
+  const epNum = getSelectedStoryboardEpisodeNumber();
+  if (epNum === 0) {
+    alert('생성할 에피소드를 먼저 선택해주세요.');
+    return;
+  }
+  return generateStoryboardBatch('episode', epNum);
+}
+async function generateStoryboardBatch(scope, episodeNumber) {
+  const isEpisode = scope === 'episode';
+  const isAll = scope === 'all' || isEpisode;
+  let sourceShots = isAll ? SB_SHOTS : SB_SHOTS.filter(s=>s.pri==='must');
+  if (isEpisode) {
+    sourceShots = sourceShots.filter(s=>getStoryboardShotEpisode(s) === episodeNumber);
+  }
   const remaining = sourceShots.filter(s=>!sbGenImages[s.id]);
-  const label = isAll ? '전체 쇼트' : '필수 쇼트';
+  const label = isEpisode ? sbGroupChipLabel(episodeNumber) + ' 쇼트' : (isAll ? '전체 쇼트' : '필수 쇼트');
   if(remaining.length===0){alert(label + '가 이미 모두 생성되었습니다.');return;}
-  const btn = document.getElementById(isAll ? 'btnSBAllShots' : 'btnSBAll');
-  const otherBtn = document.getElementById(isAll ? 'btnSBAll' : 'btnSBAllShots');
+  const batchBtns = ['btnSBAll','btnSBAllShots','btnSBEpisode']
+    .map(id=>document.getElementById(id))
+    .filter(Boolean);
   const stopBtn = document.getElementById('btnSBStop');
   const progress = document.getElementById('sbProgress');
-  if (btn) btn.disabled = true;
-  if (otherBtn) otherBtn.disabled = true;
+  batchBtns.forEach(btn=>btn.disabled = true);
   if (stopBtn) stopBtn.style.display = 'inline-block';
   window.__sbAllAborted = false;
   document.getElementById('sbLoadingWrap').style.display = 'block';
@@ -46548,11 +46581,10 @@ async function generateStoryboardBatch(scope) {
     await new Promise(r=>setTimeout(r,500));
   }
   document.getElementById('sbLoadStatus').textContent = window.__sbAllAborted ? '중단됨' : label + ' 생성 완료!';
-  if (btn) btn.disabled = false;
-  if (otherBtn) otherBtn.disabled = false;
+  batchBtns.forEach(btn=>btn.disabled = false);
   if (stopBtn) stopBtn.style.display = 'none';
   window.__sbAllAborted = false;
-  saveStoryboardState(isAll ? 'all-shots-generated' : 'must-shots-generated');
+  saveStoryboardState(isEpisode ? 'episode-' + episodeNumber + '-shots-generated' : (isAll ? 'all-shots-generated' : 'must-shots-generated'));
   setTimeout(()=>{document.getElementById('sbLoadingWrap').style.display='none';},2000);
 }
 function clearStoryboard() {

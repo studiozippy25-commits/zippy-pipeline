@@ -83900,9 +83900,16 @@ function updatePromptPreview() {
   <div class="mvs-wrap">
     <header class="mvs-head">
       <div class="mvs-mark"><b>MV</b><span>STUDIO</span></div>
+      <button class="mvs-btn" id="mvsHistBtn" style="margin-left:auto">🕘 히스토리</button>
       <button class="mvs-x" id="mvsClose" aria-label="닫기">✕</button>
       <div class="mvs-sub">음원 업로드 → 오디오 분석 → 씬 생성 → 프로젝트 에셋 연동 → 얼굴락 스토리보드 · STUDIO ZIPPY</div>
     </header>
+
+    <!-- 작업 히스토리(복구) -->
+    <div id="mvsHistWrap" style="display:none;margin:6px 0 4px;border:1px solid var(--mvs-line);border-radius:8px;padding:6px 12px 10px;background:rgba(0,0,0,.12)">
+      <div style="font-weight:700;padding:4px 0">🕘 작업 히스토리 <span class="note">— 복구할 항목을 고르세요 (스토리보드 생성 시 자동 보관)</span></div>
+      <div id="mvsHistPanel"></div>
+    </div>
 
     <!-- ① 음원 -->
     <div class="mvs-step" id="mvsStep1">
@@ -83919,6 +83926,7 @@ function updatePromptPreview() {
         <span class="note">컷 수</span>
         <select id="mvsCount" style="min-width:0;width:auto"><option>24</option><option selected>30</option><option>40</option></select>
         <button class="mvs-btn p" id="mvsAnalyze" disabled>🎬 오디오 분석 &amp; 씬 생성</button>
+        <button class="mvs-btn" id="mvsSkip" title="음원 없이 빈 스토리보드로 바로 이동">⏭ 곡 없이 스토리보드</button>
         <span class="note" id="mvsAnStat"></span>
       </div>
       <div class="mvs-analysis" id="mvsAnalysis"></div>
@@ -84023,6 +84031,85 @@ function updatePromptPreview() {
     }
   }
 
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // ── 곡 없이 바로 스토리보드(빈 스캐폴드) ──
+  function skipToStoryboard(){
+    const n=Math.max(1,Math.min(60,parseInt(($('mvsCount')&&$('mvsCount').value)||'30',10)||30));
+    cuts=[]; for(let i=1;i<=n;i++) cuts.push({no:i,sec:'',tc:'',type:'',desc:'',energy:'',char:[],loc:''});
+    analysis=null;
+    if(!audio||!audio.name) audio=Object.assign({b64:null,mime:'',name:'(곡 없음)',dataUrl:''}, audio||{}, {name:(audio&&audio.name)||'(곡 없음)'});
+    mvSessionId=''; // 새 세션
+    renderCuts();
+    $('mvsStep2').classList.remove('off');
+    if($('mvsAnStat')) $('mvsAnStat').textContent='✓ 빈 스토리보드 '+n+'컷 — 아래에서 프로젝트를 연동하면 컷 내용이 자동 생성됩니다';
+    saveMV(); pushHistory();
+  }
+
+  // ── 작업 히스토리(다중 슬롯) — 복구 가능 ──
+  const MV_HIST_KEY='zippy_mvstudio_history_v1';
+  let mvSessionId='', mvIdSeq=0;
+  function newSessionId(){ return 'mv'+Date.now().toString(36)+'_'+(++mvIdSeq)+'_'+Math.floor(Math.random()*1e6).toString(36); }
+  function readHist(){ try{ return JSON.parse(localStorage.getItem(MV_HIST_KEY)||'[]')||[]; }catch(e){ return []; } }
+  function writeHist(arr){
+    const a=arr.slice(0,20);
+    for(let cap=a.length; cap>=1; cap--){
+      try{ localStorage.setItem(MV_HIST_KEY, JSON.stringify(a.slice(0,cap))); return; }catch(e){ /* quota → 더 적게 */ }
+    }
+    try{ localStorage.removeItem(MV_HIST_KEY); }catch(e){}
+  }
+  function pushHistory(){
+    if(!(cuts&&cuts.length)) return;
+    if(!mvSessionId) mvSessionId=newSessionId();
+    const entry={ id:mvSessionId, ts:Date.now(), name:(audio&&audio.name)||'(제목 없음)',
+      cutCount:cuts.length, projKey:selProjKey||'',
+      projName:(selProjKey&&PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||'',
+      cuts:JSON.parse(JSON.stringify(cuts)), analysis:analysis?JSON.parse(JSON.stringify(analysis)):null,
+      count:(($('mvsCount')||{}).value)||'', context:(($('mvsContext')||{}).value)||'' };
+    const arr=readHist().filter(e=>e.id!==mvSessionId);
+    arr.unshift(entry);
+    writeHist(arr);
+  }
+  function toggleHist(force){
+    const w=$('mvsHistWrap'); if(!w) return;
+    const show=(typeof force==='boolean')?force:(w.style.display==='none'||!w.style.display);
+    if(show){ renderHistory(); w.style.display='block'; } else { w.style.display='none'; }
+  }
+  function renderHistory(){
+    const panel=$('mvsHistPanel'); if(!panel) return;
+    const arr=readHist();
+    if(!arr.length){ panel.innerHTML='<div class="note" style="padding:12px 4px">저장된 작업이 없습니다. 스토리보드를 만들면 여기에 자동 보관됩니다.</div>'; return; }
+    panel.innerHTML=arr.map(e=>{
+      const d=new Date(e.ts);
+      const t=d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 4px;border-top:1px solid var(--mvs-line)">'
+        +'<div style="min-width:0"><b style="word-break:break-all">'+esc(e.name)+'</b> · '+e.cutCount+'컷'+(e.projName?(' · '+esc(e.projName)):'')+'<br><span class="note">'+t+'</span></div>'
+        +'<div style="display:flex;gap:6px;flex:0 0 auto"><button class="mvs-btn p" data-act="restore" data-id="'+e.id+'">복구</button><button class="mvs-btn" data-act="del" data-id="'+e.id+'" style="border-color:var(--mvs-rec);color:var(--mvs-rec)">삭제</button></div>'
+        +'</div>';
+    }).join('');
+    panel.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>{
+      if(b.dataset.act==='restore') restoreFromHistory(b.dataset.id);
+      else { writeHist(readHist().filter(e=>e.id!==b.dataset.id)); renderHistory(); }
+    });
+  }
+  function restoreFromHistory(id){
+    const e=readHist().find(x=>x.id===id); if(!e) return;
+    cuts=Array.isArray(e.cuts)?JSON.parse(JSON.stringify(e.cuts)):[];
+    analysis=e.analysis||null; selProjKey=e.projKey||''; mvSessionId=e.id;
+    if(!audio) audio={b64:null,mime:'',name:'',dataUrl:''};
+    audio.name=e.name||audio.name||'';
+    if($('mvsCount')&&e.count) $('mvsCount').value=e.count;
+    if($('mvsContext')) $('mvsContext').value=e.context||'';
+    if(analysis) renderAnalysis();
+    renderCuts();
+    $('mvsStep2').classList.remove('off');
+    if(selProjKey){ if($('mvsProj')) $('mvsProj').value=selProjKey; $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복구됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
+    if($('mvsLink')) $('mvsLink').disabled=!(selProjKey||($('mvsProj')&&$('mvsProj').value));
+    if($('mvsAnStat')) $('mvsAnStat').textContent='✓ 히스토리 복구 · '+cuts.length+'컷';
+    toggleHist(false);
+    saveMV();
+  }
+
   function parseJSONObject(t){ if(!t)return null; const s=t.indexOf('{'),e=t.lastIndexOf('}'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
   function parseJSONArray(t){ if(!t)return null; const s=t.indexOf('['),e=t.lastIndexOf(']'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
 
@@ -84063,7 +84150,7 @@ ${context?('참고 컨텍스트: '+context):''}
       renderAnalysis(); renderCuts();
       $('mvsStep2').classList.remove('off');
       $('mvsAnStat').textContent='✓ '+cuts.length+'컷 생성됨 — 아래 2단계에서 프로젝트를 연동하세요';
-      saveMV();
+      saveMV(); pushHistory();
     }catch(e){
       $('mvsAnStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
@@ -84128,7 +84215,7 @@ ${cutList}
       $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 / 오브제 '+objs.length+'개 → 컷 반영 (오브제 태깅 '+objTagged+'컷)';
       $('mvsStep3').classList.remove('off');
       $('mvsLinkStat').textContent='✓ 연동 완료 — 3단계에서 편입하세요';
-      saveMV();
+      saveMV(); pushHistory();
     }catch(e){
       $('mvsLinkStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
@@ -84223,7 +84310,7 @@ ${cutList}
     return {b64,mime:'audio/wav',note:'wav 경량화(모노 16kHz · '+Math.round(blob.size/1024/1024*10)/10+'MB)'};
   }
   function clearAudio(){
-    audio={b64:null,mime:'',name:'',dataUrl:''}; cuts=[]; analysis=null; selProjKey=''; gi=gi;
+    audio={b64:null,mime:'',name:'',dataUrl:''}; cuts=[]; analysis=null; selProjKey=''; gi=gi; mvSessionId='';
     const pl=$('mvsPlayer'); try{pl.pause();}catch(e){} pl.removeAttribute('src'); pl.style.display='none';
     $('mvsClear').style.display='none'; $('mvsAudio').value='';
     $('mvsAudLblTxt').textContent='🎵 음원 파일 선택 (mp3·wav)';
@@ -84245,6 +84332,7 @@ ${cutList}
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mvStudio').classList.contains('mvs-open'))close();});
     $('mvsAudio').addEventListener('change', async e=>{
       const f=e.target.files&&e.target.files[0]; if(!f)return;
+      mvSessionId=''; // 새 음원 = 새 히스토리 세션
       audio.name=f.name;
       const url=await fileToDataUrl(f); audio.dataUrl=url;
       const pl=$('mvsPlayer'); pl.src=url; pl.style.display='inline-block';
@@ -84265,6 +84353,8 @@ ${cutList}
     });
     $('mvsClear').onclick=clearAudio;
     $('mvsAnalyze').onclick=analyzeAudio;
+    if($('mvsSkip')) $('mvsSkip').onclick=skipToStoryboard;
+    if($('mvsHistBtn')) $('mvsHistBtn').onclick=()=>toggleHist();
     $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; });
     $('mvsLink').onclick=linkProject;
     $('mvsToProject').onclick=toProject;

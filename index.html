@@ -3127,14 +3127,20 @@ input[type=file]{display:none}
     <div style="padding:16px">
       <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:6px">START 프레임</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">START 프레임</div>
+            <button class="btn bor bsm" id="vidStartClearBtn" onclick="clearVidFrame('start')" disabled style="padding:5px 9px;font-size:11px;opacity:.45">삭제</button>
+          </div>
           <div id="vidStartFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById('vidStartInput').click()">
             <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 이미지 업로드 또는 드래그</span>
           </div>
           <input type="file" id="vidStartInput" accept="image/*" style="display:none" onchange="loadVidFrame('start',this.files)">
         </div>
         <div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);margin-bottom:6px">END 프레임 <span style="opacity:.5">(선택)</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">END 프레임 <span style="opacity:.5">(선택)</span></div>
+            <button class="btn bor bsm" id="vidEndClearBtn" onclick="clearVidFrame('end')" disabled style="padding:5px 9px;font-size:11px;opacity:.45">삭제</button>
+          </div>
           <div id="vidEndFrame" style="width:240px;height:135px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById('vidEndInput').click()">
             <span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">+ 선택사항</span>
           </div>
@@ -76625,11 +76631,15 @@ function formatLocalGatewayError(e) {
   return msg;
 }
 function zippySendImageToVideoTab(imgB64, mime, prompt, meta) {
+  vidStartReadSeq += 1;
   vidStartB64 = imgB64;
   vidStartMime = mime || 'image/png';
   vidStartMeta = meta || null;
+  const input = document.getElementById('vidStartInput');
+  if (input) input.value = '';
   const frame = document.getElementById('vidStartFrame');
   if (frame) frame.innerHTML = '<img src="data:' + vidStartMime + ';base64,' + imgB64 + '" style="width:100%;height:100%;object-fit:cover">';
+  setVidFrameClearEnabled('start', true);
   const promptEl = document.getElementById('vidTabPrompt');
   if (promptEl && prompt) promptEl.value = prompt;
   const gw = document.getElementById('vidLocalGatewayUrl');
@@ -76745,6 +76755,7 @@ async function executeVideo() {
 let vidStartB64 = null, vidEndB64 = null;
 let vidStartMime = 'image/png', vidEndMime = 'image/png';
 let vidStartMeta = null;
+let vidStartReadSeq = 0, vidEndReadSeq = 0;
 let vidTabAbortController = null;
 let vidOverlayAbortController = null;
 let sbVideoAbortController = null;
@@ -76764,17 +76775,73 @@ function abortGrokBuildSend() {
   if (grokBuildAbortController) grokBuildAbortController.abort();
 }
 
+function getVidFrameDefaultLabel(type) {
+  return type === 'start' ? '+ 이미지 업로드 또는 드래그' : '+ 선택사항';
+}
+
+function setVidFrameClearEnabled(type, enabled) {
+  const btn = document.getElementById(type === 'start' ? 'vidStartClearBtn' : 'vidEndClearBtn');
+  if (!btn) return;
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '.45';
+}
+
+function renderVidFramePlaceholder(type, label) {
+  const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
+  if (!el) return;
+  el.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">' + (label || getVidFrameDefaultLabel(type)) + '</span>';
+}
+
+function clearVidFrame(type) {
+  if (type === 'start') {
+    vidStartReadSeq += 1;
+    vidStartB64 = null;
+    vidStartMime = 'image/png';
+    vidStartMeta = null;
+    const input = document.getElementById('vidStartInput');
+    if (input) input.value = '';
+  } else {
+    vidEndReadSeq += 1;
+    vidEndB64 = null;
+    vidEndMime = 'image/png';
+    const input = document.getElementById('vidEndInput');
+    if (input) input.value = '';
+  }
+  renderVidFramePlaceholder(type);
+  setVidFrameClearEnabled(type, false);
+  updateVidCost();
+}
+
 function loadVidFrame(type, files) {
   if (!files || !files.length) return;
+  const seq = type === 'start' ? ++vidStartReadSeq : ++vidEndReadSeq;
+  if (type === 'start') {
+    vidStartB64 = null;
+    vidStartMime = files[0].type || 'image/png';
+    vidStartMeta = null;
+  } else {
+    vidEndB64 = null;
+    vidEndMime = files[0].type || 'image/png';
+  }
+  renderVidFramePlaceholder(type, '읽는 중...');
+  setVidFrameClearEnabled(type, false);
+  updateVidCost();
+
   const reader = new FileReader();
   reader.onload = function(e) {
+    if (type === 'start' ? seq !== vidStartReadSeq : seq !== vidEndReadSeq) return;
     const b64 = e.target.result.split(',')[1];
     const mime = files[0].type || 'image/png';
     if (type === 'start') { vidStartB64 = b64; vidStartMime = mime; vidStartMeta = null; }
     else { vidEndB64 = b64; vidEndMime = mime; }
     const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
-    el.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
+    if (el) el.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
+    setVidFrameClearEnabled(type, true);
     updateVidCost();
+  };
+  reader.onerror = function() {
+    if (type === 'start' ? seq !== vidStartReadSeq : seq !== vidEndReadSeq) return;
+    clearVidFrame(type);
   };
   reader.readAsDataURL(files[0]);
 }
@@ -76808,10 +76875,24 @@ async function selectHistForVideo(type, imgId) {
   const items = await loadHistory();
   const img = items.find(i => i.id === imgId);
   if (!img) return;
-  if (type === 'start') { vidStartB64 = img.b64; vidStartMime = img.mime || 'image/png'; vidStartMeta = null; }
-  else { vidEndB64 = img.b64; vidEndMime = img.mime || 'image/png'; }
+  if (type === 'start') {
+    vidStartReadSeq += 1;
+    vidStartB64 = img.b64;
+    vidStartMime = img.mime || 'image/png';
+    vidStartMeta = null;
+    const input = document.getElementById('vidStartInput');
+    if (input) input.value = '';
+  } else {
+    vidEndReadSeq += 1;
+    vidEndB64 = img.b64;
+    vidEndMime = img.mime || 'image/png';
+    const input = document.getElementById('vidEndInput');
+    if (input) input.value = '';
+  }
   const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame');
   if (el) el.innerHTML = '<img src="data:' + (img.mime||'image/png') + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+  setVidFrameClearEnabled(type, true);
+  updateVidCost();
 }
 
 function updateVidCost() {
@@ -76844,7 +76925,9 @@ function getVideoStartPayloadMeta(prompt) {
 }
 
 async function sendVideoToGrokBuild() {
-  if (!vidStartB64) { alert('Grok Build로 보낼 START 프레임을 먼저 넣어주세요'); return; }
+  const sourceB64 = vidStartB64;
+  const sourceMime = vidStartMime;
+  if (!sourceB64) { alert('Grok Build로 보낼 START 프레임을 먼저 넣어주세요'); return; }
   if (grokBuildAbortController) grokBuildAbortController.abort();
   grokBuildAbortController = new AbortController();
   const prompt = getVidTabPromptForGeneration();
@@ -76863,7 +76946,7 @@ async function sendVideoToGrokBuild() {
       method: 'POST',
       headers: getGrokBuildBridgeHeaders(true),
       body: JSON.stringify({
-        image: 'data:' + vidStartMime + ';base64,' + vidStartB64,
+        image: 'data:' + sourceMime + ';base64,' + sourceB64,
         prompt,
         metadata: payloadMeta,
         storyboard: payloadMeta.storyboard,
@@ -83900,6 +83983,46 @@ function updatePromptPreview() {
   let audio={b64:null,mime:'',name:'',dataUrl:''};
   let cuts=[], analysis=null, selProjKey='', gi=-1;
 
+  // ── 작업물 영속화(localStorage) — 스튜디오 나갔다/리로드해도 유지 ──
+  const MV_KEY='zippy_mvstudio_v1';
+  function saveMV(){
+    // 저장할 게 없으면 키 제거(빈 상태 클로버링 방지)
+    if(!(cuts&&cuts.length) && !(audio&&audio.name) && !analysis){ try{localStorage.removeItem(MV_KEY);}catch(e){} return; }
+    const base={ v:1, cuts, analysis, selProjKey, gi,
+      count:(($('mvsCount')||{}).value)||'', context:(($('mvsContext')||{}).value)||'',
+      audioName:(audio&&audio.name)||'', audioMime:(audio&&audio.mime)||'' };
+    // 용량 초과 시 무거운 오디오 필드부터 단계적으로 떨궈 핵심(cuts)은 반드시 저장
+    const tiers=[
+      Object.assign({}, base, {audioDataUrl:(audio&&audio.dataUrl)||'', audioB64:(audio&&audio.b64)||''}),
+      Object.assign({}, base, {audioB64:(audio&&audio.b64)||''}),
+      base
+    ];
+    for(let i=0;i<tiers.length;i++){
+      try{ localStorage.setItem(MV_KEY, JSON.stringify(tiers[i])); return; }catch(e){ /* quota → 더 가볍게 재시도 */ }
+    }
+  }
+  function restoreMV(){
+    let s=null; try{ s=JSON.parse(localStorage.getItem(MV_KEY)||'null'); }catch(e){ s=null; }
+    if(!s) return;
+    cuts=Array.isArray(s.cuts)?s.cuts:[];
+    analysis=s.analysis||null; selProjKey=s.selProjKey||'';
+    gi=(typeof s.gi==='number')?s.gi:-1;
+    audio={ b64:s.audioB64||null, mime:s.audioMime||'', name:s.audioName||'', dataUrl:s.audioDataUrl||'' };
+    if($('mvsCount')&&s.count) $('mvsCount').value=s.count;
+    if($('mvsContext')&&s.context) $('mvsContext').value=s.context;
+    if(audio.dataUrl){ const pl=$('mvsPlayer'); if(pl){ pl.src=audio.dataUrl; pl.style.display='inline-block'; } const cb=$('mvsClear'); if(cb) cb.style.display='inline-flex'; }
+    if(audio.name && $('mvsAudLblTxt')) $('mvsAudLblTxt').textContent='🎵 '+audio.name+' (복원됨)';
+    if(audio.b64){ if($('mvsAnalyze')) $('mvsAnalyze').disabled=false; if($('mvsAudNote')) $('mvsAudNote').textContent='✓ 이전 작업 복원됨 — 이어서 진행하거나 재분석하세요'; }
+    if(analysis) renderAnalysis();
+    if(cuts.length){
+      renderCuts();
+      $('mvsStep2').classList.remove('off');
+      if($('mvsAnStat')) $('mvsAnStat').textContent='✓ 복원됨 · '+cuts.length+'컷';
+      if(selProjKey){ if($('mvsProj')) $('mvsProj').value=selProjKey; $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복원됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
+      if($('mvsLink')) $('mvsLink').disabled=!(selProjKey||$('mvsProj').value);
+    }
+  }
+
   function parseJSONObject(t){ if(!t)return null; const s=t.indexOf('{'),e=t.lastIndexOf('}'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
   function parseJSONArray(t){ if(!t)return null; const s=t.indexOf('['),e=t.lastIndexOf(']'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
 
@@ -83940,6 +84063,7 @@ ${context?('참고 컨텍스트: '+context):''}
       renderAnalysis(); renderCuts();
       $('mvsStep2').classList.remove('off');
       $('mvsAnStat').textContent='✓ '+cuts.length+'컷 생성됨 — 아래 2단계에서 프로젝트를 연동하세요';
+      saveMV();
     }catch(e){
       $('mvsAnStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
@@ -84004,6 +84128,7 @@ ${cutList}
       $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 / 오브제 '+objs.length+'개 → 컷 반영 (오브제 태깅 '+objTagged+'컷)';
       $('mvsStep3').classList.remove('off');
       $('mvsLinkStat').textContent='✓ 연동 완료 — 3단계에서 편입하세요';
+      saveMV();
     }catch(e){
       $('mvsLinkStat').innerHTML='<span style="color:var(--mvs-rec)">✗ '+(e&&e.message||e)+'</span>';
     }
@@ -84107,11 +84232,12 @@ ${cutList}
     $('mvsAnalysis').style.display='none'; $('mvsSB').classList.remove('show'); $('mvsList').innerHTML='';
     $('mvsStep2').classList.add('off'); $('mvsStep3').classList.add('off');
     $('mvsProj').value=''; $('mvsLink').disabled=true; $('mvsLinkStat').textContent=''; $('mvsProjInfo').textContent='';
+    saveMV();
   }
 
   function open(){ $('mvStudio').classList.add('mvs-open'); document.body.style.overflow='hidden'; window.scrollTo(0,0); }
   function close(){ $('mvStudio').classList.remove('mvs-open'); document.body.style.overflow=''; }
-  window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); open(); };
+  window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); if(selProjKey&&$('mvsProj')) $('mvsProj').value=selProjKey; open(); };
 
   function init(){
     if(!$('mvsClose'))return;
@@ -84135,6 +84261,7 @@ ${cutList}
         $('mvsAudNote').innerHTML='<span style="color:var(--mvs-rec)">경량화 실패 — 원본으로 시도 ('+(err&&err.message||err)+')</span>';
       }
       $('mvsAnalyze').disabled=false;
+      saveMV();
     });
     $('mvsClear').onclick=clearAudio;
     $('mvsAnalyze').onclick=analyzeAudio;
@@ -84143,6 +84270,7 @@ ${cutList}
     $('mvsToProject').onclick=toProject;
     $('mvsCopyAll').onclick=()=>copyText(cuts.map(c=>String(c.no).padStart(2,'0')+'. ['+c.sec+' '+c.tc+'] '+cutPrompt(c)).join('\n\n'),$('mvsCopyAll'));
     $('mvsGenres').addEventListener('click',e=>{const b=e.target.closest('.mvs-g');if(!b)return;gi=+b.dataset.i;document.querySelectorAll('#mvsGenres .mvs-g').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRecipe();});
+    restoreMV();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

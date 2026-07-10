@@ -79372,6 +79372,14 @@ function getStyleMode(){
   return (typeof currentProject!=='undefined' && currentProject && currentProject.styleMode && ZIPPY_STYLES[currentProject.styleMode]) ? currentProject.styleMode : 'liveaction';
 }
 function getStyle(){ return ZIPPY_STYLES[getStyleMode()] || ZIPPY_STYLES.liveaction; }
+// 다른 화면(예: MV 스튜디오 오버레이)에서 쓸 글로벌 헬퍼
+function styleOptionsHtml(){ try{ return Object.keys(ZIPPY_STYLES).map(function(k){ return '<option value="'+k+'">'+((ZIPPY_STYLES[k].label)||k)+'</option>'; }).join(''); }catch(e){ return ''; } }
+function mvApplyStyle(k){
+  if(!ZIPPY_STYLES[k]) return;
+  if(typeof PROJECTS!=='undefined' && PROJECTS['mv-remake']) PROJECTS['mv-remake'].styleMode=k;
+  var main=document.getElementById('styleModeSel');
+  if(main && main.querySelector('option[value="'+k+'"]')){ main.value=k; if(typeof onStyleModeChange==='function') onStyleModeChange(); }
+}
 // 스타일 셀렉터 UI (툴바 styleModeSel)
 function populateStyleSelector(){
   var el=document.getElementById('styleModeSel'); if(!el) return;
@@ -84019,7 +84027,8 @@ function updatePromptPreview() {
   <div class="mvs-wrap">
     <header class="mvs-head">
       <div class="mvs-mark"><b>MV</b><span>STUDIO</span></div>
-      <button class="mvs-btn" id="mvsHistBtn" style="margin-left:auto">🕘 히스토리</button>
+      <label style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--mvs-dim,#9aa)" title="이 MV의 이미지 스타일 (편입·이미지 생성 시 적용)">🎨 <select id="mvsStyleSel" onchange="if(window.mvApplyStyle)window.mvApplyStyle(this.value)" style="font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--mvs-line);border-radius:6px;background:var(--mvs-bg);color:#fff"></select></label>
+      <button class="mvs-btn" id="mvsHistBtn">🕘 히스토리</button>
       <button class="mvs-x" id="mvsClose" aria-label="닫기">✕</button>
       <div class="mvs-sub">음원 업로드 → 오디오 분석 → 씬 생성 → 프로젝트 에셋 연동 → 얼굴락 스토리보드 · STUDIO ZIPPY</div>
     </header>
@@ -84474,6 +84483,7 @@ ${cutList}
     $('mvsAnalyze').onclick=analyzeAudio;
     if($('mvsSkip')) $('mvsSkip').onclick=skipToStoryboard;
     if($('mvsHistBtn')) $('mvsHistBtn').onclick=()=>toggleHist();
+    (function(){ var ss=$('mvsStyleSel'); if(ss && typeof window.styleOptionsHtml==='function'){ ss.innerHTML=window.styleOptionsHtml(); var def=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake']&&PROJECTS['mv-remake'].styleMode)||'mvglossy'; if(ss.querySelector('option[value="'+def+'"]')) ss.value=def; } })();
     $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; });
     $('mvsLink').onclick=linkProject;
     $('mvsToProject').onclick=toProject;

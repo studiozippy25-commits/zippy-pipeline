@@ -44867,7 +44867,7 @@ function buildSBRefUI() {
       if (faceHeader) faceHeader.style.display = 'block';
       let html = '';
       charNames2.forEach(function(name, i) {
-        const baseName = name.split(/[\s(（]/)[0];
+        const baseName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name.split(/[\s(（]/)[0];
         const key = 'face' + (i + 1);
         const cap = key.charAt(0).toUpperCase() + key.slice(1);
         html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 얼굴">' + baseName + ' 얼굴</div><div id="sbRef' + cap + '" style="width:120px;height:90px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
@@ -44891,7 +44891,7 @@ function buildSBRefUI() {
       if (costHeader) costHeader.style.display = 'block';
       let html = '';
       charNames.forEach(function(name, i) {
-        const baseName = name.split(/[\s(（]/)[0];
+        const baseName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name.split(/[\s(（]/)[0];
         const key = 'cos' + (i + 1);
         const cap = key.charAt(0).toUpperCase() + key.slice(1);
         html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 의상">' + baseName + ' 의상</div><div id="sbRef' + cap + '" style="width:100px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
@@ -45151,7 +45151,7 @@ function getSBRefsForShot(sceneNum, shotId) {
   charIdxToInclude.forEach(function(i) {
     const cosKey = 'cos' + (i + 1);
     if (sbRefs[cosKey]) {
-      const charName = (charNames[i] || '').split(/[\s(（]/)[0];
+      const charName = (typeof sbCharReal === 'function') ? sbCharReal(charNames[i] || ('Character ' + (i+1))) : (charNames[i] || '').split(/[\s(（]/)[0];
       refs.push({inline_data: {mime_type: sbRefMimes[cosKey], data: sbRefs[cosKey]}, _type:'costume', _label: charName + ' 의상'});
     }
   });
@@ -45419,6 +45419,57 @@ function buildSBRefManifest(images) {
   });
   refManifest += '\n';
   return refManifest;
+}
+
+function buildSBCharacterWardrobeBinding(shot, images) {
+  if (!currentProject || !shot) return '';
+  const charNames = (typeof getProjectCharNamesForRefs === 'function') ? getProjectCharNamesForRefs() : [];
+  if (!charNames.length) return '';
+  const shotText = (((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')) || '').toLowerCase();
+  const visible = [];
+  charNames.forEach(function(name, i) {
+    const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
+    const explicit = Array.isArray(shot.char) && shot.char.indexOf(name) !== -1;
+    const appears = real && real.length >= 2 && shotText.indexOf(real.toLowerCase()) !== -1;
+    if (explicit || appears) visible.push({ name: name, real: real, index: i });
+  });
+  if (!visible.length) return '';
+  const refLabels = (images || []).map(function(img) { return img && img._label ? img._label : ''; }).filter(Boolean);
+  const lines = [
+    'CHARACTER-WARDROBE BINDING LOCK:',
+    'Bind each character identity only to the same-name face/character/costume references listed below. Do NOT transfer another character\'s outfit, harness, goggles, mechanical body, hairstyle, or color placement.'
+  ];
+  visible.forEach(function(ch) {
+    const dna = currentProject.characterDNA ? (currentProject.characterDNA[ch.name] || currentProject.characterDNA[ch.real] || '') : '';
+    const sameNameRefs = refLabels.filter(function(label) { return label.indexOf(ch.real) !== -1; });
+    lines.push('- ' + ch.real + ': use ONLY same-name refs for identity and wardrobe' + (sameNameRefs.length ? ' (' + sameNameRefs.join(' / ') + ')' : '') + '. ' + (dna ? 'DNA: ' + dna : ''));
+  });
+  if (currentProjectKey === 'cloudrider' || currentProject.name === '클라우드라이더') {
+    const hasDaon = visible.some(function(ch) { return ch.real === '다온'; }) || /다온/.test(shotText);
+    const hasHana = visible.some(function(ch) { return ch.real === '하나'; }) || /하나/.test(shotText);
+    if (hasDaon || hasHana || /하온/.test(shotText)) {
+      lines.push('CLOUDRIDER DAON/HANA/HAON SEPARATION: 다온 is a young Korean female companion humanoid with black low bun, white mechanical ear/neck interface, cropped deep-navy jacket, taupe bodysuit, and visible refined mechanical joints. 다온 must NEVER wear 하나\'s oil-stained mechanic coverall, aviator goggles, brown work harness, flight uniform, or mechanic gloves unless the shot explicitly says costume swap.');
+      lines.push('하나 is the human mechanic/pilot and must NEVER inherit 다온\'s white humanoid neck/ear interface, taupe bodysuit, exposed mechanical joints, or synthetic skin seams.');
+      lines.push('하온 is the aircraft/cockpit/prop reference only: cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, four circular ducted drone-wings. Never turn HAON aircraft panels, cockpit straps, paint bands, or mechanical hull parts into 다온 clothing.');
+    }
+  }
+  return lines.join('\n') + '\n\n';
+}
+
+function buildCloudRiderHaonAircraftLock(shot, images) {
+  if (!(currentProjectKey === 'cloudrider' || (currentProject && currentProject.name === '클라우드라이더'))) return '';
+  const text = ((shot && ((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (shot.loc || '') + ' ' + (Array.isArray(shot.obj) ? shot.obj.join(' ') : ''))) || '').toLowerCase();
+  const labels = (images || []).map(function(img) { return String((img && img._label) || '').toLowerCase(); }).join(' ');
+  if (text.indexOf('하온') === -1 && text.indexOf('haon') === -1 && labels.indexOf('하온') === -1 && labels.indexOf('haon') === -1) return '';
+  return [
+    'HAON AIRCRAFT CANONICAL LOCK — NON-NEGOTIABLE:',
+    '하온 is a fixed hero aircraft, not a generic jet, not a car, not a fighter, not a motorcycle, and not a costume source.',
+    'Canonical silhouette: compact two-seat soft-SF rescue/road-movie aircraft with cream-white primary body, deep-navy panels, sky-blue lights, and lemon-yellow band accents.',
+    'Mandatory structure: EXACTLY FOUR circular ducted drone-wings / rotor pods, arranged symmetrically as two pods on the left side and two pods on the right side. The frame may crop some pods, but the visible design must still read as the same four-pod HAON aircraft.',
+    'Cockpit lock: two-seat cockpit/canopy from the HAON cockpit references; readable small craft scale for 하나 + 다온, not a huge military jet. Keep rounded handmade garage-built proportions with worn paint and practical panel seams.',
+    'Forbidden HAON drift: no twin-engine jet redesign, no single pair of rotors, no long fixed airplane wings, no helicopter skids, no orange paint, no random tail fin redesign, no fighter nose, no luxury concept car body, no animal/insect silhouette, no extra pods beyond four.',
+    'If HAON appears with people, keep HAON as a separate aircraft object. Never transfer HAON hull panels, cockpit straps, paint bands, or rotor shapes onto 다온 or 하나 clothing.'
+  ].join('\n') + '\n\n';
 }
 
 function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative) {
@@ -47214,8 +47265,13 @@ async function generateSBShot(shotId, _seq) {
   // Character DNA injection
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
+    const shotTextForDna = ((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')).toLowerCase();
     Object.keys(currentProject.characterDNA).forEach(function(name) {
-      if (shot.desc && shot.desc.indexOf(name) !== -1) {
+      const realName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name;
+      const explicit = Array.isArray(shot.char) && shot.char.indexOf(name) !== -1;
+      const fullHit = String(name || '').toLowerCase() && shotTextForDna.indexOf(String(name || '').toLowerCase()) !== -1;
+      const realHit = String(realName || '').length >= 2 && shotTextForDna.indexOf(String(realName || '').toLowerCase()) !== -1;
+      if (explicit || fullHit || realHit) {
         charDnaBlock += currentProject.characterDNA[name] + '\n';
       }
     });
@@ -47248,7 +47304,7 @@ async function generateSBShot(shotId, _seq) {
   const sceneFullText2 = ((shot.desc||'') + ' ' + (shot.frame||'')).toLowerCase();
   const lockedCostumes = [];
   charNamesAll.forEach(function(name, i) {
-    const baseName = name.split(/[\s(（]/)[0];
+    const baseName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name.split(/[\s(（]/)[0];
     if (sceneFullText2.indexOf(baseName.toLowerCase()) === -1) return; // 씬에 등장 안 하면 스킵
     const cosKey = 'cos' + (i + 1);
     if (sbRefs[cosKey]) return; // 의상 시트 있으면 락 불필요
@@ -47282,6 +47338,8 @@ async function generateSBShot(shotId, _seq) {
     'CRITICAL — Do NOT replicate any grid/collage layout. Do NOT reproduce any visible text, captions, numbers, or labels from references. ' +
     'Extract ONLY: mood, color palette, lighting quality, material/texture, atmospheric tone. ' +
     'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
+  const characterWardrobeLock = (typeof buildSBCharacterWardrobeBinding === 'function') ? buildSBCharacterWardrobeBinding(shot, images) : '';
+  const cloudriderHaonLock = (typeof buildCloudRiderHaonAircraftLock === 'function') ? buildCloudRiderHaonAircraftLock(shot, images) : '';
   const isAnimationProject = currentProject && currentProject.styleMode === 'animation';
   const singleBeatLock = 'SINGLE-BEAT FRAME LOCK:\n' +
     'Treat ACTION as storyboard source notes, not a montage request. Choose exactly ONE visible instant for this shot: the frame implied by CAMERA and SHOT id. ' +
@@ -47322,7 +47380,7 @@ Single animated frame, no text overlay, no border.`
     : `NEGATIVE: ${projNegative}
 no high contrast, no oversaturated colors, no digital clean look, no HDR look, no Instagram filter aesthetic, no average textbook angles, no perfectly centered composition. no CGI, no 3D render, no octane/unreal engine render, no concept art, no digital painting, no video-game cutscene look, no plastic airbrushed skin, no over-smooth glossy surfaces, no HUD overlay, no UI overlay, no floating hologram interface, no vector graphics, no readable text, no title card, no subtitles, no logo, no calligraphy text, no brush-stroke title marks, no graphic black slash overlays.
 Single frame, no text overlay, no border, no watermark. Photorealistic film still.`;
-  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderHaonLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
 LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}

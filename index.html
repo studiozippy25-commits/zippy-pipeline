@@ -564,7 +564,7 @@ input[type=file]{display:none}
 #sbTimelineInner.single-ep-view{display:block !important;min-width:0 !important;width:100%}
 #sbTimelineInner.single-ep-view .sb-scene{width:100%;min-width:0;border-right:none;border-bottom:2px solid var(--bd);display:flex;flex-wrap:wrap;align-content:flex-start}
 #sbTimelineInner.single-ep-view .sb-scene-hdr{width:100%;flex:0 0 100%;position:sticky;top:0;z-index:2}
-#sbTimelineInner.single-ep-view .sb-shot{flex:1 1 210px;width:auto;min-width:190px;max-width:420px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+#sbTimelineInner.single-ep-view .sb-shot{flex:1 1 175px;width:auto;min-width:168px;max-width:380px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
 #sbTimelineInner.single-ep-view.sb-compact .sb-shot{flex-basis:220px;width:220px}
 #sbTimelineInner.single-ep-view .sb-subscene-hdr{position:sticky;top:52px;z-index:1}
 @media (max-width:430px){#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 100%;width:100%}}
@@ -50552,6 +50552,49 @@ const ZIPPY_LIVE_ACTION_MANDATE = [
 const ZIPPY_LIVE_ACTION_NEGATIVE = 'animation, anime, manga, webtoon, illustration, concept art, poster art, 3D render, CGI, game engine, synthetic plastic skin, wax skin, AI-polished face, painterly texture, toon shading, post-production graphics, HUD overlay, UI overlay, floating user interface, vector interface, motion graphics, title card, subtitles, captions, readable text, logo plate, watermark, sharp hologram UI, crisp terminal text, infographic, map overlay, chart overlay, broadcast graphics, data overlay, AR overlay, screen text, calligraphy text, ink typography, brush-stroke title marks, verdict lettering, graphic black slash overlays, stylized text strokes';
 const ZIPPY_ANIMATION_MANDATE = 'ANIMATION MANDATE - 2.5D HYBRID: Render as a premium 2.5D hybrid animation frame: emotional 2D-animation characters (clean line art, soft cel shading, expressive eyes, subtle blush) composited over cinematic semi-3D painterly backgrounds and mecha. Retro-futurism DIY aircraft detail, warm hopeful soft-SF road-movie tone, 2035 near-future Earth. NOT live-action, NOT photorealistic human skin, NOT real actors, NOT photography.';
 const ZIPPY_ANIMATION_NEGATIVE = 'live-action footage, real human photography, photorealistic skin pores, real actors, film photograph, documentary photo, horror, gore, watermark, logo, readable text overlay, subtitles';
+const GTI_LIGHTING_FIX = 'GTI LIGHTING CONTROL: keep tone bright-neutral, balanced-to-warm practical light, readable shadows, and full shadow detail. Avoid dark noir, low-key lighting, heavy chromatic split shadows, deep underexposed areas, oppressive blue/green mood, high contrast drama, or cinematic gloom. Prefer natural fill where needed and preserve facial visibility.';
+const GTI_SHOT_LOCK = 'SHOT CONSISTENCY LOCK: SHOT SIZE instructions are mandatory and must be treated as exact frame-framing contracts. Do not alter subject scale relative to frame between batches.';
+const SHOT_SIZE_DIRECTIVES = {
+  'EWS':'EXTREME WIDE SHOT: character tiny, under 15% of frame height. Environment fills 85%+.',
+  'WS':'WIDE SHOT: full body with generous space around. Character ~40% of frame height.',
+  'FS':'FULL SHOT: entire body head to feet fills frame. Head near top, feet near bottom.',
+  'FS 풀샷':'FULL SHOT: entire body head to feet fills frame. Head near top, feet near bottom.',
+  'COWBOY 카우보이':'COWBOY SHOT: frame cuts at mid-thigh. Holster and hip visible.',
+  'MFS':'MEDIUM FULL SHOT: frame cuts at mid-calf. Most legs visible.',
+  'MS':'MEDIUM SHOT: frame cuts at waist. No lower body. Upper body and face.',
+  'MS 미디엄':'MEDIUM SHOT: frame cuts at waist. No lower body. Upper body and face.',
+  'KNEE SHOT':'KNEE SHOT: frame cuts just below knees. Full torso and head visible.',
+  'KNEE':'KNEE SHOT: frame cuts just below knees. Full torso and head visible.',
+  'MCU':'MEDIUM CLOSE-UP: frame cuts at mid-chest. Face large. No waist.',
+  'MCU 바스트':'MEDIUM CLOSE-UP: frame cuts at mid-chest. Face large. No waist.',
+  'CHOKER':'CHOKER SHOT: chin to just above crown. Neck visible. No shoulders.',
+  'CHOKER SHOT':'CHOKER SHOT: chin to just above crown. Neck visible. No shoulders.',
+  'CU':'CLOSE-UP: face fills entire frame chin to crown. Every pore visible. No shoulders.',
+  'CU 클로즈업':'CLOSE-UP: face fills entire frame chin to crown. Every pore visible. No shoulders.',
+  'ECU':'EXTREME CLOSE-UP: eyes and nose ONLY. Maximum psychological intensity.',
+  'ECU 익스트림':'EXTREME CLOSE-UP: eyes and nose ONLY. Maximum psychological intensity.',
+  'INSERT':'INSERT SHOT: NO FACE. Extreme close-up of hand, object or prop only.',
+  'INSERT SHOT':'INSERT SHOT: NO FACE. Extreme close-up of hand, object or prop only.',
+  'INSERT 인서트':'INSERT SHOT: NO FACE. Extreme close-up of hand, object or prop only.',
+  'TWO SHOT':'TWO SHOT: two people in frame simultaneously. Both faces clearly visible.',
+  'TWO':'TWO SHOT: two people in frame simultaneously. Both faces clearly visible.',
+  'OTS':'OVER-THE-SHOULDER SHOT: shoulder and upper torso area visible with subject\'s face partly hidden.',
+  'CLOSE-UP':'CLOSE-UP: face fills entire frame chin to crown. Every pore visible. No shoulders.',
+  'EXTREME CLOSE-UP':'EXTREME CLOSE-UP: eyes and nose ONLY. Maximum psychological intensity.'
+};
+function getShotSizeDirective(rawShot, fallbackText) {
+  const shot = String(rawShot || '').trim();
+  const fallback = fallbackText || '';
+  if (!shot) return fallback;
+  const directKey = shot.toUpperCase();
+  if (SHOT_SIZE_DIRECTIVES[directKey]) return SHOT_SIZE_DIRECTIVES[directKey];
+  if (SHOT_SIZE_DIRECTIVES[shot]) return SHOT_SIZE_DIRECTIVES[shot];
+  const compact = directKey.replace(/\\s+/g, ' ');
+  if (SHOT_SIZE_DIRECTIVES[compact]) return SHOT_SIZE_DIRECTIVES[compact];
+  const normalized = compact.split(' ')[0];
+  if (SHOT_SIZE_DIRECTIVES[normalized]) return SHOT_SIZE_DIRECTIVES[normalized];
+  return fallback;
+}
 function enforceLiveActionPrompt(prompt) {
   if (typeof currentProject !== 'undefined' && currentProject && currentProject.styleMode === 'animation') { return ZIPPY_ANIMATION_MANDATE + String.fromCharCode(10,10) + (prompt || ''); }
   return ZIPPY_LIVE_ACTION_MANDATE + '\\n\\n' + (prompt || '');
@@ -50624,7 +50667,7 @@ async function callGtiBridge({images=[], prompt, signal=null, onProgress=null}) 
   const buildPayload = function(refs, note) {
     const prefix = buildImageRefManifestForPrompt(refs);
     return {
-      prompt: (note || '') + prefix + prompt,
+      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n\\n' + prompt,
       size: size,
       images: (refs || []).map(function(im) { return { b64: im.b64, mime: im.mime || 'image/png' }; })
     };
@@ -53569,7 +53612,7 @@ ${ratioHint}${resHint}` + _dnaBlock + _mbStyle;
       let cutAngleBlock = '';
       if (_enabledCuts.length > 0 && _enabledCuts[i % _enabledCuts.length]) {
         const cut = _enabledCuts[i % _enabledCuts.length];
-        cutAngleBlock = '\nCAMERA ANGLE: ' + cut.anglePrompt + '\nSHOT SIZE: ' + (cut.shot || '') + ' shot';
+        cutAngleBlock = '\nCAMERA ANGLE: ' + cut.anglePrompt + '\nSHOT SIZE: ' + getShotSizeDirective(cut.shot, (cut.shot || '') + ' shot');
       }
       try{
         const{imgB64}=await callImageGen({images:allImages,prompt:genPrompt+cutAngleBlock,resVal,signal:abortCtrl2?.signal});
@@ -53826,22 +53869,7 @@ CHARACTER IDENTITY LOCK:
         setLs(3,`${lt.dataset.lens} | ${s.textContent} × ${a.textContent} (${totalDone}/${totalAll})`);
 
         // ZIPPY + DNA-Lock 통합 프롬프트
-        const shotMap = {
-          "EWS":           "EXTREME WIDE SHOT: character tiny, under 15% of frame height. Environment fills 85%+.",
-          "WS":            "WIDE SHOT: full body with generous space around. Character ~40% of frame height.",
-          "FS 풀샷":       "FULL SHOT: entire body head to feet fills frame. Head near top, feet near bottom.",
-          "Cowboy 카우보이":"COWBOY SHOT: frame cuts at mid-thigh. Holster and hip visible.",
-          "Knee Shot":     "KNEE SHOT: frame cuts just below knees. Full torso and head visible.",
-          "MFS":           "MEDIUM FULL SHOT: frame cuts at mid-calf. Most legs visible.",
-          "MS 미디엄":     "MEDIUM SHOT: frame cuts at waist. No lower body. Upper body and face.",
-          "MCU 바스트":    "MEDIUM CLOSE-UP: frame cuts at mid-chest. Face large. No waist.",
-          "Choker":        "CHOKER SHOT: chin to just above crown. Neck visible. No shoulders.",
-          "CU 클로즈업":   "CLOSE-UP: face fills entire frame chin to crown. Every pore visible. No shoulders.",
-          "ECU 익스트림":  "EXTREME CLOSE-UP: eyes and nose ONLY. Maximum psychological intensity.",
-          "Insert 인서트": "INSERT SHOT: NO FACE. Extreme close-up of hand, object or prop only.",
-          "Two Shot":      "TWO SHOT: two people in frame simultaneously. Both faces clearly visible."
-        };
-        const shotInstruction = shotMap[s.textContent] || ("Shot size: " + s.dataset.en);
+        const shotInstruction = getShotSizeDirective(s.textContent, s.dataset.en);
         const angleInstruction = a.dataset.en;
         const resHint3={"1K":"","2K":"Generate at high 2K resolution.","4K":"Generate at ultra-high 4K resolution, maximum detail."}[resVal]||"";
         const ratioVal3 = getSegVal('seg-ratio3') || '1:1';

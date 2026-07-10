@@ -876,6 +876,7 @@ input[type=file]{display:none}
 .gv-video video{width:100%;max-height:720px;display:block}
 @media(max-width:760px){.ip-top-grid{grid-template-columns:1fr}.ip-box-head{flex-direction:column}.ip-results{grid-template-columns:1fr}}
 </style>
+  <!-- CLOUDRIDER_CANON_ERROR_FIX_260710 -->
 </head>
 <body>
 <div class="gbg"></div>
@@ -71002,10 +71003,97 @@ function renderProjectReferenceGallery() {
   }).join('');
 }
 
+function normalizeCloudRiderPipelineData(project) {
+  if (!project || project.__canonErrorFix260710) return;
+  project.__canonErrorFix260710 = true;
+
+  const episodeTimes = {
+    1:'밤→새벽', 2:'낮', 3:'새벽', 4:'아침', 5:'낮→밤', 6:'오후→폭풍', 7:'해질녘→밤', 8:'낮', 9:'낮', 10:'밤',
+    11:'흐린 낮', 12:'밤·오로라', 13:'낮', 14:'비 오는 낮', 15:'극지 낮', 16:'극지 밤', 17:'흐린 낮', 18:'밤→새벽', 19:'낮', 20:'해질녘→노을'
+  };
+  Object.keys(project.scenePresets || {}).forEach(function(k) {
+    if (episodeTimes[k]) project.scenePresets[k].time = episodeTimes[k];
+  });
+
+  if (project.spaceNames.indexOf('북해 외부 항로') === -1) project.spaceNames.push('북해 외부 항로');
+  if (project.locations.indexOf('북해 외부 항로') === -1) project.locations.push('북해 외부 항로');
+  project.spaceDNA['북해 외부 항로'] = '북해 야간 외부 항로. 하온 외형과 얼음 낀 캐노피가 바다·성에·항구 불빛 사이에서 분명히 읽히는 외부 비행 공간.';
+  project.defaultSpaceRefs['북해 외부 항로'] = 'assets/cloudrider/space/080_CR_ENV_NORTH_SEA_MASTER_WIDE_v001_v5_0_final_candidate.png?v=260707';
+
+  const shots = project.storyboardShots || [];
+  function env(refs, code) {
+    const value = String(refs || 'DNA락 유지');
+    return /CR_ENV_[A-Z0-9_]+/.test(value) ? value.replace(/CR_ENV_[A-Z0-9_]+/, code) : value + ' / ' + code;
+  }
+  function patchCore(id, patch) {
+    const core = shots.find(function(s){ return s.id === id; });
+    if (!core) throw new Error('CloudRider shot not found: ' + id);
+    const oldDesc = core.desc || '';
+    Object.assign(core, patch);
+    shots.forEach(function(s) {
+      if (s.supportFor !== id) return;
+      if (oldDesc && s.desc) s.desc = s.desc.split(oldDesc).join(core.desc || oldDesc);
+      if (patch.loc) s.loc = patch.loc;
+      if (patch.time) s.time = patch.time;
+    });
+  }
+
+  ['EP01-C14','EP01-C15'].forEach(function(id) {
+    const shot = shots.find(function(s){ return s.id === id; });
+    patchCore(id, {
+      loc: '문래 옥상 활주대', rawLocation: '회상 속 문래 옥상', time: '낮·회상',
+      assetRefs: env(shot && shot.assetRefs, 'CR_ENV_ROOF_TAKEOFF_MASTER_WIDE')
+    });
+  });
+  shots.forEach(function(s) {
+    const supportCut = String(s.supportFor || '').match(/^EP01-C(2[5-9]|30)$/);
+    if ((s.ep === 1 && Number(s.cut) >= 25) || supportCut) s.time = '새벽';
+    if (s.ep === 5 && Number(s.scene) === 4) s.time = '저녁';
+    if (s.ep === 5 && Number(s.scene) === 5) s.time = '밤';
+    if (s.ep === 7 && Number(s.scene) === 5) s.time = '밤';
+  });
+
+  ['EP10-C01','EP10-C25','EP10-C30'].forEach(function(id) {
+    const shot = shots.find(function(s){ return s.id === id; });
+    patchCore(id, {
+      loc: '북해 외부 항로', rawLocation: '북해 외부 항로', time: '밤',
+      assetRefs: env(shot && shot.assetRefs, 'CR_ENV_NORTH_SEA_MASTER_WIDE')
+    });
+  });
+
+  const ep15c01 = shots.find(function(s){ return s.id === 'EP15-C01'; });
+  patchCore('EP15-C01', {assetRefs: env(ep15c01 && ep15c01.assetRefs, 'CR_ENV_MAGNETIC_STORM_MASTER_WIDE')});
+
+  patchCore('EP14-C29', {
+    desc: '콕핏 통신창에 미라가 보낸 극지 중계선 자기폭풍 긴급 경보가 들어온다. 다온이 서울 귀환 항로 앞에 북쪽 우회점을 표시한다. 대사/내레이션: 미라(통신): 서울로 가기 전에 극지 중계선을 확인해야 해. 신호가 곧 끊겨.',
+    dialogue: '미라(통신): 서울로 가기 전에 극지 중계선을 확인해야 해. 신호가 곧 끊겨.',
+    func: 'EP15 극지 우회 긴급 연결',
+    screen: '콕핏 통신창의 자기폭풍 경보와 귀환 항로 앞에 추가되는 북쪽 우회점',
+    emotion: '귀환 직전의 책임',
+    props: '하온 콕핏, 자기폭풍 경보, 서울 귀환 항로, 극지 중계선 우회점',
+    assetRefs: 'DNA락 유지 · CR_ENV_DOCKING_DECK_DEPART / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_INTERIOR_COCKPIT / CR_MECH_SPARK_WEATHER_WARNING / CR_PROP_MAP_ROUTE_BOARD'
+  });
+  patchCore('EP14-C30', {
+    desc: '비가 갠 일본 항만 위에서 하온의 귀환 항적이 북쪽 우회 항로로 부드럽게 휘어진다. 맑아지는 구름 너머 극지 방향의 옅은 청록광이 보인다. 대사/내레이션: 하나(내레이션): 집은 도망가지 않는다. 먼저 끊어질 신호를 데리러 간다.',
+    dialogue: '하나(내레이션): 집은 도망가지 않는다. 먼저 끊어질 신호를 데리러 간다.',
+    func: 'EP15 극지 관문 연결, 귀환 목표 유지',
+    screen: '일본 항만 위 하온의 항적이 서울 귀환선에서 북쪽 극지 우회 항로로 휘어진다',
+    emotion: '책임 있는 우회와 여운',
+    light: '비 갠 블루, 북쪽 옅은 청록광',
+    props: '항만 활주로, 하온, 서울 귀환선, 극지 우회 항로',
+    assetRefs: 'DNA락 유지 · CR_ENV_DOCKING_DECK_DEPART / CR_MECH_HAON_EXTERIOR_TURNAROUND / CR_MECH_SPARK_WEATHER_WARNING'
+  });
+
+  const friendCraft = (project.objectAssets || []).find(function(o){ return o.key === 'obj-friendcraft'; });
+  if (friendCraft) friendCraft.desc += ' MIRA OVERRIDE: 미라 등장 컷에서는 전용 V2 NO_HORNS 시트가 이 통합 시트보다 우선한다.';
+  project.stability += ' DA-ON NAME RULE: EP01-17의 다온/DA-ON은 임시 시스템 식별명·콜사인이고, EP18에서 동일한 소리를 자기 개인 이름 다온으로 선택한다. COLOR EXCEPTION: 자연 노을·구조등·경고등·다온 코어의 주황빛은 허용하며 하온 오렌지 도장과 탁한 틸-오렌지 전역 그레이딩만 금지한다. MIRA PRIORITY: 전용 V2 NO_HORNS 시트가 통합 친구 기체 시트보다 우선한다.';
+}
+
 function selectProject(key) {
   currentProjectKey = key;
   currentProject = PROJECTS[key];
   if (!currentProject) return;
+  if (key === 'cloudrider') normalizeCloudRiderPipelineData(currentProject);
   if (typeof syncStyleSelectorToProject === 'function') syncStyleSelectorToProject();
 
   // 프로젝트 전환 시 에셋 라이브러리/레퍼런스 캐시 초기화 (프로젝트 간 키비주얼 누출 방지)
@@ -72191,6 +72279,63 @@ function sbCharKeywords(presetKey){
   if (SB_CHAR_ALIAS[real]) kws=kws.concat(SB_CHAR_ALIAS[real]);
   return kws.map(function(k){return (k||'').toLowerCase();}).filter(function(k){return k.length>=2;});
 }
+function isCloudRiderProject() {
+  return currentProjectKey === 'cloudrider' || (currentProject && (currentProject.name === 'CLOUDRIDER' || currentProject.nameEn === '클라우드라이더'));
+}
+
+function cloudRiderShotVisualText(shot) {
+  if (!shot) return '';
+  const desc = String(shot.desc || '').split(/대사\/내레이션:|대사:|dialogue:|narration:/i)[0];
+  return [shot.screen || '', desc, shot.frame || '', shot.func || ''].join(' ').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function cloudRiderNameIsVoiceOnly(visualText, realName) {
+  const lowName = String(realName || '').toLowerCase();
+  const at = visualText.indexOf(lowName);
+  if (at < 0) return false;
+  const around = visualText.slice(Math.max(0, at - 24), at + lowName.length + 30);
+  const remote = /통신|무전|채널|목소리|음성|내레이션|v\.o|offscreen|speaker|radio/.test(around);
+  const embodied = /얼굴|표정|눈|시선|손|몸|실루엣|서 있다|앉아|걷|보인다|화면 속 얼굴/.test(around);
+  return remote && !embodied;
+}
+
+function getCloudRiderVisibleCharacterIndices(shot, charNames) {
+  if (!isCloudRiderProject() || !shot) return null;
+  const visualText = cloudRiderShotVisualText(shot);
+  const declared = Array.isArray(shot.char) ? shot.char : [];
+  const matched = [];
+
+  // Runtime-support inserts deliberately carry char:[] even when their inherited
+  // source note mentions a character. Keep those shots object/environment-only.
+  if (shot.shotRole === 'support' && declared.length === 0) return matched;
+
+  (charNames || []).forEach(function(name, i) {
+    const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
+    const low = String(real || '').toLowerCase();
+    if (!low || visualText.indexOf(low) === -1) return;
+    // “하나” is also the Korean numeral one. Require an actor-shaped particle or
+    // body/wardrobe phrase so “하나의 차고”, “약속 하나” cannot attach Hana refs.
+    if (real === '하나' && !/하나(?:가|는|를|와|에게|도|의\s*(?:얼굴|눈|시선|손|표정|몸|실루엣|머리|고글|정비복|비행복)|\s*[,·—-]|\s*(?:옆|앞|뒤|너머|쪽))/.test(visualText)) return;
+    if (real === '스파크' && !/스파크.{0,28}(아바타|홀로그램|ui|화면|파형)|(?:아바타|홀로그램|ui|화면|파형).{0,28}스파크/.test(visualText)) return;
+    if (cloudRiderNameIsVoiceOnly(visualText, real)) return;
+    matched.push(i);
+  });
+
+  if (!matched.length && /두 사람|둘이|나란히|투샷|\b2s\b|어깨 너머/.test(visualText)) {
+    (charNames || []).forEach(function(name, i) {
+      if (matched.length >= 2 || declared.indexOf(name) === -1) return;
+      const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
+      if (real !== '스파크') matched.push(i);
+    });
+  }
+
+  if (!matched.length && declared.length === 1 && !/\bews\b|insert|인서트|매크로|계기|패널|기체|하온|풍경|전경|항적|로터|드론윙/.test(visualText)) {
+    const only = (charNames || []).indexOf(declared[0]);
+    if (only >= 0) matched.push(only);
+  }
+  return matched;
+}
+
 function getSBRefsForShot(sceneNum, shotId) {
   const refs = [];
   const preset = SCENE_PRESETS[String(sceneNum)] || {};
@@ -72217,7 +72362,10 @@ function getSBRefsForShot(sceneNum, shotId) {
   // ── 인물: 쇼트에 등장하는 캐릭터만 ──
   const charNames = getProjectCharNamesForRefs();
   let matchedCharIndices;
-  if (_targetShot && Array.isArray(_targetShot.char) && _targetShot.char.length) {
+  const cloudRiderVisibleIndices = getCloudRiderVisibleCharacterIndices(_targetShot, charNames);
+  if (Array.isArray(cloudRiderVisibleIndices)) {
+    matchedCharIndices = cloudRiderVisibleIndices;
+  } else if (_targetShot && Array.isArray(_targetShot.char) && _targetShot.char.length) {
     matchedCharIndices = [];
     charNames.forEach(function(name, i){ if (_targetShot.char.indexOf(name) !== -1) matchedCharIndices.push(i); });
   } else {
@@ -72247,7 +72395,7 @@ function getSBRefsForShot(sceneNum, shotId) {
       refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}, _type:'character', _label: label});
     }
   });
-  if (refs.length === 0 && assetLib.char.length > 0) {
+  if (refs.length === 0 && assetLib.char.length > 0 && !isCloudRiderProject()) {
     assetLib.char.forEach(function(a, i) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}, _type:'character', _label:'Character ' + (i+1)});
     });
@@ -72601,13 +72749,18 @@ function buildSBCharacterWardrobeBinding(shot, images) {
   if (!currentProject || !shot) return '';
   const charNames = (typeof getProjectCharNamesForRefs === 'function') ? getProjectCharNamesForRefs() : [];
   if (!charNames.length) return '';
-  const shotText = (((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')) || '').toLowerCase();
+  const shotText = isCloudRiderProject()
+    ? cloudRiderShotVisualText(shot)
+    : (((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')) || '').toLowerCase();
   const visible = [];
+  const cloudRiderVisibleIndices = getCloudRiderVisibleCharacterIndices(shot, charNames);
   charNames.forEach(function(name, i) {
     const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
-    const explicit = Array.isArray(shot.char) && shot.char.indexOf(name) !== -1;
+    const explicit = Array.isArray(cloudRiderVisibleIndices)
+      ? cloudRiderVisibleIndices.indexOf(i) !== -1
+      : (Array.isArray(shot.char) && shot.char.indexOf(name) !== -1);
     const appears = real && real.length >= 2 && shotText.indexOf(real.toLowerCase()) !== -1;
-    if (explicit || appears) visible.push({ name: name, real: real, index: i });
+    if (explicit || (!Array.isArray(cloudRiderVisibleIndices) && appears)) visible.push({ name: name, real: real, index: i });
   });
   if (!visible.length) return '';
   const refLabels = (images || []).map(function(img) { return img && img._label ? img._label : ''; }).filter(Boolean);
@@ -72675,6 +72828,25 @@ function buildCloudRiderWorldToneLock() {
   ].join('\n') + '\n\n';
 }
 
+function buildCloudRiderCanonSafetyLock(shot) {
+  if (!isCloudRiderProject()) return '';
+  const ep = Number(shot && shot.ep);
+  const text = cloudRiderShotVisualText(shot);
+  const lines = [
+    'CLOUDRIDER CANON SAFETY OVERRIDES — SHOT-SPECIFIC:',
+    'Current SHOT action, screen description, location, time, and camera are authoritative over episode-level presets. A flashback, exterior, insert, dawn, night, or location transition must use its own shot metadata; never inherit the previous room or sequence background.',
+    'COLOR RULE: natural orange in sunrise/sunset, rescue lamps, warning lights, firelight, or Daon core warmth is allowed when scripted. Only orange HAON paint drift and dominant muddy teal-orange blockbuster grading are forbidden.',
+    'MIRA AIRCRAFT PRIORITY: the dedicated CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707 reference overrides the older four-friend master wherever Mira or her craft appears. No horns, antlers, animal ears, or horn-like vertical protrusions.'
+  ];
+  if (Number.isFinite(ep)) {
+    if (ep < 18) lines.push('DA-ON NAME CONTINUITY: before EP18, “다온/DA-ON” is the provisional system identifier and call-sign already used by the crew. Do not imply that she has completed her personal naming choice yet.');
+    else if (ep === 18) lines.push('DA-ON NAME CONTINUITY: EP18 is a self-naming event. She adopts the already familiar system sound “DA-ON” as her own personal Korean name “다온”. This is emotional/legal self-ownership, not a body transformation; keep the exact same face, body, hair, and wardrobe.');
+    else lines.push('DA-ON NAME CONTINUITY: after EP18, “다온” is her self-chosen personal name. Preserve the same identity and design established before naming.');
+  }
+  if (/미라|mira/.test(text)) lines.push('Use Mira V2 no-horns aircraft identity only; ignore conflicting horn-like geometry from group/master reference sheets.');
+  return lines.join('\n') + '\n\n';
+}
+
 const PROJECT_CANON_REGISTRY = {
   ncity: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}},
   proofOfTaste: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}},
@@ -72725,6 +72897,7 @@ function sbContinuityCleanText(v) {
 function sbContinuityTimeKey(shot) {
   const t = sbContinuityCleanText((shot && (shot.time || shot.light || ''))).toLowerCase();
   if (!t) return 'unknown';
+  if (t.indexOf('새벽') !== -1 || t.indexOf('여명') !== -1 || t.indexOf('dawn') !== -1) return 'dawn';
   if (t.indexOf('아침') !== -1 || t.indexOf('morning') !== -1) return 'morning';
   if (t.indexOf('오전') !== -1) return 'morning';
   if (t.indexOf('낮') !== -1 || t.indexOf('오후') !== -1 || t.indexOf('day') !== -1) return 'day';
@@ -72749,13 +72922,18 @@ function sbContinuityLocationKey(shot) {
 }
 function sbContinuityCharacterSet(shot) {
   const out = [];
-  const text = sbContinuityCleanText((shot && shot.desc || '') + ' ' + (shot && shot.frame || '') + ' ' + (Array.isArray(shot && shot.char) ? shot.char.join(' ') : '')).toLowerCase();
+  const text = isCloudRiderProject()
+    ? cloudRiderShotVisualText(shot)
+    : sbContinuityCleanText((shot && shot.desc || '') + ' ' + (shot && shot.frame || '') + ' ' + (Array.isArray(shot && shot.char) ? shot.char.join(' ') : '')).toLowerCase();
   const names = (typeof getProjectCharNamesForRefs === 'function') ? getProjectCharNamesForRefs() : [];
-  names.forEach(function(name) {
+  const cloudRiderVisibleIndices = getCloudRiderVisibleCharacterIndices(shot, names);
+  names.forEach(function(name, i) {
     const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
     const low = String(real || name || '').toLowerCase();
     if (!low) return;
-    if ((Array.isArray(shot && shot.char) && (shot.char.indexOf(name) !== -1 || shot.char.indexOf(real) !== -1)) || text.indexOf(low) !== -1) {
+    const visibleByCloudRiderRule = Array.isArray(cloudRiderVisibleIndices) && cloudRiderVisibleIndices.indexOf(i) !== -1;
+    const visibleByDefaultRule = !Array.isArray(cloudRiderVisibleIndices) && (((Array.isArray(shot && shot.char) && (shot.char.indexOf(name) !== -1 || shot.char.indexOf(real) !== -1)) || text.indexOf(low) !== -1));
+    if (visibleByCloudRiderRule || visibleByDefaultRule) {
       if (out.indexOf(real) === -1) out.push(real);
     }
   });
@@ -72775,7 +72953,7 @@ function sbContinuityCanCarryBackgroundScale(scale) {
 }
 function sbContinuityResetRequested(shot) {
   const t = sbContinuityCleanText((shot && shot.desc || '') + ' ' + (shot && shot.frame || '')).toLowerCase();
-  return /장소 변경|다른 장소|다른 방|다른 시간|안에서 밖|밖에서 안|실내에서 실외|실외에서 실내|새로운 하루|새 날|다음 날|의상 변경|지금 입은|새 의상|바뀐|변한|회상|기억|꿈|몽타주|전투 후|사고 후|flashback|memory|dream|montage|costume change|location change|time jump|new day|different room|outside to inside|inside to outside|interior to exterior|exterior to interior|after battle|after accident|now wearing|changed|different/.test(t);
+  return /장소 변경|다른 장소|다른 방|다른 시간|안에서 밖|밖에서 안|실내에서 실외|실외에서 실내|새로운 하루|새 날|다음 날|의상 변경|지금 입은|새 의상|바뀐|변한|회상|기억 장면|기억으로 전환|꿈|몽타주|전투 후|사고 후|flashback|memory sequence|dream|montage|costume change|location change|time jump|new day|different room|outside to inside|inside to outside|interior to exterior|exterior to interior|after battle|after accident|now wearing|changed|different/.test(t);
 }
 function sbContinuityGroupBase(shot) {
   const projectKey = getContinuityProjectKey();
@@ -74862,13 +75040,19 @@ async function generateSBShot(shotId, _seq) {
   // Character DNA injection
   let charDnaBlock = '';
   if (currentProject && currentProject.characterDNA) {
-    const shotTextForDna = ((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')).toLowerCase();
-    Object.keys(currentProject.characterDNA).forEach(function(name) {
+    const dnaNames = Object.keys(currentProject.characterDNA);
+    const shotTextForDna = isCloudRiderProject()
+      ? cloudRiderShotVisualText(shot)
+      : ((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (Array.isArray(shot.char) ? shot.char.join(' ') : '')).toLowerCase();
+    const cloudRiderVisibleIndices = getCloudRiderVisibleCharacterIndices(shot, dnaNames);
+    dnaNames.forEach(function(name, i) {
       const realName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name;
-      const explicit = Array.isArray(shot.char) && shot.char.indexOf(name) !== -1;
+      const explicit = Array.isArray(cloudRiderVisibleIndices)
+        ? cloudRiderVisibleIndices.indexOf(i) !== -1
+        : (Array.isArray(shot.char) && shot.char.indexOf(name) !== -1);
       const fullHit = String(name || '').toLowerCase() && shotTextForDna.indexOf(String(name || '').toLowerCase()) !== -1;
       const realHit = String(realName || '').length >= 2 && shotTextForDna.indexOf(String(realName || '').toLowerCase()) !== -1;
-      if (explicit || fullHit || realHit) {
+      if (explicit || (!Array.isArray(cloudRiderVisibleIndices) && (fullHit || realHit))) {
         charDnaBlock += currentProject.characterDNA[name] + '\n';
       }
     });
@@ -74938,6 +75122,7 @@ async function generateSBShot(shotId, _seq) {
     'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
   const characterWardrobeLock = (typeof buildSBCharacterWardrobeBinding === 'function') ? buildSBCharacterWardrobeBinding(shot, images) : '';
   const cloudriderWorldToneLock = (typeof buildCloudRiderWorldToneLock === 'function') ? buildCloudRiderWorldToneLock() : '';
+  const cloudriderCanonSafetyLock = (typeof buildCloudRiderCanonSafetyLock === 'function') ? buildCloudRiderCanonSafetyLock(shot) : '';
   const cloudriderHaonLock = (typeof buildCloudRiderHaonAircraftLock === 'function') ? buildCloudRiderHaonAircraftLock(shot, images) : '';
   const __styleKey = (typeof getStyleMode === 'function') ? getStyleMode() : 'liveaction';
   const __S = (typeof ZIPPY_STYLES !== 'undefined' && ZIPPY_STYLES[__styleKey]) ? ZIPPY_STYLES[__styleKey] : null;
@@ -74973,7 +75158,7 @@ Single animated frame, no text overlay, no border.`
     : `NEGATIVE: ${projNegative}
 ${styleBaseNeg(__kind)}
 Single frame, no text overlay, no border, no watermark.`;
-  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
 LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}

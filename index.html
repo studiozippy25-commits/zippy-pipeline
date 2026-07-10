@@ -564,10 +564,10 @@ input[type=file]{display:none}
 #sbTimelineInner.single-ep-view{display:block !important;min-width:0 !important;width:100%}
 #sbTimelineInner.single-ep-view .sb-scene{width:100%;min-width:0;border-right:none;border-bottom:2px solid var(--bd);display:flex;flex-wrap:wrap;align-content:flex-start}
 #sbTimelineInner.single-ep-view .sb-scene-hdr{width:100%;flex:0 0 100%;position:sticky;top:0;z-index:2}
-#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 340px;width:340px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+#sbTimelineInner.single-ep-view .sb-shot{flex:1 1 210px;width:auto;min-width:190px;max-width:420px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
 #sbTimelineInner.single-ep-view.sb-compact .sb-shot{flex-basis:220px;width:220px}
 #sbTimelineInner.single-ep-view .sb-subscene-hdr{position:sticky;top:52px;z-index:1}
-@media (max-width:760px){#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 100%;width:100%}}
+@media (max-width:430px){#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 100%;width:100%}}
 .sb-shot{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.06);transition:background .15s}
 .sb-shot:hover{background:rgba(0,0,0,.02)}
 .sb-shot-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
@@ -46207,6 +46207,8 @@ function buildStoryboardTimeline() {
     });
     inner.innerHTML = html;
     updateSBProgress();
+    if (epNums.length === 1) inner.classList.add('single-ep-view');
+    else inner.classList.remove('single-ep-view');
     applySBViewDensity();
     // 대용량 기본 필터
     let hydratedByFilter = false;

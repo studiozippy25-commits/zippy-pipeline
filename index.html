@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Grok UI video URL normalize 2026-07-10 -->
 <html lang="ko">
 <head>
 <meta name="zippy-deploy-marker" content="deploy-marker-20260708-150629">
@@ -1672,10 +1673,10 @@ input[type=file]{display:none}
             <input id="sbGrokBuildBridgeKey" type="password" placeholder="외부 브릿지 보호 키" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">길이
-            <select id="sbVideoDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="5">5초</option><option value="10">10초</option></select>
+            <select id="sbVideoDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="6" selected>6초</option><option value="10">10초</option><option value="15">15초</option></select>
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">품질
-            <select id="sbVideoQuality" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="720p">720p</option><option value="1080p">1080p</option></select>
+            <select id="sbVideoQuality" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="480p">480p</option><option value="720p" selected>720p</option></select>
           </label>
           <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">카메라 무빙
             <select id="sbCameraMove" class="cm-select" onchange="applyCameraMoveToSBPrompt(this.value)"><option value="auto">자동 추천</option></select>
@@ -3094,6 +3095,15 @@ input[type=file]{display:none}
         <input id="grokBuildBridgeKey" type="password" placeholder="외부 브릿지 보호 키" autocomplete="off" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
       </label>
       <button class="btn bgh bsm" onclick="checkGrokBuildBridge()">브릿지 확인</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-bottom:10px">
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Grok 길이
+        <select id="grokBuildDuration" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="6" selected>6초</option><option value="10">10초</option><option value="15">15초</option></select>
+      </label>
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">Grok 해상도
+        <select id="grokBuildResolution" style="padding:9px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)"><option value="480p">480p</option><option value="720p" selected>720p</option></select>
+      </label>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.55">SuperGrok Heavy 기준: 6초 / 10초 / 15초, 480p / 720p</div>
     </div>
     <div style="margin:10px 0 12px">
       <div class="cfg-lbl">Grok 전송 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">인스타그램/스토리보드 이미지와 함께 전송</span></div>
@@ -75856,20 +75866,21 @@ async function sbGenerateSelectedVideo() {
           storyboard: storyboardMeta
         },
         storyboard: storyboardMeta,
-        duration: Number(document.getElementById('sbVideoDuration')?.value || 5),
+        duration: Number(document.getElementById('sbVideoDuration')?.value || 6),
         aspect_ratio: document.getElementById('sbVideoRatio')?.value || '16:9',
         resolution: document.getElementById('sbVideoQuality')?.value || '720p'
       }),
       signal: sbVideoAbortController.signal
     });
     const data = await res.json().catch(() => ({}));
-    const videoUrl = data.video_url || data?.video?.url;
+    const videoUrl = extractGrokBuildVideoUrl(data, 'sbGrokBuildBridgeUrl');
     if (!res.ok || !videoUrl) {
       const tail = data.output ? '\n\nCLI 출력:\n' + String(data.output).slice(-1600) : '';
-      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + tail);
+      const jobNote = data.job_id ? '\njob_id: ' + data.job_id : '';
+      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + jobNote + tail);
     }
-    if (status) { status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || ''); status.style.color = 'var(--ok)'; }
-    if (output) output.innerHTML = '<video controls autoplay loop src="' + escAttr(videoUrl) + '"></video><div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><a href="' + escAttr(videoUrl) + '" download="storyboard_grok_' + escSBAttr(shotId) + '.mp4" class="btn bpu bsm" style="text-decoration:none">다운로드</a></div>';
+    if (status) { status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || '') + (data.model ? ' · ' + data.model : ''); status.style.color = 'var(--ok)'; }
+    if (output) output.innerHTML = '<video controls autoplay loop playsinline src="' + escAttr(videoUrl) + '"></video><div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><a href="' + escAttr(videoUrl) + '" download="storyboard_grok_' + escSBAttr(shotId) + '.mp4" class="btn bpu bsm" style="text-decoration:none">다운로드</a><a href="' + escAttr(videoUrl) + '" target="_blank" rel="noopener" class="btn bgh bsm" style="text-decoration:none">새 탭</a></div>';
     sbVideoHistory.unshift({ id: shotId, url: videoUrl, prompt, model: data.model || 'Grok Build CLI', time: new Date().toLocaleTimeString() });
     if (typeof vidTabVideos !== 'undefined') {
       vidTabVideos.unshift({url: videoUrl, model: data.model || 'Grok Build CLI', prompt, time: new Date().toLocaleTimeString(), fileName: 'storyboard_grok_' + shotId + '.mp4'});
@@ -76375,6 +76386,33 @@ function getGrokBuildBridgeHeaders(json, keySourceId) {
   if (key) headers['X-Zippy-Grok-Key'] = key;
   return headers;
 }
+function normalizeGrokBuildVideoUrl(videoUrl, urlSourceId) {
+  const raw = String(videoUrl || '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw) || raw.startsWith('blob:') || raw.startsWith('data:')) return raw;
+  const base = getGrokBuildBridgeBase(urlSourceId);
+  if (raw.startsWith('/')) return base + raw;
+  return base + '/' + raw.replace(/^\/+/, '');
+}
+function extractGrokBuildVideoUrl(data, urlSourceId) {
+  if (!data || typeof data !== 'object') return '';
+  const direct = data.video_url || data?.video?.url || '';
+  if (direct) return normalizeGrokBuildVideoUrl(direct, urlSourceId);
+  const arts = Array.isArray(data.artifacts) ? data.artifacts : [];
+  for (const a of arts) {
+    if (!a) continue;
+    if (a.url || a.video_url) {
+      const normalized = normalizeGrokBuildVideoUrl(a.url || a.video_url, urlSourceId);
+      if (normalized) return normalized;
+    }
+    if (a.path && data.job_id && /\.(mp4|mov|webm|m4v)$/i.test(String(a.path))) {
+      const rel = String(a.path).split('/').map(encodeURIComponent).join('/');
+      const mediaPath = '/media/grok-build/' + encodeURIComponent(data.job_id) + '/' + rel;
+      return normalizeGrokBuildVideoUrl(mediaPath, urlSourceId);
+    }
+  }
+  return '';
+}
 function composeVideoRealismPrompt(motionPrompt) {
   const motion = stripCameraMovePromptBlock(motionPrompt).trim();
   if (!motion) return DEFAULT_VIDEO_REALISM_PROMPT;
@@ -76813,12 +76851,13 @@ async function sendVideoToGrokBuild() {
   const payloadMeta = getVideoStartPayloadMeta(prompt);
   const status = document.getElementById('grokBuildStatus');
   const btn = document.getElementById('grokBuildSendBtn');
-  const dur = getSelected('vdur') || '5초';
+  const dur = Number(document.getElementById('grokBuildDuration')?.value || 6);
+  const resolution = document.getElementById('grokBuildResolution')?.value || '720p';
   const ratio = getSelected('vratio') || '9:16';
   if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
   setAbortButtonEnabled('grokBuildAbortBtn', true);
   const sourceNote = payloadMeta.source === 'storyboard' ? ' · 스토리보드 영상 프롬프트 포함' : (payloadMeta.source === 'instagram' ? ' · 인스타그램 이미지/영상 프롬프트 포함' : '');
-  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중...' + sourceNote;
+  if (status) status.textContent = 'Grok CLI 브릿지로 START 프레임과 프롬프트 전송 중... · ' + dur + '초 · ' + resolution + sourceNote;
   try {
     const res = await fetch(getGrokBuildBridgeBase() + '/v1/grok/build/video', {
       method: 'POST',
@@ -76829,20 +76868,21 @@ async function sendVideoToGrokBuild() {
         metadata: payloadMeta,
         storyboard: payloadMeta.storyboard,
         instagram: payloadMeta.instagram,
-        duration: Number(String(dur).replace(/[^0-9.]/g, '')) || 5,
+        duration: dur,
         aspect_ratio: ratio,
-        resolution: '720p'
+        resolution
       }),
       signal: grokBuildAbortController.signal
     });
     const data = await res.json().catch(() => ({}));
-    const videoUrl = data.video_url || data?.video?.url;
+    const videoUrl = extractGrokBuildVideoUrl(data);
     if (!res.ok || !videoUrl) {
       const tail = data.output ? '\n\nCLI 출력:\n' + String(data.output).slice(-1600) : '';
-      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + tail);
+      const jobNote = data.job_id ? '\njob_id: ' + data.job_id : '';
+      throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + jobNote + tail);
     }
     showGrokBuildVideoResult(videoUrl, prompt, data.model || 'Grok Build CLI', 'grok_build_' + Date.now() + '.mp4');
-    if (status) status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || '');
+    if (status) status.textContent = 'Grok Build 결과 수신 완료 · ' + (data.job_id || '') + (data.model ? ' · ' + data.model : '');
   } catch(e) {
     if (status) status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatGrokBuildError(e);
   } finally {
@@ -76869,10 +76909,13 @@ async function checkGrokBuildBridge(statusId, urlSourceId, keySourceId) {
 function formatGrokBuildError(e) {
   const msg = e && e.message ? e.message : String(e || '');
   if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
-    return '로컬 브릿지에 연결할 수 없습니다. `node grok-login-bridge/server.mjs` 실행 상태와 URL을 확인하세요.';
+    return '로컬 브릿지에 연결할 수 없습니다. Mac에서 grok-bridge(8790) 실행 여부와 Bridge URL(http://127.0.0.1:8790)을 확인하세요. 클라우드 페이지에서는 이 Mac의 로컬 브릿지에 직접 접근해야 합니다.';
   }
   if (/GROK_MEDIA_TOOL_UNAVAILABLE|media_tool_unavailable|no .*video tools|not available/i.test(msg)) {
     return 'Grok CLI 로그인은 되었지만 현재 headless Build 세션에서 image_to_video 툴이 열리지 않았습니다. 브릿지 출력 확인이 필요합니다.';
+  }
+  if (/no video artifact|video artifact or downloadable video URL was found/i.test(msg)) {
+    return 'Grok 생성은 돌았지만 video_url을 받지 못했습니다. 브릿지 최신 버전(세션 폴더 artifact 스캔) 반영과 LaunchAgent 재시작을 확인하세요. ' + msg;
   }
   return msg;
 }

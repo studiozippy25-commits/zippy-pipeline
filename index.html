@@ -564,10 +564,10 @@ input[type=file]{display:none}
 #sbTimelineInner.single-ep-view{display:block !important;min-width:0 !important;width:100%}
 #sbTimelineInner.single-ep-view .sb-scene{width:100%;min-width:0;border-right:none;border-bottom:2px solid var(--bd);display:flex;flex-wrap:wrap;align-content:flex-start}
 #sbTimelineInner.single-ep-view .sb-scene-hdr{width:100%;flex:0 0 100%;position:sticky;top:0;z-index:2}
-#sbTimelineInner.single-ep-view .sb-shot{flex:1 1 235px;width:auto;min-width:215px;max-width:420px;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+#sbTimelineInner.single-ep-view .sb-shot{flex:1 1 calc(33.333% - 8px);width:auto;min-width:0;max-width:calc(33.333% - 8px);border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
 #sbTimelineInner.single-ep-view.sb-compact .sb-shot{flex-basis:220px;width:220px}
 #sbTimelineInner.single-ep-view .sb-subscene-hdr{position:sticky;top:52px;z-index:1}
-@media (max-width:430px){#sbTimelineInner.single-ep-view .sb-shot{flex:0 0 100%;width:100%}}
+@media (max-width:900px){#sbTimelineInner.single-ep-view .sb-shot{flex-basis:calc(50% - 8px);max-width:calc(50% - 8px)}}@media (max-width:560px){#sbTimelineInner.single-ep-view .sb-shot{flex-basis:100%;max-width:100%}}
 .sb-shot{padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.06);transition:background .15s}
 .sb-shot:hover{background:rgba(0,0,0,.02)}
 .sb-shot-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
@@ -579,7 +579,7 @@ input[type=file]{display:none}
 .sb-shot-empty{width:176px;height:99px;border-radius:6px;border:1.5px dashed var(--bd);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--mu);cursor:pointer;transition:all .15s;margin-bottom:8px}
 #sbTimelineInner .sb-shot-img{width:100%;height:170px;min-height:0}
 #sbTimelineInner .sb-shot-empty{width:100%;height:170px;min-height:0;aspect-ratio:auto}
-#sbTimelineInner.single-ep-view .sb-shot-img,#sbTimelineInner.single-ep-view .sb-shot-empty{height:175px}
+#sbTimelineInner.single-ep-view .sb-shot-img,#sbTimelineInner.single-ep-view .sb-shot-empty{height:240px}
 #sbTimelineInner.sb-compact .sb-shot-img,#sbTimelineInner.sb-compact .sb-shot-empty{height:99px!important;min-height:0!important}
 .sb-shot-empty:hover{border-color:var(--or);color:var(--or);background:rgba(232,93,4,.03)}
 .sb-shot-info{font-size:12px;color:var(--mu);line-height:1.6}
@@ -6149,8 +6149,8 @@ const PROJECTS = {
                         "sceneName": "규정값의 아침 · 정비 베이와 하온 내부",
                         "id": "EP02-C06",
                         "frame": "C06 · 50–60s (10s) · 2S · 슬로우 오빗 · 눈높이",
-                        "desc": "하온을 사이에 두고 하나와 다온이 각자 위치에서 진단을 이어간다 두 사람의 작업 리듬이 겹치며 계기 여러 칸이 순차 점등한다. 대사/내레이션: 다온: 기준선과 일치합니다. 지금까지는, 그대로.",
-                        "func": "셋업 마무리, 협업 리듬",
+                        "desc": "하온을 사이에 두고 하나와 다온이 각자 위치에서 진단을 이어간다. 두 사람의 손동작이 서로 다른 위치에서 같은 리듬으로 맞물린다.",
+                        "func": "협업 리듬 시작",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -6179,6 +6179,44 @@ const PROJECTS = {
                         "screen": "하온을 사이에 두고 하나와 다온이 각자 위치에서 진단을 이어간다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 2,
+                        "scene": 1,
+                        "sceneName": "규정값의 아침 · 정비 베이와 하온 내부",
+                        "id": "EP02-C06B",
+                        "frame": "C06B · 55–60s (5s) · INSERT · 고정 · 계기판",
+                        "desc": "계기 여러 칸이 순서대로 스카이블루로 점등한다. 마지막 칸이 켜지는 순간 다온의 목소리가 낮게 확인한다. 대사/내레이션: 다온: 기준선과 일치합니다. 지금까지는, 그대로.",
+                        "func": "진단 완료 확인",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "정비 베이와 하온 내부",
+                        "rawLocation": "문래동 차고 정비 베이와 하온 내부",
+                        "time": "낮",
+                        "duration": 10,
+                        "episodeTitle": "하온 락",
+                        "seqname": "규정값의 아침",
+                        "cut": 6,
+                        "timecode": "50–60s (10s)",
+                        "shot": "2S · 슬로우 오빗 · 눈높이",
+                        "dialogue": "다온: 기준선과 일치합니다. 지금까지는, 그대로.",
+                        "sound": "점등 하모닉, 낮은 패드",
+                        "emotion": "안정된 신뢰",
+                        "props": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스",
+                        "light": "계기 순차 점등",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAINT_BAY_REPAIR / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP02,C06,DNA락,260708",
+                        "keyvisual": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스; 규정값의 아침; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온을 사이에 두고 하나와 다온이 각자 위치에서 진단을 이어간다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP02-C06"
             },
             {
                         "ep": 2,
@@ -6486,8 +6524,8 @@ const PROJECTS = {
                         "sceneName": "바꾸지 말고 살려 · 정비 베이와 하온 내부",
                         "id": "EP02-C15",
                         "frame": "C15 · 141–150s (9s) · MS · 고정 · 눈높이",
-                        "desc": "하나가 롤백 명령을 확정, 홀로 패널의 붉은 로그가 원형 기준선으로 되감긴다 수정 이력이 역재생되며 원래 사양 곡선으로 복귀한다. 대사/내레이션: 하나: 로그 롤백. 원형 기준선으로 전부 되돌려.",
-                        "func": "고유 사건: 롤백 선택",
+                        "desc": "하나가 롤백 명령을 확정한다. 손끝이 홀로 패널 위 확인 버튼에 닿고 붉은 경고 로그가 멈춘다. 대사/내레이션: 하나: 로그 롤백.",
+                        "func": "롤백 선택의 순간",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -6517,6 +6555,84 @@ const PROJECTS = {
                         "screen": "하나가 롤백 명령을 확정, 홀로 패널의 붉은 로그가 원형 기준선으로 되감긴다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 2,
+                        "scene": 3,
+                        "sceneName": "바꾸지 말고 살려 · 정비 베이와 하온 내부",
+                        "id": "EP02-C15B",
+                        "frame": "C15B · 145–148s (3s) · INSERT · 고정 · 홀로 패널",
+                        "desc": "홀로 패널의 붉은 수정 이력이 역재생되며 원형 기준선으로 되감긴다. 그래프의 날카로운 봉우리가 하나씩 낮아진다.",
+                        "func": "수정 이력 되감기",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "주연 · 스파크 (홀로그램 AGI)"
+                        ],
+                        "loc": "정비 베이와 하온 내부",
+                        "rawLocation": "문래동 차고 정비 베이와 하온 내부",
+                        "time": "낮",
+                        "duration": 9,
+                        "episodeTitle": "하온 락",
+                        "seqname": "바꾸지 말고 살려",
+                        "cut": 15,
+                        "timecode": "141–150s (9s)",
+                        "shot": "MS · 고정 · 눈높이",
+                        "dialogue": "하나: 로그 롤백. 원형 기준선으로 전부 되돌려.",
+                        "sound": "롤백 확정음, 역재생 스윕",
+                        "emotion": "결단",
+                        "props": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스",
+                        "light": "레드→블루 복귀",
+                        "vfx": "타임라인 역재생 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAINT_BAY_REPAIR / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_SPARK_STATE_COLORS / CR_MECH_HAON_PANEL_DAMAGE_STATES",
+                        "keywords": "클라우드라이더,EP02,C15,DNA락,260708",
+                        "keyvisual": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스; 바꾸지 말고 살려; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하나가 롤백 명령을 확정, 홀로 패널의 붉은 로그가 원형 기준선으로 되감긴다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP02-C15"
+            },
+            {
+                        "ep": 2,
+                        "scene": 3,
+                        "sceneName": "바꾸지 말고 살려 · 정비 베이와 하온 내부",
+                        "id": "EP02-C15C",
+                        "frame": "C15C · 148–150s (2s) · MS · 고정 · 눈높이",
+                        "desc": "원래 사양 곡선이 안정적으로 복귀하고 하나가 손을 뗀다. 다온과 스파크의 시선이 같은 패널에 멈춘다. 대사/내레이션: 하나: 원형 기준선으로 전부 되돌려.",
+                        "func": "원형 기준선 복귀",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "주연 · 스파크 (홀로그램 AGI)"
+                        ],
+                        "loc": "정비 베이와 하온 내부",
+                        "rawLocation": "문래동 차고 정비 베이와 하온 내부",
+                        "time": "낮",
+                        "duration": 9,
+                        "episodeTitle": "하온 락",
+                        "seqname": "바꾸지 말고 살려",
+                        "cut": 15,
+                        "timecode": "141–150s (9s)",
+                        "shot": "MS · 고정 · 눈높이",
+                        "dialogue": "하나: 로그 롤백. 원형 기준선으로 전부 되돌려.",
+                        "sound": "롤백 확정음, 역재생 스윕",
+                        "emotion": "결단",
+                        "props": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스",
+                        "light": "레드→블루 복귀",
+                        "vfx": "타임라인 역재생 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAINT_BAY_REPAIR / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_SPARK_STATE_COLORS / CR_MECH_HAON_PANEL_DAMAGE_STATES",
+                        "keywords": "클라우드라이더,EP02,C15,DNA락,260708",
+                        "keyvisual": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스; 바꾸지 말고 살려; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하나가 롤백 명령을 확정, 홀로 패널의 붉은 로그가 원형 기준선으로 되감긴다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP02-C15"
             },
             {
                         "ep": 2,
@@ -6677,8 +6793,8 @@ const PROJECTS = {
                         "sceneName": "두 번째 좌석의 동기화 · 정비 베이와 하온 내부",
                         "id": "EP02-C20",
                         "frame": "C20 · 190–200s (10s) · OTS · 고정 · 눈높이",
-                        "desc": "다온이 2번 좌석 커넥터를 자신과 물린다, 계기 절반이 다온 몫으로 밝아진다 커넥터가 딸깍 물리며 우측 계기 클러스터가 순차 점등한다. 대사/내레이션: 다온: 두 번째 좌석 동기화 시작합니다.",
-                        "func": "핵심 대사",
+                        "desc": "다온이 2번 좌석 커넥터를 자신과 물린다. 커넥터가 딸깍 맞물리고 다온의 손끝 관절이 미세하게 잠긴다.",
+                        "func": "2번 좌석 물리 연결",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -6707,6 +6823,44 @@ const PROJECTS = {
                         "screen": "다온이 2번 좌석 커넥터를 자신과 물린다, 계기 절반이 다온 몫으로 밝아진다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 2,
+                        "scene": 4,
+                        "sceneName": "두 번째 좌석의 동기화 · 정비 베이와 하온 내부",
+                        "id": "EP02-C20B",
+                        "frame": "C20B · 195–200s (5s) · OTS · 고정 · 계기 클러스터",
+                        "desc": "우측 계기 클러스터가 다온 몫으로 순차 점등한다. 하온의 인터페이스가 두 사람 몫으로 나뉘어 밝아진다. 대사/내레이션: 다온: 두 번째 좌석 동기화 시작합니다.",
+                        "func": "2번 좌석 동기화 확인",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "정비 베이와 하온 내부",
+                        "rawLocation": "문래동 차고 정비 베이와 하온 내부",
+                        "time": "낮",
+                        "duration": 10,
+                        "episodeTitle": "하온 락",
+                        "seqname": "두 번째 좌석의 동기화",
+                        "cut": 20,
+                        "timecode": "190–200s (10s)",
+                        "shot": "OTS · 고정 · 눈높이",
+                        "dialogue": "다온: 두 번째 좌석 동기화 시작합니다.",
+                        "sound": "동기화 상승음",
+                        "emotion": "집중",
+                        "props": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스",
+                        "light": "우측 계기 점등",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAINT_BAY_REPAIR / CR_CHAR_DAON_FACE_EYES / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP02,C20,DNA락,260708",
+                        "keyvisual": "정비 베이, 하온 내부 2번 좌석, 하나, 다온, 락 인터페이스; 두 번째 좌석의 동기화; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "다온이 2번 좌석 커넥터를 자신과 물린다, 계기 절반이 다온 몫으로 밝아진다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP02-C20"
             },
             {
                         "ep": 2,
@@ -7429,8 +7583,8 @@ const PROJECTS = {
                         "sceneName": "과열 컷오프 · 문래 옥상 활주대",
                         "id": "EP03-C10",
                         "frame": "C10 · 90–100s (10s) · MCU · 핸드헬드 · 눈높이",
-                        "desc": "계기판 전체가 붉게 물들며 로터 출력이 뚝 떨어진다 보호 회로가 작동해 네 축이 동시에 출력을 내린다. 기체가 다시 활주대에 눌러앉는다. 대사/내레이션: 하나: 컷오프됐어. 출력이 안 올라가.",
-                        "func": "1차 시동 실패",
+                        "desc": "계기판 전체가 붉게 물든다. 경고등이 하온 콕핏 안쪽을 짧고 빠르게 물들이고 하나의 눈동자에 붉은 빛이 반사된다.",
+                        "func": "과열 경고 점등",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -7459,6 +7613,82 @@ const PROJECTS = {
                         "screen": "계기판 전체가 붉게 물들며 로터 출력이 뚝 떨어진다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 3,
+                        "scene": 2,
+                        "sceneName": "과열 컷오프 · 문래 옥상 활주대",
+                        "id": "EP03-C10B",
+                        "frame": "C10B · 94–97s (3s) · INSERT · 핸드헬드 · 로터 계기",
+                        "desc": "보호 회로가 작동하며 네 축 로터 출력 막대가 동시에 뚝 떨어진다. 네 개의 덕티드 윙 그림자가 불안하게 흔들린다.",
+                        "func": "네 축 출력 저하",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "문래 옥상 활주대",
+                        "rawLocation": "서울 문래 건물 옥상 활주대",
+                        "time": "새벽",
+                        "duration": 10,
+                        "episodeTitle": "루프 위 시동",
+                        "seqname": "과열 컷오프",
+                        "cut": 10,
+                        "timecode": "90–100s (10s)",
+                        "shot": "MCU · 핸드헬드 · 눈높이",
+                        "dialogue": "하나: 컷오프됐어. 출력이 안 올라가.",
+                        "sound": "로터 급감속음, 낮아지는 저음",
+                        "emotion": "당황",
+                        "props": "문래 옥상 활주대, 하나, 다온, 하온 호버",
+                        "light": "경고 레드에서 어둑한 대기광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_ROOF_TAKEOFF_HERO / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_ROTOR_DUCTED_FAN",
+                        "keywords": "클라우드라이더,EP03,C10,DNA락,260708",
+                        "keyvisual": "문래 옥상 활주대, 하나, 다온, 하온 호버; 과열 컷오프; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "계기판 전체가 붉게 물들며 로터 출력이 뚝 떨어진다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP03-C10"
+            },
+            {
+                        "ep": 3,
+                        "scene": 2,
+                        "sceneName": "과열 컷오프 · 문래 옥상 활주대",
+                        "id": "EP03-C10C",
+                        "frame": "C10C · 97–100s (3s) · WS · 핸드헬드 · 활주대",
+                        "desc": "하온이 다시 활주대에 눌러앉고 작은 진동이 옥상 바닥으로 퍼진다. 하나가 조종간을 붙잡은 채 숨을 삼킨다. 대사/내레이션: 하나: 컷오프됐어. 출력이 안 올라가.",
+                        "func": "1차 시동 실패 착지",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "문래 옥상 활주대",
+                        "rawLocation": "서울 문래 건물 옥상 활주대",
+                        "time": "새벽",
+                        "duration": 10,
+                        "episodeTitle": "루프 위 시동",
+                        "seqname": "과열 컷오프",
+                        "cut": 10,
+                        "timecode": "90–100s (10s)",
+                        "shot": "MCU · 핸드헬드 · 눈높이",
+                        "dialogue": "하나: 컷오프됐어. 출력이 안 올라가.",
+                        "sound": "로터 급감속음, 낮아지는 저음",
+                        "emotion": "당황",
+                        "props": "문래 옥상 활주대, 하나, 다온, 하온 호버",
+                        "light": "경고 레드에서 어둑한 대기광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_ROOF_TAKEOFF_HERO / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_ROTOR_DUCTED_FAN",
+                        "keywords": "클라우드라이더,EP03,C10,DNA락,260708",
+                        "keyvisual": "문래 옥상 활주대, 하나, 다온, 하온 호버; 과열 컷오프; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "계기판 전체가 붉게 물들며 로터 출력이 뚝 떨어진다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP03-C10"
             },
             {
                         "ep": 3,
@@ -7690,8 +7920,8 @@ const PROJECTS = {
                         "sceneName": "열을 나누는 법 · 문래 옥상 활주대",
                         "id": "EP03-C17",
                         "frame": "C17 · 160–170s (10s) · MCU · 핸드헬드 미세 · 눈높이",
-                        "desc": "재기동 카운트가 계기판에 뜬다 하나가 심호흡하고 재시동 버튼 위에 손가락을 올린다. 대사/내레이션: 하나: 다시 간다. 이번엔 열을 나눠서.",
-                        "func": "재기동 진입",
+                        "desc": "재기동 카운트가 계기판에 크게 뜬다. 숫자가 하나씩 내려갈 때마다 콕핏 조명이 짧게 맥박친다.",
+                        "func": "재기동 카운트 시작",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -7720,6 +7950,44 @@ const PROJECTS = {
                         "screen": "재기동 카운트가 계기판에 뜬다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 3,
+                        "scene": 3,
+                        "sceneName": "열을 나누는 법 · 문래 옥상 활주대",
+                        "id": "EP03-C17B",
+                        "frame": "C17B · 165–170s (5s) · MCU · 핸드헬드 미세 · 눈높이",
+                        "desc": "하나가 심호흡하고 재시동 버튼 위에 손가락을 올린다. 다온이 옆좌석에서 하나의 손과 열 분배 계기를 동시에 본다. 대사/내레이션: 하나: 다시 간다. 이번엔 열을 나눠서.",
+                        "func": "재시동 결심",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "문래 옥상 활주대",
+                        "rawLocation": "서울 문래 건물 옥상 활주대",
+                        "time": "새벽",
+                        "duration": 10,
+                        "episodeTitle": "루프 위 시동",
+                        "seqname": "열을 나누는 법",
+                        "cut": 17,
+                        "timecode": "160–170s (10s)",
+                        "shot": "MCU · 핸드헬드 미세 · 눈높이",
+                        "dialogue": "하나: 다시 간다. 이번엔 열을 나눠서.",
+                        "sound": "카운트다운 톤",
+                        "emotion": "재도전",
+                        "props": "문래 옥상 활주대, 하나, 다온, 하온 호버",
+                        "light": "계기 재점등",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_ROOF_TAKEOFF_MASTER_WIDE_REWORKED_DNA_LOCK_260707 / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP03,C17,DNA락,260708",
+                        "keyvisual": "문래 옥상 활주대, 하나, 다온, 하온 호버; 열을 나누는 법; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "재기동 카운트가 계기판에 뜬다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP03-C17"
             },
             {
                         "ep": 3,
@@ -11157,8 +11425,8 @@ const PROJECTS = {
                         "sceneName": "결을 타고 빠져나가다 · 고비 모래길",
                         "id": "EP06-C19",
                         "frame": "C19 · 180–190s (10s) · WS · 트래킹 팔로우 · 로우",
-                        "desc": "두 기체가 나란히 폭풍의 나선 결을 타고 활강한다 하온과 나란 드론이 바람의 곡선을 따라 같은 궤적을 그린다. 대사/내레이션: 나란: 폭풍은 원을 그려. 벽을 뚫지 말고 곡선을 따라 돌아 나가.",
-                        "func": "탈출 전략",
+                        "desc": "두 기체가 나란히 폭풍의 나선 결 안으로 기수를 맞춘다. 하온과 나란 드론의 등화가 모래 속에서 같은 방향으로 흔들린다.",
+                        "func": "폭풍 결 진입",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -11188,6 +11456,45 @@ const PROJECTS = {
                         "screen": "두 기체가 나란히 폭풍의 나선 결을 타고 활강한다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 6,
+                        "scene": 4,
+                        "sceneName": "결을 타고 빠져나가다 · 고비 모래길",
+                        "id": "EP06-C19B",
+                        "frame": "C19B · 185–190s (5s) · WS · 트래킹 팔로우 · 로우",
+                        "desc": "하온과 나란 드론이 바람의 곡선을 따라 같은 궤적을 그리며 활강한다. 모래벽을 정면으로 뚫지 않고 원을 타고 돌아 나간다. 대사/내레이션: 나란: 폭풍은 원을 그려. 벽을 뚫지 말고 곡선을 따라 돌아 나가.",
+                        "func": "탈출 궤적 확정",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 나란 (몽골 메카닉)"
+                        ],
+                        "loc": "고비 모래길",
+                        "rawLocation": "몽골 고비 모래길",
+                        "time": "오후에서 폭풍으로",
+                        "duration": 10,
+                        "episodeTitle": "모래폭풍의 리듬",
+                        "seqname": "결을 타고 빠져나가다",
+                        "cut": 19,
+                        "timecode": "180–190s (10s)",
+                        "shot": "WS · 트래킹 팔로우 · 로우",
+                        "dialogue": "나란: 폭풍은 원을 그려. 벽을 뚫지 말고 곡선을 따라 돌아 나가.",
+                        "sound": "거센 바람 속 두 엔진의 합주음",
+                        "emotion": "결단",
+                        "props": "고비 모래길, 모래폭풍, 나란, 하온, 다온 환경 감지",
+                        "light": "나선 결을 따라 흐르는 산광",
+                        "vfx": "나선 모래 결 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_STORM_EYE_CLIMAX / CR_CHAR_NARAN_WITH_AIRCRAFT_REWORKED_LOCK_260706 / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_EXTERIOR_TURNAROUND",
+                        "keywords": "클라우드라이더,EP06,C19,DNA락,260708",
+                        "keyvisual": "고비 모래길, 모래폭풍, 나란, 하온, 다온 환경 감지; 결을 타고 빠져나가다; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "두 기체가 나란히 폭풍의 나선 결을 타고 활강한다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP06-C19"
             },
             {
                         "ep": 6,
@@ -11308,8 +11615,8 @@ const PROJECTS = {
                         "sceneName": "결을 타고 빠져나가다 · 고비 모래길",
                         "id": "EP06-C23",
                         "frame": "C23 · 220–230s (10s) · EWS · 크레인 업 아웃 · 부감",
-                        "desc": "하온과 나란 드론이 폭풍을 뚫고 맑은 사막 하늘로 빠져나온다 두 기체가 폭풍 등지고 나란히 상승하며 먼지를 털어낸다. 대사/내레이션: 하나(내레이션): 우리는 폭풍을 이기지 않았다. 폭풍과 같은 박자로 걸었을 뿐이다.",
-                        "func": "탈출 완료, 주제 정리",
+                        "desc": "하온과 나란 드론이 폭풍 벽의 마지막 모래층을 뚫고 맑은 사막 하늘로 빠져나온다. 뒤쪽에는 거대한 모래 나선이 아직 회전한다.",
+                        "func": "폭풍 탈출 순간",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -11339,6 +11646,45 @@ const PROJECTS = {
                         "screen": "하온과 나란 드론이 폭풍을 뚫고 맑은 사막 하늘로 빠져나온다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 6,
+                        "scene": 4,
+                        "sceneName": "결을 타고 빠져나가다 · 고비 모래길",
+                        "id": "EP06-C23B",
+                        "frame": "C23B · 225–230s (5s) · EWS · 크레인 업 아웃 · 부감",
+                        "desc": "두 기체가 폭풍을 등지고 나란히 상승하며 동체에 붙은 먼지를 털어낸다. 맑은 하늘 아래 두 항적이 같은 박자로 길게 남는다. 대사/내레이션: 하나(내레이션): 우리는 폭풍을 이기지 않았다. 폭풍과 같은 박자로 걸었을 뿐이다.",
+                        "func": "탈출 완료와 주제 정리",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 나란 (몽골 메카닉)"
+                        ],
+                        "loc": "고비 모래길",
+                        "rawLocation": "몽골 고비 모래길",
+                        "time": "오후에서 폭풍으로",
+                        "duration": 10,
+                        "episodeTitle": "모래폭풍의 리듬",
+                        "seqname": "결을 타고 빠져나가다",
+                        "cut": 23,
+                        "timecode": "220–230s (10s)",
+                        "shot": "EWS · 크레인 업 아웃 · 부감",
+                        "dialogue": "하나(내레이션): 우리는 폭풍을 이기지 않았다. 폭풍과 같은 박자로 걸었을 뿐이다.",
+                        "sound": "폭풍 잔향이 멀어지고 맑은 바람",
+                        "emotion": "해방",
+                        "props": "고비 모래길, 모래폭풍, 나란, 하온, 다온 환경 감지",
+                        "light": "골든 사막광 복귀",
+                        "vfx": "흩어지는 잔여 모래 · 디졸브",
+                        "assetRefs": "DNA락 유지 · CR_ENV_SANDSTORM_MASTER_WIDE / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_CHAR_NARAN_WITH_AIRCRAFT_REWORKED_LOCK_260706 / CR_MECH_HAON_EXTERIOR_TURNAROUND",
+                        "keywords": "클라우드라이더,EP06,C23,DNA락,260708",
+                        "keyvisual": "고비 모래길, 모래폭풍, 나란, 하온, 다온 환경 감지; 결을 타고 빠져나가다; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온과 나란 드론이 폭풍을 뚫고 맑은 사막 하늘로 빠져나온다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP06-C23"
             },
             {
                         "ep": 6,
@@ -12642,8 +12988,8 @@ const PROJECTS = {
                         "sceneName": "같은 초록, 다른 마음 · 카프카스 절벽 마을",
                         "id": "EP07-C28",
                         "frame": "C28 · 270–280s (10s) · CU · 고정 · 눈높이",
-                        "desc": "하나가 손에 든 작은 초록 등을 천천히, 그리고 급하게 번갈아 흔들어 본다 하나가 두 박자를 직접 손으로 익히며 조용히 웃는다. 대사/내레이션: 하나: 천천히 흔들면 반갑다, 급하게 흔들면 도와달라… 어느 쪽이든 결국 손 내미는 말이었어.",
-                        "func": "주제문 정착",
+                        "desc": "하나가 손에 든 작은 초록 등을 천천히 흔들어 본다. 초록빛이 절벽 마을 벽면에 부드러운 박자로 번진다.",
+                        "func": "느린 초록 신호 학습",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -12673,6 +13019,84 @@ const PROJECTS = {
                         "screen": "하나가 손에 든 작은 초록 등을 천천히, 그리고 급하게 번갈아 흔들어 본다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 7,
+                        "scene": 5,
+                        "sceneName": "같은 초록, 다른 마음 · 카프카스 절벽 마을",
+                        "id": "EP07-C28B",
+                        "frame": "C28B · 274–277s (3s) · CU · 고정 · 눈높이",
+                        "desc": "하나가 같은 초록 등을 이번에는 급하게 흔든다. 빛의 박자가 빨라지며 방금 전과 다른 의미로 읽힌다.",
+                        "func": "급한 초록 신호 학습",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 카이 (코카서스 파일럿)"
+                        ],
+                        "loc": "카프카스 절벽 마을",
+                        "rawLocation": "카프카스 절벽 마을과 카이의 드론펍",
+                        "time": "해질녘",
+                        "duration": 10,
+                        "episodeTitle": "절벽 마을의 녹색 신호",
+                        "seqname": "같은 초록, 다른 마음",
+                        "cut": 28,
+                        "timecode": "270–280s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "하나: 천천히 흔들면 반갑다, 급하게 흔들면 도와달라… 어느 쪽이든 결국 손 내미는 말이었어.",
+                        "sound": "등 흔드는 쇠고리음, 잔잔한 음악",
+                        "emotion": "다정한 깨달음",
+                        "props": "카프카스 절벽 마을, 녹색 착륙 신호등, 카이 드론펍, 하나, 다온",
+                        "light": "얼굴에 녹색 리듬광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_CLIFF_PUB_EXT_NIGHT / CR_CHAR_HANA_EXPRESSIONS",
+                        "keywords": "클라우드라이더,EP07,C28,DNA락,260708",
+                        "keyvisual": "카프카스 절벽 마을, 녹색 착륙 신호등, 카이 드론펍, 하나, 다온; 같은 초록, 다른 마음; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하나가 손에 든 작은 초록 등을 천천히, 그리고 급하게 번갈아 흔들어 본다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP07-C28"
+            },
+            {
+                        "ep": 7,
+                        "scene": 5,
+                        "sceneName": "같은 초록, 다른 마음 · 카프카스 절벽 마을",
+                        "id": "EP07-C28C",
+                        "frame": "C28C · 277–280s (3s) · MCU · 고정 · 눈높이",
+                        "desc": "하나가 두 박자를 직접 손으로 익히며 조용히 웃는다. 다온과 카이가 그 손끝의 리듬을 바라본다. 대사/내레이션: 하나: 천천히 흔들면 반갑다, 급하게 흔들면 도와달라… 어느 쪽이든 결국 손 내미는 말이었어.",
+                        "func": "신호 의미 정착",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 카이 (코카서스 파일럿)"
+                        ],
+                        "loc": "카프카스 절벽 마을",
+                        "rawLocation": "카프카스 절벽 마을과 카이의 드론펍",
+                        "time": "해질녘",
+                        "duration": 10,
+                        "episodeTitle": "절벽 마을의 녹색 신호",
+                        "seqname": "같은 초록, 다른 마음",
+                        "cut": 28,
+                        "timecode": "270–280s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "하나: 천천히 흔들면 반갑다, 급하게 흔들면 도와달라… 어느 쪽이든 결국 손 내미는 말이었어.",
+                        "sound": "등 흔드는 쇠고리음, 잔잔한 음악",
+                        "emotion": "다정한 깨달음",
+                        "props": "카프카스 절벽 마을, 녹색 착륙 신호등, 카이 드론펍, 하나, 다온",
+                        "light": "얼굴에 녹색 리듬광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_CLIFF_PUB_EXT_NIGHT / CR_CHAR_HANA_EXPRESSIONS",
+                        "keywords": "클라우드라이더,EP07,C28,DNA락,260708",
+                        "keyvisual": "카프카스 절벽 마을, 녹색 착륙 신호등, 카이 드론펍, 하나, 다온; 같은 초록, 다른 마음; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하나가 손에 든 작은 초록 등을 천천히, 그리고 급하게 번갈아 흔들어 본다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP07-C28"
             },
             {
                         "ep": 7,
@@ -12794,8 +13218,8 @@ const PROJECTS = {
                         "sceneName": "협곡 입구의 손뼉 · 고산 협곡 항로",
                         "id": "EP08-C02",
                         "frame": "C02 · 12–22s (10s) · WS · 패닝 · 눈높이",
-                        "desc": "절벽 턱에 얹힌 카이의 드론펍 기체 — 청록 리듬 라이트 띠와 낡은 스피커 콘, 목재·구리 패널의 산악형 소형기 카이가 조종석 캐노피에 걸터앉아 손바닥으로 동체를 두드리며 박자를 맞춘다. 대사/내레이션: 카이: 어이, 서울! 길 찾지 마. 여긴 지도가 아니라 박자로 가는 데야.",
-                        "func": "카이 지역 기체 첫 클로즈 등장, 절벽마을/드론펍 특징",
+                        "desc": "절벽 턱에 얹힌 카이의 드론펍 기체가 처음 드러난다. 청록 리듬 라이트 띠와 낡은 스피커 콘, 목재·구리 패널의 산악형 소형기 실루엣이 절벽 바람 속에 선명하다.",
+                        "func": "카이 지역 기체 첫 등장",
                         "pri": "must",
                         "char": [
                                     "조연 · 카이 (코카서스 파일럿)"
@@ -12823,6 +13247,43 @@ const PROJECTS = {
                         "screen": "절벽 턱에 얹힌 카이의 드론펍 기체 — 청록 리듬 라이트 띠와 낡은 스피커 콘, 목재·구리 패널의 산악형 소형기",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 8,
+                        "scene": 1,
+                        "sceneName": "협곡 입구의 손뼉 · 고산 협곡 항로",
+                        "id": "EP08-C02B",
+                        "frame": "C02B · 17–22s (5s) · MS · 패닝 · 눈높이",
+                        "desc": "카이가 조종석 캐노피에 걸터앉아 손바닥으로 동체를 두드리며 박자를 맞춘다. 동체 라이트가 손뼉 리듬에 맞춰 짧게 반응한다. 대사/내레이션: 카이: 어이, 서울! 길 찾지 마. 여긴 지도가 아니라 박자로 가는 데야.",
+                        "func": "카이 항법 철학 제시",
+                        "pri": "must",
+                        "char": [
+                                    "조연 · 카이 (코카서스 파일럿)"
+                        ],
+                        "loc": "고산 협곡 항로",
+                        "rawLocation": "카프카스 고산 협곡 항로",
+                        "time": "낮",
+                        "duration": 10,
+                        "episodeTitle": "바람길 테스트",
+                        "seqname": "협곡 입구의 손뼉",
+                        "cut": 2,
+                        "timecode": "12–22s (10s)",
+                        "shot": "WS · 패닝 · 눈높이",
+                        "dialogue": "카이: 어이, 서울! 길 찾지 마. 여긴 지도가 아니라 박자로 가는 데야.",
+                        "sound": "손바닥 타격 리듬, 구리판 잔향",
+                        "emotion": "장난스런 자신감",
+                        "props": "고산 협곡, 카이 기체, 하온, 바람길 리본",
+                        "light": "측광, 청록 라이트 반사",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_ALPS_APPROACH_MASTER_WIDE / CR_CHAR_KAI_WITH_AIRCRAFT_REWORKED_LOCK_260706 / CR_MECH_HAON_PANEL_DAMAGE_STATES / CR_PROP_MAP_ROUTE_BOARD",
+                        "keywords": "클라우드라이더,EP08,C02,DNA락,260708",
+                        "keyvisual": "고산 협곡, 카이 기체, 하온, 바람길 리본; 협곡 입구의 손뼉; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "절벽 턱에 얹힌 카이의 드론펍 기체 — 청록 리듬 라이트 띠와 낡은 스피커 콘, 목재·구리 패널의 산악형 소형기",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP08-C02"
             },
             {
                         "ep": 8,
@@ -13929,8 +14390,8 @@ const PROJECTS = {
                         "sceneName": "능선 위의 만남 · 고산 공중로",
                         "id": "EP09-C02",
                         "frame": "C02 · 11–21s (10s) · MCU · 고정 · 눈높이",
-                        "desc": "하온 콕핏, 하나가 연료·양력 게이지를 살핀다. 게이지가 천천히 떨어진다 하나가 미간을 좁히며 스로틀을 아낀다. 다온이 계기를 함께 읽는다. 대사/내레이션: 다온: 이 고도에선 양력 손실이 큽니다. 혼자 항속하면 한 시간을 못 갑니다.",
-                        "func": "2인승 콕핏 락, 문제 제시",
+                        "desc": "하온 콕핏, 하나가 연료·양력 게이지를 살핀다. 고산 공기 속에서 게이지가 천천히 떨어지고 얇은 경고선이 흔들린다.",
+                        "func": "고산 항속 문제 제시",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -13960,6 +14421,45 @@ const PROJECTS = {
                         "screen": "하온 콕핏, 하나가 연료·양력 게이지를 살핀다. 게이지가 천천히 떨어진다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 9,
+                        "scene": 1,
+                        "sceneName": "능선 위의 만남 · 고산 공중로",
+                        "id": "EP09-C02B",
+                        "frame": "C02B · 16–21s (5s) · MCU · 고정 · 눈높이",
+                        "desc": "하나가 미간을 좁히며 스로틀을 아끼고, 다온이 같은 계기를 함께 읽는다. 두 사람의 시선이 같은 숫자 위에 멈춘다. 대사/내레이션: 다온: 이 고도에선 양력 손실이 큽니다. 혼자 항속하면 한 시간을 못 갑니다.",
+                        "func": "문제 해석과 협업 필요",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 료 (구조 파일럿)"
+                        ],
+                        "loc": "고산 공중로",
+                        "rawLocation": "고산 공중로 (설선 위 능선 항로)",
+                        "time": "낮",
+                        "duration": 10,
+                        "episodeTitle": "슬립스트림 합주",
+                        "seqname": "능선 위의 만남",
+                        "cut": 2,
+                        "timecode": "11–21s (10s)",
+                        "shot": "MCU · 고정 · 눈높이",
+                        "dialogue": "다온: 이 고도에선 양력 손실이 큽니다. 혼자 항속하면 한 시간을 못 갑니다.",
+                        "sound": "게이지 경보 예비음",
+                        "emotion": "경계",
+                        "props": "고산 공중로, 다국적 편대, 후류(슬립스트림), 하온 편대 합류",
+                        "light": "레몬옐로우 계기광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_SLIPSTREAM_MASTER_WIDE / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP09,C02,DNA락,260708",
+                        "keyvisual": "고산 공중로, 다국적 편대, 후류(슬립스트림), 하온 편대 합류; 능선 위의 만남; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온 콕핏, 하나가 연료·양력 게이지를 살핀다. 게이지가 천천히 떨어진다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP09-C02"
             },
             {
                         "ep": 9,
@@ -14916,8 +15416,8 @@ const PROJECTS = {
                         "sceneName": "다음 바람으로 · 고산 공중로",
                         "id": "EP09-C28",
                         "frame": "C28 · 270–280s (10s) · CU · 고정 · 눈높이",
-                        "desc": "다온이 콕핏에서 편대가 남긴 후류의 결을 기록 로그에 저장한다 다온이 방금 배운 편대 항법을 데이터로 갈무리하며 잠시 창밖을 본다. 대사/내레이션: 다온: 편대 항법을 기록했습니다. 그리고 하나의 감정도 함께 기록했습니다. 오늘은… 벅찼습니다.",
-                        "func": "다온 감각 성장, EP01 '기록' 복선 회수",
+                        "desc": "다온이 콕핏에서 편대가 남긴 후류의 결을 기록 로그에 저장한다. 로그 창에는 방금 통과한 바람의 리듬이 얇은 선으로 정리된다.",
+                        "func": "편대 항법 기록",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -14946,6 +15446,44 @@ const PROJECTS = {
                         "screen": "다온이 콕핏에서 편대가 남긴 후류의 결을 기록 로그에 저장한다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 9,
+                        "scene": 5,
+                        "sceneName": "다음 바람으로 · 고산 공중로",
+                        "id": "EP09-C28B",
+                        "frame": "C28B · 275–280s (5s) · CU · 고정 · 눈높이",
+                        "desc": "다온이 방금 배운 편대 항법을 데이터로 갈무리한 뒤 잠시 창밖을 본다. 표정은 거의 변하지 않지만 눈빛이 조금 부드러워진다. 대사/내레이션: 다온: 편대 항법을 기록했습니다. 그리고 하나의 감정도 함께 기록했습니다. 오늘은… 벅찼습니다.",
+                        "func": "다온 감각 성장",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "고산 공중로",
+                        "rawLocation": "고산 공중로 (설선 위 능선 항로)",
+                        "time": "낮",
+                        "duration": 10,
+                        "episodeTitle": "슬립스트림 합주",
+                        "seqname": "다음 바람으로",
+                        "cut": 28,
+                        "timecode": "270–280s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "다온: 편대 항법을 기록했습니다. 그리고 하나의 감정도 함께 기록했습니다. 오늘은… 벅찼습니다.",
+                        "sound": "저장 확정음, 잔잔한 음악",
+                        "emotion": "성장의 자각",
+                        "props": "고산 공중로, 다국적 편대, 후류(슬립스트림), 하온 편대 합류",
+                        "light": "콕핏 온광",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_SLIPSTREAM_FORMATION_REWORKED_FRIEND_MATCH_260706 / CR_CHAR_DAON_FACE_EYES / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP09,C28,DNA락,260708",
+                        "keyvisual": "고산 공중로, 다국적 편대, 후류(슬립스트림), 하온 편대 합류; 다음 바람으로; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "다온이 콕핏에서 편대가 남긴 후류의 결을 기록 로그에 저장한다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP09-C28"
             },
             {
                         "ep": 9,
@@ -15369,8 +15907,8 @@ const PROJECTS = {
                         "sceneName": "착빙하는 계기 · 북해 진입 전 하온 내부",
                         "id": "EP10-C10",
                         "frame": "C10 · 90–100s (10s) · MS · 고정 · 정면",
-                        "desc": "다온이 하나의 손과 계기를 번갈아 판단한다 다온의 시선이 하나의 곱은 손에 잠시 멈춘다. 무언가를 결정하는 표정. 대사/내레이션: 다온: 하나의 조작 정밀도가 떨어지고 있습니다. 이대로면 위험합니다.",
-                        "func": "보호 판단 씨앗",
+                        "desc": "다온이 하나의 곱은 손과 흔들리는 계기를 번갈아 판단한다. 두 정보가 다온의 시야 안에서 같은 위험 신호로 겹친다.",
+                        "func": "보호 판단 계산",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -15399,6 +15937,44 @@ const PROJECTS = {
                         "screen": "다온이 하나의 손과 계기를 번갈아 판단한다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 10,
+                        "scene": 2,
+                        "sceneName": "착빙하는 계기 · 북해 진입 전 하온 내부",
+                        "id": "EP10-C10B",
+                        "frame": "C10B · 95–100s (5s) · MS · 고정 · 정면",
+                        "desc": "다온의 시선이 하나의 곱은 손에 잠시 멈춘다. 무언가를 결정한 표정으로 다온이 계기보다 하나를 먼저 본다. 대사/내레이션: 다온: 하나의 조작 정밀도가 떨어지고 있습니다. 이대로면 위험합니다.",
+                        "func": "보호 판단 씨앗",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)"
+                        ],
+                        "loc": "북해 진입 전 하온 내부",
+                        "rawLocation": "북해 진입 전 하온 내부",
+                        "time": "밤",
+                        "duration": 10,
+                        "episodeTitle": "얼어붙은 조종석",
+                        "seqname": "착빙하는 계기",
+                        "cut": 10,
+                        "timecode": "90–100s (10s)",
+                        "shot": "MS · 고정 · 정면",
+                        "dialogue": "다온: 하나의 조작 정밀도가 떨어지고 있습니다. 이대로면 위험합니다.",
+                        "sound": "낮은 사고 처리음",
+                        "emotion": "판단",
+                        "props": "하온 콕핏 결빙, 하나, 다온, 발열 온기",
+                        "light": "눈동자 계기 반사",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_FREEZING_COCKPIT_DAON / CR_CHAR_DAON_FACE_EYES / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP10,C10,DNA락,260708",
+                        "keyvisual": "하온 콕핏 결빙, 하나, 다온, 발열 온기; 착빙하는 계기; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "다온이 하나의 손과 계기를 번갈아 판단한다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP10-C10"
             },
             {
                         "ep": 10,
@@ -16957,8 +17533,8 @@ const PROJECTS = {
                         "sceneName": "바다가 부르는 이름들 · 아이슬란드 항구",
                         "id": "EP11-C22",
                         "frame": "C22 · 210–220s (10s) · WS · 슬로우 크레인 업 · 약간 로우",
-                        "desc": "하온과 미라의 기체가 부두 위로 나란히 떠올라 바다를 향해 신호를 쏜다 두 기체의 신호 링이 물 위로 동심원을 그리며 퍼진다. 대사/내레이션: 미라: 바다에선 목소리가 길을 만든다고 했지. 봐, 우리 길이 다시 이어졌어.",
-                        "func": "앵커 대사 회수, 반복 아닌 성장된 문맥",
+                        "desc": "하온과 미라의 기체가 부두 위로 나란히 떠오른다. 낮은 회색 하늘 아래 두 기체의 하부등이 물웅덩이에 흔들려 비친다.",
+                        "func": "두 기체 이륙",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -16989,6 +17565,86 @@ const PROJECTS = {
                         "screen": "하온과 미라의 기체가 부두 위로 나란히 떠올라 바다를 향해 신호를 쏜다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 11,
+                        "scene": 4,
+                        "sceneName": "바다가 부르는 이름들 · 아이슬란드 항구",
+                        "id": "EP11-C22B",
+                        "frame": "C22B · 215–218s (3s) · WS · 슬로우 크레인 업 · 약간 로우",
+                        "desc": "두 기체가 바다를 향해 신호를 쏘자 동심원 링이 물 위로 퍼진다. 회색 수면에 하온색과 미라의 붉은 신호가 겹쳐진다.",
+                        "func": "신호 링 확산",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 나란 (몽골 메카닉)",
+                                    "조연 · 미라 (통신 파일럿)"
+                        ],
+                        "loc": "아이슬란드 항구",
+                        "rawLocation": "아이슬란드 항구",
+                        "time": "흐린 낮",
+                        "duration": 10,
+                        "episodeTitle": "붉은 스웨터의 북해",
+                        "seqname": "바다가 부르는 이름들",
+                        "cut": 22,
+                        "timecode": "210–220s (10s)",
+                        "shot": "WS · 슬로우 크레인 업 · 약간 로우",
+                        "dialogue": "미라: 바다에선 목소리가 길을 만든다고 했지. 봐, 우리 길이 다시 이어졌어.",
+                        "sound": "신호 링 확산음, 상승 테마",
+                        "emotion": "성취감",
+                        "props": "아이슬란드 항구, 하나, 다온, 미라(붉은 스웨터), 미라 통신 기체",
+                        "light": "회청 바다에 신호 온광",
+                        "vfx": "동심원 신호 링 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_NORTH_SEA_MASTER_WIDE / CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707 / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_EXTERIOR_TURNAROUND",
+                        "keywords": "클라우드라이더,EP11,C22,DNA락,260708",
+                        "keyvisual": "아이슬란드 항구, 하나, 다온, 미라(붉은 스웨터), 미라 통신 기체; 바다가 부르는 이름들; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온과 미라의 기체가 부두 위로 나란히 떠올라 바다를 향해 신호를 쏜다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP11-C22"
+            },
+            {
+                        "ep": 11,
+                        "scene": 4,
+                        "sceneName": "바다가 부르는 이름들 · 아이슬란드 항구",
+                        "id": "EP11-C22C",
+                        "frame": "C22C · 218–220s (2s) · MCU · 고정 · 통신 콕핏",
+                        "desc": "미라가 이어셋 너머 바다를 보며 미소 짓는다. 신호 링이 창밖에서 아직 퍼지고 있다. 대사/내레이션: 미라: 바다에선 목소리가 길을 만든다고 했지. 봐, 우리 길이 다시 이어졌어.",
+                        "func": "앵커 대사 회수",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 나란 (몽골 메카닉)",
+                                    "조연 · 미라 (통신 파일럿)"
+                        ],
+                        "loc": "아이슬란드 항구",
+                        "rawLocation": "아이슬란드 항구",
+                        "time": "흐린 낮",
+                        "duration": 10,
+                        "episodeTitle": "붉은 스웨터의 북해",
+                        "seqname": "바다가 부르는 이름들",
+                        "cut": 22,
+                        "timecode": "210–220s (10s)",
+                        "shot": "WS · 슬로우 크레인 업 · 약간 로우",
+                        "dialogue": "미라: 바다에선 목소리가 길을 만든다고 했지. 봐, 우리 길이 다시 이어졌어.",
+                        "sound": "신호 링 확산음, 상승 테마",
+                        "emotion": "성취감",
+                        "props": "아이슬란드 항구, 하나, 다온, 미라(붉은 스웨터), 미라 통신 기체",
+                        "light": "회청 바다에 신호 온광",
+                        "vfx": "동심원 신호 링 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_NORTH_SEA_MASTER_WIDE / CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707 / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_EXTERIOR_TURNAROUND",
+                        "keywords": "클라우드라이더,EP11,C22,DNA락,260708",
+                        "keyvisual": "아이슬란드 항구, 하나, 다온, 미라(붉은 스웨터), 미라 통신 기체; 바다가 부르는 이름들; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온과 미라의 기체가 부두 위로 나란히 떠올라 바다를 향해 신호를 쏜다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP11-C22"
             },
             {
                         "ep": 11,
@@ -17339,8 +17995,8 @@ const PROJECTS = {
                         "sceneName": "삼켜진 주파수 · 북해 통신탑",
                         "id": "EP12-C02",
                         "frame": "C02 · 12–22s (10s) · MS · 고정 · 눈높이",
-                        "desc": "하온 콕핏, 편대 채널 리스트가 하나씩 붉게 끊기는 홀로 계기판 채널 표시가 지지직 흔들리며 순서대로 소거된다. 하나가 계기판 쪽으로 몸을 기울인다. 대사/내레이션: 하나: 채널이 하나씩 죽고 있어. 편대 목소리가 전부 사라져.",
-                        "func": "위기 셋업, 스파크 미등장 회차",
+                        "desc": "하온 콕핏, 편대 채널 리스트가 하나씩 붉게 끊긴다. 홀로 계기판의 채널 표시가 지지직 흔들리며 순서대로 소거된다.",
+                        "func": "편대 채널 소거",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -17370,6 +18026,45 @@ const PROJECTS = {
                         "screen": "하온 콕핏, 편대 채널 리스트가 하나씩 붉게 끊기는 홀로 계기판",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 12,
+                        "scene": 1,
+                        "sceneName": "삼켜진 주파수 · 북해 통신탑",
+                        "id": "EP12-C02B",
+                        "frame": "C02B · 17–22s (5s) · MS · 고정 · 눈높이",
+                        "desc": "하나가 계기판 쪽으로 몸을 기울인다. 다온은 옆좌석에서 사라지는 채널을 조용히 추적한다. 대사/내레이션: 하나: 채널이 하나씩 죽고 있어. 편대 목소리가 전부 사라져.",
+                        "func": "위기 인지",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "조연 · 미라 (통신 파일럿)"
+                        ],
+                        "loc": "북해 통신탑",
+                        "rawLocation": "북해 해상 통신탑",
+                        "time": "밤(오로라)",
+                        "duration": 10,
+                        "episodeTitle": "오로라 통신탑",
+                        "seqname": "삼켜진 주파수",
+                        "cut": 2,
+                        "timecode": "12–22s (10s)",
+                        "shot": "MS · 고정 · 눈높이",
+                        "dialogue": "하나: 채널이 하나씩 죽고 있어. 편대 목소리가 전부 사라져.",
+                        "sound": "단속적인 정전기 잡음, 채널 소거음",
+                        "emotion": "당황",
+                        "props": "북해 통신탑, 오로라(청록/연두), 미라(붉은 스웨터), 편대 교신",
+                        "light": "스카이블루 계기광에 적색 경고 점멸",
+                        "vfx": "신호 글리치 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_AURORA_MASTER_WIDE / CR_CHAR_HANA_EXPRESSIONS / CR_CHAR_DAON_FACE_EYES / CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707 / CR_MECH_HAON_INTERIOR_COCKPIT",
+                        "keywords": "클라우드라이더,EP12,C02,DNA락,260708",
+                        "keyvisual": "북해 통신탑, 오로라(청록/연두), 미라(붉은 스웨터), 편대 교신; 삼켜진 주파수; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "하온 콕핏, 편대 채널 리스트가 하나씩 붉게 끊기는 홀로 계기판",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP12-C02"
             },
             {
                         "ep": 12,
@@ -18279,8 +18974,8 @@ const PROJECTS = {
                         "sceneName": "커튼 아래의 항로 · 북해 통신탑",
                         "id": "EP12-C27",
                         "frame": "C27 · 262–272s (10s) · CU · 고정 · 눈높이",
-                        "desc": "미라가 붉은 스웨터를 여미며 오로라와 편대 채널을 번갈아 바라본다 미라가 조용히 미소 지으며 이어셋 너머 잡담에 귀 기울인다. 대사/내레이션: 미라: 바다에선 목소리가 길을 만든다고 했지. 오늘 그 길이 완성됐어.",
-                        "func": "북해 아크 매듭, EP11 콜백 톤",
+                        "desc": "미라가 붉은 스웨터를 여미며 오로라와 편대 채널을 번갈아 바라본다. 청록 오로라 빛이 스웨터 가장자리에 부드럽게 걸린다.",
+                        "func": "북해 아크 감정 정리",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -18309,6 +19004,44 @@ const PROJECTS = {
                         "screen": "미라가 붉은 스웨터를 여미며 오로라와 편대 채널을 번갈아 바라본다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 12,
+                        "scene": 5,
+                        "sceneName": "커튼 아래의 항로 · 북해 통신탑",
+                        "id": "EP12-C27B",
+                        "frame": "C27B · 267–272s (5s) · CU · 고정 · 눈높이",
+                        "desc": "미라가 조용히 미소 지으며 이어셋 너머 잡담에 귀 기울인다. 채널 표시가 안정적으로 이어지고 있다. 대사/내레이션: 미라: 바다에선 목소리가 길을 만든다고 했지. 오늘 그 길이 완성됐어.",
+                        "func": "북해 아크 매듭",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "조연 · 미라 (통신 파일럿)"
+                        ],
+                        "loc": "북해 통신탑",
+                        "rawLocation": "북해 해상 통신탑",
+                        "time": "밤(오로라)",
+                        "duration": 10,
+                        "episodeTitle": "오로라 통신탑",
+                        "seqname": "커튼 아래의 항로",
+                        "cut": 27,
+                        "timecode": "262–272s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "미라: 바다에선 목소리가 길을 만든다고 했지. 오늘 그 길이 완성됐어.",
+                        "sound": "편대 잡담 배경",
+                        "emotion": "뿌듯함",
+                        "props": "북해 통신탑, 오로라(청록/연두), 미라(붉은 스웨터), 편대 교신",
+                        "light": "콘솔광에 붉은 온점",
+                        "vfx": "없음 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_AURORA_MASTER_WIDE / CR_CHAR_MIRA_WITH_AIRCRAFT_REWORKED_LOCK_V2_NO_HORNS_260707 / CR_CHAR_HANA_EXPRESSIONS",
+                        "keywords": "클라우드라이더,EP12,C27,DNA락,260708",
+                        "keyvisual": "북해 통신탑, 오로라(청록/연두), 미라(붉은 스웨터), 편대 교신; 커튼 아래의 항로; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "미라가 붉은 스웨터를 여미며 오로라와 편대 채널을 번갈아 바라본다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP12-C27"
             },
             {
                         "ep": 12,
@@ -20022,8 +20755,8 @@ const PROJECTS = {
                         "sceneName": "다섯 개의 색 · 항만 활주로",
                         "id": "EP14-C13",
                         "frame": "C13 · 120–130s (10s) · WS · 고정 · 눈높이",
-                        "desc": "활주로 관제 홀로 패널에 편대 콜사인 다섯 개가 나란히 점등된다 스파크가 나란·카이·미라·료·하온의 신호를 한 화면에 정렬한다. 대사/내레이션: 스파크: 편대 등록 다섯. 고비, 카프카스, 북해, 항만, 그리고 하온.",
-                        "func": "편대 완성 명시, 상태표 EP14 반영",
+                        "desc": "활주로 관제 홀로 패널에 편대 콜사인 다섯 개가 나란히 점등된다. 빗방울이 패널 빛을 작게 번뜨린다.",
+                        "func": "편대 콜사인 점등",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -20056,6 +20789,48 @@ const PROJECTS = {
                         "screen": "활주로 관제 홀로 패널에 편대 콜사인 다섯 개가 나란히 점등된다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 14,
+                        "scene": 3,
+                        "sceneName": "다섯 개의 색 · 항만 활주로",
+                        "id": "EP14-C13B",
+                        "frame": "C13B · 125–130s (5s) · WS · 고정 · 눈높이",
+                        "desc": "스파크가 나란·카이·미라·료·하온의 신호를 한 화면에 정렬한다. 다섯 색의 작은 표시가 같은 방향을 가리킨다. 대사/내레이션: 스파크: 편대 등록 다섯. 고비, 카프카스, 북해, 항만, 그리고 하온.",
+                        "func": "편대 완성 명시",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 스파크 (홀로그램 AGI)",
+                                    "조연 · 나란 (몽골 메카닉)",
+                                    "조연 · 카이 (코카서스 파일럿)",
+                                    "조연 · 료 (구조 파일럿)",
+                                    "조연 · 미라 (통신 파일럿)"
+                        ],
+                        "loc": "항만 활주로",
+                        "rawLocation": "일본 항만 활주로",
+                        "time": "비",
+                        "duration": 10,
+                        "episodeTitle": "비 오는 활주로",
+                        "seqname": "다섯 개의 색",
+                        "cut": 13,
+                        "timecode": "120–130s (10s)",
+                        "shot": "WS · 고정 · 눈높이",
+                        "dialogue": "스파크: 편대 등록 다섯. 고비, 카프카스, 북해, 항만, 그리고 하온.",
+                        "sound": "신호 점등 시퀀스음",
+                        "emotion": "집약",
+                        "props": "항만 활주로, 빗속 하온, 료의 데님 기체, 원경 편대",
+                        "light": "패널 다색 글로우",
+                        "vfx": "신호 파형 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_DOCKING_DECK_MASTER_WIDE / CR_CHAR_SPARK_STATE_COLORS / CR_CHAR_HANA_EXPRESSIONS / CR_MECH_HAON_PANEL_DAMAGE_STATES",
+                        "keywords": "클라우드라이더,EP14,C13,DNA락,260708",
+                        "keyvisual": "항만 활주로, 빗속 하온, 료의 데님 기체, 원경 편대; 다섯 개의 색; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "활주로 관제 홀로 패널에 편대 콜사인 다섯 개가 나란히 점등된다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP14-C13"
             },
             {
                         "ep": 14,
@@ -22009,8 +22784,8 @@ const PROJECTS = {
                         "sceneName": "계기가 흔들리는 초저녁 · 극지 하늘",
                         "id": "EP16-C05",
                         "frame": "C05 · 41–50s (9s) · CU · 고정 · 약간 하이",
-                        "desc": "스파크 UI 아바타가 하온 홀로패널에 뜨고 채널 막대가 하나씩 붉게 꺼진다 스파크의 상태 컬러가 안정 그린에서 경고 앰버로 물든다. 대사/내레이션: 스파크: 외부 채널 6개 중 4개 손실. 위성 링크 신뢰도 급락.",
-                        "func": "스파크 상태=경고 앰버",
+                        "desc": "스파크 UI 아바타가 하온 홀로패널에 뜨고 외부 채널 막대가 하나씩 붉게 꺼진다. 패널의 남은 녹색 막대가 급격히 줄어든다.",
+                        "func": "외부 채널 손실",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -22039,6 +22814,44 @@ const PROJECTS = {
                         "screen": "스파크 UI 아바타가 하온 홀로패널에 뜨고 채널 막대가 하나씩 붉게 꺼진다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 16,
+                        "scene": 1,
+                        "sceneName": "계기가 흔들리는 초저녁 · 극지 하늘",
+                        "id": "EP16-C05B",
+                        "frame": "C05B · 46–50s (4s) · CU · 고정 · 약간 하이",
+                        "desc": "스파크의 상태 컬러가 안정 그린에서 경고 앰버로 물든다. 앰버 빛이 하나의 장갑과 콕핏 벽에 번진다. 대사/내레이션: 스파크: 외부 채널 6개 중 4개 손실. 위성 링크 신뢰도 급락.",
+                        "func": "스파크 경고 앰버 전환",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 스파크 (홀로그램 AGI)"
+                        ],
+                        "loc": "극지 하늘",
+                        "rawLocation": "극지 하늘",
+                        "time": "밤",
+                        "duration": 9,
+                        "episodeTitle": "신호가 사라지는 밤",
+                        "seqname": "계기가 흔들리는 초저녁",
+                        "cut": 5,
+                        "timecode": "41–50s (9s)",
+                        "shot": "CU · 고정 · 약간 하이",
+                        "dialogue": "스파크: 외부 채널 6개 중 4개 손실. 위성 링크 신뢰도 급락.",
+                        "sound": "채널 소등 비프, 하강 톤",
+                        "emotion": "경고",
+                        "props": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호",
+                        "light": "앰버 경고 글로우",
+                        "vfx": "막대 소등 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAGNETIC_STORM_SPARK_DOWN / CR_CHAR_SPARK_STATE_COLORS / CR_MECH_HAON_PANEL_DAMAGE_STATES",
+                        "keywords": "클라우드라이더,EP16,C05,DNA락,260708",
+                        "keyvisual": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호; 계기가 흔들리는 초저녁; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "스파크 UI 아바타가 하온 홀로패널에 뜨고 채널 막대가 하나씩 붉게 꺼진다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP16-C05"
             },
             {
                         "ep": 16,
@@ -22792,8 +23605,8 @@ const PROJECTS = {
                         "sceneName": "빛이 남긴 이름 없는 약속 · 극지 하늘",
                         "id": "EP16-C26",
                         "frame": "C26 · 250–260s (10s) · CU · 고정 · 눈높이",
-                        "desc": "스파크 UI 아바타가 다시 뜨고 채널 막대가 하나씩 초록으로 복구된다 스파크의 상태 컬러가 경고 앰버에서 안정 그린으로 돌아온다. 대사/내레이션: 스파크: 채널 순차 복구. 그런데… 방금 그 재집결, 제 로그엔 다온 주도로 기록되었습니다.",
-                        "func": "스파크 상태=안정 그린, 다온 성장 명문화",
+                        "desc": "스파크 UI 아바타가 다시 뜬다. 방금 전까지 빈자리였던 홀로 패널 중앙에 작은 스카이블루 윤곽이 재등장한다.",
+                        "func": "스파크 UI 복귀",
                         "pri": "must",
                         "char": [
                                     "주연 · 하나 (정비복)",
@@ -22823,6 +23636,84 @@ const PROJECTS = {
                         "screen": "스파크 UI 아바타가 다시 뜨고 채널 막대가 하나씩 초록으로 복구된다",
                         "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
                         "subtitle": "필요 시 대사/내레이션만 최소 자막"
+            },
+            {
+                        "ep": 16,
+                        "scene": 5,
+                        "sceneName": "빛이 남긴 이름 없는 약속 · 극지 하늘",
+                        "id": "EP16-C26B",
+                        "frame": "C26B · 254–257s (3s) · CU · 고정 · 채널 막대",
+                        "desc": "채널 막대가 하나씩 초록으로 복구된다. 스파크의 상태 컬러가 경고 앰버에서 안정 그린으로 돌아온다.",
+                        "func": "채널 순차 복구",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "주연 · 스파크 (홀로그램 AGI)"
+                        ],
+                        "loc": "극지 하늘",
+                        "rawLocation": "극지 하늘",
+                        "time": "밤",
+                        "duration": 10,
+                        "episodeTitle": "신호가 사라지는 밤",
+                        "seqname": "빛이 남긴 이름 없는 약속",
+                        "cut": 26,
+                        "timecode": "250–260s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "스파크: 채널 순차 복구. 그런데… 방금 그 재집결, 제 로그엔 다온 주도로 기록되었습니다.",
+                        "sound": "채널 복구 상승음, 안정 하모닉",
+                        "emotion": "담담한 확인",
+                        "props": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호",
+                        "light": "그린 세이프 톤 글로우",
+                        "vfx": "막대 재점등 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAGNETIC_STORM_SPARK_DOWN / CR_CHAR_SPARK_STATE_COLORS / CR_MECH_SPARK_HOLOGRAM_UI",
+                        "keywords": "클라우드라이더,EP16,C26,DNA락,260708",
+                        "keyvisual": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호; 빛이 남긴 이름 없는 약속; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "스파크 UI 아바타가 다시 뜨고 채널 막대가 하나씩 초록으로 복구된다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP16-C26"
+            },
+            {
+                        "ep": 16,
+                        "scene": 5,
+                        "sceneName": "빛이 남긴 이름 없는 약속 · 극지 하늘",
+                        "id": "EP16-C26C",
+                        "frame": "C26C · 257–260s (3s) · MCU · 고정 · 눈높이",
+                        "desc": "로그 창에 방금 재집결의 주도자가 다온으로 기록된다. 다온은 대답하지 않고 창밖 편대 등화를 바라본다. 대사/내레이션: 스파크: 그런데… 방금 그 재집결, 제 로그엔 다온 주도로 기록되었습니다.",
+                        "func": "다온 성장 명문화",
+                        "pri": "must",
+                        "char": [
+                                    "주연 · 하나 (정비복)",
+                                    "주연 · 다온 (휴머노이드)",
+                                    "주연 · 스파크 (홀로그램 AGI)"
+                        ],
+                        "loc": "극지 하늘",
+                        "rawLocation": "극지 하늘",
+                        "time": "밤",
+                        "duration": 10,
+                        "episodeTitle": "신호가 사라지는 밤",
+                        "seqname": "빛이 남긴 이름 없는 약속",
+                        "cut": 26,
+                        "timecode": "250–260s (10s)",
+                        "shot": "CU · 고정 · 눈높이",
+                        "dialogue": "스파크: 채널 순차 복구. 그런데… 방금 그 재집결, 제 로그엔 다온 주도로 기록되었습니다.",
+                        "sound": "채널 복구 상승음, 안정 하모닉",
+                        "emotion": "담담한 확인",
+                        "props": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호",
+                        "light": "그린 세이프 톤 글로우",
+                        "vfx": "막대 재점등 · 컷",
+                        "assetRefs": "DNA락 유지 · CR_ENV_MAGNETIC_STORM_SPARK_DOWN / CR_CHAR_SPARK_STATE_COLORS / CR_MECH_SPARK_HOLOGRAM_UI",
+                        "keywords": "클라우드라이더,EP16,C26,DNA락,260708",
+                        "keyvisual": "극지 야간 하늘, 자기폭풍 오로라, 흩어진 편대 등화, 하온 등화 신호; 빛이 남긴 이름 없는 약속; DNA락 유지",
+                        "riskcont": "-",
+                        "directing": "서정적 호흡, 매끈한 2.5D/반3D 질감, 컷 단위 제작",
+                        "screen": "스파크 UI 아바타가 다시 뜨고 채널 막대가 하나씩 초록으로 복구된다",
+                        "facial": "설명보다 시선·손짓·조종석의 작은 소리로 감정 표현",
+                        "subtitle": "필요 시 대사/내레이션만 최소 자막",
+                        "splitFrom": "EP16-C26"
             },
             {
                         "ep": 16,
@@ -46391,32 +47282,28 @@ async function generateSBShot(shotId, _seq) {
     'CRITICAL — Do NOT replicate any grid/collage layout. Do NOT reproduce any visible text, captions, numbers, or labels from references. ' +
     'Extract ONLY: mood, color palette, lighting quality, material/texture, atmospheric tone. ' +
     'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
-  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const isAnimationProject = currentProject && currentProject.styleMode === 'animation';
+  const singleBeatLock = 'SINGLE-BEAT FRAME LOCK:\n' +
+    'Treat ACTION as storyboard source notes, not a montage request. Choose exactly ONE visible instant for this shot: the frame implied by CAMERA and SHOT id. ' +
+    'If ACTION contains sequential verbs, dialogue, V.O., camera movement, before/after states, or several micro-actions, render only the decisive still moment and leave other beats offscreen for adjacent cuts. ' +
+    'Do NOT combine multiple poses, timelines, camera positions, or before-and-after states in one image.\n';
+  const bodyProportionsBlock = isAnimationProject
+    ? 'ANIMATION CHARACTER SHAPE: premium 2.5D hybrid animation proportions; expressive 2D-style faces, clean readable silhouettes, natural Korean teen/young-adult scale, and consistent limb/head proportions from the approved character sheets. Do NOT force live-action 9-head fashion-model anatomy.'
+    : 'BODY PROPORTIONS: all characters at 9+ head-tall heroic proportions (9등신 이상), small head (소두), long limbs, fashion-model silhouette.' + ((shot.char && shot.char.some(function(c){return c.indexOf('독고탄')!==-1;})) ? ' Dokgo Tan: broad shoulders + V-taper torso (넓은 어깨). Western COWBOY HAT only (NOT gat/전립).' : '');
+  const visualStyleBlock = isAnimationProject
+    ? `VISUAL LANGUAGE REFERENCE:
+Premium 2.5D hybrid animation frame: emotional 2D-animation characters with clean line art, soft cel shading, expressive eyes, subtle blush, and readable acting; cinematic semi-3D painterly backgrounds, aircraft, sky, cockpit, tools, dust, water, sand, and snow. Warm soft-SF road-movie tone, current Earth regional culture plus modest future devices.
 
-CAMERA:\n${sbCam.summary}
-LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}
-ACTION (this specific shot only): ${shot.desc}
-FUNCTION: ${shot.func}
-NOTE: Render ONLY the specific action above — do NOT depict other moments from the scene.
-OFFSCREEN VOICE / COMMUNICATION SAFETY: If a character is mentioned only as V.O., 통신, 나레이션, voice, offscreen audio, or a line heard through radio/speaker and is not physically described in ACTION, do NOT render that character as a visible person. Show the on-screen listener, practical earpiece/radio/speaker, screen glow, or environmental reaction instead.
-TEXT / UI / GRAPHIC SAFETY: If ACTION mentions subtitles, title cards, calligraphy, verdict lettering, brush-stroke titles, UI labels, logos, signs, captions, profile text, terminal text, maps, broadcasts, REC marks, data windows, or readable wording, DO NOT generate literal letters, ink typography, black brush strokes, diagrams, HUDs, floating UI, vector graphics, or graphic overlays inside the image. If needed for plot, show only diegetic practical props/screens filmed in-camera: out-of-focus LED panels, dusty glass reflections, projector spill, unreadable glow patches, soot/grime, broken LED noise, or blank physical cards. Final typography, calligraphy, and UI graphics must be handled separately in post-production.
+ANIMATION STYLE (CRITICAL): This must look like a finished animated storyboard/keyframe, NOT live-action, NOT photoreal skin, NOT a real actor photograph, NOT documentary footage. Keep the frame clean, lyrical, bright-readable, and emotionally specific. Preserve HAON as the fixed cream-white/deep-navy aircraft with sky-blue lights and lemon-yellow bands; four circular ducted drone-wings only, no orange, no random redesign.
+STYLE: 2.5D hybrid animation, cinematic 16:9, painterly atmosphere, tactile mechanical detail, coherent aircraft scale, clean silhouettes.
+${projQuality}
 
-SUBJECT DNA:
-${charDnaBlock || '(no character DNA)'}
-COSTUME: ${costumeDna || '(default)'}
+COLOR & CONTRAST:
+Bright-readable sky-blue and lemon-yellow identity accents, warm workshop yellows when indoors, region-specific light color from the shot. Avoid muddy low-key grading unless explicitly the story point. No crushed blacks, no generic purple palette, no heavy noir mood.
 
-BODY PROPORTIONS: all characters at 9+ head-tall heroic proportions (9등신 이상), small head (소두), long limbs, fashion-model silhouette.${(shot.char && shot.char.some(function(c){return c.indexOf('독고탄')!==-1;})) ? ' Dokgo Tan: broad shoulders + V-taper torso (넓은 어깨). Western COWBOY HAT only (NOT gat/전립).' : ''}
-
-SPACE DNA: ${spaceDna || resolveShotLoc(shot) || preset.loc || ''}
-
-MOOD: ${emoDna || ''}
-LIGHTING: ${lightDna || shot.light || ''} ${shot.time || preset.time || ''}
-
-CAMERA POSITION (concrete, anti-textbook):
-${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
-Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
-
-VISUAL LANGUAGE REFERENCE:
+SURFACE / MECHA DETAIL:
+Aircraft panels, ducted rotors, cockpit gauges, tools, fabric, dust, raindrops, sand, frost, and paint wear must be tactile and consistent, but stylized for animation rather than photoreal texture.`
+    : `VISUAL LANGUAGE REFERENCE:
 In the frame composition style of Roger Deakins / Emmanuel Lubezki / Wong Kar-wai / Bong Joon-ho. Reference film: real cinematic photography, NOT magazine cover, NOT Instagram aesthetic.
 
 REALISM (CRITICAL): must look like a REAL PHOTOGRAPH / actual film still captured on set — candid, slightly imperfect, real human skin with pores, blemishes, asymmetry, stray flyaway hairs. NOT a render, NOT concept art, NOT a video-game cutscene, NOT digital illustration, NOT AI-art gloss.
@@ -46427,11 +47314,43 @@ COLOR & CONTRAST (anti-AI grading):
 Lifted blacks with milky shadows, rolled-off highlights, NO crushed shadows, desaturated muted palette, soft film contrast curve. Flat log-style base before grading. NO orange-and-teal grading, NO HDR look, NO oversaturation, NO digital clean look. Color graded in the natural-light approach of Roma (2018) or In the Mood for Love.
 
 ANTI-CG REALITY MANDATE:
-Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush. All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture. Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.
-
-NEGATIVE: ${projNegative}
+Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush. All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture. Subtle lens vignetting, micro chromatic aberration, optical depth-of-field. NOT simulated.`;
+  const negativeBlock = isAnimationProject
+    ? `NEGATIVE: ${projNegative}
+no live-action, no photoreal human skin, no real actors, no photograph, no realistic pores, no camera sensor look, no 9-head fashion-photo anatomy, no horror/noir dark grading, no 3D game render, no plastic toy aircraft, no random HAON redesign, no orange on HAON, no purple palette, no alien planet, no over-futuristic megacity, no military redesign, no multiple moments in one image, no collage, no split-screen, no comic panel layout, no readable text, no title card, no subtitles, no logo, no watermark.
+Single animated frame, no text overlay, no border.`
+    : `NEGATIVE: ${projNegative}
 no high contrast, no oversaturated colors, no digital clean look, no HDR look, no Instagram filter aesthetic, no average textbook angles, no perfectly centered composition. no CGI, no 3D render, no octane/unreal engine render, no concept art, no digital painting, no video-game cutscene look, no plastic airbrushed skin, no over-smooth glossy surfaces, no HUD overlay, no UI overlay, no floating hologram interface, no vector graphics, no readable text, no title card, no subtitles, no logo, no calligraphy text, no brush-stroke title marks, no graphic black slash overlays.
 Single frame, no text overlay, no border, no watermark. Photorealistic film still.`;
+  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+
+CAMERA:\n${sbCam.summary}
+LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}
+ACTION (this specific shot only): ${shot.desc}
+FUNCTION: ${shot.func}
+NOTE: Render ONLY the specific action above — do NOT depict other moments from the scene.
+${singleBeatLock}
+OFFSCREEN VOICE / COMMUNICATION SAFETY: If a character is mentioned only as V.O., 통신, 나레이션, voice, offscreen audio, or a line heard through radio/speaker and is not physically described in ACTION, do NOT render that character as a visible person. Show the on-screen listener, practical earpiece/radio/speaker, screen glow, or environmental reaction instead.
+TEXT / UI / GRAPHIC SAFETY: If ACTION mentions subtitles, title cards, calligraphy, verdict lettering, brush-stroke titles, UI labels, logos, signs, captions, profile text, terminal text, maps, broadcasts, REC marks, data windows, or readable wording, DO NOT generate literal letters, ink typography, black brush strokes, diagrams, HUDs, floating UI, vector graphics, or graphic overlays inside the image. If needed for plot, show only diegetic practical props/screens filmed in-camera: out-of-focus LED panels, dusty glass reflections, projector spill, unreadable glow patches, soot/grime, broken LED noise, or blank physical cards. Final typography, calligraphy, and UI graphics must be handled separately in post-production.
+
+SUBJECT DNA:
+${charDnaBlock || '(no character DNA)'}
+COSTUME: ${costumeDna || '(default)'}
+
+${bodyProportionsBlock}
+
+SPACE DNA: ${spaceDna || resolveShotLoc(shot) || preset.loc || ''}
+
+MOOD: ${emoDna || ''}
+LIGHTING: ${lightDna || shot.light || ''} ${shot.time || preset.time || ''}
+
+CAMERA POSITION (concrete, anti-textbook):
+${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
+Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
+
+${visualStyleBlock}
+
+${negativeBlock}`;
   const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}
   if(!(_seq)) sbShowLoading(shotId, '생성 중...');

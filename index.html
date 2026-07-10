@@ -45503,18 +45503,32 @@ function buildSBCharacterWardrobeBinding(shot, images) {
     'CHARACTER-WARDROBE BINDING LOCK:',
     'Bind each character identity only to the same-name face/character/costume references listed below. Do NOT transfer another character\'s outfit, harness, goggles, mechanical body, hairstyle, or color placement.'
   ];
+  const hasDaon = visible.some(function(ch) { return ch.real === '다온'; }) || /다온/.test(shotText);
+  const hasHana = visible.some(function(ch) { return ch.real === '하나'; }) || /하나/.test(shotText);
+  const hasHaon = /하온/.test(shotText) || /haon/.test(shotText);
+  if (hasDaon && hasHana && hasHaon) {
+    const daonCanon = (currentProject.characterDNA && currentProject.characterDNA['다온']) || 'Korean humanoid companion girl, black low bun, white mechanical ear/neck interface, visible refined mechanical joints, neutral fabric/tech bodysuit, young expression.';
+    const hanaCanon = (currentProject.characterDNA && currentProject.characterDNA['하나']) || 'Korean mechanic/pilot with deep-navy denim or canvas mechanic shirt or jacket, navy overalls, brown leather tool harness/apron and tool belt, brown boots, mechanic gloves, sky-blue goggles on head.';
+    lines.push('CLOUDRIDER CO-COMPOSING CANON TABLE (다온·하나·하온 동시 노출 시 강제):');
+    lines.push('- 다온 얼굴/몸/의상: 얼굴은 다온 FACE reference만 사용. ' + daonCanon);
+    lines.push('- 하나 얼굴/의상: 얼굴은 하나/HANA DNA + 얼굴 레퍼런스로 고정. ' + hanaCanon + ' HANA MAINTENANCE OUTFIT LOCK: dark deep-navy denim/canvas mechanic shirt or jacket + navy overalls + brown leather tool harness/apron + tool belt. NEVER all-white/cream coverall, white jumpsuit, lab suit, painter suit, astronaut suit, white pilot uniform.');
+    lines.push('- 하온 기체: 고정 HAON 항공체. garage-scale 5-7m급 전신 존재감, 2인 탑승 둥근 캐노피, 크림-화이트/딥네이비 기체, 하늘색 라이트, 레몬 옐로우 띠, 정확히 네 개의 원형 드론 윙/로터 pod(듀얼 좌/우, 총4개).');
+  }
   visible.forEach(function(ch) {
     const dna = currentProject.characterDNA ? (currentProject.characterDNA[ch.name] || currentProject.characterDNA[ch.real] || '') : '';
-    const sameNameRefs = refLabels.filter(function(label) { return label.indexOf(ch.real) !== -1; });
+    const sameNameRefs = refLabels.filter(function(label) {
+      const lower = label.toLowerCase();
+      return lower.indexOf(ch.real.toLowerCase()) !== -1;
+    });
     lines.push('- ' + ch.real + ': use ONLY same-name refs for identity and wardrobe' + (sameNameRefs.length ? ' (' + sameNameRefs.join(' / ') + ')' : '') + '. ' + (dna ? 'DNA: ' + dna : ''));
   });
   if (currentProjectKey === 'cloudrider' || currentProject.name === '클라우드라이더') {
-    const hasDaon = visible.some(function(ch) { return ch.real === '다온'; }) || /다온/.test(shotText);
-    const hasHana = visible.some(function(ch) { return ch.real === '하나'; }) || /하나/.test(shotText);
     if (hasDaon || hasHana || /하온/.test(shotText)) {
-      lines.push('CLOUDRIDER DAON/HANA/HAON SEPARATION: 다온 is a young Korean female companion humanoid with black low bun, white mechanical ear/neck interface, cropped deep-navy jacket, taupe bodysuit, and visible refined mechanical joints. 다온 must NEVER wear 하나\'s oil-stained mechanic coverall, aviator goggles, brown work harness, flight uniform, or mechanic gloves unless the shot explicitly says costume swap.');
-      lines.push('하나 is the human mechanic/pilot and must NEVER inherit 다온\'s white humanoid neck/ear interface, taupe bodysuit, exposed mechanical joints, or synthetic skin seams. HANA MAINTENANCE OUTFIT LOCK: when 하나 is in 정비복, render dark deep-navy denim/canvas mechanic shirt or jacket plus navy overalls, brown leather tool harness/apron/tool belt, brown boots and mechanic gloves, sky-blue goggles on head, small lemon-yellow/sky-blue accents. Cream/off-white may appear only as a small inner henley at collar/sleeve edge. NEVER render 하나 in all-white/cream coverall, white jumpsuit, lab coat, painter suit, astronaut suit, or white pilot uniform.');
+      lines.push('CLOUDRIDER DAON/HANA/HAON SEPARATION: 다온 is a young Korean female companion humanoid with black low bun, white mechanical ear/neck interface, visible refined mechanical joints, and a neutral fabric-bodysuit look. 다온 NEVER uses 하나\'s maintenance outfit or mechanic uniform unless shot explicitly says costume swap.');
+      lines.push('다온 is bound to its own humanoid/robotic wardrobe signals: pale-white neck interface, exposed joints, smooth fabric/tech bodysuit, and no mechanic apron, no mechanic jumpsuit, no brown tool harness, no mechanic glove-only styling as a required default.');
+      lines.push('하나 is the human mechanic/pilot and must NEVER inherit 다온\'s white humanoid neck/ear interface, taupe bodysuit, exposed mechanical joints, or synthetic skin seams.');
       lines.push('하온 is the aircraft/cockpit/prop reference only: cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, four circular ducted drone-wings. Never turn HAON aircraft panels, cockpit straps, paint bands, or mechanical hull parts into 다온 clothing.');
+      lines.push('Character split lock: when 다온 and 하나 coexist, keep wardrobe locks separate. 다온 and 하나 share scene direction only, never wardrobe identity. If one appears and the other has no direct wardrobe reference, do not infer outfit exchange.');
     }
   }
   return lines.join('\n') + '\n\n';
@@ -45528,12 +45542,10 @@ function buildCloudRiderHaonAircraftLock(shot, images) {
   return [
     'HAON AIRCRAFT CANONICAL LOCK — NON-NEGOTIABLE:',
     '하온 is a fixed hero aircraft, not a generic jet, not a car, not a fighter, not a motorcycle, and not a costume source.',
-    'Canonical silhouette: garage-scale two-seat soft-SF rescue/road-movie aircraft, not drone-scale: cream-white primary body, deep-navy panels, sky-blue lights, and lemon-yellow band accents.',
+    'Canonical silhouette: compact two-seat soft-SF rescue/road-movie aircraft with cream-white primary body, deep-navy panels, sky-blue lights, and lemon-yellow band accents.',
     'Mandatory structure: EXACTLY FOUR circular ducted drone-wings / rotor pods, arranged symmetrically as two pods on the left side and two pods on the right side. The frame may crop some pods, but the visible design must still read as the same four-pod HAON aircraft.',
-    'Cockpit lock: two full human seats under a rounded canopy from the HAON cockpit references; canopy is wider/taller than 하나, with readable room for 하나 + 다온. Keep handmade garage-built proportions with worn paint and practical panel seams, but do not shrink it into a toy.',
-    'HAON SCALE LOCK: HAON is a small AIRCRAFT, not a small drone. Fuselage should read roughly 5-7 meters long / small-car-to-micro-aircraft scale; each circular ducted rotor pod is large, about torso/shoulder-span scale, never palm-sized or desk-fan sized. When people appear beside HAON, people are clearly smaller than the craft and the cockpit/nose towers over their hands/torso.',
-    'GARAGE SHOT SCALE: In WS/EWS garage or maintenance-bay shots, HAON must dominate the bay and occupy a major portion of the visible workshop footprint. It may be cropped by frame edges because it is large. Avoid leaving it as a tiny centered object on the floor.',
-    'Forbidden HAON drift: no tiny drone, no toy/RC craft, no backpack craft, no scooter-sized hover pod, no person-sized cockpit, no twin-engine jet redesign, no single pair of rotors, no long fixed airplane wings, no helicopter skids, no orange paint, no random tail fin redesign, no fighter nose, no luxury concept car body, no animal/insect silhouette, no extra pods beyond four.',
+    'Cockpit lock: two-seat cockpit/canopy from the HAON cockpit references; readable small craft scale for 하나 + 다온, not a huge military jet. Keep rounded handmade garage-built proportions with worn paint and practical panel seams.',
+    'Forbidden HAON drift: no twin-engine jet redesign, no single pair of rotors, no long fixed airplane wings, no helicopter skids, no orange paint, no random tail fin redesign, no fighter nose, no luxury concept car body, no animal/insect silhouette, no extra pods beyond four.',
     'If HAON appears with people, keep HAON as a separate aircraft object. Never transfer HAON hull panels, cockpit straps, paint bands, or rotor shapes onto 다온 or 하나 clothing.'
   ].join('\n') + '\n\n';
 }
@@ -47395,8 +47407,7 @@ async function generateSBShot(shotId, _seq) {
     let outfit = '';
     if (dna) {
       // DNA 텍스트에서 의상 관련 구문 추출
-      const dnaLower = dna.toLowerCase();
-      const m = dna.match(/([^,\.]*?(?:t-shirt|shirt|jacket|apron|jeans|slacks|coat|dress|sweater|knit|pants|trousers|tee|벨트|토트|니트|블레이저|셔츠|티셔츠|앞치마|팬츠|슬랙스|재킷)[^,\.]*)/gi);
+      const m = dna.match(/([^,\.]*?(?:bodysuit|body suit|harness|overalls|goggles|mechanical joints|ear\/neck interface|neck interface|ear interface|tool belt|rotor|rotor pod|rotor pods|cockpit|apron|shirt|trousers|pants|오버롤|보디수트|보디 슈트)[^,\.]*)/gi);
       if (m) outfit = m.slice(0, 3).join(', ');
     }
     const presetCostume = preset.costume || '';

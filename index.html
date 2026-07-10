@@ -45550,6 +45550,361 @@ function buildCloudRiderHaonAircraftLock(shot, images) {
   ].join('\n') + '\n\n';
 }
 
+const PROJECT_CANON_REGISTRY = {
+  ncity: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}},
+  proofOfTaste: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}},
+  cloudrider: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}},
+  todayMood: {continuityPolicy:{backgroundCarry:'same-location-strong', lightingCarry:'same-time-only', previousImageUse:'high-confidence-supporting-reference-only'}}
+};
+const LOCATION_ALIAS_MAP = {
+  cloudrider: {
+    HAON_GARAGE: ['하온 격납고','격납고','정비 베이','정비베이','차고','작업장','garage bay','maintenance bay'],
+    HAON_HANGAR: ['격납장','해변 도크','하늘정비장','hangar','dock']
+  },
+  proofOfTaste: {
+    QUIET_KITCHEN: ['부엌','주방','작은 부엌','kitchen'],
+    QUIET_CAFE: ['카페','까페','여밀','교집합','cafe'],
+    QUIET_ROOM: ['작업실','연습실','방','room']
+  },
+  ncity: {
+    LAST_SHOT: ['last shot','라스트 샷','바','지하 바'],
+    POLY_STREET: ['poly','폴리','뒷골목','거리'],
+    HEXA_FACTORY: ['hexa','헥사','공장','산업구역']
+  },
+  todayMood: {
+    CAFE_TODAY: ['까페 오늘','카페 오늘','cafe today'],
+    SCHOOL: ['학교','교실','복도','옥상','테니스 코트'],
+    QUIET_ROOM: ['방','작업실','room']
+  }
+};
+function getContinuityProjectKey() {
+  const rawVals = [];
+  try {
+    if (typeof currentProjectKey !== 'undefined') rawVals.push(currentProjectKey);
+    if (typeof currentProject !== 'undefined' && currentProject) rawVals.push(currentProject.slug, currentProject.id, currentProject.name);
+  } catch(e) {}
+  for (let i = 0; i < rawVals.length; i++) {
+    const raw = String(rawVals[i] || '').replace(/\s+/g, '').toLowerCase();
+    if (!raw) continue;
+    if (raw === 'cloudrider' || raw.indexOf('클라우드라이더') !== -1) return 'cloudrider';
+    if (raw === 'proofoftaste' || raw === 'proof-of-taste' || raw.indexOf('취향의증거') !== -1) return 'proofOfTaste';
+    if (raw === 'ncity' || raw.indexOf('n시의무법자') !== -1 || raw.indexOf('n시무법자') !== -1) return 'ncity';
+    if (raw === 'todaymood' || raw.indexOf('오늘은왠지') !== -1 || raw === 'love-film') return 'todayMood';
+    if (PROJECT_CANON_REGISTRY[raw]) return raw;
+  }
+  return null;
+}
+function sbContinuityCleanText(v) {
+  return String(v || '').replace(/\s+/g, ' ').trim();
+}
+function sbContinuityTimeKey(shot) {
+  const t = sbContinuityCleanText((shot && (shot.time || shot.light || ''))).toLowerCase();
+  if (!t) return 'unknown';
+  if (t.indexOf('아침') !== -1 || t.indexOf('morning') !== -1) return 'morning';
+  if (t.indexOf('오전') !== -1) return 'morning';
+  if (t.indexOf('낮') !== -1 || t.indexOf('오후') !== -1 || t.indexOf('day') !== -1) return 'day';
+  if (t.indexOf('저녁') !== -1 || t.indexOf('노을') !== -1 || t.indexOf('evening') !== -1 || t.indexOf('sunset') !== -1) return 'evening';
+  if (t.indexOf('밤') !== -1 || t.indexOf('새벽') !== -1 || t.indexOf('night') !== -1) return 'night';
+  return t.slice(0, 28);
+}
+function sbContinuityLocationKey(shot) {
+  const projectKey = getContinuityProjectKey();
+  const raw = sbContinuityCleanText((typeof resolveShotLoc === 'function' ? resolveShotLoc(shot) : '') || (shot && shot.loc) || '');
+  if (!projectKey || !raw) return '';
+  const aliases = LOCATION_ALIAS_MAP[projectKey] || {};
+  const low = raw.toLowerCase();
+  const keys = Object.keys(aliases);
+  for (let i = 0; i < keys.length; i++) {
+    const arr = aliases[keys[i]] || [];
+    for (let j = 0; j < arr.length; j++) {
+      if (low.indexOf(String(arr[j]).toLowerCase()) !== -1) return keys[i];
+    }
+  }
+  return raw.toUpperCase().replace(/\s+/g, '_').replace(/[^\w가-힣\-\[\]]/g, '').slice(0, 48);
+}
+function sbContinuityCharacterSet(shot) {
+  const out = [];
+  const text = sbContinuityCleanText((shot && shot.desc || '') + ' ' + (shot && shot.frame || '') + ' ' + (Array.isArray(shot && shot.char) ? shot.char.join(' ') : '')).toLowerCase();
+  const names = (typeof getProjectCharNamesForRefs === 'function') ? getProjectCharNamesForRefs() : [];
+  names.forEach(function(name) {
+    const real = (typeof sbCharReal === 'function') ? sbCharReal(name) : String(name || '').split(/[\s(（]/)[0];
+    const low = String(real || name || '').toLowerCase();
+    if (!low) return;
+    if ((Array.isArray(shot && shot.char) && (shot.char.indexOf(name) !== -1 || shot.char.indexOf(real) !== -1)) || text.indexOf(low) !== -1) {
+      if (out.indexOf(real) === -1) out.push(real);
+    }
+  });
+  return out.sort();
+}
+function sbContinuityShotScale(shot, sbCam) {
+  const t = sbContinuityCleanText((shot && shot.frame || '') + ' ' + (sbCam && sbCam.summary || '')).toLowerCase();
+  if (/\becu\b|extreme close|macro|매크로/.test(t)) return 'ECU';
+  if (/\bcu\b|close-up|클로즈/.test(t)) return 'CU';
+  if (/\bins\b|insert|인서트/.test(t)) return 'Insert';
+  if (/\bws\b|\bews\b|wide|full shot|풀샷|와이드/.test(t)) return 'Wide';
+  if (/\bms\b|medium|미디엄/.test(t)) return 'MS';
+  return 'Unknown';
+}
+function sbContinuityCanCarryBackgroundScale(scale) {
+  return scale === 'Wide' || scale === 'MS';
+}
+function sbContinuityResetRequested(shot) {
+  const t = sbContinuityCleanText((shot && shot.desc || '') + ' ' + (shot && shot.frame || '')).toLowerCase();
+  return /장소 변경|다른 장소|다른 방|다른 시간|안에서 밖|밖에서 안|실내에서 실외|실외에서 실내|새로운 하루|새 날|다음 날|의상 변경|지금 입은|새 의상|바뀐|변한|회상|기억|꿈|몽타주|전투 후|사고 후|flashback|memory|dream|montage|costume change|location change|time jump|new day|different room|outside to inside|inside to outside|interior to exterior|exterior to interior|after battle|after accident|now wearing|changed|different/.test(t);
+}
+function sbContinuityGroupBase(shot) {
+  const projectKey = getContinuityProjectKey();
+  const loc = sbContinuityLocationKey(shot);
+  if (!projectKey || !loc) return '';
+  const episode = String(typeof shot.ep !== 'undefined' ? shot.ep : (shot.scene || 'scene0'));
+  const scene = String(shot.scene || 'scene0');
+  return [projectKey, episode, scene, loc].join(':');
+}
+function sbContinuityLocationBase(shot) {
+  const projectKey = getContinuityProjectKey();
+  const loc = sbContinuityLocationKey(shot);
+  if (!projectKey || !loc) return '';
+  const episode = String(typeof shot.ep !== 'undefined' ? shot.ep : (shot.scene || 'scene0'));
+  return [projectKey, episode, loc].join(':');
+}
+function sbContinuityGroupKey(shot) {
+  const base = sbContinuityGroupBase(shot);
+  if (!base) return '';
+  const chars = sbContinuityCharacterSet(shot);
+  return [base, sbContinuityTimeKey(shot), chars.length ? chars.join('|') : 'NONE'].join(':');
+}
+function sbContinuityCharacterWardrobe(name) {
+  const projectKey = getContinuityProjectKey();
+  if (projectKey === 'cloudrider') {
+    if (name === '다온') return '다온 canon: Korean humanoid companion girl, black low bun, white mechanical ear/neck interface, refined visible mechanical joints, neutral fabric/tech bodysuit. Never use Hana wardrobe.';
+    if (name === '하나') return '하나 canon: human Korean mechanic/pilot, dark deep-navy denim/canvas mechanic shirt or jacket, navy overalls, brown leather tool harness/apron and tool belt, brown boots, mechanic gloves, sky-blue goggles on head.';
+    if (name === '하온') return '하온 canon: fixed 5-7m garage-scale two-seat aircraft with cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, exactly four circular ducted rotor pods.';
+  }
+  try {
+    const dna = currentProject && currentProject.characterDNA ? (currentProject.characterDNA[name] || '') : '';
+    if (dna) return sbContinuityCleanText(dna).slice(0, 220);
+  } catch(e) {}
+  return 'use current project character canon';
+}
+function sbContinuityCardFromShot(shot, sbCam, hasGeneratedFrame) {
+  const projectKey = getContinuityProjectKey();
+  const loc = sbContinuityLocationKey(shot);
+  if (!projectKey || !PROJECT_CANON_REGISTRY[projectKey] || !shot || !loc) return null;
+  const chars = sbContinuityCharacterSet(shot);
+  const characterState = {};
+  chars.forEach(function(name) {
+    characterState[name] = {
+      present: true,
+      wardrobe: sbContinuityCharacterWardrobe(name),
+      blocking: sbContinuityCleanText(shot.desc || '').slice(0, 120),
+      validation: 'metadata-and-canon-text'
+    };
+  });
+  const keyProps = [];
+  if (Array.isArray(shot.obj)) {
+    shot.obj.forEach(function(k) {
+      const label = (typeof sbObjName === 'function') ? sbObjName(k) : k;
+      if (label && keyProps.indexOf(label) === -1) keyProps.push(label);
+    });
+  }
+  return {
+    projectKey: projectKey,
+    episodeId: String(typeof shot.ep !== 'undefined' ? shot.ep : ''),
+    sceneId: String(shot.scene || ''),
+    shotId: shot.id,
+    locationKey: loc,
+    timeKey: sbContinuityTimeKey(shot),
+    continuityGroupKey: sbContinuityGroupKey(shot),
+    characterState: characterState,
+    backgroundState: {
+      layout: sbContinuityCleanText((typeof resolveShotLoc === 'function' ? resolveShotLoc(shot) : '') || shot.loc || '').slice(0, 140),
+      keyProps: keyProps,
+      validation: sbContinuityCanCarryBackgroundScale(sbContinuityShotScale(shot, sbCam)) ? 'metadata-text' : 'disabled-source-not-ws-ms'
+    },
+    lightingState: {
+      time: sbContinuityTimeKey(shot),
+      source: sbContinuityCleanText(shot.light || '').slice(0, 80),
+      carryAllowed: true
+    },
+    cameraState: {
+      sourceScale: sbContinuityShotScale(shot, sbCam),
+      sourceAngle: sbContinuityCleanText(shot.frame || '').slice(0, 100),
+      useAs: 'text geography only'
+    },
+    generatedReference: {
+      shotId: shot.id,
+      imageUrl: hasGeneratedFrame ? 'available-only-after-validation' : '',
+      useAs: 'supporting layout/blocking reference only when high-confidence validation passes'
+    },
+    validation: {canonPassed: true, rejectedFields: []}
+  };
+}
+function sbContinuityForbiddenForCloudRider(card) {
+  if (!card || card.projectKey !== 'cloudrider') return false;
+  const text = JSON.stringify(card).toLowerCase();
+  const forbidden = [
+    'oil-stained mechanic coverall',
+    'cream coverall',
+    'white jumpsuit',
+    'lab suit',
+    'painter suit',
+    'astronaut suit',
+    'mechanic coverall',
+    'small drone',
+    'toy drone',
+    'handheld drone',
+    'single pair of rotors',
+    'two rotors',
+    'six rotors',
+    '2 rotors',
+    '6 rotors',
+    'fighter jet',
+    'helicopter',
+    'orange paint',
+    '흰 커버올',
+    '크림 커버올',
+    '작은 드론',
+    '소형 드론',
+    '장난감 드론',
+    '전투기',
+    '헬리콥터',
+    '주황색'
+  ];
+  return forbidden.some(function(term) { return text.indexOf(term) !== -1; });
+}
+function sbFindPreviousContinuityCard(shot) {
+  if (!shot || !Array.isArray(SB_SHOTS) || typeof sbContinuityCards === 'undefined') return null;
+  const projectKey = getContinuityProjectKey();
+  const base = sbContinuityGroupBase(shot);
+  const locationBase = sbContinuityLocationBase(shot);
+  const currentTime = sbContinuityTimeKey(shot);
+  const currentChars = sbContinuityCharacterSet(shot);
+  const curIndex = SB_SHOTS.findIndex(function(s) { return s && s.id === shot.id; });
+  if (!projectKey || !base || !locationBase || curIndex <= 0) return null;
+  for (let i = curIndex - 1; i >= 0 && i >= curIndex - 6; i--) {
+    const prev = SB_SHOTS[i];
+    if (!prev || sbContinuityGroupBase(prev) !== base) continue;
+    const card = sbContinuityCards[prev.id];
+    if (!card || card.projectKey !== projectKey) continue;
+    if (sbContinuityForbiddenForCloudRider(card)) continue;
+    const cardChars = Object.keys(card.characterState || {});
+    const timeMatches = !card.timeKey || card.timeKey === 'unknown' || currentTime === 'unknown' || card.timeKey === currentTime;
+    const charMatches = cardChars.length === 0 || cardChars.some(function(name) { return currentChars.indexOf(name) !== -1; });
+    const exactCard = Object.assign({}, card);
+    exactCard._carryConfidence = (timeMatches && charMatches) ? 'high' : 'medium-same-location';
+    return exactCard;
+  }
+  for (let i = curIndex - 1; i >= 0 && i >= curIndex - 10; i--) {
+    const prev = SB_SHOTS[i];
+    if (!prev || sbContinuityGroupBase(prev) === base) continue;
+    if (sbContinuityLocationBase(prev) !== locationBase) continue;
+    const card = sbContinuityCards[prev.id];
+    if (!card || card.projectKey !== projectKey) continue;
+    if (sbContinuityForbiddenForCloudRider(card)) continue;
+    const mediumCard = Object.assign({}, card);
+    mediumCard._carryConfidence = 'medium-same-location';
+    return mediumCard;
+  }
+  return null;
+}
+function buildValidatedContinuityPromptBlock(shot, sbCam) {
+  const projectKey = getContinuityProjectKey();
+  if (!projectKey || !PROJECT_CANON_REGISTRY[projectKey]) return '';
+  if (sbContinuityResetRequested(shot)) {
+    return 'CONTINUITY FALLBACK:\nReset trigger detected. Use Canon Registry and CURRENT SHOT only. Do not carry previous generated image, wardrobe, face, scale, location, or lighting drift.\n\n';
+  }
+  const card = sbFindPreviousContinuityCard(shot);
+  if (!card) {
+    return 'CONTINUITY FALLBACK:\nNo validated continuity card for this project/location group. Use Canon Registry and CURRENT SHOT only. No previous generated image is attached.\n\n';
+  }
+  const currTime = sbContinuityTimeKey(shot);
+  const scale = sbContinuityShotScale(shot, sbCam);
+  const sourceScale = card.cameraState && card.cameraState.sourceScale;
+  const confidence = card._carryConfidence || 'high';
+  const carryBackground = sbContinuityCanCarryBackgroundScale(scale) && sbContinuityCanCarryBackgroundScale(sourceScale);
+  const carryLighting = !card.timeKey || card.timeKey === 'unknown' || currTime === 'unknown' || card.timeKey === currTime;
+  const currentChars = sbContinuityCharacterSet(shot);
+  const cardChars = Object.keys(card.characterState || {});
+  const hasCharacterOverlap = cardChars.some(function(name) { return currentChars.indexOf(name) !== -1; });
+  const carryCharacters = confidence === 'high' && hasCharacterOverlap;
+  const charSummary = (carryCharacters ? cardChars : []).map(function(name) {
+    return name + ': ' + sbContinuityCleanText(card.characterState[name].wardrobe || 'use canon').slice(0, 130);
+  }).join(' / ');
+  const propSummary = (confidence === 'high' && card.backgroundState && card.backgroundState.keyProps && card.backgroundState.keyProps.length)
+    ? card.backgroundState.keyProps.join(', ')
+    : (confidence === 'medium-same-location' ? 'fixed architecture/location layout only; current shot props win' : 'canon/current shot only');
+  const lines = [
+    'CANON-FIRST CONTINUITY RULE:',
+    'Priority order: Canon Registry > CURRENT SHOT instruction > Validated Continuity Card > Previous Generated Image.',
+    'A previous generated image may be attached only after high-confidence validation; if attached, use it as loose supporting layout/blocking reference only, never as canon and never to duplicate the exact frame.',
+    'Do not trace, clone, repaint, or recreate the attached previous image. Use it only to understand fixed set geography, rough object scale, and blocking continuity while obeying the current shot.',
+    'Never inherit wrong face, wrong costume, wrong HAON scale/design, wrong prop identity, or wrong action from prior generations.',
+    'VALIDATED CONTINUITY CARD:',
+    'Group: ' + (card.continuityGroupKey || ''),
+    'Carry confidence: ' + confidence + (confidence === 'medium-same-location' ? ' (same project/episode/location only; carry fixed layout/architecture, not action drift)' : ''),
+    'Background carry: ' + (carryBackground ? (card.backgroundState && card.backgroundState.layout || 'same location layout/fixed architecture') : 'OFF unless current and source are reliable WS/MS'),
+    'Props carry: ' + propSummary,
+    'Characters/wardrobe carry: ' + (charSummary || 'canon/current shot only'),
+    'Lighting carry: ' + (carryLighting ? (card.lightingState && (card.lightingState.source || card.lightingState.time) || 'same time light') : 'OFF due to time change')
+  ];
+  return lines.join('\n') + '\n\n';
+}
+async function sbGetValidatedContinuityImageReference(shot, sbCam) {
+  if (!shot || !shot.id || typeof sbGenImages === 'undefined') return null;
+  const card = sbFindPreviousContinuityCard(shot);
+  if (!card || card._carryConfidence !== 'high') return null;
+  if (!card.shotId || card.shotId === shot.id) return null;
+  if (sbContinuityForbiddenForCloudRider(card)) return null;
+  const currentScale = sbContinuityShotScale(shot, sbCam);
+  const sourceScale = card.cameraState && card.cameraState.sourceScale;
+  if (!sbContinuityCanCarryBackgroundScale(currentScale) || !sbContinuityCanCarryBackgroundScale(sourceScale)) return null;
+  const b64 = sbGenImages[card.shotId];
+  if (!b64) return null;
+  let ref = {
+    b64: b64,
+    mime: 'image/png',
+    _type: 'background',
+    _label: '검수 통과 continuity reference — same project/scene/location WS-MS source only',
+    _continuity: true,
+    _sourceShotId: card.shotId
+  };
+  if (typeof compressImageRefForGeneration === 'function') {
+    ref = await compressImageRefForGeneration(ref, {
+      maxSide: 704,
+      quality: 0.72,
+      skipBelowBytes: 300000
+    }) || ref;
+  }
+  return ref;
+}
+function sbInsertContinuityImageReference(imgInputs, ref) {
+  if (!Array.isArray(imgInputs) || !ref) return;
+  const firstBackground = imgInputs.findIndex(function(img) { return img && img._type === 'background'; });
+  if (firstBackground >= 0) {
+    imgInputs.splice(firstBackground, 0, ref);
+    return;
+  }
+  imgInputs.push(ref);
+}
+function recordContinuityCardForShot(shot, sbCam, imgB64) {
+  if (!shot || !shot.id || typeof sbContinuityCards === 'undefined') return;
+  const card = sbContinuityCardFromShot(shot, sbCam, !!imgB64);
+  if (!card || sbContinuityForbiddenForCloudRider(card)) return;
+  sbContinuityCards[shot.id] = card;
+}
+function backfillContinuityCardsFromGenerated(reason) {
+  if (typeof sbContinuityCards === 'undefined' || typeof SB_SHOTS === 'undefined' || !Array.isArray(SB_SHOTS)) return;
+  SB_SHOTS.forEach(function(shot) {
+    if (!shot || !shot.id || sbContinuityCards[shot.id]) return;
+    const hasMain = typeof sbGenImages !== 'undefined' && !!sbGenImages[shot.id];
+    const hasSeq = typeof sbSeqImages !== 'undefined' && Array.isArray(sbSeqImages[shot.id]) && sbSeqImages[shot.id].filter(Boolean).length > 0;
+    if (!hasMain && !hasSeq) return;
+    const preset = (typeof SCENE_PRESETS !== 'undefined') ? (SCENE_PRESETS[String(shot.scene)] || {}) : {};
+    const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : null;
+    recordContinuityCardForShot(shot, sbCam, hasMain || hasSeq);
+  });
+}
+
 function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, extraLocks) {
   const noFaceDetail = isProofOfTasteNoFaceDetailShot(shot);
   const textSafety = [
@@ -46256,6 +46611,10 @@ function zippyNasCurrentStoryboardSequenceIds(includeLocalDeletes) {
 }
 function zippyNasApplySnapshotState(snap) {
   if (!snap || typeof snap !== 'object') return;
+  if (typeof sbContinuityCards !== 'undefined') {
+    Object.keys(sbContinuityCards).forEach(function(k) { delete sbContinuityCards[k]; });
+    Object.assign(sbContinuityCards, snap.continuityCards || {});
+  }
   if (typeof sbCameraPositions !== 'undefined' && snap.cameraPositions) {
     Object.assign(sbCameraPositions, snap.cameraPositions || {});
   }
@@ -46324,6 +46683,7 @@ async function zippyNasApplyStoryboardLoad(data, opts) {
   zippyNasShowImportedEpisode(importedEp);
   if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
   if (typeof refreshHistory === 'function') refreshHistory();
+  if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('nas-import');
   if (imageCount || sequenceFrameCount) saveStoryboardState('nas-import', {localOnly: true});
   return {images: imageCount, sequenceFrames: sequenceFrameCount, historySaved: historySaved};
 }
@@ -46406,6 +46766,7 @@ async function zippyNasLoadStoryboardNow(opts) {
     return {ok: false, error: e};
   }
 }
+var sbContinuityCards = {};
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
 
 const sbGenImages = {};
@@ -46465,6 +46826,7 @@ function sbStoryboardSnapshot() {
   return {
     genImages: sbPlainMap(sbGenImages),
     seqImages: sbPlainMap(sbSeqImages),
+    continuityCards: sbPlainMap(sbContinuityCards),
     localDeletedImages: sbPlainMap(sbLocalDeletedImages),
     cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
     cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
@@ -46590,6 +46952,7 @@ async function restoreStoryboardFromHistory(opts) {
       }
       if (typeof sbLocalDeletedImages !== 'undefined') delete sbLocalDeletedImages[shotId];
     });
+    if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('history-recovery');
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
@@ -46665,6 +47028,10 @@ async function restoreStoryboardState() {
     Object.assign(sbSeqImages, snap.seqImages || {});
     Object.keys(sbLocalDeletedImages).forEach(function(k) { delete sbLocalDeletedImages[k]; });
     Object.assign(sbLocalDeletedImages, snap.localDeletedImages || {});
+    if (typeof sbContinuityCards !== 'undefined') {
+      Object.keys(sbContinuityCards).forEach(function(k) { delete sbContinuityCards[k]; });
+      Object.assign(sbContinuityCards, snap.continuityCards || {});
+    }
     if (typeof sbCameraPositions !== 'undefined') {
       Object.keys(sbCameraPositions).forEach(function(k) { delete sbCameraPositions[k]; });
       Object.assign(sbCameraPositions, snap.cameraPositions || {});
@@ -46679,6 +47046,7 @@ async function restoreStoryboardState() {
         if (shot) shot.loc = item.loc || '';
       });
     }
+    if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('state-restore');
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
@@ -46758,6 +47126,10 @@ function deleteSBImage(shotId) {
     delete sbSeqImages[resolvedId];
     if (resolvedId !== shotId) delete sbSeqImages[shotId];
   }
+  if (typeof sbContinuityCards !== 'undefined') {
+    delete sbContinuityCards[resolvedId];
+    if (resolvedId !== shotId) delete sbContinuityCards[shotId];
+  }
   buildStoryboardTimeline();
   saveStoryboardState('shot-image-deleted-local', {localOnly: true});
   if (typeof zippyNasSetStatus === 'function') zippyNasSetStatus('로컬에서 삭제됨 · NAS 원본 유지', true);
@@ -46772,6 +47144,10 @@ async function regenerateSBShot(shotId) {
     delete sbLocalDeletedImages[resolvedId];
     if (resolvedId !== shotId) delete sbLocalDeletedImages[shotId];
   }
+  if (typeof sbContinuityCards !== 'undefined') {
+    delete sbContinuityCards[resolvedId];
+    if (resolvedId !== shotId) delete sbContinuityCards[shotId];
+  }
   buildStoryboardTimeline();
   saveStoryboardState('shot-image-regenerate-started');
   await generateSBShot(resolvedId);
@@ -46782,12 +47158,14 @@ function deleteSBSeqFrame(shotId, idx) {
   if (!arr || !arr[idx]) return;
   if (!confirm('이 흐름 컷만 삭제할까요?')) return;
   arr.splice(idx, 1);
+  if (typeof sbContinuityCards !== 'undefined') delete sbContinuityCards[shotId];
   if (arr.length) {
     sbSeqImages[shotId] = arr;
     sbGenImages[shotId] = arr[0];
   } else {
     delete sbSeqImages[shotId];
     delete sbGenImages[shotId];
+    if (typeof sbContinuityCards !== 'undefined') delete sbContinuityCards[shotId];
     if (typeof sbLocalDeletedImages !== 'undefined') sbLocalDeletedImages[shotId] = new Date().toISOString();
   }
   buildStoryboardTimeline();
@@ -47385,6 +47763,7 @@ async function generateSBShot(shotId, _seq) {
   const projNegative = (currentProject && currentProject.negative) || POT_NEGATIVE;
   // BAENE Anatomy + ZIPPY DNA prompt
   const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : {summary: (shot.frame || ''), aperture: ''};
+  if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('before-shot-generation');
   const fStop = sbCam.aperture || '';
   const hasCharRef = images.some(img => img._type === 'character') || (assetLib.char && assetLib.char.length > 0);
   const faceRefLabels = images.filter(img => img._type === 'face').map(img => img._label || 'face sheet');
@@ -47425,6 +47804,7 @@ async function generateSBShot(shotId, _seq) {
   const faceLockHeader = hasFaceRef ? 'FACE IDENTITY LOCK — ABSOLUTE: The provided FACE reference sheet(s) are the ONLY authority for facial identity: ' + faceRefLabels.join(', ') + '. Preserve the exact eyes, nose, mouth, jawline, cheekbone, hairline, skin texture, age, and Korean facial proportions. DO NOT borrow or blend faces from costume sheets, prop sheets, background sheets, moodboards, or any non-face reference. Costume references are clothing-only; background references are space-only. Render one natural camera angle from the face sheet, not a multi-angle collage.\n' : '';
   const lockHeader = noFaceHeader + ((hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '');
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, silhouette, worn physical markings). Do NOT invent or copy illegible text; if lettering is unclear, leave it blank, smudged, or unreadable as photographed material detail.\n' : '';
+  const continuityBlock = (typeof buildValidatedContinuityPromptBlock === 'function') ? buildValidatedContinuityPromptBlock(shot, sbCam) : '';
   // Moodboard safety guide — references may be 12-photo concept sheets
   const moodGuideHeader = (hasBgRef || images.length > 0) ?
     'REFERENCE HANDLING:\nReference images may be CONCEPT MOODBOARDS containing multiple sample photos with grid layout and text labels. ' +
@@ -47473,7 +47853,7 @@ Single animated frame, no text overlay, no border.`
     : `NEGATIVE: ${projNegative}
 no high contrast, no oversaturated colors, no digital clean look, no HDR look, no Instagram filter aesthetic, no average textbook angles, no perfectly centered composition. no CGI, no 3D render, no octane/unreal engine render, no concept art, no digital painting, no video-game cutscene look, no plastic airbrushed skin, no over-smooth glossy surfaces, no HUD overlay, no UI overlay, no floating hologram interface, no vector graphics, no readable text, no title card, no subtitles, no logo, no calligraphy text, no brush-stroke title marks, no graphic black slash overlays.
 Single frame, no text overlay, no border, no watermark. Photorealistic film still.`;
-  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderHaonLock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
 LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}
@@ -47508,13 +47888,16 @@ ${negativeBlock}`;
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
-    if (_seq && _seq.cont && _seq.cont.length) _seq.cont.forEach(function(c){ imgInputs.push(c); });
+    if (imgMode !== 'zimage' && typeof sbGetValidatedContinuityImageReference === 'function') {
+      const continuityImageRef = await sbGetValidatedContinuityImageReference(shot, sbCam);
+      if (continuityImageRef) sbInsertContinuityImageReference(imgInputs, continuityImageRef);
+    }
     const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
 	    if (isProofOfTasteProject() && imgMode !== 'zimage') {
 	      progress('PoT 레퍼런스 압축 중...');
 	      const potLateShot = isProofOfTasteLateShot(shot);
 	      imgInputs = await prepareProofOfTasteRefsForGeneration(imgInputs, shot, {
-	        maxRefs: potLateShot ? ((_seq && _seq.cont && _seq.cont.length) ? 2 : 1) : ((_seq && _seq.cont && _seq.cont.length) ? 4 : 3),
+        maxRefs: potLateShot ? 1 : 3,
 	        maxSide: potLateShot ? 384 : 704,
 	        quality: potLateShot ? 0.62 : 0.74,
 	        byteBudget: potLateShot ? 1536 * 1024 : 6 * 1024 * 1024,
@@ -47524,12 +47907,12 @@ ${negativeBlock}`;
 	      progress('PoT 레퍼런스 ' + imgInputs.length + '개 준비 완료');
 	    }
     const proofOfTastePromptGuards = isProofOfTasteProject()
-      ? characterWardrobeLock + singleBeatLock
+      ? characterWardrobeLock + continuityBlock + singleBeatLock
       : '';
     let _finalPrompt = isProofOfTasteProject()
       ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards)
       : prompt;
-    if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): identical LOCATION / set / background, identical lighting, identical character identity + wardrobe, identical camera framing as the other frames of THIS SAME shot. ONLY the action moment changes between frames. A previous-frame reference image is provided — reproduce its EXACT same space/environment so all 3 frames are unmistakably the same place. Continuous moment, same scene.';
+    if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): keep same location, character logic, wardrobe canon, lighting logic, and action progression inside THIS shot group. Previous frames from this 3-frame sequence are NOT attached and are never authoritative. If a validated continuity reference is attached, use it for layout/blocking support only. ONLY the action moment changes between frames.';
     let result;
     try {
       result = await callImageGen({
@@ -47572,6 +47955,7 @@ ${negativeBlock}`;
 	    if(!imgB64) throw new Error('이미지 없음');
 	    if (_seq && _seq.returnOnly) return imgB64;
 	    sbGenImages[shotId] = imgB64;
+	    if (typeof recordContinuityCardForShot === 'function') recordContinuityCardForShot(shot, sbCam, imgB64);
 	    await saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
 	    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
 	    try {
@@ -47602,18 +47986,18 @@ async function generateSBSequence(shotId) {
   const statusEl = document.getElementById('sbseq-' + _idc);
   function _setStat(m){ if(statusEl) statusEl.textContent=m; if(emptyEl){ emptyEl.textContent=m; emptyEl.style.cursor='wait'; } sbShowLoading(shotId, m); }
   _setStat('🎞 흐름 3컷 생성 시작...');
-  const seq = []; let cont = [];
+  const seq = [];
   try {
     for (let i = 0; i < 3; i++) {
       _setStat('🎞 흐름 ' + (i+1) + '/3 생성 중... (동일 공간 유지)');
-      const b64 = await generateSBShot(shotId, { phase: phases[i], cont: cont, returnOnly: true });
+      const b64 = await generateSBShot(shotId, { phase: phases[i], returnOnly: true });
       if (!b64) break;
       seq.push(b64);
-      if (i === 0) cont = [{ b64: b64, mime: 'image/png', _type: 'background', _label: '이전 프레임 — 동일 공간/셋 그대로 유지' }];
     }
     if (seq.length) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
+      if (typeof recordContinuityCardForShot === 'function') recordContinuityCardForShot(shot, (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, SCENE_PRESETS[String(shot.scene)] || {}) : null, seq[0]);
       seq.forEach(function(b64, i) {
         saveStoryboardFrameToHistory(shotId, b64, i + 1, 'sequence-generated');
         zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (i + 1), b64, 'image/png', {shotId: shotId, frameIndex: i + 1, reason: 'sequence-generated'});
@@ -47707,6 +48091,7 @@ async function generateStoryboardBatch(scope, episodeNumber) {
 function clearStoryboard() {
   Object.keys(sbGenImages).forEach(k=>delete sbGenImages[k]);
   Object.keys(sbSeqImages).forEach(k=>delete sbSeqImages[k]);
+  if (typeof sbContinuityCards !== 'undefined') Object.keys(sbContinuityCards).forEach(k=>delete sbContinuityCards[k]);
   buildStoryboardTimeline();
   saveStoryboardState('storyboard-cleared');
 }

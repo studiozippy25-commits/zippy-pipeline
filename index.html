@@ -67853,6 +67853,121 @@ const sbRefs = {char1:null, char2:null, char3:null, loc1:null, loc2:null, loc3:n
 const sbCostumeVariants = {};
 const sbRefMimes = {char1:'image/png', char2:'image/png', char3:'image/png', loc1:'image/png', loc2:'image/png', loc3:'image/png', loc4:'image/png'};
 
+function sbIsNcityDokgoCombatCostume(shot) {
+  if (currentProjectKey !== 'ncity' || !shot || !Number.isInteger(shot.costumeVariant) || !currentProject) return false;
+  const urls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs['주연 · 독고탄 (밤)']);
+  return !!(urls[shot.costumeVariant] && String(urls[shot.costumeVariant]).indexOf('/dokgo-combat/') !== -1);
+}
+function sbNcityDokgoMaskLock(shot) {
+  if (!sbIsNcityDokgoCombatCostume(shot)) return '';
+  return 'DOKGO TAN COMBAT MASK LOCK — ABSOLUTE: Dokgo Tan MUST wear the approved engraved metallic lower-face combat mask throughout this frame. Use the approved masked 6-view face reference (assets/ncity/face/독고탄_데님마스크_6v.jpg) as the only face authority. The mask must cover his nose, mouth, cheeks, and lower face continuously; never reveal an unmasked lower face, never substitute the unmasked night face, and never remove, lower, replace, or redesign the mask.\n';
+}
+function sbEnforceNcityDokgoMaskLock(shot, prompt) {
+  const body = String(prompt || '').trim();
+  const lock = sbNcityDokgoMaskLock(shot);
+  if (!lock || body.indexOf('DOKGO TAN COMBAT MASK LOCK') !== -1) return body;
+  return lock + body;
+}
+function sbPromptCostumeVariantValue(fullName, url, index) {
+  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)') return String(index);
+  if (/tennis|테니스/i.test(url || '')) return 'tennis';
+  if (/uniform|school|교복/i.test(url || '') || index === 0) return 'uniform';
+  return 'variant-' + index;
+}
+function sbPromptCostumeEntries(shot) {
+  if (!shot || !currentProject) return [];
+  const declared = Array.isArray(shot.char) ? shot.char : [];
+  const charNames = getProjectCharNamesForRefs();
+  return charNames.map(function(fullName) {
+    if (declared.indexOf(fullName) === -1) return null;
+    const urls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[fullName]);
+    if (!urls.length) return null;
+    return {fullName:fullName, urls:urls};
+  }).filter(Boolean);
+}
+function sbPromptSelectedCostumeValue(shot, fullName) {
+  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && Number.isInteger(shot.costumeVariant)) return String(shot.costumeVariant);
+  const variants = shot.costumeVariants || {};
+  return variants[fullName] == null ? '' : String(variants[fullName]);
+}
+function renderSBPromptEditorControls(shot) {
+  const sid = sbEscJs(String(shot.id || ''));
+  const selectStyle = 'width:100%;padding:7px 9px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:5px;outline:none';
+  let html = '<div style="display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:10px;margin-bottom:12px">';
+  html += '<div><div style="font-family:var(--font-mono);font-size:9px;color:var(--bl);font-weight:700;margin-bottom:4px">📍 장소</div><select id="vpLocation" onchange="setSBPromptEditorLocation(\'' + sid + '\',this.value)" style="' + selectStyle + '">' + sbLocOptions(resolveShotLoc(shot)) + '</select></div>';
+  const entries = sbPromptCostumeEntries(shot);
+  if (entries.length) {
+    html += '<div><div style="font-family:var(--font-mono);font-size:9px;color:var(--pu);font-weight:700;margin-bottom:4px">👗 인물별 의상</div>';
+    entries.forEach(function(entry) {
+      const selected = sbPromptSelectedCostumeValue(shot, entry.fullName);
+      const charLabel = zippyCostumeCharacterName(entry.fullName);
+      let opts = entry.urls.map(function(url, index) {
+        const value = sbPromptCostumeVariantValue(entry.fullName, url, index);
+        const label = zippyCostumeRefLabel(charLabel, url, index, entry.urls.length);
+        return '<option value="' + sbEscHtml(value) + '"' + (value === selected ? ' selected' : '') + '>' + sbEscHtml(label) + '</option>';
+      }).join('');
+      html += '<div style="display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;margin-bottom:5px"><span style="font-family:var(--font-mono);font-size:9px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + sbEscHtml(entry.fullName) + '">' + sbEscHtml(charLabel) + '</span><select onchange="setSBPromptEditorCostume(\'' + sid + '\',\'' + sbEscJs(entry.fullName) + '\',this.value)" style="' + selectStyle + '">' + opts + '</select></div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);padding-top:18px">이 쇼트에 선택 가능한 의상 레퍼런스가 없습니다.</div>';
+  }
+  html += '</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin:-4px 0 12px">장소나 의상을 바꾸면 자동 프롬프트를 다시 구성합니다. 직접 수정은 선택 후 저장하세요.</div>';
+  return html;
+}
+function clearSBPromptOverrides(shot) {
+  if (!shot) return;
+  delete shot.promptOverride;
+  delete shot.videoPromptOverride;
+}
+function setSBPromptEditorLocation(shotId, value) {
+  const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
+  if (!shot) return;
+  clearSBPromptOverrides(shot);
+  setShotLoc(shotId, value);
+  genVideoPrompt(shotId);
+}
+function setSBPromptEditorCostume(shotId, fullName, value) {
+  const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
+  if (!shot) return;
+  if (!shot.costumeVariants || typeof shot.costumeVariants !== 'object') shot.costumeVariants = {};
+  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && /^\d+$/.test(value)) {
+    shot.costumeVariant = Number(value);
+    shot.costumeVariants[fullName] = Number(value);
+  } else {
+    shot.costumeVariants[fullName] = value;
+  }
+  shot.promptEditorCostumeEdited = true;
+  clearSBPromptOverrides(shot);
+  saveStoryboardState('prompt-editor-costume');
+  if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  genVideoPrompt(shotId);
+}
+function saveSBPromptEditor(shotId) {
+  const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
+  const modal = document.getElementById('vidPromptModal');
+  const imgEl = document.getElementById('vpImgContent');
+  const vidEl = document.getElementById('vpVidContent');
+  if (!shot || !modal || !imgEl || !vidEl) return;
+  const imagePrompt = imgEl.value.trim();
+  const videoPrompt = vidEl.value.trim();
+  if (!imagePrompt) { alert('IMAGE PROMPT를 입력하세요.'); imgEl.focus(); return; }
+  if (imagePrompt === modal.dataset.defaultImagePrompt) delete shot.promptOverride;
+  else shot.promptOverride = imagePrompt;
+  if (!videoPrompt || videoPrompt === modal.dataset.defaultVideoPrompt) delete shot.videoPromptOverride;
+  else shot.videoPromptOverride = videoPrompt;
+  saveStoryboardState('prompt-editor-save');
+  const btn = document.getElementById('vpSave');
+  if (btn) { const old = btn.textContent; btn.textContent = '✅ 저장됨'; setTimeout(function(){ btn.textContent = old; }, 1200); }
+}
+function resetSBPromptEditor(shotId) {
+  const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
+  if (!shot) return;
+  clearSBPromptOverrides(shot);
+  saveStoryboardState('prompt-editor-reset');
+  genVideoPrompt(shotId);
+}
+
 function genVideoPrompt(shotId) {
   var shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
   if (!shot || !currentProject) return;
@@ -67899,6 +68014,7 @@ function genVideoPrompt(shotId) {
   var camMove = sbCam.movement;
   var ratio = currentProject.defaultRatio || '16:9';
   var desc = shot.desc || '';
+  var dokgoMaskLock = sbNcityDokgoMaskLock(shot);
   var shotWardrobePromptLines = Object.keys(shot.costumeVariants || {}).map(function(name) {
     var variant = shot.costumeVariants[name];
     if (variant === 'tennis') return '• ' + name + ': TENNIS OUTFIT ONLY — active tennis play/training, no school uniform, no real brand logos.';
@@ -67930,6 +68046,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'TEXT / UI / GRAPHIC SAFETY: No generated typography, calligraphy, ink-brush text, brush-stroke title marks, subtitles, title cards, logos, HUD, floating UI, vector interface, infographics, map overlays, charts, broadcast lower-thirds, REC graphics, or readable screen text. If plot-critical screens/holograms/data windows appear, they must be physical in-camera props/light sources: blurred LED panels, dusty glass reflections, projector spill, unreadable glow patches, soot/grime, broken LED noise, or blank practical cards. Final graphics and calligraphy are post-production only.\n\n';
   imgPrompt += 'SUBJECT DNA:\n';
   if (charDna) imgPrompt += charDna;
+  if (dokgoMaskLock) imgPrompt += dokgoMaskLock;
   imgPrompt += 'COSTUME: ' + (costumeDna || '(default)') + '\n' + shotWardrobePromptBlock + '\n';
   imgPrompt += 'BODY PROPORTIONS: all characters at 9+ head-tall heroic proportions (9등신 이상), small head (소두), long limbs, high waistline, fashion-model silhouette.' + ((shot.char && shot.char.some(function(c){return c.indexOf('독고탄')!==-1;})) ? ' Dokgo Tan: broad shoulders + V-taper torso (넓은 어깨). Western COWBOY HAT only (NOT gat/전립).' : '') + '\n\n';
   imgPrompt += 'SPACE DNA: ' + (spaceDna || _gloc || '') + '\n\n';
@@ -67965,6 +68082,7 @@ function genVideoPrompt(shotId) {
   vidPrompt += '[L1-CAMERA] ' + sbCam.video + '\n\n';
   vidPrompt += '[L2-SUBJECT]\n';
   if (charDna) vidPrompt += charDna;
+  if (dokgoMaskLock) vidPrompt += dokgoMaskLock;
   if (costumeDna) vidPrompt += 'COSTUME: ' + costumeDna + '\n';
   if (shotWardrobePromptBlock) vidPrompt += shotWardrobePromptBlock;
   vidPrompt += 'ACTION: ' + desc + '\n\n';
@@ -67999,7 +68117,8 @@ function genVideoPrompt(shotId) {
   vidPrompt += '[EN] ' + (enCameraLayer ? enCameraLayer + '. ' : '') + projQuality + '\n';
   vidPrompt += '[STABILITY] ' + projStability + '\n';
   vidPrompt += '[NEG] ' + projNegative + '\n';
-  var fullPrompt = imgPrompt + vidPrompt;
+  var displayedImgPrompt = (shot.promptOverride || '').trim() || imgPrompt;
+  var displayedVidPrompt = (shot.videoPromptOverride || '').trim() || vidPrompt;
   // Show modal
   var modal = document.getElementById('vidPromptModal');
   if (!modal) {
@@ -68011,13 +68130,18 @@ function genVideoPrompt(shotId) {
       '<div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--pu)">ZIPPY PROMPT GENERATOR — <span id="vpShotId"></span></div>' +
       '<button onclick="document.getElementById(\'vidPromptModal\').style.display=\'none\'" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--mu)">✕</button></div>' +
       '<div style="padding:20px">' +
+      '<div id="vpEditorControls"></div>' +
       '<div style="display:flex;gap:8px;margin-bottom:12px">' +
       '<button id="vpTabImg" style="flex:1;padding:8px;border:1.5px solid var(--bl);background:var(--bl);color:#fff;font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700" onclick="document.getElementById(\'vpImgContent\').style.display=\'block\';document.getElementById(\'vpVidContent\').style.display=\'none\';this.style.background=\'var(--bl)\';this.style.color=\'#fff\';document.getElementById(\'vpTabVid\').style.background=\'rgba(124,58,237,.06)\';document.getElementById(\'vpTabVid\').style.color=\'var(--pu)\'">IMAGE PROMPT</button>' +
       '<button id="vpTabVid" style="flex:1;padding:8px;border:1.5px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700" onclick="document.getElementById(\'vpVidContent\').style.display=\'block\';document.getElementById(\'vpImgContent\').style.display=\'none\';this.style.background=\'var(--pu)\';this.style.color=\'#fff\';document.getElementById(\'vpTabImg\').style.background=\'rgba(37,99,235,.06)\';document.getElementById(\'vpTabImg\').style.color=\'var(--bl)\'">VIDEO PROMPT</button>' +
       '<button id="vpTabAll" style="flex:1;padding:8px;border:1.5px solid var(--or);background:rgba(217,119,6,.06);color:var(--or);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700" onclick="document.getElementById(\'vpImgContent\').style.display=\'block\';document.getElementById(\'vpVidContent\').style.display=\'block\';document.getElementById(\'vpTabImg\').style.background=\'rgba(37,99,235,.06)\';document.getElementById(\'vpTabImg\').style.color=\'var(--bl)\';document.getElementById(\'vpTabVid\').style.background=\'rgba(124,58,237,.06)\';document.getElementById(\'vpTabVid\').style.color=\'var(--pu)\'">BOTH</button>' +
       '</div>' +
-      '<pre id="vpImgContent" style="font-family:var(--font-mono);font-size:11px;line-height:1.7;white-space:pre-wrap;color:var(--tx);background:rgba(37,99,235,.04);padding:16px;border-radius:8px;border:1px solid rgba(37,99,235,.2);margin-bottom:10px;max-height:40vh;overflow:auto"></pre>' +
-      '<pre id="vpVidContent" style="font-family:var(--font-mono);font-size:11px;line-height:1.7;white-space:pre-wrap;color:var(--tx);background:rgba(124,58,237,.04);padding:16px;border-radius:8px;border:1px solid rgba(124,58,237,.2);max-height:40vh;overflow:auto"></pre>' +
+      '<textarea id="vpImgContent" spellcheck="false" style="display:block;width:100%;box-sizing:border-box;font-family:var(--font-mono);font-size:11px;line-height:1.7;white-space:pre-wrap;color:var(--tx);background:rgba(37,99,235,.04);padding:16px;border-radius:8px;border:1px solid rgba(37,99,235,.35);margin-bottom:10px;min-height:260px;max-height:40vh;overflow:auto;resize:vertical;outline:none"></textarea>' +
+      '<textarea id="vpVidContent" spellcheck="false" style="display:block;width:100%;box-sizing:border-box;font-family:var(--font-mono);font-size:11px;line-height:1.7;white-space:pre-wrap;color:var(--tx);background:rgba(124,58,237,.04);padding:16px;border-radius:8px;border:1px solid rgba(124,58,237,.35);min-height:220px;max-height:40vh;overflow:auto;resize:vertical;outline:none"></textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:14px">' +
+      '<button id="vpReset" style="flex:1;padding:10px;border:1.5px solid var(--mu);background:transparent;color:var(--mu);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700">자동 프롬프트 복원</button>' +
+      '<button id="vpSave" style="flex:2;padding:10px;border:1.5px solid var(--gr);background:rgba(34,197,94,.08);color:var(--gr);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700">변경 저장</button>' +
+      '</div>' +
       '<div style="display:flex;gap:8px;margin-top:14px">' +
       '<button id="vpCopyImg" style="flex:1;padding:10px;border:1.5px solid var(--bl);background:rgba(37,99,235,.06);color:var(--bl);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700">IMAGE 복사</button>' +
       '<button id="vpCopyVid" style="flex:1;padding:10px;border:1.5px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:11px;border-radius:6px;cursor:pointer;font-weight:700">VIDEO 복사</button>' +
@@ -68026,24 +68150,29 @@ function genVideoPrompt(shotId) {
     document.body.appendChild(modal);
   }
   modal.style.display = 'flex';
+  modal.dataset.defaultImagePrompt = imgPrompt;
+  modal.dataset.defaultVideoPrompt = vidPrompt;
   document.getElementById('vpShotId').textContent = shotId;
-  document.getElementById('vpImgContent').textContent = imgPrompt;
-  document.getElementById('vpVidContent').textContent = vidPrompt;
+  document.getElementById('vpEditorControls').innerHTML = renderSBPromptEditorControls(shot);
+  document.getElementById('vpImgContent').value = displayedImgPrompt;
+  document.getElementById('vpVidContent').value = displayedVidPrompt;
   document.getElementById('vpImgContent').style.display = 'block';
   document.getElementById('vpVidContent').style.display = 'block';
-  function copyAndFlash(btnId, text) {
+  document.getElementById('vpSave').onclick = function(){ saveSBPromptEditor(shotId); };
+  document.getElementById('vpReset').onclick = function(){ resetSBPromptEditor(shotId); };
+  function copyAndFlash(btnId, getText) {
     document.getElementById(btnId).onclick = function() {
       var btn = document.getElementById(btnId);
       var orig = btn.textContent;
-      navigator.clipboard.writeText(text).then(function() {
+      navigator.clipboard.writeText(getText()).then(function() {
         btn.textContent = '✅ 복사됨!';
         setTimeout(function() { btn.textContent = orig; }, 1500);
       });
     };
   }
-  copyAndFlash('vpCopyImg', imgPrompt);
-  copyAndFlash('vpCopyVid', vidPrompt);
-  copyAndFlash('vpCopyAll', fullPrompt);
+  copyAndFlash('vpCopyImg', function(){ return document.getElementById('vpImgContent').value; });
+  copyAndFlash('vpCopyVid', function(){ return document.getElementById('vpVidContent').value; });
+  copyAndFlash('vpCopyAll', function(){ return document.getElementById('vpImgContent').value + '\n\n' + document.getElementById('vpVidContent').value; });
   modal.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; };
 }
 
@@ -68859,11 +68988,19 @@ function getSBRefsForShot(sceneNum, shotId) {
   const suppressFaceRefs = isNcityNoFaceDetailShot(_targetShot);
   charIdxToInclude.forEach(function(i) {
     const k = 'char' + (i + 1);
-    const fk = 'face' + (i + 1);
+    let faceIndex = i;
+    let faceLabelSuffix = ' 얼굴';
+    const isCombatDokgo = sbIsNcityDokgoCombatCostume(_targetShot) && charNames[i] === '주연 · 독고탄 (밤)';
+    if (isCombatDokgo) {
+      const maskedIndex = charNames.indexOf('주연 · 독고탄 (데님웨스턴)');
+      if (maskedIndex >= 0) faceIndex = maskedIndex;
+      faceLabelSuffix = ' 데님마스크 얼굴';
+    }
+    const fk = 'face' + (faceIndex + 1);
     const label = (typeof sbCharReal==='function') ? sbCharReal(charNames[i] || ('Character ' + (i+1))) : (charNames[i]||'').split(/[\s(（]/)[0];
     // 얼굴 6전도 먼저 (정체성 락 우선)
-    if (sbRefs[fk] && !suppressFaceRefs) {
-      refs.push({inline_data: {mime_type: sbRefMimes[fk], data: sbRefs[fk]}, _type:'face', _label: label + ' 얼굴'});
+    if (sbRefs[fk] && (!suppressFaceRefs || isCombatDokgo)) {
+      refs.push({inline_data: {mime_type: sbRefMimes[fk], data: sbRefs[fk]}, _type:'face', _label: label + faceLabelSuffix});
     }
     // 캐릭터 종합 시트
     if (sbRefs[k]) {
@@ -68961,7 +69098,8 @@ function getSBRefsForShot(sceneNum, shotId) {
       const exactCostume = costumeOptions[_targetShot.costumeVariant];
       if (exactCostume && exactCostume.b64) {
         selectedCostume = exactCostume;
-        selectedLabel = charName + ' 의상 ' + (_targetShot.costumeVariant + 1);
+        const costumeUrls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[fullName]);
+        selectedLabel = zippyCostumeRefLabel(charName, costumeUrls[_targetShot.costumeVariant], _targetShot.costumeVariant, costumeUrls.length);
       } else {
         selectedCostume = null;
         console.warn('[N-city costume missing]', _targetShot.id, fullName, _targetShot.costumeVariant);
@@ -70424,6 +70562,7 @@ function zippyNasApplySnapshotState(snap) {
       if (shot) shot.loc = item.loc || '';
     });
   }
+  applySBShotEditorSnapshot(snap);
 }
 async function zippyNasApplyStoryboardLoad(data, opts) {
   const options = opts || {};
@@ -70655,6 +70794,37 @@ function sbPlainMap(src) {
   });
   return out;
 }
+function sbShotEditorSnapshot() {
+  if (typeof SB_SHOTS === 'undefined') return [];
+  return SB_SHOTS.filter(function(shot) {
+    return shot && shot.id && (shot.promptOverride || shot.videoPromptOverride || shot.promptEditorCostumeEdited);
+  }).map(function(shot) {
+    return {
+      id: shot.id,
+      promptOverride: shot.promptOverride || '',
+      videoPromptOverride: shot.videoPromptOverride || '',
+      costumeVariant: Number.isInteger(shot.costumeVariant) ? shot.costumeVariant : null,
+      costumeVariants: Object.assign({}, shot.costumeVariants || {}),
+      promptEditorCostumeEdited: !!shot.promptEditorCostumeEdited
+    };
+  });
+}
+function applySBShotEditorSnapshot(snap) {
+  if (typeof SB_SHOTS === 'undefined' || !snap || !Array.isArray(snap.shotEdits)) return;
+  snap.shotEdits.forEach(function(edit) {
+    const shot = SB_SHOTS.find(function(s){ return s && s.id === edit.id; });
+    if (!shot) return;
+    if (edit.promptOverride) shot.promptOverride = edit.promptOverride;
+    else delete shot.promptOverride;
+    if (edit.videoPromptOverride) shot.videoPromptOverride = edit.videoPromptOverride;
+    else delete shot.videoPromptOverride;
+    if (edit.promptEditorCostumeEdited) {
+      if (Number.isInteger(edit.costumeVariant)) shot.costumeVariant = edit.costumeVariant;
+      shot.costumeVariants = Object.assign({}, edit.costumeVariants || {});
+      shot.promptEditorCostumeEdited = true;
+    }
+  });
+}
 function sbStoryboardSnapshot() {
   return {
     genImages: sbPlainMap(sbGenImages),
@@ -70664,6 +70834,7 @@ function sbStoryboardSnapshot() {
     cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
     cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
     shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
+    shotEdits: sbShotEditorSnapshot(),
     savedAt: new Date().toISOString()
   };
 }
@@ -70879,6 +71050,7 @@ async function restoreStoryboardState() {
         if (shot) shot.loc = item.loc || '';
       });
     }
+    applySBShotEditorSnapshot(snap);
     if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('state-restore');
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
@@ -71121,7 +71293,7 @@ function renderShotCard(shot, sceneVal) {
   html += renderSBCameraControl(shot);
   html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
-  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
   html += `</div>`;
   return html;
 }
@@ -71510,7 +71682,7 @@ function buildStoryboardTimeline() {
       html += renderSBCameraControl(shot);
       html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
-  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
       html += `</div>`;
     });
     html += `</div>`;
@@ -71554,6 +71726,7 @@ function sbHideLoading(shotId){
 async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return;
+  const dokgoMaskLock = sbNcityDokgoMaskLock(shot);
   // 모드별 프리체크
   const imgMode = getImgMode();
   // Proxy handles auth — no client-side key check needed
@@ -71701,7 +71874,7 @@ Single frame, no text overlay, no border, no watermark.`;
   const shotWardrobeVariantBlock = shotWardrobeVariantLines.length
     ? 'PER-CHARACTER WARDROBE LOCK:\n' + shotWardrobeVariantLines.join('\n') + '\nDo not blend, swap, or combine wardrobe variants between characters.\n'
     : '';
-  const prompt = `${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${dokgoMaskLock}${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
 LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}
@@ -71760,6 +71933,7 @@ ${negativeBlock}`;
     let _finalPrompt = isProofOfTasteProject()
       ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards)
       : prompt;
+    if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityDokgoMaskLock(shot, shot.promptOverride);
     if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): keep same location, character logic, wardrobe canon, lighting logic, and action progression inside THIS shot group. Previous frames from this 3-frame sequence are NOT attached and are never authoritative. If a validated continuity reference is attached, use it for layout/blocking support only. ONLY the action moment changes between frames.';
     let result;
     try {
@@ -71780,7 +71954,9 @@ ${negativeBlock}`;
 	        fallbackMaxSide: potLateShot ? 320 : 384,
 	        fallbackQuality: potLateShot ? 0.58 : 0.62
 	      });
-	      const retryPrompt = buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards);
+	      const retryPrompt = (shot.promptOverride || '').trim()
+	        ? sbEnforceNcityDokgoMaskLock(shot, shot.promptOverride)
+	        : buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards);
 	      progress('PoT 안정화 재시도... refs ' + retryInputs.length);
       try {
         result = await callImageGen({

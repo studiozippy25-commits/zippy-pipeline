@@ -81157,18 +81157,33 @@ ${context?('참고 컨텍스트: '+context):''}
     el.innerHTML=`<b>BPM</b> ${a.bpm||'-'} · <b>무드</b> ${a.mood||'-'}<br><b>구조</b> ${a.structure||'-'}${a.lyricsTheme?('<br><b>가사</b> '+a.lyricsTheme):''}`;
   }
 
+  function mvSpaces(){
+    var key=selProjKey||($('mvsProj')&&$('mvsProj').value)||'';
+    var src=key&&PROJECTS[key];
+    return (src&&(src.spaceNames||src.locations))||[];
+  }
   function renderCuts(){
     $('mvsSB').classList.add('show');
     $('mvsSBTitle').textContent='🎞 스토리보드 · '+cuts.length+'컷'+(selProjKey?(' · '+(PROJECTS[selProjKey].name)):'');
-    $('mvsList').innerHTML=cuts.map(c=>`<div class="mvs-cut">
+    const spaces=mvSpaces();
+    $('mvsList').innerHTML=cuts.map((c,i)=>{
+      const opts=['<option value="">📍 장소…</option>']
+        .concat(spaces.map(s=>'<option value="'+esc(s)+'"'+(c.loc===s?' selected':'')+'>'+esc(s)+'</option>'));
+      if(c.loc && spaces.indexOf(c.loc)<0) opts.push('<option value="'+esc(c.loc)+'" selected>'+esc(c.loc)+'</option>');
+      return `<div class="mvs-cut">
       <div class="cno">${String(c.no).padStart(2,'0')}</div>
       <div class="cmid">
         <div class="ctop"><span class="csec">${c.sec}</span><span class="ctc">${c.tc}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
-        <div class="cdesc">${c.desc}</div>${c.loc?('<div class="cloc">📍 '+c.loc+'</div>'):''}${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
+        <div class="cdesc">${c.desc}</div>
+        <div class="cloc"><select class="mvs-locsel" data-i="${i}" title="${spaces.length?'이 컷의 장소 지정':'프로젝트를 선택하면 장소 목록이 나옵니다'}" style="max-width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--mvs-line);border-radius:5px;background:var(--mvs-bg);color:${c.loc?'#fff':'var(--mvs-dim,#889)'}">${opts.join('')}</select></div>${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
       </div>
       <button class="mvs-cpy" data-cp="${encodeURIComponent(cutPrompt(c))}">복사</button>
-    </div>`).join('');
+    </div>`;}).join('');
     $('mvsList').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>copyText(decodeURIComponent(b.dataset.cp),b));
+    $('mvsList').querySelectorAll('.mvs-locsel').forEach(sel=>sel.onchange=()=>{
+      const i=+sel.dataset.i; if(!cuts[i]) return;
+      cuts[i].loc=sel.value; saveMV(); renderCuts();
+    });
   }
   function objNm(k){ var src=selProjKey&&PROJECTS[selProjKey]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
   function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
@@ -81350,7 +81365,7 @@ ${cutList}
     if($('mvsSkip')) $('mvsSkip').onclick=skipToStoryboard;
     if($('mvsHistBtn')) $('mvsHistBtn').onclick=()=>toggleHist();
     (function(){ var ss=$('mvsStyleSel'); if(ss && typeof window.styleOptionsHtml==='function'){ ss.innerHTML=window.styleOptionsHtml(); var def=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake']&&PROJECTS['mv-remake'].styleMode)||'mvglossy'; if(ss.querySelector('option[value="'+def+'"]')) ss.value=def; } })();
-    $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; });
+    $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; if(cuts.length) renderCuts(); });
     $('mvsLink').onclick=linkProject;
     $('mvsToProject').onclick=toProject;
     $('mvsCopyAll').onclick=()=>copyText(cuts.map(c=>String(c.no).padStart(2,'0')+'. ['+c.sec+' '+c.tc+'] '+cutPrompt(c)).join('\n\n'),$('mvsCopyAll'));

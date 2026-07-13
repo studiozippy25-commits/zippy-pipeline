@@ -80917,7 +80917,8 @@ function updatePromptPreview() {
       <textarea id="mvsContext" placeholder="(선택) 곡 컨텍스트·가사·주제를 넣으면 분석이 더 정확해집니다"></textarea>
       <div class="mvs-row" style="margin-top:10px">
         <span class="note">컷 수</span>
-        <select id="mvsCount" style="min-width:0;width:auto"><option>24</option><option selected>30</option><option>40</option></select>
+        <input type="number" id="mvsCount" value="30" min="4" max="300" step="1" title="원하는 컷 수를 직접 입력 (4~300)" style="width:76px;padding:9px 10px;border:1px solid var(--mvs-line);border-radius:6px;background:var(--mvs-bg);color:#fff;font-family:inherit;font-size:13px;text-align:center">
+        <span class="note" style="font-size:11px">직접 입력 (4~300)</span>
         <button class="mvs-btn p" id="mvsAnalyze" disabled>🎬 오디오 분석 &amp; 씬 생성</button>
         <button class="mvs-btn" id="mvsSkip" title="음원 없이 빈 스토리보드로 바로 이동">⏭ 곡 없이 스토리보드</button>
         <span class="note" id="mvsAnStat"></span>
@@ -81028,7 +81029,7 @@ function updatePromptPreview() {
 
   // ── 곡 없이 바로 스토리보드(빈 스캐폴드) ──
   function skipToStoryboard(){
-    const n=Math.max(1,Math.min(60,parseInt(($('mvsCount')&&$('mvsCount').value)||'30',10)||30));
+    const n=Math.max(4,Math.min(300,parseInt(($('mvsCount')&&$('mvsCount').value)||'30',10)||30));
     cuts=[]; for(let i=1;i<=n;i++) cuts.push({no:i,sec:'',tc:'',type:'',desc:'',energy:'',char:[],loc:''});
     analysis=null;
     if(!audio||!audio.name) audio=Object.assign({b64:null,mime:'',name:'(곡 없음)',dataUrl:''}, audio||{}, {name:(audio&&audio.name)||'(곡 없음)'});
@@ -81115,7 +81116,7 @@ function updatePromptPreview() {
   // ── ① 오디오 분석 + 씬 생성 (Gemini audio) ──
   async function analyzeAudio(){
     if(!audio.b64) return;
-    const count=parseInt($('mvsCount').value||'30',10);
+    const count=Math.max(4,Math.min(300,parseInt($('mvsCount').value||'30',10)||30));
     const context=($('mvsContext').value||'').trim();
     const btn=$('mvsAnalyze'); btn.disabled=true;
     $('mvsAnStat').innerHTML='<span class="spin"></span>Gemini가 음원을 듣고 분석 중…';

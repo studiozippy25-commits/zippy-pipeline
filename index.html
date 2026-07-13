@@ -3583,7 +3583,7 @@ const PROJECTS = {
       "주연 · 서유진 (낮)": "assets/ncity/face/서유진_6v.jpg?v=2",
       "주연 · 서유진 (바텐더)": "assets/ncity/face/서유진_6v.jpg?v=2",
       "주연 · 서유진 (해커)": "assets/ncity/face/서유진_6v.jpg?v=2",
-      "주연 · 서유진 (전술모드)": "assets/ncity/face/서유진_6v.jpg?v=2",
+      "주연 · 서유진 (전술모드)": "assets/ncity/face/서유진_전술마스크_6v.png?v=260713",
       "주연 · 한민재 (APEX 정장)": "assets/ncity/face/한민재_6v.jpg?v=2",
       "주연 · 한민재 (서부동호회)": "assets/ncity/face/한민재_6v.jpg?v=2",
       "주연 · 한민재 (각성 중장갑)": "assets/ncity/face/한민재_중장갑마스크_6v.jpg?v=1",
@@ -3606,7 +3606,7 @@ const PROJECTS = {
       "빌런 · 나심 (4T 자금책)": "assets/ncity/face/나심_6v.jpg?v=2",
       "빌런 · 손재주 (4T 무기제작)": "assets/ncity/face/손재주_6v.jpg?v=2",
       "빌런 · 문신돼지충 (5T)": "assets/ncity/face/문신돼지충_6v.jpg?v=1",
-      "빌런 · 약물일진녀 2인조 (5T)": "assets/ncity/face/약물일진녀_6v.jpg?v=1",
+      "빌런 · 약물일진녀 2인조 (5T)": "assets/ncity/face/약물일진녀_2인_얼굴.jpg?v=260713",
       "빌런 · 청소부 (CLEAN SWEEP)": "assets/ncity/face/청소부_6v.jpg?v=1",
       "빌런 · 알파리드 (시즌2 흑막)": "assets/ncity/face/알파리드_6v.jpg?v=2",
       "조연 · 독고하은 (감정앵커)": "assets/ncity/face/독고하은_6v.jpg?v=2",
@@ -67883,23 +67883,70 @@ const sbRefs = {char1:null, char2:null, char3:null, loc1:null, loc2:null, loc3:n
 const sbCostumeVariants = {};
 const sbRefMimes = {char1:'image/png', char2:'image/png', char3:'image/png', loc1:'image/png', loc2:'image/png', loc3:'image/png', loc4:'image/png'};
 
+function sbIsNcityVisualProject() {
+  if (currentProjectKey === 'ncity') return true;
+  if (currentProjectKey !== 'mv-remake') return false;
+  if (currentProject && currentProject.sourceProjectKey === 'ncity') return true;
+  if (typeof SB_SHOTS !== 'undefined' && SB_SHOTS.some(function(shot){ return shot && shot.sourceProjectKey === 'ncity'; })) return true;
+  try {
+    const saved = JSON.parse(localStorage.getItem('zippy_mvstudio_v1') || 'null');
+    return !!(saved && saved.selProjKey === 'ncity');
+  } catch (e) { return false; }
+}
+function sbNcityRemakeDirectCombatCue(shot) {
+  const objects = shot && Array.isArray(shot.obj) ? shot.obj : [];
+  const text = ((shot && shot.desc) || '') + ' ' + ((shot && shot.frame) || '');
+  return shot && shot.costumeMode === 'combat' || objects.some(function(key){ return /^obj-dokgo-armor(?:-|$)/.test(String(key)); }) || /전투복|전투 아머|combat armor|아머 착용|마스크 착용/i.test(text);
+}
+function sbResolveNcityDokgoCostumeVariant(shot) {
+  if (!shot || !(shot.char || []).includes('주연 · 독고탄 (밤)')) return null;
+  if (Number.isInteger(shot.costumeVariant)) return shot.costumeVariant;
+  if (currentProjectKey !== 'mv-remake') return null;
+  const shots = typeof SB_SHOTS !== 'undefined' ? SB_SHOTS : [];
+  const index = shots.indexOf(shot);
+  const sameBeat = function(other) {
+    if (!other || !sbNcityRemakeDirectCombatCue(other)) return false;
+    return !!((shot.func && other.func === shot.func) || (resolveShotLoc(shot) && resolveShotLoc(other) === resolveShotLoc(shot)));
+  };
+  const combat = shot.costumeMode === 'activity' ? false : (sbNcityRemakeDirectCombatCue(shot) || sameBeat(shots[index - 1]) || sameBeat(shots[index + 1]));
+  shot.costumeMode = combat ? 'combat' : 'activity';
+  shot.costumeVariant = combat ? 25 : 0;
+  shot.baseCostumeVariant = 0;
+  if (combat) shot.combatCostumeSource = 2;
+  return shot.costumeVariant;
+}
 function sbIsNcityDokgoCombatCostume(shot) {
-  if (currentProjectKey !== 'ncity' || !shot || !Number.isInteger(shot.costumeVariant) || !currentProject) return false;
+  if (!sbIsNcityVisualProject() || !shot || !currentProject) return false;
+  const variant = sbResolveNcityDokgoCostumeVariant(shot);
+  if (!Number.isInteger(variant)) return false;
   const urls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs['주연 · 독고탄 (밤)']);
-  return !!(urls[shot.costumeVariant] && String(urls[shot.costumeVariant]).indexOf('/dokgo-combat/') !== -1);
+  return !!(urls[variant] && String(urls[variant]).indexOf('/dokgo-combat/') !== -1);
 }
 function sbNcityDokgoMaskLock(shot) {
   if (!sbIsNcityDokgoCombatCostume(shot)) return '';
-  return 'DOKGO TAN COMBAT MASK LOCK — ABSOLUTE: Dokgo Tan MUST wear the approved engraved metallic lower-face combat mask throughout this frame. Use the approved masked 6-view face reference (assets/ncity/face/독고탄_데님마스크_6v.jpg) as the only face authority. The mask must cover his nose, mouth, cheeks, and lower face continuously; never reveal an unmasked lower face, never substitute the unmasked night face, and never remove, lower, replace, or redesign the mask.\n';
+  return 'DOKGO TAN COMBAT MASK LOCK — ABSOLUTE: Dokgo Tan MUST wear the approved engraved metallic lower-face combat mask throughout this frame. Use the approved masked 6-view face reference (assets/ncity/face/독고탄_데님마스크_6v.jpg) as the only face authority. The mask must cover his nose, mouth, cheeks, and lower face continuously; never reveal an unmasked lower face, never substitute the unmasked night or daytime face, and never remove, lower, replace, or redesign the mask. NO EYEGLASSES, NO SPECTACLES, NO CLEAR LENSES, NO SUNGLASSES: his combat face has bare eyes above the mask. The daytime black horn-rimmed glasses are factory-mode only and are forbidden with every combat costume.\n';
 }
-function sbEnforceNcityDokgoMaskLock(shot, prompt) {
+function sbIsNcityYujinTacticalShot(shot) {
+  return sbIsNcityVisualProject() && !!(shot && Array.isArray(shot.char) && shot.char.indexOf('주연 · 서유진 (전술모드)') !== -1);
+}
+function sbNcityYujinTacticalMaskLock(shot) {
+  if (!sbIsNcityYujinTacticalShot(shot)) return '';
+  return 'SEO YUJIN TACTICAL MASK LOCK — ABSOLUTE: Seo Yujin MUST wear the approved fitted matte-black lower-face tactical mask with restrained purple illuminated vent lines shown in the tactical face and character references. It covers her nose, mouth, cheeks, and lower face continuously. Keep the same black Western cowboy hat, long black hair, black tactical coat, leather trousers, gloves, and mask design; never render her unmasked, never lower or remove the mask, and never substitute her ordinary bartender/hacker face reference.\n';
+}
+function sbNcityAppearanceLock(shot) {
+  return sbNcityDokgoMaskLock(shot) + sbNcityYujinTacticalMaskLock(shot);
+}
+function sbEnforceNcityAppearanceLock(shot, prompt) {
   const body = String(prompt || '').trim();
-  const lock = sbNcityDokgoMaskLock(shot);
-  if (!lock || body.indexOf('DOKGO TAN COMBAT MASK LOCK') !== -1) return body;
-  return lock + body;
+  const locks = [];
+  const dokgo = sbNcityDokgoMaskLock(shot);
+  const yujin = sbNcityYujinTacticalMaskLock(shot);
+  if (dokgo && body.indexOf('DOKGO TAN COMBAT MASK LOCK') === -1) locks.push(dokgo);
+  if (yujin && body.indexOf('SEO YUJIN TACTICAL MASK LOCK') === -1) locks.push(yujin);
+  return locks.join('') + body;
 }
 function sbPromptCostumeVariantValue(fullName, url, index) {
-  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)') return String(index);
+  if (sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)') return String(index);
   if (/tennis|테니스/i.test(url || '')) return 'tennis';
   if (/uniform|school|교복/i.test(url || '') || index === 0) return 'uniform';
   return 'variant-' + index;
@@ -67916,7 +67963,7 @@ function sbPromptCostumeEntries(shot) {
   }).filter(Boolean);
 }
 function sbPromptSelectedCostumeValue(shot, fullName) {
-  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && Number.isInteger(shot.costumeVariant)) return String(shot.costumeVariant);
+  if (sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)' && Number.isInteger(shot.costumeVariant)) return String(shot.costumeVariant);
   const variants = shot.costumeVariants || {};
   return variants[fullName] == null ? '' : String(variants[fullName]);
 }
@@ -67961,7 +68008,7 @@ function setSBPromptEditorCostume(shotId, fullName, value) {
   const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
   if (!shot) return;
   if (!shot.costumeVariants || typeof shot.costumeVariants !== 'object') shot.costumeVariants = {};
-  if (currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && /^\d+$/.test(value)) {
+  if (sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)' && /^\d+$/.test(value)) {
     shot.costumeVariant = Number(value);
     shot.costumeVariants[fullName] = Number(value);
   } else {
@@ -68006,7 +68053,7 @@ function genVideoPrompt(shotId) {
   var _gloc = ((typeof resolveShotLoc==='function' && resolveShotLoc(shot)) || preset.loc || '');
   var spaceDna = (currentProject.spaceDNA && currentProject.spaceDNA[_gloc])
                 || (typeof SPACE_DNA !== 'undefined' && SPACE_DNA[_gloc]) || '';
-  var costumeDna = (currentProjectKey === 'ncity' && Number.isInteger(shot.costumeVariant) && currentProject.costumeDNA && currentProject.costumeDNA[String(shot.costumeVariant)])
+  var costumeDna = (sbIsNcityVisualProject() && Number.isInteger(shot.costumeVariant) && currentProject.costumeDNA && currentProject.costumeDNA[String(shot.costumeVariant)])
                   || (currentProject.costumes && currentProject.costumes[preset.costume])
                   || (typeof COSTUME_DNA !== 'undefined' && COSTUME_DNA[preset.costume]) || '';
   var lightDna = '';
@@ -68044,7 +68091,7 @@ function genVideoPrompt(shotId) {
   var camMove = sbCam.movement;
   var ratio = currentProject.defaultRatio || '16:9';
   var desc = shot.desc || '';
-  var dokgoMaskLock = sbNcityDokgoMaskLock(shot);
+  var dokgoMaskLock = sbNcityAppearanceLock(shot);
   var shotWardrobePromptLines = Object.keys(shot.costumeVariants || {}).map(function(name) {
     var variant = shot.costumeVariants[name];
     if (variant === 'tennis') return '• ' + name + ': TENNIS OUTFIT ONLY — active tennis play/training, no school uniform, no real brand logos.';
@@ -68732,12 +68779,17 @@ function buildSBRefUI() {
     } else {
       if (faceHeader) faceHeader.style.display = 'block';
       let html = '';
+      const shownFaceUrls = {};
       charNames2.forEach(function(name, i) {
-        const baseName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name.split(/[\s(（]/)[0];
         const key = 'face' + (i + 1);
         const cap = key.charAt(0).toUpperCase() + key.slice(1);
-        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 얼굴">' + baseName + ' 얼굴</div><div id="sbRef' + cap + '" style="width:120px;height:90px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
         if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
+        const faceUrl = zippyFirstAssetUrl(currentProject.defaultFaceRefs && (currentProject.defaultFaceRefs[name] || currentProject.defaultFaceRefs[sbCharReal(name)]));
+        const faceIdentity = String(faceUrl || '').split('?')[0];
+        if (sbIsNcityVisualProject() && faceIdentity && shownFaceUrls[faceIdentity]) return;
+        if (faceIdentity) shownFaceUrls[faceIdentity] = true;
+        const faceLabel = sbNcityFaceRefLabel(name);
+        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + faceLabel + '">' + faceLabel + '</div><div id="sbRef' + cap + '" style="width:120px;height:90px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
       });
       faceContainer.innerHTML = html;
     }
@@ -68753,7 +68805,7 @@ function buildSBRefUI() {
     if (charNames.length === 0 || (currentProject && currentProject.hasCostumes === false)) {
       costContainer.innerHTML = '';
       if (costHeader) costHeader.style.display = 'none';
-    } else if (currentProjectKey === 'ncity') {
+    } else if (sbIsNcityVisualProject()) {
       const dokgoIndex = charNames.indexOf('주연 · 독고탄 (밤)');
       const dokgoName = dokgoIndex >= 0 ? charNames[dokgoIndex] : '';
       const dokgoUrls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[dokgoName]);
@@ -68898,6 +68950,21 @@ function sbCharReal(presetKey){
   var real = presetKey.indexOf('\u00B7')!==-1 ? presetKey.split('\u00B7').pop() : presetKey;
   return real.split('(')[0].split('\uFF08')[0].trim();
 }
+function sbNcityFaceRefLabel(fullName) {
+  const name = String(fullName || '');
+  const real = sbCharReal(name);
+  if (!sbIsNcityVisualProject()) return real + ' 얼굴';
+  if (name === '주연 · 독고탄 (낮)') return '독고탄 얼굴 낮';
+  if (name === '주연 · 독고탄 (밤)') return '독고탄 얼굴 밤';
+  if (name === '주연 · 독고탄 (데님웨스턴)') return '독고탄 얼굴 전투';
+  if (name === '주연 · 서유진 (전술모드)') return '서유진 얼굴 전투';
+  if (name.indexOf('주연 · 서유진') === 0) return '서유진 얼굴';
+  if (name === '주연 · 한민재 (각성 중장갑)') return '한민재 얼굴 중장갑';
+  if (name === '주연 · 한민재 (슬림전술아머 9화)') return '한민재 얼굴 전술아머';
+  if (name === '빌런 · 최상무 (EXO 외골격)') return '최상무 얼굴 전투';
+  if (name === '빌런 · 약물일진녀 2인조 (5T)') return '약물일진녀 2인 얼굴';
+  return real + ' 얼굴';
+}
 function sbCharKeywords(presetKey){
   var real = sbCharReal(presetKey);
   var kws=[real];
@@ -68909,7 +68976,7 @@ function isCloudRiderProject() {
 }
 
 function isNcityNoFaceDetailShot(shot) {
-  if (currentProjectKey !== 'ncity' || !shot) return false;
+  if (!sbIsNcityVisualProject() || !shot) return false;
   const text = ((shot.frame || '') + ' ' + (shot.desc || '')).toLowerCase();
   const detail = /손|손가락|손목|부츠|발끝|홀스터|총구|탄창|방아쇠|리볼버|글러브|코어|배지|식기|국밥|초코우유|재킷 자락|홀로그램|단말기|스크린|모니터|\bhand\b|\bfinger|\bwrist\b|\bboot|\bholster\b|\bmuzzle\b|\bcylinder\b|\brevolver\b|\bglove\b|\bcore\b|\bdisplay\b|\bscreen\b|\bmonitor\b/.test(text);
   const faceVisible = /얼굴|표정|눈(?!부신)|시선|입술|상반신|미디엄|풀샷|실루엣|\bface\b|\beyes?\b|\bgaze\b|\bexpression\b|\bportrait\b|\bmedium\b|\bfull[- ]?body\b|\bsilhouette\b/.test(text);
@@ -69017,27 +69084,31 @@ function getSBRefsForShot(sceneNum, shotId) {
   const charIdxToInclude = matchedCharIndices;
   const suppressFaceRefs = isNcityNoFaceDetailShot(_targetShot);
   charIdxToInclude.forEach(function(i) {
-    const k = 'char' + (i + 1);
+    let characterIndex = i;
     let faceIndex = i;
-    let faceLabelSuffix = ' 얼굴';
     const isCombatDokgo = sbIsNcityDokgoCombatCostume(_targetShot) && charNames[i] === '주연 · 독고탄 (밤)';
     if (isCombatDokgo) {
       const maskedIndex = charNames.indexOf('주연 · 독고탄 (데님웨스턴)');
-      if (maskedIndex >= 0) faceIndex = maskedIndex;
-      faceLabelSuffix = ' 데님마스크 얼굴';
+      if (maskedIndex >= 0) {
+        characterIndex = maskedIndex;
+        faceIndex = maskedIndex;
+      }
     }
+    const k = 'char' + (characterIndex + 1);
     const fk = 'face' + (faceIndex + 1);
-    const label = (typeof sbCharReal==='function') ? sbCharReal(charNames[i] || ('Character ' + (i+1))) : (charNames[i]||'').split(/[\s(（]/)[0];
+    const sourceName = charNames[faceIndex] || charNames[i] || ('Character ' + (i + 1));
+    const label = isCombatDokgo ? '독고탄 전투' : ((typeof sbCharReal==='function') ? sbCharReal(charNames[i] || ('Character ' + (i+1))) : (charNames[i]||'').split(/[\s(（]/)[0]);
+    const faceLabel = sbNcityFaceRefLabel(sourceName);
     // 얼굴 6전도 먼저 (정체성 락 우선)
     if (sbRefs[fk] && (!suppressFaceRefs || isCombatDokgo)) {
-      refs.push({inline_data: {mime_type: sbRefMimes[fk], data: sbRefs[fk]}, _type:'face', _label: label + faceLabelSuffix});
+      refs.push({inline_data: {mime_type: sbRefMimes[fk], data: sbRefs[fk]}, _type:'face', _label: faceLabel});
     }
-    // 캐릭터 종합 시트
+    // 전투 시에는 일반 밤 시트 대신 마스크 착용 전투 시트를 사용한다.
     if (sbRefs[k]) {
       refs.push({inline_data: {mime_type: sbRefMimes[k], data: sbRefs[k]}, _type:'character', _label: label});
     }
   });
-  if (refs.length === 0 && assetLib.char.length > 0 && !isCloudRiderProject() && currentProjectKey !== 'ncity') {
+  if (refs.length === 0 && assetLib.char.length > 0 && !isCloudRiderProject() && !sbIsNcityVisualProject()) {
     assetLib.char.forEach(function(a, i) {
       refs.push({inline_data: {mime_type: a.mime, data: a.b64}, _type:'character', _label:'Character ' + (i+1)});
     });
@@ -69091,7 +69162,10 @@ function getSBRefsForShot(sceneNum, shotId) {
   // ── 소품: 명시 obj 태그 우선, 없으면 씬 설명 토큰 매칭 ──
   const objAssets = (currentProject && currentProject.objectAssets) || [];
   if (objAssets.length > 0) {
-    const explicitObjKeys = (_targetShot && Array.isArray(_targetShot.obj)) ? _targetShot.obj : [];
+    const explicitObjKeys = (_targetShot && Array.isArray(_targetShot.obj)) ? _targetShot.obj.slice() : [];
+    if (sbIsNcityDokgoCombatCostume(_targetShot) && explicitObjKeys.indexOf('obj-dokgo-armor-part-03') === -1) {
+      explicitObjKeys.push('obj-dokgo-armor-part-03');
+    }
     const hasExplicitObjKeys = explicitObjKeys.length > 0;
     const _PROP_STOP = ['독고탄','서유진','한민재','구태원','최상무','장학침','진홍','공각','카일라','박원장','빅토르','나심','손재주','문신돼지충','약물일진녀','청소부','알파리드','박관리자','독고하은','좌판아주머니','웨스터노이드','이루리','루리','정이든','이든','한소담','소담','최나온','나온','윤세하','세하','강도윤','도윤','백하린','하린','오태경','태경','서단아','단아','황도경','코치','노현성','선생님','쿠레나이','키이로','라켓','코트','사진','컨텍스트','단독','레퍼런스','무기','비히클','소품','주연','빌런','조연','세트','모드','버전','배리에이션','컬러','전체','일반','호버','정장'];
     objAssets.forEach(function(obj, i) {
@@ -69123,7 +69197,7 @@ function getSBRefsForShot(sceneNum, shotId) {
     const variantRef = variant ? sbCostumeVariants[fullName + ':' + variant] : null;
     let selectedCostume = variantRef;
     let selectedLabel = variant ? charName + ' 의상 (' + variant + ')' : charName + ' 의상';
-    if (currentProjectKey === 'ncity' && _targetShot && fullName === '주연 · 독고탄 (밤)' && Number.isInteger(_targetShot.costumeVariant)) {
+    if (sbIsNcityVisualProject() && _targetShot && fullName === '주연 · 독고탄 (밤)' && Number.isInteger(_targetShot.costumeVariant)) {
       const costumeOptions = assetLib['costume-' + (i + 1)] || [];
       const exactCostume = costumeOptions[_targetShot.costumeVariant];
       if (exactCostume && exactCostume.b64) {
@@ -71756,7 +71830,7 @@ function sbHideLoading(shotId){
 async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return;
-  const dokgoMaskLock = sbNcityDokgoMaskLock(shot);
+  const dokgoMaskLock = sbNcityAppearanceLock(shot);
   // 모드별 프리체크
   const imgMode = getImgMode();
   // Proxy handles auth — no client-side key check needed
@@ -71764,7 +71838,7 @@ async function generateSBShot(shotId, _seq) {
   if ((typeof shot.ep !== 'undefined' && shot.ep < 0) || shot.loc) preset = {}; // 트레일러/명시loc: 충돌 씬프리셋 무시
   const _sbLoc = (resolveShotLoc(shot) || preset.loc || '');
   const spaceDna = (currentProject && currentProject.spaceDNA && currentProject.spaceDNA[_sbLoc]) || SPACE_DNA[_sbLoc] || '';
-  const costumeDna = (currentProjectKey === 'ncity' && Number.isInteger(shot.costumeVariant) && currentProject && currentProject.costumeDNA && currentProject.costumeDNA[String(shot.costumeVariant)])
+  const costumeDna = (sbIsNcityVisualProject() && Number.isInteger(shot.costumeVariant) && currentProject && currentProject.costumeDNA && currentProject.costumeDNA[String(shot.costumeVariant)])
     || (currentProject && currentProject.costumes && currentProject.costumes[preset.costume]) || COSTUME_DNA[preset.costume] || '';
   const rawRefs = getSBRefsForShot(shot.scene, shot.id);
   let images = rawRefs.map(r => r.inline_data
@@ -71805,7 +71879,9 @@ async function generateSBShot(shotId, _seq) {
   }
   // Project-specific quality/negative or fallback to global
   const projQuality = (currentProject && currentProject.quality) || POT_QUALITY;
-  const projNegative = [(currentProject && currentProject.negative) || POT_NEGATIVE, shot.negativePrompt || ''].filter(Boolean).join(', ');
+  const combatAppearanceNegative = sbIsNcityDokgoCombatCostume(shot) ? 'eyeglasses, spectacles, clear lenses, sunglasses, unmasked Dokgo Tan, exposed mouth, exposed lower face, removed mask, lowered mask' : '';
+  const yujinTacticalNegative = sbIsNcityYujinTacticalShot(shot) ? 'unmasked Seo Yujin, exposed mouth, exposed lower face, removed tactical mask, lowered tactical mask, ordinary bartender outfit' : '';
+  const projNegative = [(currentProject && currentProject.negative) || POT_NEGATIVE, shot.negativePrompt || '', combatAppearanceNegative, yujinTacticalNegative].filter(Boolean).join(', ');
   // BAENE Anatomy + ZIPPY DNA prompt
   const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : {summary: (shot.frame || ''), aperture: ''};
   if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('before-shot-generation');
@@ -71939,7 +72015,7 @@ ${negativeBlock}`;
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
-    if (imgMode !== 'zimage' && typeof sbGetValidatedContinuityImageReference === 'function') {
+    if (imgMode !== 'zimage' && typeof sbGetValidatedContinuityImageReference === 'function' && !sbIsNcityDokgoCombatCostume(shot)) {
       const continuityImageRef = await sbGetValidatedContinuityImageReference(shot, sbCam);
       if (continuityImageRef) sbInsertContinuityImageReference(imgInputs, continuityImageRef);
     }
@@ -71963,8 +72039,12 @@ ${negativeBlock}`;
     let _finalPrompt = isProofOfTasteProject()
       ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards)
       : prompt;
-    if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityDokgoMaskLock(shot, shot.promptOverride);
-    if (_seq && _seq.phase) _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): keep same location, character logic, wardrobe canon, lighting logic, and action progression inside THIS shot group. Previous frames from this 3-frame sequence are NOT attached and are never authoritative. If a validated continuity reference is attached, use it for layout/blocking support only. ONLY the action moment changes between frames.';
+    if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityAppearanceLock(shot, shot.promptOverride);
+    if (_seq && _seq.phase) {
+      _finalPrompt += '\n\nSEQUENCE FRAME: ' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): keep same location, character logic, wardrobe canon, lighting logic, and action progression inside THIS shot group. Previous frames from this 3-frame sequence are NOT attached and are never authoritative. If a validated continuity reference is attached, use it for layout/blocking support only. ONLY the action moment changes between frames.';
+      if (sbIsNcityDokgoCombatCostume(shot)) _finalPrompt += '\nDOKGO COMBAT 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 he wears the same selected combat outfit, the same approved engraved lower-face mask, and no eyeglasses. Never change to factory/day mode between sequence frames.';
+      if (sbIsNcityYujinTacticalShot(shot)) _finalPrompt += '\nSEO YUJIN TACTICAL 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 she wears the same approved black-and-purple lower-face mask and the same black tactical Western outfit. Never switch to her ordinary unmasked face or bartender mode.';
+    }
     let result;
     try {
       result = await callImageGen({
@@ -71985,7 +72065,7 @@ ${negativeBlock}`;
 	        fallbackQuality: potLateShot ? 0.58 : 0.62
 	      });
 	      const retryPrompt = (shot.promptOverride || '').trim()
-	        ? sbEnforceNcityDokgoMaskLock(shot, shot.promptOverride)
+	        ? sbEnforceNcityAppearanceLock(shot, shot.promptOverride)
 	        : buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards);
 	      progress('PoT 안정화 재시도... refs ' + retryInputs.length);
       try {
@@ -75918,7 +75998,7 @@ function zippyCostumeCharacterName(name) {
   return (value.indexOf('·') !== -1 ? value.split('·').pop() : value).split('(')[0].split('（')[0].trim();
 }
 function zippyIsNcityDokgoCostumeSlot(fullName, urls) {
-  return currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && zippyAssetUrls(urls).length >= 38;
+  return sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)' && zippyAssetUrls(urls).length >= 38;
 }
 function replaceNcityCostumeVariant(cat, index, files) {
   if (!files || !files.length) return;
@@ -81446,6 +81526,26 @@ ${context?('참고 컨텍스트: '+context):''}
   function objNm(k){ var src=selProjKey&&PROJECTS[selProjKey]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
   function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
 
+  function mvNcityDirectCombat(c){
+    const objects=Array.isArray(c&&c.obj)?c.obj:[];
+    const text=((c&&c.desc)||'')+' '+((c&&c.type)||'');
+    return c&&c.costumeMode==='combat' || objects.some(k=>/^obj-dokgo-armor(?:-|$)/.test(String(k))) || /전투복|전투 아머|combat armor|아머 착용|마스크 착용/i.test(text);
+  }
+  function mvApplyNcityWardrobe(rows){
+    const list=(rows||[]).map(c=>Object.assign({},c));
+    const direct=list.map(mvNcityDirectCombat);
+    return list.map((c,i)=>{
+      if(!Array.isArray(c.char)||c.char.indexOf('주연 · 독고탄 (밤)')===-1) return c;
+      const sameBeat=j=>j>=0&&j<list.length&&direct[j]&&((c.sec&&list[j].sec===c.sec)||(c.loc&&list[j].loc===c.loc));
+      const combat=c.costumeMode==='activity'?false:(direct[i]||sameBeat(i-1)||sameBeat(i+1));
+      c.costumeMode=combat?'combat':'activity';
+      c.costumeVariant=combat?25:0;
+      c.baseCostumeVariant=0;
+      if(combat)c.combatCostumeSource=2; else delete c.combatCostumeSource;
+      return c;
+    });
+  }
+
   // ── ② 프로젝트 에셋 연동 (2차 LLM 패스로 인물·공간 반영) ──
   async function linkProject(){
     const key=$('mvsProj').value; if(!key||!cuts.length) return;
@@ -81466,17 +81566,18 @@ ${context?('참고 컨텍스트: '+context):''}
 인물 DNA 요약:
 ${dna||'(없음)'}
 
-각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡 흐름 유지). 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열.
+각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡 흐름 유지). 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
 컷들:
 ${cutList}
-반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"]}]`;
+반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"],"costumeMode":"activity|combat|default"}]`;
     try{
       if(typeof callLLM!=='function') throw new Error('callLLM 없음');
       const r=await callLLM({prompt});
       const arr=parseJSONArray(r&&r.textOut);
       if(!arr||!arr.length) throw new Error('연동 파싱 실패');
       const byNo={}; arr.forEach(x=>{byNo[x.no]=x;});
-      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||'',obj:Array.isArray(x.obj)?x.obj:[]}):c;});
+      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||'',obj:Array.isArray(x.obj)?x.obj:[],costumeMode:x.costumeMode||c.costumeMode||''}):c;});
+      if(key==='ncity') cuts=mvApplyNcityWardrobe(cuts);
       renderCuts();
       const objTagged=cuts.reduce((n,c)=>n+((c.obj&&c.obj.length)?1:0),0);
       $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 / 오브제 '+objs.length+'개 → 컷 반영 (오브제 태깅 '+objTagged+'컷)';
@@ -81495,6 +81596,7 @@ ${cutList}
     if(!P){alert('mv-remake 프로젝트 없음 (배포 후 사용)');return;}
     const src=selProjKey?PROJECTS[selProjKey]:null;
     if(src){
+      P.sourceProjectKey=selProjKey;
       P.characterPresets=JSON.parse(JSON.stringify(src.characterPresets||{}));
       P.characterDNA=Object.assign({},src.characterDNA||{});
       P.defaultFaceRefs=Object.assign({},src.defaultFaceRefs||{});
@@ -81510,18 +81612,22 @@ ${cutList}
       P.defaultCostumeRefs=Object.assign({},src.defaultCostumeRefs||{});
       P.hasCostumes=(src.hasCostumes!==false);
       if(src.costumes)P.costumes=Object.assign({},src.costumes);
+      P.costumeDNA=Object.assign({},src.costumeDNA||{});
+      P.combatArmorDNA=Object.assign({},src.combatArmorDNA||{});
       P.quality=src.quality||P.quality; P.negative=src.negative||P.negative;
       if(src.lightMap)P.lightMap=Object.assign({},src.lightMap);
       if(src.emoMap)P.emoMap=Object.assign({},src.emoMap);
       // ★스타일 모드 복사 — 애니 프로젝트(클라우드라이더)는 실사강제 우회, 실사 프로젝트는 해제
       if(src.styleMode) P.styleMode=src.styleMode; else delete P.styleMode;
       if(src.defaultRatio)P.defaultRatio=src.defaultRatio;
-    }else{ delete P.styleMode; }
+    }else{ delete P.styleMode; delete P.sourceProjectKey; }
+    if(selProjKey==='ncity') cuts=mvApplyNcityWardrobe(cuts);
     const fallbackLoc=(P.spaceNames&&P.spaceNames[0])||'';
     P.name='🎬 '+(audio.name||'MV').replace(/\.(mp3|wav|m4a|aac|ogg)$/i,'')+(src?(' — '+src.name):'');
     P.epTitles={'1':(audio.name||'MV')};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true}));
+    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,sourceProjectKey:selProjKey||'',costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
+    saveMV(); pushHistory();
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);
     if(sp){ sp('mv-remake'); if(typeof loadDefaultFaceRefs==='function'){ try{loadDefaultFaceRefs();}catch(e){} } setTimeout(function(){try{var tb=document.getElementById('tabSB');if(tb&&tb.click)tb.click();}catch(e){}},150); }

@@ -67759,22 +67759,45 @@ function selectProject(key) {
     }).join('');
   }
 
-  // Render costume assets dynamically (per-character costume slots)
+  // Render costume assets dynamically (per-character slots; N-city Dokgo variants are individual cards)
   const costContainer2 = document.getElementById('asset-costume-container');
   var _csSec = document.getElementById('costumeAssetSection'); if (_csSec) _csSec.style.display = (currentProject && currentProject.hasCostumes === false) ? 'none' : '';
   if (costContainer2 && !(currentProject && currentProject.hasCostumes === false)) {
-    costContainer2.innerHTML = charNames.map(function(name, i) {
+    const costumeCards = [];
+    charNames.forEach(function(name, i) {
       const baseKey = 'costume-' + (i + 1);
-      const displayName = name.split(/[\s(（]/)[0];
+      const displayName = zippyCostumeCharacterName(name);
       const costumeUrls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[name]);
+      const isDokgoWardrobe = zippyIsNcityDokgoCostumeSlot(name, costumeUrls);
+      if (typeof assetLib !== 'undefined' && !assetLib[baseKey]) assetLib[baseKey] = [];
+
+      if (isDokgoWardrobe) {
+        costumeUrls.forEach(function(url, idx) {
+          const label = zippyCostumeRefLabel(displayName, url, idx, costumeUrls.length);
+          const inputId = 'asset-' + baseKey + '-variant-' + idx + '-input';
+          const gridId = 'asset-' + baseKey + '-variant-' + idx + '-grid';
+          const combat = String(url).indexOf('/dokgo-combat/') !== -1;
+          costumeCards.push('<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;min-width:0">' +
+            '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:' + (combat ? 'var(--or)' : 'var(--pu)') + ';font-weight:700">' + label + '</div>' +
+            '<div style="padding:10px">' +
+            '<div class="muz" onclick="document.getElementById(\'' + inputId + '\').click()" style="padding:10px;border-radius:6px">' +
+            '<div class="ulbl" style="font-size:11px"><strong>교체</strong></div>' +
+            '<input type="file" id="' + inputId + '" accept="image/*" style="display:none" onchange="replaceNcityCostumeVariant(\'' + baseKey + '\',' + idx + ',this.files)">' +
+            '</div>' +
+            '<div class="tgrid" id="' + gridId + '" style="margin-top:6px;min-height:30px">' +
+            '<div class="titem"><img src="' + url + '" alt="' + label + '"><div class="tlbl">' + label + '</div></div></div>' +
+            '</div></div>');
+        });
+        return;
+      }
+
       const costumeGrid = costumeUrls.length
         ? costumeUrls.map(function(url, idx) {
             const label = zippyCostumeRefLabel(displayName, url, idx, costumeUrls.length);
             return '<div class="titem"><img src="' + url + '" alt="' + label + '"><div class="tlbl">' + label + '</div></div>';
           }).join('')
         : '<div class="tg-empty" style="font-size:10px">—</div>';
-      if (typeof assetLib !== 'undefined' && !assetLib[baseKey]) assetLib[baseKey] = [];
-      return '<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
+      costumeCards.push('<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
         '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + displayName + ' 의상</div>' +
         '<div style="padding:10px">' +
         '<div class="muz" onclick="document.getElementById(\'asset-' + baseKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
@@ -67782,8 +67805,9 @@ function selectProject(key) {
         '<input type="file" id="asset-' + baseKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + baseKey + '\',this.files)">' +
         '</div>' +
         '<div class="tgrid" id="asset-' + baseKey + '-grid" style="margin-top:6px;min-height:30px">' + costumeGrid + '</div>' +
-        '</div></div>';
-    }).join('');
+        '</div></div>');
+    });
+    costContainer2.innerHTML = costumeCards.join('');
   }
 
   // Render object assets dynamically
@@ -68325,7 +68349,7 @@ async function loadDefaultCostumeRefs() {
     const sbKey = 'cos' + (i + 1);
     const alKey = 'costume-' + (i + 1);
     const fullName = charNames[i];
-    const baseName = fullName.split(/[\s(（]/)[0];
+    const baseName = zippyCostumeCharacterName(fullName);
     const urls = zippyAssetUrls(currentProject.defaultCostumeRefs[fullName] || currentProject.defaultCostumeRefs[baseName]);
     if (!urls.length) continue;
     let firstImg = null;
@@ -75648,8 +75672,39 @@ function zippyAssetUrls(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   return [value];
 }
+function zippyCostumeCharacterName(name) {
+  if (typeof sbCharReal === 'function') return sbCharReal(name);
+  const value = String(name || '');
+  return (value.indexOf('·') !== -1 ? value.split('·').pop() : value).split('(')[0].split('（')[0].trim();
+}
+function zippyIsNcityDokgoCostumeSlot(fullName, urls) {
+  return currentProjectKey === 'ncity' && fullName === '주연 · 독고탄 (밤)' && zippyAssetUrls(urls).length >= 38;
+}
+function replaceNcityCostumeVariant(cat, index, files) {
+  if (!files || !files.length) return;
+  const file = files[0];
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const dataUrl = event.target.result;
+    const b64 = dataUrl.split(',')[1];
+    const mime = file.type || 'image/png';
+    const existing = assetLib[cat] && assetLib[cat][index];
+    const name = existing && existing.name ? existing.name : file.name;
+    if (!assetLib[cat]) assetLib[cat] = [];
+    assetLib[cat][index] = {b64:b64, mime:mime, name:name, source:'upload'};
+    const grid = document.getElementById('asset-' + cat + '-variant-' + index + '-grid');
+    if (grid) grid.innerHTML = '<div class="titem"><img src="' + dataUrl + '" alt="' + name + '"><div class="tlbl">' + name + '</div></div>';
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
+  };
+  reader.readAsDataURL(file);
+}
 function zippyCostumeRefLabel(name, url, index, total) {
   const normalized = String(url || '').toLowerCase();
+  if (normalized.indexOf('/dokgo-combat/') !== -1) {
+    const match = normalized.match(/dokgo_combat_([0-9]+)/);
+    return name + ' 전투복 ' + (match ? match[1] : (index - 24));
+  }
+  if (normalized.indexOf('/dokgo-night/') !== -1) return name + ' 활동복 ' + String(index + 1).padStart(2, '0');
   if (normalized.indexOf('tennis') !== -1 || normalized.indexOf('테니스') !== -1) return name + ' 테니스복';
   if (normalized.indexOf('uniform') !== -1 || normalized.indexOf('school') !== -1 || normalized.indexOf('교복') !== -1) return name + ' 교복';
   return name + (total > 1 ? ' 의상 ' + (index + 1) : ' 의상');

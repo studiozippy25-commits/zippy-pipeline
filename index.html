@@ -67995,12 +67995,25 @@ function sbNcityTrailerExposureLock(shot) {
 function sbIsNcityYujinTacticalShot(shot) {
   return sbIsNcityVisualProject() && !!(shot && Array.isArray(shot.char) && shot.char.indexOf('주연 · 서유진 (전술모드)') !== -1);
 }
+function sbIsNcityYujinShot(shot) {
+  return sbIsNcityVisualProject() && !!(shot && Array.isArray(shot.char) && shot.char.some(function(name) {
+    return /^주연 · 서유진/.test(String(name || ''));
+  }));
+}
+function sbNcityYujinFaceLock(shot) {
+  if (!sbIsNcityYujinShot(shot)) return '';
+  const tactical = sbIsNcityYujinTacticalShot(shot);
+  const source = tactical
+    ? 'the approved Seo Yujin tactical face 6-view reference labeled 서유진 전술모드'
+    : 'the approved standard Seo Yujin face 6-view reference used by 낮/바텐더/해커 modes';
+  return 'SEO YUJIN FACE LOCK — ABSOLUTE: For this shot, use only ' + source + ' as Seo Yujin\'s face authority. Copy the exact eye shape, nose, lips, jawline, cheek structure, skin tone, hairline, age, and natural facial asymmetry. Never borrow or blend a face from another Seo Yujin mode, wardrobe, background, prop, or other character. Keep her identity unchanged; do not beautify, age, slim, enlarge eyes, reshape the jaw, or substitute another actor.\n';
+}
 function sbNcityYujinTacticalMaskLock(shot) {
   if (!sbIsNcityYujinTacticalShot(shot)) return '';
-  return 'SEO YUJIN TACTICAL FACE + MASK LOCK — ABSOLUTE: Seo Yujin identity is controlled only by the approved tactical face 6-view reference labeled 서유진 전술모드 and its matching tactical character sheet. Copy her exact eye shape, nose, lips, jawline, cheek structure, skin tone, hairline, age, and natural facial asymmetry from that reference. Never borrow a face from the wardrobe, background, prop, bartender, hacker, or any other character reference. Seo Yujin MUST wear the approved fitted matte-black lower-face tactical mask with restrained purple illuminated vent lines shown in the tactical face and character references. It covers her nose, mouth, cheeks, and lower face continuously. Keep the same black Western cowboy hat, long black hair, black tactical coat, leather trousers, gloves, and mask design; never render her unmasked, never lower or remove the mask, and never substitute her ordinary bartender/hacker face reference.\n';
+  return 'SEO YUJIN TACTICAL MASK LOCK — ABSOLUTE: Seo Yujin MUST wear the approved fitted matte-black lower-face tactical mask with restrained purple illuminated vent lines shown in the tactical character references. It covers her nose, mouth, cheeks, and lower face continuously. Keep the same black Western cowboy hat, long black hair, black tactical coat, leather trousers, gloves, and mask design; never render her unmasked, never lower or remove the mask, and never substitute her ordinary bartender/hacker outfit. This mask lock applies only to tactical mode.\n';
 }
 function sbNcityAppearanceLock(shot) {
-  return sbNcityDokgoNoGlassesLock(shot) + sbNcityDokgoMaskLock(shot) + sbNcityDokgoArmorPaletteLock(shot) + sbNcityYujinTacticalMaskLock(shot) + sbNcityTrailerExposureLock(shot);
+  return sbNcityDokgoNoGlassesLock(shot) + sbNcityDokgoMaskLock(shot) + sbNcityDokgoArmorPaletteLock(shot) + sbNcityYujinFaceLock(shot) + sbNcityYujinTacticalMaskLock(shot) + sbNcityTrailerExposureLock(shot);
 }
 function sbEnforceNcityAppearanceLock(shot, prompt) {
   const body = String(prompt || '').trim();
@@ -68008,11 +68021,13 @@ function sbEnforceNcityAppearanceLock(shot, prompt) {
   const noGlasses = sbNcityDokgoNoGlassesLock(shot);
   const dokgo = sbNcityDokgoMaskLock(shot);
   const armorPalette = sbNcityDokgoArmorPaletteLock(shot);
+  const yujinFace = sbNcityYujinFaceLock(shot);
   const yujin = sbNcityYujinTacticalMaskLock(shot);
   const trailerExposure = sbNcityTrailerExposureLock(shot);
   if (noGlasses && body.indexOf('DOKGO TAN NIGHT FACE LOCK') === -1) locks.push(noGlasses);
   if (dokgo && body.indexOf('DOKGO TAN COMBAT MASK LOCK') === -1) locks.push(dokgo);
   if (armorPalette && body.indexOf('DOKGO TAN ARMOR + MASK COLORWAY LOCK') === -1) locks.push(armorPalette);
+  if (yujinFace && body.indexOf('SEO YUJIN FACE LOCK') === -1) locks.push(yujinFace);
   if (yujin && body.indexOf('SEO YUJIN TACTICAL MASK LOCK') === -1) locks.push(yujin);
   if (trailerExposure && body.indexOf('N-CITY TRAILER BRIGHT BLACK-COMEDY EXPOSURE LOCK') === -1) locks.push(trailerExposure);
   return locks.join('') + body;

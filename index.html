@@ -72109,7 +72109,7 @@ async function generateSBShot(shotId, _seq) {
   const dokgoNightNegative = sbIsNcityDokgoNightShot(shot) ? 'eyeglasses, spectacles, clear lenses, sunglasses, daytime factory glasses on Dokgo Tan' : '';
   const combatAppearanceNegative = sbIsNcityDokgoCombatCostume(shot) ? 'unmasked Dokgo Tan, exposed mouth, exposed lower face, removed mask, lowered mask' : '';
   const yujinTacticalNegative = sbIsNcityYujinTacticalShot(shot) ? 'unmasked Seo Yujin, exposed mouth, exposed lower face, removed tactical mask, lowered tactical mask, ordinary bartender outfit' : '';
-  const projNegative = [(currentProject && currentProject.negative) || POT_NEGATIVE, shot.negativePrompt || '', dokgoNightNegative, combatAppearanceNegative, yujinTacticalNegative].filter(Boolean).join(', ');
+  const projNegative = [(currentProject && currentProject.negative) || POT_NEGATIVE, shot.negativePrompt || '', dokgoNightNegative, combatAppearanceNegative, yujinTacticalNegative, ZIPPY_HERO_CLEAN_NEGATIVE].filter(Boolean).join(', ');
   // BAENE Anatomy + ZIPPY DNA prompt
   const sbCam = (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, preset) : {summary: (shot.frame || ''), aperture: ''};
   if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('before-shot-generation');
@@ -72151,7 +72151,7 @@ async function generateSBShot(shotId, _seq) {
   const noFaceDetailShot = isProofOfTasteProject() && isProofOfTasteNoFaceDetailShot(shot);
   const noFaceHeader = noFaceDetailShot ? 'NO FACE VISIBLE: This shot is a tactile insert/detail shot. Render only hands, the specified object, and surface details. Do NOT show a face, portrait, bust, or full body. Do NOT import facial features from any reference.\n' : '';
   const faceLockHeader = hasFaceRef ? 'FACE IDENTITY LOCK — ABSOLUTE: The provided FACE reference sheet(s) are the ONLY authority for facial identity: ' + faceRefLabels.join(', ') + '. Preserve the exact eyes, nose, mouth, jawline, cheekbone, hairline, skin texture, age, and Korean facial proportions. DO NOT borrow or blend faces from costume sheets, prop sheets, background sheets, moodboards, or any non-face reference. Costume references are clothing-only; background references are space-only. Render one natural camera angle from the face sheet, not a multi-angle collage.\n' : '';
-  const lockHeader = noFaceHeader + ((hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '');
+  const lockHeader = noFaceHeader + ZIPPY_HERO_CLEAN_LOCK + '\n' + ((hasCharRef || hasFaceRef) ? 'IDENTITY LOCK: The reference images show the exact characters. Maintain 100% facial identity consistency. DO NOT create new faces, do not beautify into a different actor, do not change age, face shape, hairstyle, or expression structure.\n' + faceLockHeader : '');
   const objLockHeader = hasObjRef ? 'PROP LOCK: Reference images include specific props. Reproduce props exactly as shown (shape, material, color, silhouette, worn physical markings). Do NOT invent or copy illegible text; if lettering is unclear, leave it blank, smudged, or unreadable as photographed material detail.\n' : '';
   const continuityBlock = (typeof buildValidatedContinuityPromptBlock === 'function') ? buildValidatedContinuityPromptBlock(shot, sbCam) : '';
   // Moodboard safety guide — references may be 12-photo concept sheets
@@ -76885,7 +76885,7 @@ function chkOpenAIKey() {
 const ZIPPY_LIVE_ACTION_MANDATE = [
   'LIVE-ACTION CINEMA MANDATE - ABSOLUTE:',
   'Render as a 100% real live-action Korean cinema frame, photographed with real actors on real physical sets.',
-  'Use real costumes, real props, real lens optics, imperfect practical lighting, optical depth of field, film grain, skin pores, fabric weave, dust, fingerprints, and weathered surfaces.',
+  'Use real costumes, real props, real lens optics, imperfect practical lighting, optical depth of field, film grain, skin pores, fabric weave, and natural material detail. Environmental dust, fingerprints, and weathering belong only on sets and props, never on the hero character unless explicitly required by the shot.',
   'No illustration, no anime, no manga/webtoon look, no concept art, no poster art, no 3D render, no CGI/game-engine look, no AI-polished skin, no plastic/wax texture, no painterly brushwork.',
   'No post-production graphics inside the generated image: no HUD overlay, no floating UI, no vector interface, no title card, no subtitles, no logo plate, no infographic, no broadcast lower-third, no graphic-design panel.',
   'No generated calligraphy, ink typography, brush-stroke title marks, verdict lettering, graphic black slashes, or stylized text strokes. If calligraphy/verdict text is story-critical, leave it for post-production and show only real screen flicker, practical light falloff, soot, grime, or broken LED noise.',
@@ -76894,6 +76894,8 @@ const ZIPPY_LIVE_ACTION_MANDATE = [
   'If any style instruction conflicts with live-action photographic realism, live-action photographic realism wins.'
 ].join('\\n');
 const ZIPPY_LIVE_ACTION_NEGATIVE = 'animation, anime, manga, webtoon, illustration, concept art, poster art, 3D render, CGI, game engine, synthetic plastic skin, wax skin, AI-polished face, painterly texture, toon shading, post-production graphics, HUD overlay, UI overlay, floating user interface, vector interface, motion graphics, title card, subtitles, captions, readable text, logo plate, watermark, sharp hologram UI, crisp terminal text, infographic, map overlay, chart overlay, broadcast graphics, data overlay, AR overlay, screen text, calligraphy text, ink typography, brush-stroke title marks, verdict lettering, graphic black slash overlays, stylized text strokes';
+const ZIPPY_HERO_CLEAN_LOCK = 'HERO CHARACTER CLEANLINESS + PRESENCE LOCK: Keep the named protagonist/hero clean, sharp, intentional, charismatic, and presentation-ready. Make the hero look cool through approved costume silhouette, precise fit, confident posture, decisive framing, and cinematic lighting — never by changing the face or beautifying the identity. Do not add dirt, grease, oil stains, dust, mud, grime, sweat stains, torn fabric, distressed fabric, frayed edges, or weathered wardrobe to the hero. Preserve the approved costume colors, cut, fabric, shoes, accessories, face, skin tone, hair, and body exactly as referenced. Environmental wear may appear on the background and props only; it must never transfer onto the hero.';
+const ZIPPY_HERO_CLEAN_NEGATIVE = 'dirty hero, greasy hero, oily hero, dusty hero, muddy hero, grimy hero, sweat-stained hero, stained hero clothing, torn hero clothing, distressed hero wardrobe, frayed hero clothing, weathered hero wardrobe, scuffed hero boots, gritty hero styling';
 const ZIPPY_ANIMATION_MANDATE = 'ANIMATION MANDATE - 2.5D HYBRID: Render as a premium 2.5D hybrid animation frame: emotional 2D-animation characters (clean line art, soft cel shading, expressive eyes, subtle blush) composited over cinematic semi-3D painterly backgrounds and mecha. Retro-futurism DIY aircraft detail, warm hopeful soft-SF road-movie tone, fresh luminous 2035 near-future Earth, breezy blue-sky atmosphere, beautiful real nature, humane optimistic maker-community future. NOT live-action, NOT photorealistic human skin, NOT real actors, NOT photography.';
 const ZIPPY_ANIMATION_NEGATIVE = 'live-action footage, real human photography, photorealistic skin pores, real actors, film photograph, documentary photo, horror, gore, cyberpunk gloom, polluted apocalypse, militarized dystopia, oppressive megacity mood, heavy noir, grimdark future, muddy low-key grading, crushed blacks, watermark, logo, readable text overlay, subtitles';
 
@@ -76902,9 +76904,9 @@ const ZIPPY_ANIMATION_NEGATIVE = 'live-action footage, real human photography, p
 // getStyleMode()가 고른 key로 enforceLiveAction*(상단 MANDATE)와 generateSBShot(내부 visualStyle/negative)이 분기.
 const ZIPPY_STYLE_BASE = {
   docLook:
-`REALISM (CRITICAL): must look like a REAL PHOTOGRAPH / actual film still captured on set — candid, slightly imperfect, real human skin with visible pores, blemishes, asymmetry, stray flyaway hairs. NOT a render, NOT concept art, NOT AI-art gloss.
+  `REALISM (CRITICAL): must look like a REAL PHOTOGRAPH / actual film still captured on set — candid, slightly imperfect, real human skin with visible pores, blemishes, asymmetry, stray flyaway hairs. NOT a render, NOT concept art, NOT AI-art gloss.
 Kodak Vision3 500T color science, natural film grain, slight halation, organic color bleed. Lifted milky blacks, rolled-off highlights, NO crushed shadows, muted desaturated palette, soft film contrast. NO orange-and-teal grading, NO HDR, NO oversaturation, NO digital clean look.
-ANTI-CG: visible pores, follicle micro-shadows, natural skin oils, capillary flush; surfaces show material age — dust, paint micro-peeling, concrete grain, fabric weave; subtle lens vignetting, micro chromatic aberration, optical depth-of-field.`,
+ANTI-CG: visible pores, follicle micro-shadows, natural skin oils, capillary flush; background and props show material age — dust, paint micro-peeling, concrete grain, fabric weave. Keep the hero costume clean and intentional. Subtle lens vignetting, micro chromatic aberration, optical depth-of-field.`,
   glossyLook:
 `CINEMATIC BEAUTY (photographic, NOT CG): a real film still shot on cinema glass, but polished and luminous — flattering key light, dewy soft skin with a healthy sheen and gentle halation/bloom around highlights, rich clean saturated color, glowing rim light, pristine reflective surfaces, creamy shallow depth of field. Skin stays REAL (fine texture, natural asymmetry) but beauty-graded — NOT gritty documentary, NOT plastic wax CG. Glossy commercial-grade cinematic finish.`,
   popLook:
@@ -77138,7 +77140,7 @@ async function callGtiBridge({images=[], prompt, signal=null, onProgress=null}) 
   const buildPayload = function(refs, note) {
     const prefix = buildImageRefManifestForPrompt(refs);
     return {
-      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n\\n' + prompt,
+      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n' + ZIPPY_HERO_CLEAN_LOCK + '\\n\\n' + prompt + '\\nNEGATIVE HERO CLEANLINESS: ' + ZIPPY_HERO_CLEAN_NEGATIVE,
       size: size,
       images: (refs || []).map(function(im) { return { b64: im.b64, mime: im.mime || 'image/png' }; })
     };

@@ -67718,9 +67718,9 @@ function selectProject(key) {
     var epNums = Object.keys(epSet).map(Number).sort(function(a,b){return a-b;});
     if (epNums.length > 6) {
       sbEpSelector.style.display = 'block';
-      var html = '<button class="chip on" style="font-size:11px;padding:6px 12px" onclick="filterSBEp(0,this)">전체 (' + currentProject.storyboardShots.length + ')</button>';
+      var html = '<button class="chip on" data-sb-ep="0" style="font-size:11px;padding:6px 12px" onclick="filterSBEp(0,this)">전체 <span class="sb-ep-count">(' + sbEpisodeCountLabel(0, currentProject.storyboardShots, hasEpField) + ')</span></button>';
       epNums.forEach(function(ep) {
-        html += '<button class="chip" style="font-size:11px;padding:6px 12px" onclick="filterSBEp('+ep+',this)">'+sbGroupChipLabel(ep)+' <span style="opacity:.5;font-size:10px">('+epSet[ep]+')</span></button>';
+        html += '<button class="chip" data-sb-ep="'+ep+'" style="font-size:11px;padding:6px 12px" onclick="filterSBEp('+ep+',this)">'+sbGroupChipLabel(ep)+' <span class="sb-ep-count" style="opacity:.5;font-size:10px">('+sbEpisodeCountLabel(ep, currentProject.storyboardShots, hasEpField)+')</span></button>';
       });
       sbEpChips.innerHTML = html;
     } else {
@@ -68352,6 +68352,40 @@ function sbGroupChipLabel(num) {
   return 'EP' + ('0'+num).slice(-2) + ' ' + (et[num] || ('EP'+num));
 }
 
+function sbEpisodeCountLabel(epNum, shots, hasEpField) {
+  var target = Number(epNum);
+  var list = Array.isArray(shots) ? shots : [];
+  var selected = list.filter(function(shot) {
+    if (target === 0) return true;
+    return Number(hasEpField ? shot.ep : shot.scene) === target;
+  });
+  var generated = selected.filter(function(shot) {
+    if (!shot || !shot.id) return false;
+    var imageStore;
+    try { imageStore = sbGenImages; } catch(e) { imageStore = null; }
+    if (!imageStore) return false;
+    var id = shot.id;
+    var resolvedId = (typeof zippyNasResolveStoryboardShotId === 'function')
+      ? zippyNasResolveStoryboardShotId(id)
+      : id;
+    return !!(imageStore[id] || imageStore[resolvedId]);
+  }).length;
+  return generated + ' / ' + selected.length;
+}
+
+function refreshSBEpisodeCounts() {
+  if (!currentProject || !Array.isArray(currentProject.storyboardShots)) return;
+  var chips = document.querySelectorAll('#sbEpChips .chip[data-sb-ep]');
+  if (!chips.length) return;
+  var shots = currentProject.storyboardShots;
+  var hasEpField = shots.length > 0 && typeof shots[0].ep !== 'undefined';
+  chips.forEach(function(chip) {
+    var count = chip.querySelector('.sb-ep-count');
+    if (!count) return;
+    count.textContent = '(' + sbEpisodeCountLabel(chip.getAttribute('data-sb-ep'), shots, hasEpField) + ')';
+  });
+}
+
 function sbActiveEpProjectKey() {
   return 'zippy-sb-active-ep-' + (currentProjectKey || (currentProject && (currentProject.nameEn || currentProject.name)) || 'default');
 }
@@ -68406,9 +68440,9 @@ function refreshEpSelector() {
   var epNums = Object.keys(epSet).map(Number).sort(function(a,b){return a-b;});
   if (epNums.length > 6) {
     sbEpSelector.style.display = 'block';
-    var html = '<button class="chip on" style="font-size:11px;padding:6px 12px" onclick="filterSBEp(0,this)">전체 (' + currentProject.storyboardShots.length + ')</button>';
+    var html = '<button class="chip on" data-sb-ep="0" style="font-size:11px;padding:6px 12px" onclick="filterSBEp(0,this)">전체 <span class="sb-ep-count">(' + sbEpisodeCountLabel(0, currentProject.storyboardShots, hasEpField) + ')</span></button>';
     epNums.forEach(function(ep) {
-      html += '<button class="chip" style="font-size:11px;padding:6px 12px" onclick="filterSBEp('+ep+',this)">'+sbGroupChipLabel(ep)+' <span style="opacity:.5;font-size:10px">('+epSet[ep]+')</span></button>';
+      html += '<button class="chip" data-sb-ep="'+ep+'" style="font-size:11px;padding:6px 12px" onclick="filterSBEp('+ep+',this)">'+sbGroupChipLabel(ep)+' <span class="sb-ep-count" style="opacity:.5;font-size:10px">('+sbEpisodeCountLabel(ep, currentProject.storyboardShots, hasEpField)+')</span></button>';
     });
     sbEpChips.innerHTML = html;
   } else {
@@ -72054,6 +72088,7 @@ function updateSBProgress() {
   const done = SB_SHOTS.filter(s=>s.pri==='must' && sbGenImages[s.id]).length;
   const el = document.getElementById('sbProgress');
   if(el) el.textContent = done + ' / ' + total + ' 필수 쇼트';
+  refreshSBEpisodeCounts();
 }
 function sbShowLoading(shotId, text){
   var card=document.getElementById('sb-shot-'+String(shotId).replace(/[^a-z0-9]/gi,'-'));

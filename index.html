@@ -1103,8 +1103,6 @@ input[type=file]{display:none}
       <input type="checkbox" id="nasAutoLoad" onchange="zippyNasSaveSettings()"> 자동 불러오기
     </label>
     <input type="text" class="api-inp" id="nasBridgeUrl" value="http://localhost:8788" placeholder="NAS 브리지 URL" style="flex:0 1 220px;min-width:180px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
-    <input type="text" class="api-inp" id="nasProjectSlug" placeholder="프로젝트 폴더 자동" style="flex:0 1 170px;min-width:140px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
-    <input type="password" class="api-inp" id="nasBridgeToken" placeholder="브리지 토큰(선택)" style="flex:0 1 150px;min-width:120px;font-size:12px;padding:6px 9px" onchange="zippyNasSaveSettings()">
     <span id="nasBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
     <span id="nasBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
     <span id="nasBridgeProgress" style="font-family:var(--font-mono);font-size:11px;color:var(--bl);min-width:120px"></span>
@@ -70398,14 +70396,12 @@ function zippyNasUrl() {
   return (zippyNasStorageGet('zippy_nas_url', ZIPPY_NAS_DEFAULT_URL) || ZIPPY_NAS_DEFAULT_URL).replace(/\/+$/, '');
 }
 function zippyNasToken() {
-  return zippyNasStorageGet('zippy_nas_token', '');
+  return '';
 }
 function zippyNasSafePart(v, fallback) {
   return String(v || fallback || 'default').normalize('NFKC').replace(/[\\/:*?"<>|#%{}$!`'@+=~]/g, '_').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_+|_+$/g, '').slice(0, 100) || (fallback || 'default');
 }
 function zippyNasProjectSlug() {
-  const manual = zippyNasStorageGet('zippy_nas_project', '');
-  if (manual) return zippyNasSafePart(manual, 'project');
   let key = 'default';
   try { key = currentProjectKey || (currentProject && currentProject.name) || 'default'; } catch(e) {}
   return zippyNasSafePart(key, 'project');
@@ -70426,26 +70422,22 @@ function zippyNasSaveSettings() {
   const url = document.getElementById('nasBridgeUrl');
   const auto = document.getElementById('nasAutoSync');
   const autoLoad = document.getElementById('nasAutoLoad');
-  const project = document.getElementById('nasProjectSlug');
-  const token = document.getElementById('nasBridgeToken');
   if (url) zippyNasStorageSet('zippy_nas_url', url.value.trim() || ZIPPY_NAS_DEFAULT_URL);
   if (auto) zippyNasStorageSet('zippy_nas_auto', auto.checked ? '1' : '0');
   if (autoLoad) zippyNasStorageSet('zippy_nas_auto_load', autoLoad.checked ? '1' : '0');
-  if (project) zippyNasStorageSet('zippy_nas_project', project.value.trim());
-  if (token) zippyNasStorageSet('zippy_nas_token', token.value.trim());
   zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : (zippyNasAutoLoadEnabled() ? '자동 불러오기 켜짐' : '자동 저장 꺼짐'), zippyNasEnabled() || zippyNasAutoLoadEnabled());
 }
 function zippyNasInit() {
   const url = document.getElementById('nasBridgeUrl');
   const auto = document.getElementById('nasAutoSync');
   const autoLoad = document.getElementById('nasAutoLoad');
-  const project = document.getElementById('nasProjectSlug');
-  const token = document.getElementById('nasBridgeToken');
+  try {
+    localStorage.removeItem('zippy_nas_project');
+    localStorage.removeItem('zippy_nas_token');
+  } catch(e) {}
   if (url) url.value = zippyNasUrl();
   if (auto) auto.checked = zippyNasEnabled();
   if (autoLoad) autoLoad.checked = zippyNasAutoLoadEnabled();
-  if (project) project.value = zippyNasStorageGet('zippy_nas_project', '');
-  if (token) token.value = zippyNasToken();
   zippyNasSetStatus(zippyNasEnabled() ? '자동 저장 켜짐' : (zippyNasAutoLoadEnabled() ? '자동 불러오기 켜짐' : '자동 저장 꺼짐'), zippyNasEnabled() || zippyNasAutoLoadEnabled());
   if (zippyNasEnabled()) setTimeout(zippyNasCheck, 300);
   if (zippyNasAutoLoadEnabled()) zippyNasScheduleAutoLoad('init');
@@ -70512,6 +70504,7 @@ async function zippyNasCheck() {
     const res = await fetch(zippyNasUrl() + '/health', { headers: zippyNasToken() ? {'X-Zippy-NAS-Token': zippyNasToken()} : {} });
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    if (data.synology_reachable === false) throw new Error(data.synology_probe_error || 'NAS 폴더 조회 실패');
     zippyNasSetStatus('연결됨 · ' + (data.mode || 'bridge'), true);
     return true;
   } catch(e) {

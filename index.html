@@ -76929,6 +76929,9 @@ const ZIPPY_LIVE_ACTION_MANDATE = [
 ].join('\\n');
   const ZIPPY_LIVE_ACTION_NEGATIVE = 'animation, anime, manga, webtoon, illustration, concept art, poster art, 3D render, CGI, game engine, synthetic plastic skin, wax skin, AI-polished face, painterly texture, toon shading, post-production graphics, HUD overlay, floating user interface, vector interface, motion graphics, title card, subtitles, captions, logo plate, watermark, generic hologram UI, infographic overlay, map overlay, chart overlay, broadcast graphics, data overlay, AR overlay, calligraphy text, ink typography, brush-stroke title marks, verdict lettering, graphic black slash overlays, stylized text strokes';
 const ZIPPY_HERO_CLEAN_LOCK = 'HERO CHARACTER CLEANLINESS + PRESENCE LOCK: Keep the named protagonist/hero clean, sharp, intentional, charismatic, and presentation-ready. Make the hero look cool through the approved costume reference, precise tailoring, clean model-fit silhouette, controlled drape, crisp garment structure, confident posture, decisive framing, and cinematic fashion-film lighting — never by changing the face or beautifying the identity. The clothing reference is the primary authority for garment design: reproduce its exact cut, construction, layering, fabric, color, texture, hardware, seams, closures, accessories, shoes, and distinctive details before adapting it to the pose. Make the outfit look expensive, polished, stylish, and editorial while keeping the character face, body identity, age, and natural proportions unchanged. Do not turn the garment into generic streetwear, a random costume, a shapeless oversized outfit, cheap synthetic fabric, or a different fashion design. Do not add dirt, grease, oil stains, dust, mud, grime, sweat stains, torn fabric, distressed fabric, frayed edges, or weathered wardrobe to the hero unless those details are explicitly present in the approved clothing reference. Environmental wear may appear on the background and props only; it must never transfer onto the hero.';
+const ZIPPY_SCENE_INTEGRATION_LOCK = 'ONE PHYSICAL CAPTURE / NO COMPOSITE LOOK: The person, clothing, props, and selected background must exist together in one believable photographed space. Match camera height, focal length, perspective, subject scale, horizon, depth of field, focus falloff, motion blur, exposure, white balance, color temperature, light direction, shadow softness, contact shadows, reflected light, atmospheric perspective, surface grain, and sharpness across foreground and background. The subject must receive the background light and bounce light and cast a natural contact shadow. No cutout, pasted person, sticker edge, green-screen look, background plate, halo, matte line, edge fringe, scale mismatch, perspective mismatch, mismatched blur, mismatched grain, or separate-layer composite appearance.';
+const ZIPPY_GTI_ARTIFACT_CLEAN_LOCK = 'GTI ARTIFACT CLEANUP — STRONG: Apply strong reconstruction denoise and artifact cleanup to remove checkerboard patterns, grid lines, tiled texture, moire, repeated square marks, reference-sheet panel seams, and collage remnants. Clean the image as one continuous frame, but preserve important face identity, garment weave, seams, embroidery, hardware, material grain, and natural skin texture. Do not replace artifact cleanup with blur, beauty smoothing, plastic skin, or loss of clothing detail.';
+const ZIPPY_GTI_ARTIFACT_NEGATIVE = 'checkerboard pattern, grid pattern, tiled grid, repeated square artifacts, moire, panel seams, contact sheet, collage, split-screen, reference-sheet layout, pasted subject, cutout edge, sticker outline, green-screen halo, matte line, edge fringe, double contour, mismatched sharpness, mismatched grain, mismatched color temperature, separate background plate';
 const ZIPPY_HERO_CLEAN_NEGATIVE = 'dirty hero, greasy hero, oily hero, dusty hero, muddy hero, grimy hero, sweat-stained hero, stained hero clothing, torn hero clothing, distressed hero wardrobe, frayed hero clothing, weathered hero wardrobe, scuffed hero boots, gritty hero styling';
 const ZIPPY_BRIGHT_REAL_WORLD_LOCK = 'BRIGHT REAL-WORLD TONE LOCK — ABSOLUTE: This is a contemporary, breathable, believable world, not a dystopia. Use bright readable exposure, natural or balanced practical light, lifted midtones, visible faces, clear environment separation, clean air, and grounded real-world color. Danger or night may change the light source but must not make the frame murky, crushed-black, oppressive, cyberpunk, dystopian, or horror-noir. Preserve hopeful human readability even in tense scenes.';
 const ZIPPY_BRIGHT_REAL_WORLD_NEGATIVE = 'dystopia, dystopian city, cyberpunk gloom, oppressive darkness, horror-noir, murky shadows, crushed blacks, muddy underexposure, unreadable face, gloomy blue-green cast, post-apocalyptic decay, grimdark grading, hopeless oppressive mood';
@@ -77105,12 +77108,12 @@ function getShotSizeDirective(rawShot, fallbackText) {
 function enforceLiveActionPrompt(prompt) {
   var S = (typeof getStyle === 'function') ? getStyle() : null;
   var mandate = (S && S.mandate) ? S.mandate : ZIPPY_LIVE_ACTION_MANDATE;
-  return mandate + String.fromCharCode(10,10) + (prompt || '');
+  return mandate + String.fromCharCode(10,10) + ZIPPY_SCENE_INTEGRATION_LOCK + String.fromCharCode(10) + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + String.fromCharCode(10,10) + (prompt || '');
 }
 function enforceLiveActionNegative(negative) {
   var S = (typeof getStyle === 'function') ? getStyle() : null;
   var neg = (S && S.negative) ? S.negative : ZIPPY_LIVE_ACTION_NEGATIVE;
-  return [negative || '', neg].filter(Boolean).join(', ');
+  return [negative || '', neg, ZIPPY_GTI_ARTIFACT_NEGATIVE].filter(Boolean).join(', ');
 }
 
 const DEFAULT_GTI_BRIDGE_URL = 'http://127.0.0.1:8799';
@@ -77158,7 +77161,7 @@ async function checkGtiBridge() {
   if(dot) dot.style.background='#DC2626';
   if(st) st.textContent='꺼짐 — 바탕화면 런처 더블클릭 · ' + ((lastError && lastError.message) || '연결 실패');
 }
-async function callGtiBridge({images=[], prompt, signal=null, onProgress=null}) {
+async function callGtiBridge({images=[], prompt, negative='', signal=null, onProgress=null}) {
   const size = document.getElementById('gptImgSize')?.value || 'auto';
   const sourceImages = Array.isArray(images) ? images.filter(function(im) { return im && im.b64; }) : [];
   if (onProgress && sourceImages.length) onProgress('GTI 레퍼런스 압축 중... ' + sourceImages.length + '개');
@@ -77176,7 +77179,7 @@ async function callGtiBridge({images=[], prompt, signal=null, onProgress=null}) 
   const buildPayload = function(refs, note) {
     const prefix = buildImageRefManifestForPrompt(refs);
     return {
-      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n' + ZIPPY_BRIGHT_REAL_WORLD_LOCK + '\\n' + ZIPPY_HERO_CLEAN_LOCK + '\\n\\n' + prompt + '\\nNEGATIVE HERO CLEANLINESS: ' + ZIPPY_HERO_CLEAN_NEGATIVE + '\\nNEGATIVE TONE: ' + ZIPPY_BRIGHT_REAL_WORLD_NEGATIVE,
+      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n' + ZIPPY_BRIGHT_REAL_WORLD_LOCK + '\\n' + ZIPPY_SCENE_INTEGRATION_LOCK + '\\n' + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + '\\n' + ZIPPY_HERO_CLEAN_LOCK + '\\n\\n' + prompt + '\\nNEGATIVE HERO CLEANLINESS: ' + ZIPPY_HERO_CLEAN_NEGATIVE + '\\nNEGATIVE TONE: ' + ZIPPY_BRIGHT_REAL_WORLD_NEGATIVE + '\\nNEGATIVE GTI ARTIFACTS: ' + ZIPPY_GTI_ARTIFACT_NEGATIVE + (negative ? '\\nNEGATIVE REQUEST: ' + negative : ''),
       size: size,
       images: (refs || []).map(function(im) { return { b64: im.b64, mime: im.mime || 'image/png' }; })
     };
@@ -77637,7 +77640,7 @@ async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVa
     return await callGemini({images, prompt, textOnly: false, resVal, signal});
   }
   if (mode === 'gpt') {
-    return await callGtiBridge({images, prompt, signal, onProgress});
+    return await callGtiBridge({images, prompt, negative, signal, onProgress});
   }
   if (mode === 'gptapi') {
     return await callGPTImage({images, prompt, signal});

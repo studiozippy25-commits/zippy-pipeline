@@ -67519,6 +67519,21 @@ if (document.readyState === 'loading') {
 }
 
 function selectProject(key) {
+  const previousProjectKey = currentProjectKey;
+  if (previousProjectKey) {
+    const previousAssetSnapshot = (typeof captureProjectAssetState === 'function') ? captureProjectAssetState() : null;
+    const previousStoryboardSnapshot = (typeof sbStoryboardSnapshot === 'function') ? sbStoryboardSnapshot() : null;
+    if (previousAssetSnapshot && typeof persistProjectAssetState === 'function') {
+      persistProjectAssetState(previousProjectKey, previousAssetSnapshot);
+    }
+    if (previousStoryboardSnapshot && typeof saveStoryboardState === 'function') {
+      saveStoryboardState('project-switch', {
+        projectKey: previousProjectKey,
+        snapshot: previousStoryboardSnapshot,
+        localOnly: true
+      });
+    }
+  }
   currentProjectKey = key;
   currentProject = PROJECTS[key];
   if (!currentProject) return;
@@ -67532,6 +67547,18 @@ function selectProject(key) {
   if (typeof sbRefs !== 'undefined') {
     Object.keys(sbRefs).forEach(function(k){ sbRefs[k] = null; });
   }
+  if (typeof sbCostumeVariants !== 'undefined') {
+    Object.keys(sbCostumeVariants).forEach(function(k){ delete sbCostumeVariants[k]; });
+  }
+  if (typeof sbGenImages !== 'undefined') Object.keys(sbGenImages).forEach(function(k){ delete sbGenImages[k]; });
+  if (typeof sbSeqImages !== 'undefined') Object.keys(sbSeqImages).forEach(function(k){ delete sbSeqImages[k]; });
+  if (typeof sbLocalDeletedImages !== 'undefined') Object.keys(sbLocalDeletedImages).forEach(function(k){ delete sbLocalDeletedImages[k]; });
+  if (typeof sbContinuityCards !== 'undefined') Object.keys(sbContinuityCards).forEach(function(k){ delete sbContinuityCards[k]; });
+  if (typeof sbCameraPositions !== 'undefined') Object.keys(sbCameraPositions).forEach(function(k){ delete sbCameraPositions[k]; });
+  if (typeof sbCameraControls !== 'undefined') Object.keys(sbCameraControls).forEach(function(k){ delete sbCameraControls[k]; });
+  if (typeof sbStateRestored !== 'undefined') sbStateRestored = false;
+  if (typeof sbStateRestorePromise !== 'undefined') sbStateRestorePromise = null;
+  if (typeof sbStateRestoreGeneration !== 'undefined') sbStateRestoreGeneration++;
 
   // Show workspace, hide landing
   document.getElementById('landingPage').style.display = 'none';
@@ -67772,7 +67799,7 @@ function selectProject(key) {
   if (faceContainer2) {
     faceContainer2.innerHTML = charNames.map(function(name, i) {
       const fKey = 'face-' + (i + 1);
-      const faceUrl = currentProject.defaultFaceRefs && currentProject.defaultFaceRefs[name];
+      const faceUrl = zippyFirstAssetUrl(currentProject.defaultFaceRefs && currentProject.defaultFaceRefs[name]);
       const faceGrid = faceUrl
         ? '<div class="titem"><img src="' + faceUrl + '" alt="' + name + ' 얼굴 6전도"><div class="tlbl">' + name + ' 얼굴 6전도</div></div>'
         : '<div class="tg-empty" style="font-size:10px">—</div>';
@@ -67847,7 +67874,7 @@ function selectProject(key) {
       if (typeof assetLib !== 'undefined' && !assetLib[o.key]) assetLib[o.key] = [];
     });
     objContainer.innerHTML = currentProject.objectAssets.map(function(o) {
-      const defaultObjUrl = currentProject.defaultObjRefs && currentProject.defaultObjRefs[o.key];
+      const defaultObjUrl = zippyFirstAssetUrl(currentProject.defaultObjRefs && currentProject.defaultObjRefs[o.key]);
       const defaultObjGrid = defaultObjUrl
         ? '<div class="titem"><img src="' + defaultObjUrl + '" alt="' + o.name + '"><div class="tlbl">' + o.name + '</div></div>'
         : '<div class="tg-empty" style="font-size:10px">—</div>';
@@ -68281,8 +68308,9 @@ function getSBActiveEp(epNums, fallbackEp) {
   if (raw == null) {
     try { raw = localStorage.getItem(key); } catch(e) { raw = null; }
   }
-  var n = Number(raw);
-  if (Number.isFinite(n)) {
+  if (raw != null && String(raw).trim() !== '') {
+    var n = Number(raw);
+    if (!Number.isFinite(n)) return fallbackEp;
     if (n === 0) return 0;
     if ((epNums || []).indexOf(n) !== -1) return n;
   }
@@ -68371,6 +68399,13 @@ function filterSBEp(epNum, btn) {
   // Filter timeline scene groups
   var timeline = document.getElementById('sbTimelineInner');
   if (!timeline) return;
+  if (typeof SB_SHOTS !== 'undefined' && SB_SHOTS.length >= 100) {
+    var desiredScope = epNum === 0 ? 'all' : String(epNum);
+    if (timeline.dataset.renderScope && timeline.dataset.renderScope !== desiredScope) {
+      buildStoryboardTimeline();
+      return;
+    }
+  }
   // 단일 에피소드 뷰 / 전체 뷰 레이아웃 토글
   if (epNum === 0) {
     timeline.classList.remove('single-ep-view');
@@ -68461,15 +68496,22 @@ function buildAssetSpaceSlots() {
   container.innerHTML = html;
 }
 
-async function loadDefaultObjRefs() {
-  if (!currentProject || !currentProject.defaultObjRefs) return;
-  const objAssets = currentProject.objectAssets || [];
+let sbRefLoadGeneration = 0;
+let sbReferenceLoadPromise = Promise.resolve();
+function sbRefLoadIsCurrent(options) {
+  return !options || !options.token || (options.token === sbRefLoadGeneration && options.projectKey === currentProjectKey);
+}
+async function loadDefaultObjRefs(options) {
+  const project = (options && options.project) || currentProject;
+  if (!project || !project.defaultObjRefs) return 0;
+  const objAssets = project.objectAssets || [];
   let loadedCount = 0;
   for (const obj of objAssets) {
-    const url = currentProject.defaultObjRefs[obj.key];
+    const url = zippyFirstAssetUrl(project.defaultObjRefs[obj.key]);
     if (!url) continue;
     const img = await fetchImageAsB64(url);
     if (!img) continue;
+    if (!sbRefLoadIsCurrent(options)) return loadedCount;
     // 스토리보드 소품 슬롯
     if (!sbRefs[obj.key]) {
       sbRefs[obj.key] = img.b64;
@@ -68487,41 +68529,45 @@ async function loadDefaultObjRefs() {
     }
     loadedCount++;
   }
-  if (loadedCount > 0) {
+  if (loadedCount > 0 && !(options && options.deferRender)) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
   console.log('[loadDefaultObjRefs] Loaded:', loadedCount);
+  return loadedCount;
 }
 
-function getProjectCharNamesForRefs() {
+function getProjectCharNamesForRefs(projectOverride) {
+  const project = projectOverride || currentProject;
   const names = [];
   function addFrom(obj) {
     Object.keys(obj || {}).forEach(function(name) {
       if (names.indexOf(name) === -1) names.push(name);
     });
   }
-  if (!currentProject) return names;
-  addFrom(currentProject.characterPresets);
-  addFrom(currentProject.defaultCharRefs);
-  addFrom(currentProject.characterDNA);
-  addFrom(currentProject.defaultFaceRefs);
-  addFrom(currentProject.defaultCostumeRefs);
+  if (!project) return names;
+  addFrom(project.characterPresets);
+  addFrom(project.defaultCharRefs);
+  addFrom(project.characterDNA);
+  addFrom(project.defaultFaceRefs);
+  addFrom(project.defaultCostumeRefs);
   return names;
 }
 
-async function loadDefaultFaceRefs() {
-  if (!currentProject || !currentProject.defaultFaceRefs) return;
-  const charNames = getProjectCharNamesForRefs();
+async function loadDefaultFaceRefs(options) {
+  const project = (options && options.project) || currentProject;
+  if (!project || !project.defaultFaceRefs) return 0;
+  const charNames = getProjectCharNamesForRefs(project);
   let loadedCount = 0;
   for (let i = 0; i < charNames.length; i++) {
     const sbKey = 'face' + (i + 1);
     const fullName = charNames[i];
     const baseName = fullName.split(/[\s(（]/)[0];
-    const url = currentProject.defaultFaceRefs[fullName] || currentProject.defaultFaceRefs[baseName];
+    const url = zippyFirstAssetUrl(project.defaultFaceRefs[fullName] || project.defaultFaceRefs[baseName]);
     if (!url) continue;
     const img = await fetchImageAsB64(url);
     if (!img) continue;
+    if (!sbRefLoadIsCurrent(options)) return loadedCount;
     if (!sbRefs[sbKey]) {
       sbRefs[sbKey] = img.b64;
       sbRefMimes[sbKey] = img.mime;
@@ -68539,29 +68585,32 @@ async function loadDefaultFaceRefs() {
     }
     loadedCount++;
   }
-  if (loadedCount > 0) {
+  if (loadedCount > 0 && !(options && options.deferRender)) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
   console.log('[loadDefaultFaceRefs] Loaded:', loadedCount);
+  return loadedCount;
 }
 
-async function loadDefaultCostumeRefs() {
+async function loadDefaultCostumeRefs(options) {
+  const project = (options && options.project) || currentProject;
   Object.keys(sbCostumeVariants).forEach(function(k) { delete sbCostumeVariants[k]; });
-  if (!currentProject || !currentProject.defaultCostumeRefs) return;
-  const charNames = getProjectCharNamesForRefs();
+  if (!project || !project.defaultCostumeRefs) return 0;
+  const charNames = getProjectCharNamesForRefs(project);
   let loadedCount = 0;
   for (let i = 0; i < charNames.length; i++) {
     const sbKey = 'cos' + (i + 1);
     const alKey = 'costume-' + (i + 1);
     const fullName = charNames[i];
     const baseName = zippyCostumeCharacterName(fullName);
-    const urls = zippyAssetUrls(currentProject.defaultCostumeRefs[fullName] || currentProject.defaultCostumeRefs[baseName]);
+    const urls = zippyAssetUrls(project.defaultCostumeRefs[fullName] || project.defaultCostumeRefs[baseName]);
     if (!urls.length) continue;
     let firstImg = null;
     for (let u = 0; u < urls.length; u++) {
       const img = await fetchImageAsB64(urls[u]);
       if (!img) continue;
+      if (!sbRefLoadIsCurrent(options)) return loadedCount;
       if (!firstImg) firstImg = img;
       const costumeVariant = /tennis/i.test(urls[u]) ? 'tennis' : (u === 0 ? 'uniform' : 'variant-' + u);
       sbCostumeVariants[fullName + ':' + costumeVariant] = {b64: img.b64, mime: img.mime};
@@ -68590,26 +68639,29 @@ async function loadDefaultCostumeRefs() {
     }
     if (typeof renderAssetGrid === 'function') renderAssetGrid(alKey);
   }
-  if (loadedCount > 0) {
+  if (loadedCount > 0 && !(options && options.deferRender)) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
   console.log('[loadDefaultCostumeRefs] Loaded:', loadedCount);
+  return loadedCount;
 }
 
-async function loadDefaultCharRefs() {
-  if (!currentProject || !currentProject.defaultCharRefs) return;
-  const charNames = getProjectCharNamesForRefs();
+async function loadDefaultCharRefs(options) {
+  const project = (options && options.project) || currentProject;
+  if (!project || !project.defaultCharRefs) return 0;
+  const charNames = getProjectCharNamesForRefs(project);
   let loadedCount = 0;
   for (let i = 0; i < charNames.length; i++) {
     const sbKey = 'char' + (i + 1);
     const alKey = 'char-' + (i + 1);
     const fullName = charNames[i];
     const baseName = fullName.split(/[\s(（]/)[0];
-    const url = currentProject.defaultCharRefs[fullName] || currentProject.defaultCharRefs[baseName];
+    const url = zippyFirstAssetUrl(project.defaultCharRefs[fullName] || project.defaultCharRefs[baseName]);
     if (!url) continue;
     const img = await fetchImageAsB64(url);
     if (!img) continue;
+    if (!sbRefLoadIsCurrent(options)) return loadedCount;
     // 스토리보드 인물 슬롯
     if (!sbRefs[sbKey]) {
       sbRefs[sbKey] = img.b64;
@@ -68626,23 +68678,27 @@ async function loadDefaultCharRefs() {
     }
     loadedCount++;
   }
-  if (loadedCount > 0) {
+  if (loadedCount > 0 && !(options && options.deferRender)) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
   console.log('[loadDefaultCharRefs] Loaded:', loadedCount);
+  return loadedCount;
 }
 
-async function loadDefaultSpaceSheets() {
-  if (!currentProject || !currentProject.defaultSpaceSheets) return;
+async function loadDefaultSpaceSheets(options) {
+  const project = (options && options.project) || currentProject;
+  if (!project || !project.defaultSpaceSheets) return 0;
   const cont = document.getElementById('asset-spacesheet-container');
   if (cont) cont.innerHTML = '';
-  const entries = Object.entries(currentProject.defaultSpaceSheets);
+  const entries = Object.entries(project.defaultSpaceSheets);
   let loaded = 0;
   for (let i = 0; i < entries.length; i++) {
-    const label = entries[i][0], url = entries[i][1];
+    const label = entries[i][0], url = zippyFirstAssetUrl(entries[i][1]);
+    if (!url) continue;
     const img = await fetchImageAsB64(url);
     if (!img) { console.warn('[spacesheet fail]', label, url); continue; }
+    if (!sbRefLoadIsCurrent(options)) return loaded;
     const alKey = 'spacesheet-' + (i + 1);
     if (typeof assetLib !== 'undefined') {
       if (!assetLib[alKey]) assetLib[alKey] = [];
@@ -68661,23 +68717,26 @@ async function loadDefaultSpaceSheets() {
     if (cEl) cEl.textContent = loaded + '개';
   }
   console.log('[loadDefaultSpaceSheets] loaded', loaded, '/', entries.length);
+  return loaded;
 }
-async function loadDefaultSpaceRefs() {
-  if (!currentProject || !currentProject.defaultSpaceRefs) return;
+async function loadDefaultSpaceRefs(options) {
+  const project = (options && options.project) || currentProject;
+  if (!project || !project.defaultSpaceRefs) return 0;
   // Build dynamic asset library slots first
   buildAssetSpaceSlots();
-  const locNames = currentProject.spaceNames || currentProject.locations || [];
-  console.log('[loadDefaultSpaceRefs] Starting. Locations:', locNames.length, 'Refs:', Object.keys(currentProject.defaultSpaceRefs).length);
+  const locNames = project.spaceNames || project.locations || [];
+  console.log('[loadDefaultSpaceRefs] Starting. Locations:', locNames.length, 'Refs:', Object.keys(project.defaultSpaceRefs).length);
   let loadedCount = 0;
   let failedCount = 0;
   for (let i = 0; i < locNames.length; i++) {
     const sbKey = 'loc' + (i + 1);
     const alKey = 'space-' + (i + 1);
     const name = locNames[i];
-    const url = currentProject.defaultSpaceRefs[name];
+    const url = zippyFirstAssetUrl(project.defaultSpaceRefs[name]);
     if (!url) { console.log('[skip] no url for:', name); continue; }
     const img = await fetchImageAsB64(url);
     if (!img) { console.warn('[fail] fetch returned null:', name, url); failedCount++; continue; }
+    if (!sbRefLoadIsCurrent(options)) return loadedCount;
     // Storyboard ref slot
     if (!sbRefs[sbKey]) {
       sbRefs[sbKey] = img.b64;
@@ -68695,14 +68754,18 @@ async function loadDefaultSpaceRefs() {
     loadedCount++;
   }
   console.log('[loadDefaultSpaceRefs] Done. Loaded:', loadedCount, 'Failed:', failedCount);
-  if (loadedCount > 0) {
+  if (loadedCount > 0 && !(options && options.deferRender)) {
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
   }
+  return loadedCount;
 }
 
 function buildSBRefUI() {
   if (!currentProject) return;
+  const loadProject = currentProject;
+  const loadProjectKey = currentProjectKey;
+  const loadToken = ++sbRefLoadGeneration;
   // Clear refs
   Object.keys(sbRefs).forEach(function(k) { sbRefs[k] = null; });
 
@@ -68842,27 +68905,29 @@ function buildSBRefUI() {
     }
   }
 
-  // Auto-load default character references (인물 자동 등록)
-  if (currentProject.defaultCharRefs) {
-    loadDefaultCharRefs();
-  }
-  // Auto-load default face references (얼굴 6전도 자동 등록)
-  if (currentProject.defaultFaceRefs) {
-    loadDefaultFaceRefs();
-  }
-  // Auto-load default costume references (의상 자동 등록)
-  if (currentProject.defaultCostumeRefs) {
-    loadDefaultCostumeRefs();
-  }
-  // Auto-load default object references (소품 자동 등록)
-  if (currentProject.defaultObjRefs) {
-    loadDefaultObjRefs();
-  }
-  // Auto-load default space references from repo (if defined)
-  if (currentProject.defaultSpaceRefs) {
-    loadDefaultSpaceRefs();
-    loadDefaultSpaceSheets();
-  }
+  const loadOptions = {project:loadProject, projectKey:loadProjectKey, token:loadToken, deferRender:true};
+  const loadJobs = [];
+  if (loadProject.defaultCharRefs) loadJobs.push(loadDefaultCharRefs(loadOptions));
+  if (loadProject.defaultFaceRefs) loadJobs.push(loadDefaultFaceRefs(loadOptions));
+  if (loadProject.defaultCostumeRefs) loadJobs.push(loadDefaultCostumeRefs(loadOptions));
+  if (loadProject.defaultObjRefs) loadJobs.push(loadDefaultObjRefs(loadOptions));
+  if (loadProject.defaultSpaceRefs) loadJobs.push(loadDefaultSpaceRefs(loadOptions));
+  if (loadProject.defaultSpaceSheets) loadJobs.push(loadDefaultSpaceSheets(loadOptions));
+  sbReferenceLoadPromise = Promise.all(loadJobs).then(function() {
+    if (!sbRefLoadIsCurrent(loadOptions)) return false;
+    return restoreProjectAssetState(loadProjectKey);
+  }).then(function() {
+    if (!sbRefLoadIsCurrent(loadOptions)) return false;
+    syncAllAssetBucketsToStoryboard();
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
+    const panel = document.getElementById('pSB');
+    if (panel && panel.classList.contains('active') && typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+    return true;
+  }).catch(function(error) {
+    console.warn('Storyboard reference load failed:', error);
+    return false;
+  });
+  return sbReferenceLoadPromise;
 }
 
 function loadSBRef(key, files) {
@@ -68871,6 +68936,13 @@ function loadSBRef(key, files) {
   reader.onload = function(e) {
     sbRefs[key] = e.target.result.split(',')[1];
     sbRefMimes[key] = files[0].type || 'image/png';
+    const cat = (typeof assetCategoryForSBRefKey === 'function') ? assetCategoryForSBRefKey(key) : '';
+    if (cat) {
+      if (!assetLib[cat]) assetLib[cat] = [];
+      assetLib[cat].push({b64:sbRefs[key], mime:sbRefMimes[key], name:files[0].name || key, source:'upload'});
+      if (typeof renderAssetGrid === 'function') renderAssetGrid(cat);
+      if (typeof scheduleProjectAssetPersistence === 'function') scheduleProjectAssetPersistence();
+    }
     const el = document.getElementById('sbRef' + key.charAt(0).toUpperCase() + key.slice(1));
     if (el) el.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
   };
@@ -68879,36 +68951,42 @@ function loadSBRef(key, files) {
 
 function importAssetToSB(type) {
   if (type === 'char') {
-    // Import character assets from Asset Library
-    if (assetLib.char.length > 0) {
-      assetLib.char.forEach(function(a, i) {
-        if (i < 3) {
-          const key = 'char' + (i + 1);
-          sbRefs[key] = a.b64;
-          sbRefMimes[key] = a.mime;
-          const el = document.getElementById('sbRef' + key.charAt(0).toUpperCase() + key.slice(1));
-          if (el) el.innerHTML = '<img src="data:' + a.mime + ';base64,' + a.b64 + '" style="width:100%;height:100%;object-fit:cover">';
-        }
-      });
-      alert('Asset Library에서 인물 ' + Math.min(assetLib.char.length, 3) + '개를 가져왔습니다.');
-    } else {
-      alert('Asset Library에 등록된 인물 에셋이 없습니다.');
-    }
-  } else if (type === 'space') {
-    // Import space assets from Asset Library
-    const spaceKeys = ['space-a', 'space-b', 'space-c', 'space-d'];
-    const locKeys = ['loc1', 'loc2', 'loc3', 'loc4'];
+    const charNames = getProjectCharNamesForRefs();
     let count = 0;
-    spaceKeys.forEach(function(sk, i) {
-      if (assetLib[sk] && assetLib[sk].length > 0) {
-        const a = assetLib[sk][0]; // Take first image from each space
-        sbRefs[locKeys[i]] = a.b64;
-        sbRefMimes[locKeys[i]] = a.mime;
-        const el = document.getElementById('sbRef' + locKeys[i].charAt(0).toUpperCase() + locKeys[i].slice(1));
-        if (el) el.innerHTML = '<img src="data:' + a.mime + ';base64,' + a.b64 + '" style="width:100%;height:100%;object-fit:cover">';
-        count++;
-      }
+    charNames.forEach(function(name, i) {
+      const cat = 'char-' + (i + 1);
+      if (preferredAssetFromBucket(cat) && syncAssetBucketToStoryboard(cat)) count++;
     });
+    if (!count && assetLib.char.length) {
+      assetLib.char.slice(0, charNames.length || 3).forEach(function(asset, i) {
+        if (!asset) return;
+        const key = 'char' + (i + 1);
+        sbRefs[key] = asset.b64;
+        sbRefMimes[key] = asset.mime || 'image/png';
+        count++;
+      });
+    }
+    if (count) {
+      syncAllAssetBucketsToStoryboard();
+      scheduleProjectAssetPersistence();
+      alert('Asset Library에서 인물 ' + count + '개를 가져왔습니다.');
+    } else alert('Asset Library에 등록된 인물 에셋이 없습니다.');
+  } else if (type === 'space') {
+    let count = 0;
+    const locNames = (currentProject && (currentProject.spaceNames || currentProject.locations)) || [];
+    locNames.forEach(function(name, i) {
+      const cat = 'space-' + (i + 1);
+      if (preferredAssetFromBucket(cat) && syncAssetBucketToStoryboard(cat)) count++;
+    });
+    if (!count) ['space-a','space-b','space-c','space-d'].forEach(function(cat, i) {
+      const asset = preferredAssetFromBucket(cat);
+      if (!asset) return;
+      const key = 'loc' + (i + 1);
+      sbRefs[key] = asset.b64;
+      sbRefMimes[key] = asset.mime || 'image/png';
+      count++;
+    });
+    if (count) scheduleProjectAssetPersistence();
     if (count > 0) alert('Asset Library에서 장소 ' + count + '개를 가져왔습니다.');
     else alert('Asset Library에 등록된 장소 에셋이 없습니다.');
   } else if (type === 'obj') {
@@ -68917,7 +68995,8 @@ function importAssetToSB(type) {
     let count = 0;
     objAssets.forEach(function(obj) {
       if (typeof assetLib !== 'undefined' && assetLib[obj.key] && assetLib[obj.key].length > 0) {
-        const a = assetLib[obj.key][0];
+        const a = preferredAssetFromBucket(obj.key);
+        if (!a) return;
         sbRefs[obj.key] = a.b64;
         sbRefMimes[obj.key] = a.mime;
         const el = document.getElementById('sbRef' + obj.key.charAt(0).toUpperCase() + obj.key.slice(1));
@@ -68925,6 +69004,7 @@ function importAssetToSB(type) {
         count++;
       }
     });
+    if (count) scheduleProjectAssetPersistence();
     if (count > 0) alert('Asset Library에서 소품 ' + count + '개를 가져왔습니다.');
     else alert('Asset Library에 등록된 소품 에셋이 없습니다.');
   }
@@ -70814,12 +70894,13 @@ const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
 const sbLocalDeletedImages = {};
 const SB_STATE_DB_VER = 1;
 const SB_STATE_STORE = 'state';
-let sbStateDB = null;
-let sbStateDBNameOpen = '';
+const sbStateDBCache = {};
 let sbStateRestored = false;
 let sbStateRestorePromise = null;
+let sbStateRestoreGeneration = 0;
 
-function sbStateProjectKey() {
+function sbStateProjectKey(projectKeyOverride) {
+  if (projectKeyOverride) return String(projectKeyOverride).replace(/[^\w-]+/g, '_');
   let key = 'default';
   try {
     key = (typeof currentProjectKey !== 'undefined' && currentProjectKey) ||
@@ -70829,13 +70910,13 @@ function sbStateProjectKey() {
   } catch(e) {}
   return String(key || 'default').replace(/[^\w-]+/g, '_');
 }
-function sbStateDBName() {
-  return 'studioZIPPY_' + sbStateProjectKey() + '_StoryboardState';
+function sbStateDBName(projectKeyOverride) {
+  return 'studioZIPPY_' + sbStateProjectKey(projectKeyOverride) + '_StoryboardState';
 }
-function openSBStateDB() {
+function openSBStateDB(projectKeyOverride) {
   return new Promise(function(resolve, reject) {
-    const name = sbStateDBName();
-    if (sbStateDB && sbStateDBNameOpen === name) { resolve(sbStateDB); return; }
+    const name = sbStateDBName(projectKeyOverride);
+    if (sbStateDBCache[name]) { resolve(sbStateDBCache[name]); return; }
     if (!window.indexedDB) { reject(new Error('IndexedDB unavailable')); return; }
     const req = indexedDB.open(name, SB_STATE_DB_VER);
     req.onupgradeneeded = function(e) {
@@ -70843,27 +70924,98 @@ function openSBStateDB() {
       if (!db.objectStoreNames.contains(SB_STATE_STORE)) db.createObjectStore(SB_STATE_STORE, {keyPath: 'key'});
     };
     req.onsuccess = function(e) {
-      sbStateDB = e.target.result;
-      sbStateDBNameOpen = name;
-      sbStateDB.onversionchange = function() {
-        try { sbStateDB.close(); } catch(err) {}
-        sbStateDB = null;
-        sbStateDBNameOpen = '';
+      const db = e.target.result;
+      sbStateDBCache[name] = db;
+      db.onversionchange = function() {
+        try { db.close(); } catch(err) {}
+        delete sbStateDBCache[name];
       };
-      resolve(sbStateDB);
+      resolve(db);
     };
     req.onerror = function() { reject(req.error); };
   });
 }
-async function persistUploadedSBShots() {
+function captureProjectAssetState() {
+  const buckets = {};
+  if (typeof assetLib === 'undefined') return {buckets: buckets, savedAt: new Date().toISOString()};
+  Object.keys(assetLib).forEach(function(cat) {
+    const src = Array.isArray(assetLib[cat]) ? assetLib[cat] : [];
+    const saved = src.map(function(asset) {
+      if (!asset || asset.source === 'default') return null;
+      return {
+        b64: asset.b64 || '',
+        mime: asset.mime || 'image/png',
+        name: asset.name || 'upload',
+        source: 'upload'
+      };
+    });
+    if (saved.some(Boolean)) buckets[cat] = saved;
+  });
+  return {buckets: buckets, savedAt: new Date().toISOString()};
+}
+async function persistProjectAssetState(projectKey, snapshot) {
+  if (!projectKey) return false;
+  const payload = snapshot || captureProjectAssetState();
   try {
-    const db = await openSBStateDB();
+    const db = await openSBStateDB(projectKey);
+    await new Promise(function(resolve, reject) {
+      const tx = db.transaction(SB_STATE_STORE, 'readwrite');
+      tx.objectStore(SB_STATE_STORE).put({
+        key: 'project-assets',
+        savedAt: new Date().toISOString(),
+        snapshot: payload
+      });
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(){ reject(tx.error); };
+    });
+    return true;
+  } catch(e) {
+    console.warn('Project asset persistence failed:', e);
+    return false;
+  }
+}
+async function restoreProjectAssetState(projectKey) {
+  const restoreKey = projectKey || sbStateProjectKey();
+  try {
+    const db = await openSBStateDB(restoreKey);
+    const saved = await new Promise(function(resolve, reject) {
+      const tx = db.transaction(SB_STATE_STORE, 'readonly');
+      const req = tx.objectStore(SB_STATE_STORE).get('project-assets');
+      req.onsuccess = function(){ resolve(req.result && req.result.snapshot); };
+      req.onerror = function(){ reject(req.error); };
+    });
+    if (!saved || !saved.buckets || sbStateProjectKey() !== sbStateProjectKey(restoreKey)) return false;
+    Object.keys(saved.buckets).forEach(function(cat) {
+      if (!assetLib[cat]) assetLib[cat] = [];
+      saved.buckets[cat].forEach(function(asset, index) {
+        if (!asset) return;
+        assetLib[cat][index] = Object.assign({}, asset, {source:'upload'});
+        const variantGrid = document.getElementById('asset-' + cat + '-variant-' + index + '-grid');
+        if (variantGrid) {
+          variantGrid.innerHTML = '<div class="titem"><img src="data:' + asset.mime + ';base64,' + asset.b64 + '" alt="' + sbEscHtml(asset.name || 'upload') + '"><div class="tlbl">' + sbEscHtml(asset.name || 'upload') + '</div></div>';
+        }
+      });
+      if (document.getElementById('asset-' + cat + '-grid') && typeof renderAssetGrid === 'function') renderAssetGrid(cat);
+    });
+    if (typeof syncAllAssetBucketsToStoryboard === 'function') syncAllAssetBucketsToStoryboard();
+    if (typeof updateAssetCounts === 'function') updateAssetCounts();
+    return true;
+  } catch(e) {
+    console.warn('Project asset restore failed:', e);
+    return false;
+  }
+}
+async function persistUploadedSBShots(projectKey, shotsSnapshot) {
+  const persistKey = projectKey || sbStateProjectKey();
+  const shots = Array.isArray(shotsSnapshot) ? shotsSnapshot : (Array.isArray(SB_SHOTS) ? SB_SHOTS : []);
+  try {
+    const db = await openSBStateDB(persistKey);
     await new Promise(function(resolve, reject) {
       const tx = db.transaction(SB_STATE_STORE, 'readwrite');
       tx.objectStore(SB_STATE_STORE).put({
         key: 'uploaded-shots',
         savedAt: new Date().toISOString(),
-        shots: Array.isArray(SB_SHOTS) ? SB_SHOTS : []
+        shots: shots
       });
       tx.oncomplete = function(){ resolve(); };
       tx.onerror = function(){ reject(tx.error); };
@@ -70872,15 +71024,17 @@ async function persistUploadedSBShots() {
     console.warn('Uploaded storyboard persistence failed:', e);
   }
 }
-async function restoreUploadedSBShots() {
+async function restoreUploadedSBShots(projectKey) {
+  const restoreKey = projectKey || sbStateProjectKey();
   try {
-    const db = await openSBStateDB();
+    const db = await openSBStateDB(restoreKey);
     const saved = await new Promise(function(resolve, reject) {
       const tx = db.transaction(SB_STATE_STORE, 'readonly');
       const req = tx.objectStore(SB_STATE_STORE).get('uploaded-shots');
       req.onsuccess = function(){ resolve(req.result); };
       req.onerror = function(){ reject(req.error); };
     });
+    if (sbStateProjectKey() !== sbStateProjectKey(restoreKey)) return false;
     if (!saved || !Array.isArray(saved.shots) || !saved.shots.length) return false;
     SB_SHOTS.length = 0;
     saved.shots.forEach(function(shot){ SB_SHOTS.push(shot); });
@@ -71104,31 +71258,40 @@ async function autoRestoreStoryboardFromHistoryIfMissing() {
 }
 async function saveStoryboardState(reason, opts) {
   const options = opts || {};
+  const projectKey = options.projectKey || sbStateProjectKey();
+  const snapshot = options.snapshot || sbStoryboardSnapshot();
   try {
-    const db = await openSBStateDB();
-    const tx = db.transaction(SB_STATE_STORE, 'readwrite');
-    const snapshot = sbStoryboardSnapshot();
+    const db = await openSBStateDB(projectKey);
     const payload = {
         key: 'current',
         reason: reason || '',
         savedAt: new Date().toISOString(),
         snapshot: snapshot
       };
-    tx.objectStore(SB_STATE_STORE).put(payload);
+    await new Promise(function(resolve, reject) {
+      const tx = db.transaction(SB_STATE_STORE, 'readwrite');
+      tx.objectStore(SB_STATE_STORE).put(payload);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(){ reject(tx.error); };
+    });
     if (!options.localOnly) zippyNasSaveJson('state_storyboard', 'current', payload, {reason: reason || ''});
+    return true;
   } catch(e) {
     console.warn('Storyboard state save failed:', e);
+    return false;
   }
 }
-async function restoreStoryboardState() {
+async function restoreStoryboardState(projectKey) {
+  const restoreKey = projectKey || sbStateProjectKey();
   try {
-    const db = await openSBStateDB();
+    const db = await openSBStateDB(restoreKey);
     const snap = await new Promise(function(resolve, reject) {
       const tx = db.transaction(SB_STATE_STORE, 'readonly');
       const req = tx.objectStore(SB_STATE_STORE).get('current');
       req.onsuccess = function() { resolve(req.result && req.result.snapshot); };
       req.onerror = function() { reject(req.error); };
     });
+    if (sbStateProjectKey() !== sbStateProjectKey(restoreKey)) return false;
     if (!snap) return;
     Object.keys(sbGenImages).forEach(function(k) { delete sbGenImages[k]; });
     Object.assign(sbGenImages, snap.genImages || {});
@@ -71165,10 +71328,14 @@ async function restoreStoryboardState() {
 }
 function ensureStoryboardStateRestored() {
   if (sbStateRestored) return sbStateRestorePromise || Promise.resolve();
+  const restoreProjectKey = sbStateProjectKey();
+  const restoreToken = ++sbStateRestoreGeneration;
   sbStateRestored = true;
-  sbStateRestorePromise = restoreUploadedSBShots().then(function() {
-    return restoreStoryboardState();
+  sbStateRestorePromise = restoreUploadedSBShots(restoreProjectKey).then(function() {
+    if (restoreToken !== sbStateRestoreGeneration || sbStateProjectKey() !== restoreProjectKey) return false;
+    return restoreStoryboardState(restoreProjectKey);
   }).then(function() {
+    if (restoreToken !== sbStateRestoreGeneration || sbStateProjectKey() !== restoreProjectKey) return false;
     return autoRestoreStoryboardFromHistoryIfMissing();
   }).catch(function(e) {
     console.warn('Storyboard restore chain failed:', e);
@@ -71178,7 +71345,11 @@ function ensureStoryboardStateRestored() {
 function bindStoryboardStatePersistence() {
   if (window.__zippyStoryboardPersistBound) return;
   window.__zippyStoryboardPersistBound = true;
-  window.addEventListener('pagehide', function() { saveStoryboardState('pagehide'); });
+  window.addEventListener('pagehide', function() {
+    const projectKey = sbStateProjectKey();
+    saveStoryboardState('pagehide', {projectKey: projectKey, snapshot: sbStoryboardSnapshot()});
+    if (typeof persistProjectAssetState === 'function') persistProjectAssetState(projectKey, captureProjectAssetState());
+  });
 }
 bindStoryboardStatePersistence();
 async function expandSBShot(shotId) {
@@ -71370,34 +71541,35 @@ function hydrateVisibleSBTimelineImagesSoon(root) {
 
 function renderShotCard(shot, sceneVal) {
   const imgKey = shot.id;
+  const safeShotJs = sbQuoteJs(shot.id);
   const hasImg = sbGenImages[imgKey];
   const ms = getSBRefMatchSummary(shot.scene, shot.id);
-  const badge = '<span title="' + ms.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
-    (ms.character ? '<span style="color:var(--or)">👤'+ms.character+'</span>' : '') +
-    (ms.costume ? '<span style="color:var(--pu)">👗'+ms.costume+'</span>' : '') +
-    (ms.background ? '<span style="color:var(--bl)">🏞'+ms.background+'</span>' : '') +
-    (ms.prop ? '<span style="color:var(--gr)">📦'+ms.prop+'</span>' : '') + '</span>';
+  const badge = '<span title="' + sbQuoteAttr(ms.labels.join(' · ')) + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
+    (ms.character ? '<span style="color:var(--or)">👤'+sbEscHtml(ms.character)+'</span>' : '') +
+    (ms.costume ? '<span style="color:var(--pu)">👗'+sbEscHtml(ms.costume)+'</span>' : '') +
+    (ms.background ? '<span style="color:var(--bl)">🏞'+sbEscHtml(ms.background)+'</span>' : '') +
+    (ms.prop ? '<span style="color:var(--gr)">📦'+sbEscHtml(ms.prop)+'</span>' : '') + '</span>';
   let html = `<div class="sb-shot" data-scene="${sceneVal}" id="sb-shot-${shot.id.replace(/[^a-z0-9]/gi,'-')}">`;
-  html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':(shot.shotRole==='support'?'보강':'선택')}</span></div>`;
+  html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${sbEscHtml(shot.id)}</span>${badge}<span class="sb-shot-pri ${shot.pri === 'must' ? 'must' : 'opt'}">${shot.pri==='must'?'필수':(shot.shotRole==='support'?'보강':'선택')}</span></div>`;
   if (typeof sbSeqImages!=='undefined' && sbSeqImages[imgKey] && sbSeqImages[imgKey].length) {
     html += seq3up(imgKey);
   } else if (hasImg) {
     html += renderSBTimelineImage(imgKey);
-    html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${imgKey}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="이 컴퓨터에서만 삭제 · NAS 원본 유지">삭제</button></div></div>`;
+    html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${safeShotJs}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${safeShotJs}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="이 컴퓨터에서만 삭제 · NAS 원본 유지">삭제</button></div></div>`;
   } else {
-    html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
+    html += `<div class="sb-shot-empty" onclick="generateSBShot('${safeShotJs}')">+ 생성</div>`;
     html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
   }
   html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
-  html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
-  html += `<div class="sb-shot-desc">${shot.desc}</div>`;
-  html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func||''}</div>`;
-  html += `<div style="margin-top:5px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--bl);margin-bottom:2px">📍 장소 (선택)</div><select onchange="setShotLoc('${shot.id}', this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(14,165,233,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">${sbLocOptions(resolveShotLoc(shot))}</select></div>`;
+  html += `<div class="sb-shot-info"><strong>${sbEscHtml(shot.frame || '')}</strong></div>`;
+  html += `<div class="sb-shot-desc">${sbEscHtml(shot.desc || '')}</div>`;
+  html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${sbEscHtml(shot.func || '')}</div>`;
+  html += `<div style="margin-top:5px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--bl);margin-bottom:2px">📍 장소 (선택)</div><select onchange="setShotLoc('${safeShotJs}', this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(14,165,233,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">${sbLocOptions(resolveShotLoc(shot))}</select></div>`;
   html += renderShotObjControl(shot);
   html += renderSBCameraControl(shot);
-  html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
-  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
-  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
+  html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
+  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
   html += `</div>`;
   return html;
 }
@@ -71708,8 +71880,11 @@ function buildStoryboardTimeline() {
       eps[s.ep][sceneKey].push(s);
     });
     const epNums = Object.keys(eps).map(Number).sort((a,b)=>a-b);
+    const useScopedEpisodeRender = SB_SHOTS.length >= 100 && epNums.length > 1;
+    const activeEp = useScopedEpisodeRender ? getSBActiveEp(epNums, epNums[0]) : 0;
+    const renderEpNums = useScopedEpisodeRender && activeEp !== 0 ? epNums.filter(function(ep){ return ep === activeEp; }) : epNums;
 
-    epNums.forEach(ep => {
+    renderEpNums.forEach(ep => {
       const epPrefix = (currentProject && currentProject.sbEpLabel) ? currentProject.sbEpLabel : 'EP';
       const epLabel = (epTitles[ep] && ep < 0) ? epTitles[ep] : (epPrefix + ' ' + ('0'+ep).slice(-2) + ' ' + (epTitles[ep] || ''));
       const sceneEntries = Object.keys(eps[ep]).sort((a,b) => {
@@ -71731,14 +71906,15 @@ function buildStoryboardTimeline() {
       html += `</div>`;
     });
     inner.innerHTML = html;
+    inner.dataset.renderScope = useScopedEpisodeRender ? (activeEp === 0 ? 'all' : String(activeEp)) : 'all';
     updateSBProgress();
-    if (epNums.length === 1) inner.classList.add('single-ep-view');
+    if (epNums.length === 1 || (useScopedEpisodeRender && activeEp !== 0)) inner.classList.add('single-ep-view');
     else inner.classList.remove('single-ep-view');
     applySBViewDensity();
     // 대용량 기본 필터
     let hydratedByFilter = false;
-    if (SB_SHOTS.length >= 100 && epNums.length > 1) {
-      const targetEp = getSBActiveEp(epNums, epNums[0]);
+    if (useScopedEpisodeRender) {
+      const targetEp = activeEp;
       const targetBtn = findSBEpChip(targetEp);
       if (targetBtn && typeof filterSBEp === 'function') {
         filterSBEp(targetEp, targetBtn);
@@ -71754,7 +71930,10 @@ function buildStoryboardTimeline() {
   const scenes = {};
   SB_SHOTS.forEach(s => { if(!scenes[s.scene]) scenes[s.scene] = []; scenes[s.scene].push(s); });
   const sceneNums = Object.keys(scenes).map(Number).sort((a,b)=>a-b);
-  sceneNums.forEach(sc => {
+  const useScopedSceneRender = SB_SHOTS.length >= 100 && sceneNums.length > 1;
+  const activeScene = useScopedSceneRender ? getSBActiveEp(sceneNums, sceneNums[0]) : 0;
+  const renderSceneNums = useScopedSceneRender && activeScene !== 0 ? sceneNums.filter(function(sc){ return sc === activeScene; }) : sceneNums;
+  renderSceneNums.forEach(sc => {
     const shots = scenes[sc] || [];
     const preset = SCENE_PRESETS[String(sc)] || {};
     const sbEpLabel = (currentProject && currentProject.sbEpLabel) || 'EP';
@@ -71763,42 +71942,44 @@ function buildStoryboardTimeline() {
     html += `<div class="sb-scene-hdr">${scLabel}<br><span style="font-size:10px;color:var(--mu);font-weight:400">${preset.loc||''} / ${(preset.time||'').split('(')[0].trim()}</span></div>`;
     shots.forEach(shot => {
       const imgKey = shot.id;
+      const safeShotJs2 = sbQuoteJs(shot.id);
       const hasImg = sbGenImages[imgKey];
       const ms2 = getSBRefMatchSummary(shot.scene, shot.id);
-      const badge2 = '<span title="' + ms2.labels.join(' · ') + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
-        (ms2.character ? '<span style="color:var(--or)">👤'+ms2.character+'</span>' : '') +
-        (ms2.costume ? '<span style="color:var(--pu)">👗'+ms2.costume+'</span>' : '') +
-        (ms2.background ? '<span style="color:var(--bl)">🏞'+ms2.background+'</span>' : '') +
-        (ms2.prop ? '<span style="color:var(--gr)">📦'+ms2.prop+'</span>' : '') + '</span>';
+      const badge2 = '<span title="' + sbQuoteAttr(ms2.labels.join(' · ')) + '" style="display:inline-flex;gap:4px;font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-left:6px">' +
+        (ms2.character ? '<span style="color:var(--or)">👤'+sbEscHtml(ms2.character)+'</span>' : '') +
+        (ms2.costume ? '<span style="color:var(--pu)">👗'+sbEscHtml(ms2.costume)+'</span>' : '') +
+        (ms2.background ? '<span style="color:var(--bl)">🏞'+sbEscHtml(ms2.background)+'</span>' : '') +
+        (ms2.prop ? '<span style="color:var(--gr)">📦'+sbEscHtml(ms2.prop)+'</span>' : '') + '</span>';
       html += `<div class="sb-shot" data-scene="${sc}" id="sb-shot-${shot.id.replace(/[^a-z0-9]/gi,'-')}">`;
-      html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${shot.id}</span>${badge2}<span class="sb-shot-pri ${shot.pri}">${shot.pri==='must'?'필수':(shot.shotRole==='support'?'보강':'선택')}</span></div>`;
+      html += `<div class="sb-shot-hdr"><span class="sb-shot-id">${sbEscHtml(shot.id)}</span>${badge2}<span class="sb-shot-pri ${shot.pri === 'must' ? 'must' : 'opt'}">${shot.pri==='must'?'필수':(shot.shotRole==='support'?'보강':'선택')}</span></div>`;
       if (hasImg) {
         html += renderSBTimelineImage(imgKey);
-        html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${imgKey}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${imgKey}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
+        html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${safeShotJs2}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${safeShotJs2}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
       } else {
-        html += `<div class="sb-shot-empty" onclick="generateSBShot('${imgKey}')">+ 생성</div>`;
+        html += `<div class="sb-shot-empty" onclick="generateSBShot('${safeShotJs2}')">+ 생성</div>`;
         html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
       }
       html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
-  html += `<div class="sb-shot-info"><strong>${shot.frame}</strong></div>`;
-      html += `<div class="sb-shot-desc">${shot.desc}</div>`;
-      html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${shot.func}</div>`;
+  html += `<div class="sb-shot-info"><strong>${sbEscHtml(shot.frame || '')}</strong></div>`;
+      html += `<div class="sb-shot-desc">${sbEscHtml(shot.desc || '')}</div>`;
+      html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${sbEscHtml(shot.func || '')}</div>`;
       html += renderSBCameraControl(shot);
-      html += `<button onclick="event.stopPropagation();generateSBSequence('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
-  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${shot.id}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
-  html += `<button onclick="event.stopPropagation();genVideoPrompt('${shot.id}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
+      html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">\uD83C\uDF9E \uD750\uB984 3\uCEF7 \uC0DD\uC131 (\uB3D9\uC77C \uACF5\uAC04)</button>`;
+  html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
       html += `</div>`;
     });
     html += `</div>`;
   });
   inner.innerHTML = html;
+  inner.dataset.renderScope = useScopedSceneRender ? (activeScene === 0 ? 'all' : String(activeScene)) : 'all';
   updateSBProgress();
   applySBViewDensity();
 
 	  // 대용량 프로젝트(샷>=100)는 기본적으로 첫 에피소드만 표시
 		  let hydratedByFilter = false;
-		  if (SB_SHOTS.length >= 100 && sceneNums.length > 1) {
-		    var targetEp = getSBActiveEp(sceneNums, sceneNums[0]);
+		  if (useScopedSceneRender) {
+		    var targetEp = activeScene;
 		    var targetBtn = findSBEpChip(targetEp);
 		    if (targetBtn && typeof filterSBEp === 'function') {
 		      filterSBEp(targetEp, targetBtn);
@@ -71829,7 +72010,11 @@ function sbHideLoading(shotId){
 }
 async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
-  if(!shot) return;
+  if(!shot) return {ok:false, shotId:shotId, error:'쇼트를 찾을 수 없음'};
+  if (!(_seq)) sbShowLoading(shotId, '레퍼런스 준비 중...');
+  if (typeof sbReferenceLoadPromise !== 'undefined' && sbReferenceLoadPromise) {
+    await sbReferenceLoadPromise;
+  }
   const dokgoMaskLock = sbNcityAppearanceLock(shot);
   // 모드별 프리체크
   const imgMode = getImgMode();
@@ -72101,11 +72286,14 @@ ${negativeBlock}`;
 	    }
 	    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
 	    saveStoryboardState('shot-generated');
-  } catch(e) {
-    alert('Shot '+shotId+' 생성 실패: '+e.message);
+	    return {ok:true, shotId:shotId, b64:imgB64};
+	  } catch(e) {
+	    if (_seq && _seq.returnOnly) throw e;
+	    alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
-    sbHideLoading(shotId);
-  }
+	    sbHideLoading(shotId);
+	    return {ok:false, shotId:shotId, error:e && e.message ? e.message : String(e)};
+	  }
 }
 async function generateSBSequence(shotId) {
   const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
@@ -72207,20 +72395,36 @@ async function generateStoryboardBatch(scope, episodeNumber) {
   if (stopBtn) stopBtn.style.display = 'inline-block';
   window.__sbAllAborted = false;
   document.getElementById('sbLoadingWrap').style.display = 'block';
+  let succeeded = 0;
+  const failed = [];
   for(let i=0; i<remaining.length; i++){
     if (window.__sbAllAborted) break;
     const msg = `${remaining[i].id} 생성 중... (${i+1}/${remaining.length}) · ${label}`;
     document.getElementById('sbLoadStatus').textContent = msg;
     if (progress) progress.textContent = `${label} ${i+1} / ${remaining.length}`;
-    await generateSBShot(remaining[i].id);
+    try {
+      const result = await generateSBShot(remaining[i].id);
+      if (result && result.ok) succeeded++;
+      else failed.push({shotId:remaining[i].id, error:(result && result.error) || '알 수 없는 오류'});
+    } catch(error) {
+      failed.push({shotId:remaining[i].id, error:error && error.message ? error.message : String(error)});
+    }
     await new Promise(r=>setTimeout(r,500));
   }
-  document.getElementById('sbLoadStatus').textContent = window.__sbAllAborted ? '중단됨' : label + ' 생성 완료!';
+  const aborted = !!window.__sbAllAborted;
+  const summary = aborted
+    ? `중단됨 · 성공 ${succeeded} · 실패 ${failed.length}`
+    : (failed.length
+      ? `${label} 완료 · 성공 ${succeeded} · 실패 ${failed.length} (${failed.slice(0, 5).map(item=>item.shotId).join(', ')}${failed.length > 5 ? ' 외' : ''})`
+      : `${label} 생성 완료 · 성공 ${succeeded}`);
+  document.getElementById('sbLoadStatus').textContent = summary;
+  if (progress) progress.textContent = summary;
   batchBtns.forEach(btn=>btn.disabled = false);
   if (stopBtn) stopBtn.style.display = 'none';
   window.__sbAllAborted = false;
   saveStoryboardState(isEpisode ? 'episode-' + episodeNumber + '-shots-generated' : (isAll ? 'all-shots-generated' : 'must-shots-generated'));
   setTimeout(()=>{document.getElementById('sbLoadingWrap').style.display='none';},2000);
+  return {ok:!aborted && failed.length === 0, aborted:aborted, succeeded:succeeded, failed:failed};
 }
 function clearStoryboard() {
   Object.keys(sbGenImages).forEach(k=>delete sbGenImages[k]);
@@ -72242,12 +72446,12 @@ function renderSBEditor() {
   if (!content || typeof SB_SHOTS === 'undefined') return;
   content.innerHTML = SB_SHOTS.map(function(shot, i) {
     return '<div style="display:grid;grid-template-columns:60px 100px 1fr 1fr 80px 40px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:13px">' +
-      '<input value="' + (shot.id||'') + '" onchange="SB_SHOTS['+i+'].id=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:var(--font-mono)">' +
-      '<input value="' + (shot.frame||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].frame=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:11px">' +
-      '<input value="' + (shot.desc||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].desc=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
-      '<input value="' + (shot.func||'').replace(/"/g,'&quot;') + '" onchange="SB_SHOTS['+i+'].func=this.value" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
-      '<select onchange="SB_SHOTS['+i+'].pri=this.value" style="padding:4px;border:1px solid var(--bd);border-radius:4px;font-size:11px"><option value="must"' + (shot.pri==='must'?' selected':'') + '>필수</option><option value="opt"' + (shot.pri==='opt'?' selected':'') + '>선택</option></select>' +
-      '<button onclick="SB_SHOTS.splice('+i+',1);renderSBEditor()" style="padding:2px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--card);color:#DC2626;cursor:pointer;font-size:11px">x</button>' +
+      '<input value="' + sbEscHtml(shot.id||'') + '" onchange="updateSBEditorField('+i+',\'id\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:var(--font-mono)">' +
+      '<input value="' + sbEscHtml(shot.frame||'') + '" onchange="updateSBEditorField('+i+',\'frame\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:11px">' +
+      '<input value="' + sbEscHtml(shot.desc||'') + '" onchange="updateSBEditorField('+i+',\'desc\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
+      '<input value="' + sbEscHtml(shot.func||'') + '" onchange="updateSBEditorField('+i+',\'func\',this.value)" style="padding:4px 6px;border:1px solid var(--bd);border-radius:4px;font-size:12px">' +
+      '<select onchange="updateSBEditorField('+i+',\'pri\',this.value)" style="padding:4px;border:1px solid var(--bd);border-radius:4px;font-size:11px"><option value="must"' + (shot.pri==='must'?' selected':'') + '>필수</option><option value="opt"' + (shot.pri==='opt'?' selected':'') + '>선택</option></select>' +
+      '<button onclick="deleteSBEditorShot('+i+')" style="padding:2px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--card);color:#DC2626;cursor:pointer;font-size:11px">x</button>' +
       '</div>';
   }).join('');
   if (SB_SHOTS.length > 0) {
@@ -72255,13 +72459,63 @@ function renderSBEditor() {
       '<span>ID</span><span>FRAME</span><span>DESC</span><span>FUNC</span><span>PRI</span><span></span></div>');
   }
 }
+function scheduleSBEditorPersistence(reason) {
+  const projectKey = sbStateProjectKey();
+  const shotsSnapshot = SB_SHOTS.map(function(shot){ return Object.assign({}, shot); });
+  const storyboardSnapshot = sbStoryboardSnapshot();
+  persistUploadedSBShots(projectKey, shotsSnapshot);
+  saveStoryboardState(reason || 'storyboard-editor', {projectKey:projectKey, snapshot:storyboardSnapshot});
+}
+function updateSBEditorField(index, field, value) {
+  const shot = SB_SHOTS[index];
+  if (!shot || ['id','frame','desc','func','pri'].indexOf(field) === -1) return;
+  if (field === 'id') {
+    const oldId = shot.id;
+    const nextId = String(value || '').trim();
+    if (!nextId || (SB_SHOTS.some(function(item, i){ return i !== index && item.id === nextId; }))) {
+      alert('쇼트 ID는 비어 있거나 중복될 수 없습니다.');
+      renderSBEditor();
+      return;
+    }
+    shot.id = nextId;
+    if (oldId !== nextId) {
+      [sbGenImages, sbSeqImages, sbContinuityCards, sbLocalDeletedImages, sbCameraPositions, sbCameraControls].forEach(function(store) {
+        if (!store || !Object.prototype.hasOwnProperty.call(store, oldId)) return;
+        store[nextId] = store[oldId];
+        delete store[oldId];
+      });
+    }
+  } else shot[field] = value;
+  if (currentProject) currentProject.storyboardShots = SB_SHOTS.slice();
+  scheduleSBEditorPersistence('storyboard-editor-' + field);
+}
+function deleteSBEditorShot(index) {
+  const shot = SB_SHOTS[index];
+  if (!shot) return;
+  SB_SHOTS.splice(index, 1);
+  delete sbGenImages[shot.id];
+  delete sbSeqImages[shot.id];
+  delete sbContinuityCards[shot.id];
+  delete sbLocalDeletedImages[shot.id];
+  delete sbCameraPositions[shot.id];
+  delete sbCameraControls[shot.id];
+  if (currentProject) currentProject.storyboardShots = SB_SHOTS.slice();
+  renderSBEditor();
+  buildStoryboardTimeline();
+  scheduleSBEditorPersistence('storyboard-editor-delete');
+}
 function addSBShot() {
   if (typeof SB_SHOTS === 'undefined') return;
   const lastScene = SB_SHOTS.length > 0 ? SB_SHOTS[SB_SHOTS.length-1].scene : 1;
   SB_SHOTS.push({scene:lastScene, id:'NEW-'+(SB_SHOTS.length+1), frame:'MS / ST', desc:'새 쇼트 설명', func:'기능', pri:'opt'});
+  if (currentProject) currentProject.storyboardShots = SB_SHOTS.slice();
   renderSBEditor();
+  scheduleSBEditorPersistence('storyboard-editor-add');
 }
-function applySBEdits() {
+async function applySBEdits() {
+  if (currentProject) currentProject.storyboardShots = SB_SHOTS.slice();
+  await persistUploadedSBShots();
+  await saveStoryboardState('storyboard-editor-apply');
   buildStoryboardTimeline();
   alert('쇼트 데이터가 스토리보드에 적용되었습니다.');
 }
@@ -75365,11 +75619,47 @@ async function sendHistToStoryboard(id) {
   const items = await loadHistory();
   const img = items.find(function(i) { return i.id === id; });
   if (!img) return;
-  const ok = putHistoryImageToStoryboard(img, ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4']);
+  const ok = await restoreHistoryItemToStoryboard(img);
   if (!ok) {
     alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
     return;
   }
+}
+
+function historyStoryboardTarget(item) {
+  const meta = (item && item.meta) || {};
+  let shotId = meta.shotId || '';
+  if (!shotId && item && item.desc && (meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1)) {
+    shotId = String(item.desc).split('·')[0].trim().replace(/\s+#\d+$/, '');
+  }
+  if (shotId && typeof zippyNasResolveStoryboardShotId === 'function') shotId = zippyNasResolveStoryboardShotId(shotId);
+  const shot = shotId && typeof SB_SHOTS !== 'undefined' ? SB_SHOTS.find(function(s){ return s && s.id === shotId; }) : null;
+  return shot ? {shotId:shotId, frameIndex:Number(meta.frameIndex || 0)} : null;
+}
+async function restoreHistoryItemToStoryboard(item) {
+  if (!item || !item.b64) return false;
+  const meta = item.meta || {};
+  const isStoryboardItem = meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1;
+  if (isStoryboardItem && meta.projectKey && sbStateProjectKey(meta.projectKey) !== sbStateProjectKey()) return false;
+  const target = historyStoryboardTarget(item);
+  if (!target) {
+    if (isStoryboardItem) return false;
+    return putHistoryImageToStoryboard(item, ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4']);
+  }
+  if (target.frameIndex > 0) {
+    if (!sbSeqImages[target.shotId]) sbSeqImages[target.shotId] = [];
+    sbSeqImages[target.shotId][target.frameIndex - 1] = item.b64;
+    if (!sbGenImages[target.shotId]) sbGenImages[target.shotId] = item.b64;
+  } else {
+    sbGenImages[target.shotId] = item.b64;
+  }
+  delete sbLocalDeletedImages[target.shotId];
+  if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('history-single-restore');
+  buildStoryboardTimeline();
+  if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
+  if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
+  await saveStoryboardState('history-single-restore', {localOnly:true});
+  return true;
 }
 
 function putHistoryImageToStoryboard(img, preferredOrder) {
@@ -75378,10 +75668,10 @@ function putHistoryImageToStoryboard(img, preferredOrder) {
 
   const allKeys = Object.keys(sbRefs);
   const fallbackOrder = ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4', 'obj'];
-  const orderedKeys = (Array.isArray(preferredOrder) && preferredOrder.length) ? preferredOrder.concat(fallbackOrder) : fallbackOrder;
+  const orderedKeys = (Array.isArray(preferredOrder) && preferredOrder.length) ? preferredOrder.concat(fallbackOrder, allKeys) : fallbackOrder.concat(allKeys);
 
   let target = orderedKeys.find(function(k) {
-    return allKeys.indexOf(k) !== -1 && !sbRefs[k];
+    return allKeys.indexOf(k) !== -1 && /^((char|cos|face|loc|obj)-?|obj)/.test(k) && !sbRefs[k];
   });
   if (!target) target = allKeys.find(function(k) { return /^((char|cos|face|loc|obj)-?|obj)/.test(k); });
   if (!target) return false;
@@ -75392,6 +75682,13 @@ function putHistoryImageToStoryboard(img, preferredOrder) {
 
   sbRefs[target] = img.b64;
   sbRefMimes[target] = mime;
+  const cat = (typeof assetCategoryForSBRefKey === 'function') ? assetCategoryForSBRefKey(target) : '';
+  if (cat) {
+    if (!assetLib[cat]) assetLib[cat] = [];
+    assetLib[cat].push({b64:img.b64, mime:mime, name:'history_' + (img.id || Date.now()), source:'upload'});
+    if (typeof renderAssetGrid === 'function') renderAssetGrid(cat);
+    if (typeof scheduleProjectAssetPersistence === 'function') scheduleProjectAssetPersistence();
+  }
   if (el) {
     el.innerHTML = '<img src="data:' + mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
   }
@@ -75403,9 +75700,9 @@ function sendToAssetLib() {
   sendHistToAsset(histModalData.id);
   closeHistModal();
 }
-function sendHistModalToStoryboard() {
+async function sendHistModalToStoryboard() {
   if (!histModalData) return;
-  const ok = putHistoryImageToStoryboard(histModalData, ['char1', 'char2', 'char3', 'cos1', 'cos2', 'cos3', 'face1', 'face2', 'face3', 'loc1', 'loc2', 'loc3', 'loc4']);
+  const ok = await restoreHistoryItemToStoryboard(histModalData);
   if (!ok) {
     alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
     return;
@@ -75957,6 +76254,82 @@ async function addUnsplashToMB(imageUrl, photographer) {
 
 /* ═══ STEP 0: ASSET LIBRARY ═══ */
 const assetLib = { char:[], 'space-a':[], 'space-b':[], 'space-c':[], 'space-d':[], obj:[], 'obj-card':[], 'obj-menu':[], 'obj-show':[], 'obj-blot':[], 'obj-etc':[] };
+function preferredAssetFromBucket(cat) {
+  const list = (typeof assetLib !== 'undefined' && Array.isArray(assetLib[cat])) ? assetLib[cat].filter(Boolean) : [];
+  if (!list.length) return null;
+  const uploads = list.filter(function(asset){ return asset.source !== 'default'; });
+  return uploads.length ? uploads[uploads.length - 1] : list[0];
+}
+function sbRefKeyForAssetCategory(cat) {
+  let match = String(cat || '').match(/^char-(\d+)$/);
+  if (match) return 'char' + match[1];
+  match = String(cat || '').match(/^face-(\d+)$/);
+  if (match) return 'face' + match[1];
+  match = String(cat || '').match(/^costume-(\d+)$/);
+  if (match) return 'cos' + match[1];
+  match = String(cat || '').match(/^space-(\d+)$/);
+  if (match) return 'loc' + match[1];
+  if (String(cat || '').indexOf('obj-') === 0 || cat === 'obj') return cat;
+  return '';
+}
+function assetCategoryForSBRefKey(refKey) {
+  let match = String(refKey || '').match(/^char(\d+)$/);
+  if (match) return 'char-' + match[1];
+  match = String(refKey || '').match(/^face(\d+)$/);
+  if (match) return 'face-' + match[1];
+  match = String(refKey || '').match(/^cos(\d+)$/);
+  if (match) return 'costume-' + match[1];
+  match = String(refKey || '').match(/^loc(\d+)$/);
+  if (match) return 'space-' + match[1];
+  if (String(refKey || '').indexOf('obj-') === 0 || refKey === 'obj') return refKey;
+  return '';
+}
+function syncAssetBucketToStoryboard(cat) {
+  if (typeof sbRefs === 'undefined') return false;
+  const refKey = sbRefKeyForAssetCategory(cat);
+  if (!refKey) return false;
+  let asset = preferredAssetFromBucket(cat);
+  const costumeMatch = String(cat || '').match(/^costume-(\d+)$/);
+  if (costumeMatch && typeof zippyIsNcityDokgoCostumeSlot === 'function' && currentProject) {
+    const charNames = getProjectCharNamesForRefs();
+    const charIndex = Number(costumeMatch[1]) - 1;
+    const fullName = charNames[charIndex] || '';
+    const urls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[fullName]);
+    if (zippyIsNcityDokgoCostumeSlot(fullName, urls)) asset = (assetLib[cat] && assetLib[cat][0]) || asset;
+  }
+  sbRefs[refKey] = asset && asset.b64 ? asset.b64 : null;
+  sbRefMimes[refKey] = asset && asset.mime ? asset.mime : 'image/png';
+  const cap = refKey.charAt(0).toUpperCase() + refKey.slice(1);
+  const el = document.getElementById('sbRef' + cap);
+  if (el) {
+    el.innerHTML = asset && asset.b64
+      ? '<img src="data:' + sbRefMimes[refKey] + ';base64,' + asset.b64 + '" style="width:100%;height:100%;object-fit:cover">'
+      : '<span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span>';
+  }
+  return !!(asset && asset.b64);
+}
+function syncAllAssetBucketsToStoryboard() {
+  if (typeof assetLib === 'undefined') return;
+  Object.keys(assetLib).forEach(function(cat) { syncAssetBucketToStoryboard(cat); });
+  const legacyChars = assetLib.char || [];
+  legacyChars.slice(0, 3).forEach(function(asset, index) {
+    if (!asset) return;
+    const key = 'char' + (index + 1);
+    if (preferredAssetFromBucket('char-' + (index + 1))) return;
+    sbRefs[key] = asset.b64;
+    sbRefMimes[key] = asset.mime || 'image/png';
+  });
+}
+let projectAssetPersistTimer = null;
+function scheduleProjectAssetPersistence() {
+  const key = sbStateProjectKey();
+  const snapshot = captureProjectAssetState();
+  if (projectAssetPersistTimer) clearTimeout(projectAssetPersistTimer);
+  projectAssetPersistTimer = setTimeout(function() {
+    projectAssetPersistTimer = null;
+    persistProjectAssetState(key, snapshot);
+  }, 120);
+}
 function addAsset(cat, files) {
   if (!files || !files.length) return;
   [...files].forEach(f => {
@@ -75964,9 +76337,12 @@ function addAsset(cat, files) {
     reader.onload = e => {
       const b64 = e.target.result.split(',')[1];
       const mime = f.type;
-      assetLib[cat].push({b64, mime, name:f.name});
+      if (!assetLib[cat]) assetLib[cat] = [];
+      assetLib[cat].push({b64, mime, name:f.name, source:'upload'});
       renderAssetGrid(cat);
+      syncAssetBucketToStoryboard(cat);
       updateAssetCounts();
+      scheduleProjectAssetPersistence();
     };
     reader.readAsDataURL(f);
   });
@@ -75974,18 +76350,20 @@ function addAsset(cat, files) {
 function renderAssetGrid(cat) {
   const grid = document.getElementById('asset-'+cat+'-grid');
   if (!grid) return;
-  grid.innerHTML = assetLib[cat].map((a,i) => `
+  grid.innerHTML = (assetLib[cat] || []).map((a,i) => a ? `
     <div class="titem">
-      <img src="data:${a.mime};base64,${a.b64}" alt="${a.name}">
-      <div class="tlbl">${a.name}</div>
+      <img src="data:${a.mime};base64,${a.b64}" alt="${sbEscHtml(a.name)}">
+      <div class="tlbl">${sbEscHtml(a.name)}</div>
       <div class="tdel" onclick="removeAsset('${cat}',${i})">×</div>
     </div>
-  `).join('') || '<div class="tg-empty">—</div>';
+  ` : '').join('') || '<div class="tg-empty">—</div>';
 }
 function removeAsset(cat, idx) {
   assetLib[cat].splice(idx, 1);
   renderAssetGrid(cat);
+  syncAssetBucketToStoryboard(cat);
   updateAssetCounts();
+  scheduleProjectAssetPersistence();
 }
 function zippyAssetUrls(value) {
   if (!value) return [];
@@ -76030,6 +76408,7 @@ function replaceNcityCostumeVariant(cat, index, files) {
     const sbTile = document.getElementById('sbRefNcityCostume' + charIndex + 'Variant' + index);
     if (sbTile) sbTile.innerHTML = '<img src="' + dataUrl + '" alt="' + name + '" style="width:100%;height:100%;object-fit:cover">';
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
+    if (typeof scheduleProjectAssetPersistence === 'function') scheduleProjectAssetPersistence();
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
   };
   reader.readAsDataURL(file);
@@ -78583,6 +78962,8 @@ function goStep(n){
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
   if(n==='sb') {
     ensureStoryboardStateRestored().then(function() {
+      return (typeof sbReferenceLoadPromise !== 'undefined' && sbReferenceLoadPromise) ? sbReferenceLoadPromise : Promise.resolve();
+    }).then(function() {
       buildStoryboardTimeline();
       refreshEpSelector();
       renderInsertLibrary();

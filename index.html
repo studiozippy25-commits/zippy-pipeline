@@ -67849,21 +67849,25 @@ function selectProject(key) {
         return;
       }
 
-      const costumeGrid = costumeUrls.length
-        ? costumeUrls.map(function(url, idx) {
-            const label = zippyCostumeRefLabel(displayName, url, idx, costumeUrls.length);
-            return '<div class="titem"><img src="' + url + '" alt="' + label + '"><div class="tlbl">' + label + '</div></div>';
-          }).join('')
-        : '<div class="tg-empty" style="font-size:10px">—</div>';
-      costumeCards.push('<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">' +
-        '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + displayName + ' 의상</div>' +
-        '<div style="padding:10px">' +
-        '<div class="muz" onclick="document.getElementById(\'asset-' + baseKey + '-input\').click()" style="padding:10px;border-radius:6px">' +
-        '<div class="ulbl" style="font-size:11px"><strong>업로드</strong></div>' +
-        '<input type="file" id="asset-' + baseKey + '-input" accept="image/*" multiple style="display:none" onchange="addAsset(\'' + baseKey + '\',this.files)">' +
-        '</div>' +
-        '<div class="tgrid" id="asset-' + baseKey + '-grid" style="margin-top:6px;min-height:30px">' + costumeGrid + '</div>' +
-        '</div></div>');
+      const costumeEntries = zippyCostumeRefEntries(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[name]);
+      const cards = costumeEntries.length ? costumeEntries : [{variant:'uniform', url:''}];
+      cards.forEach(function(entry, idx) {
+        const label = zippyCostumeVariantLabel(displayName, entry.variant, entry.url, idx, cards.length);
+        const inputId = 'asset-' + baseKey + '-variant-' + idx + '-input';
+        const gridId = 'asset-' + baseKey + '-variant-' + idx + '-grid';
+        const costumeGrid = entry.url
+          ? '<div class="titem"><img src="' + entry.url + '" alt="' + label + '"><div class="tlbl">' + label + '</div></div>'
+          : '<div class="tg-empty" style="font-size:10px">—</div>';
+        costumeCards.push('<div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden;min-width:0">' +
+          '<div style="padding:8px 12px;background:var(--s2);font-family:var(--font-mono);font-size:12px;color:var(--pu);font-weight:700">' + label + '</div>' +
+          '<div style="padding:10px">' +
+          '<div class="muz" onclick="document.getElementById(\'' + inputId + '\').click()" style="padding:10px;border-radius:6px">' +
+          '<div class="ulbl" style="font-size:11px"><strong>' + (entry.url ? '교체' : '업로드') + '</strong></div>' +
+          '<input type="file" id="' + inputId + '" accept="image/*" style="display:none" onchange="replaceCostumeVariant(\'' + baseKey + '\',' + idx + ',this.files)">' +
+          '</div>' +
+          '<div class="tgrid" id="' + gridId + '" style="margin-top:6px;min-height:30px">' + costumeGrid + '</div>' +
+          '</div></div>');
+      });
     });
     costContainer2.innerHTML = costumeCards.join('');
   }
@@ -68727,17 +68731,14 @@ async function loadDefaultCostumeRefs(options) {
       if (!firstImg) firstImg = img;
       const costumeVariant = costumeEntries[u].variant;
       sbCostumeVariants[fullName + ':' + costumeVariant] = {b64: img.b64, mime: img.mime};
-      const sbVariantTile = document.getElementById('sbRefNcityCostume' + i + 'Variant' + u);
+      const sbVariantTile = document.getElementById('sbRefCostume' + i + 'Variant' + u)
+        || document.getElementById('sbRefNcityCostume' + i + 'Variant' + u);
       if (sbVariantTile) sbVariantTile.innerHTML = '<img src="data:' + img.mime + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">';
       if (typeof assetLib !== 'undefined' && assetLib[alKey]) {
-        const assetName = zippyCostumeRefLabel(baseName, urls[u], u, urls.length);
-        if (zippyIsNcityDokgoCostumeSlot(fullName, urls)) {
-          const currentAsset = assetLib[alKey][u];
-          if (!currentAsset || currentAsset.source !== 'upload') {
-            assetLib[alKey][u] = {b64: img.b64, mime: img.mime, name: assetName, source: 'default'};
-          }
-        } else if (!assetLib[alKey].some(function(a){ return a.name === assetName && a.source === 'default'; })) {
-          assetLib[alKey].push({b64: img.b64, mime: img.mime, name: assetName, source: 'default'});
+        const assetName = zippyCostumeVariantLabel(baseName, costumeVariant, urls[u], u, urls.length);
+        const currentAsset = assetLib[alKey][u];
+        if (!currentAsset || currentAsset.source !== 'upload') {
+          assetLib[alKey][u] = {b64: img.b64, mime: img.mime, name: assetName, source: 'default'};
         }
       }
       loadedCount++;
@@ -69008,10 +69009,22 @@ function buildSBRefUI() {
       if (costHeader) costHeader.style.display = 'block';
       let html = '';
       charNames.forEach(function(name, i) {
-        const baseName = (typeof sbCharReal === 'function') ? sbCharReal(name) : name.split(/[\s(（]/)[0];
+        const baseName = zippyCostumeCharacterName(name);
+        const cat = 'costume-' + (i + 1);
+        const costumeEntries = zippyCostumeRefEntries(currentProject.defaultCostumeRefs && (currentProject.defaultCostumeRefs[name] || currentProject.defaultCostumeRefs[baseName]));
+        const cards = costumeEntries.length ? costumeEntries : [{variant:'uniform', url:''}];
+        cards.forEach(function(entry, variantIndex) {
+          const label = zippyCostumeVariantLabel(baseName, entry.variant, entry.url, variantIndex, cards.length);
+          const cap = 'Costume' + i + 'Variant' + variantIndex;
+          const image = entry.url
+            ? '<img src="' + entry.url + '" alt="' + label + '" style="width:100%;height:100%;object-fit:cover">'
+            : '<span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span>';
+          html += '<div style="text-align:center;width:100px">' +
+            '<div style="font-family:var(--font-mono);font-size:10px;color:var(--pu);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + label + '">' + label + '</div>' +
+            '<div id="sbRef' + cap + '" style="width:100px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()">' + image + '</div>' +
+            '<input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="replaceCostumeVariant(\'' + cat + '\',' + variantIndex + ',this.files)"></div>';
+        });
         const key = 'cos' + (i + 1);
-        const cap = key.charAt(0).toUpperCase() + key.slice(1);
-        html += '<div style="text-align:center"><div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-bottom:4px" title="' + name + ' 의상">' + baseName + ' 의상</div><div id="sbRef' + cap + '" style="width:100px;height:120px;border:2px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--s2)" onclick="document.getElementById(\'sbRef' + cap + 'Input\').click()"><span style="font-family:var(--font-mono);font-size:16px;color:var(--mu)">+</span></div><input type="file" id="sbRef' + cap + 'Input" accept="image/*" style="display:none" onchange="loadSBRef(\'' + key + '\',this.files)"></div>';
         if (!(key in sbRefs)) { sbRefs[key] = null; sbRefMimes[key] = 'image/png'; }
       });
       costContainer.innerHTML = html;
@@ -71103,6 +71116,7 @@ async function restoreProjectAssetState(projectKey) {
         if (variantGrid) {
           variantGrid.innerHTML = '<div class="titem"><img src="data:' + asset.mime + ';base64,' + asset.b64 + '" alt="' + sbEscHtml(asset.name || 'upload') + '"><div class="tlbl">' + sbEscHtml(asset.name || 'upload') + '</div></div>';
         }
+        if (String(cat).indexOf('costume-') === 0) syncCostumeVariantAssetToStoryboard(cat, index, asset);
       });
       if (document.getElementById('asset-' + cat + '-grid') && typeof renderAssetGrid === 'function') renderAssetGrid(cat);
     });
@@ -76415,13 +76429,7 @@ function syncAssetBucketToStoryboard(cat) {
   if (!refKey) return false;
   let asset = preferredAssetFromBucket(cat);
   const costumeMatch = String(cat || '').match(/^costume-(\d+)$/);
-  if (costumeMatch && typeof zippyIsNcityDokgoCostumeSlot === 'function' && currentProject) {
-    const charNames = getProjectCharNamesForRefs();
-    const charIndex = Number(costumeMatch[1]) - 1;
-    const fullName = charNames[charIndex] || '';
-    const urls = zippyAssetUrls(currentProject.defaultCostumeRefs && currentProject.defaultCostumeRefs[fullName]);
-    if (zippyIsNcityDokgoCostumeSlot(fullName, urls)) asset = (assetLib[cat] && assetLib[cat][0]) || asset;
-  }
+  if (costumeMatch) asset = (assetLib[cat] && assetLib[cat][0]) || asset;
   sbRefs[refKey] = asset && asset.b64 ? asset.b64 : null;
   sbRefMimes[refKey] = asset && asset.mime ? asset.mime : 'image/png';
   const cap = refKey.charAt(0).toUpperCase() + refKey.slice(1);
@@ -76514,7 +76522,37 @@ function zippyCostumeCharacterName(name) {
 function zippyIsNcityDokgoCostumeSlot(fullName, urls) {
   return sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)' && zippyAssetUrls(urls).length >= 38;
 }
-function replaceNcityCostumeVariant(cat, index, files) {
+function zippyCostumeVariantMetaForCategory(cat, index, projectOverride) {
+  const match = String(cat || '').match(/^costume-(\d+)$/);
+  const project = projectOverride || currentProject;
+  if (!match || !project) return null;
+  const charIndex = Number(match[1]) - 1;
+  const charNames = getProjectCharNamesForRefs(project);
+  const fullName = charNames[charIndex] || '';
+  if (!fullName) return null;
+  const baseName = zippyCostumeCharacterName(fullName);
+  const entries = zippyCostumeRefEntries(project.defaultCostumeRefs && (project.defaultCostumeRefs[fullName] || project.defaultCostumeRefs[baseName]));
+  const entry = entries[index] || {variant:index === 0 ? 'uniform' : 'variant-' + index, url:''};
+  return {charIndex:charIndex, fullName:fullName, baseName:baseName, variant:entry.variant, url:entry.url || '', total:Math.max(entries.length, index + 1)};
+}
+function syncCostumeVariantAssetToStoryboard(cat, index, asset) {
+  if (!asset || !asset.b64) return false;
+  const meta = zippyCostumeVariantMetaForCategory(cat, index);
+  if (!meta) return false;
+  sbCostumeVariants[meta.fullName + ':' + meta.variant] = {b64:asset.b64, mime:asset.mime || 'image/png'};
+  if (index === 0) {
+    const sbKey = 'cos' + (meta.charIndex + 1);
+    sbRefs[sbKey] = asset.b64;
+    sbRefMimes[sbKey] = asset.mime || 'image/png';
+    const representative = document.getElementById('sbRef' + sbKey.charAt(0).toUpperCase() + sbKey.slice(1));
+    if (representative) representative.innerHTML = '<img src="data:' + sbRefMimes[sbKey] + ';base64,' + asset.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+  }
+  const tile = document.getElementById('sbRefCostume' + meta.charIndex + 'Variant' + index)
+    || document.getElementById('sbRefNcityCostume' + meta.charIndex + 'Variant' + index);
+  if (tile) tile.innerHTML = '<img src="data:' + (asset.mime || 'image/png') + ';base64,' + asset.b64 + '" style="width:100%;height:100%;object-fit:cover">';
+  return true;
+}
+function replaceCostumeVariant(cat, index, files) {
   if (!files || !files.length) return;
   const file = files[0];
   const reader = new FileReader();
@@ -76522,32 +76560,23 @@ function replaceNcityCostumeVariant(cat, index, files) {
     const dataUrl = event.target.result;
     const b64 = dataUrl.split(',')[1];
     const mime = file.type || 'image/png';
+    const meta = zippyCostumeVariantMetaForCategory(cat, index);
     const existing = assetLib[cat] && assetLib[cat][index];
-    const name = existing && existing.name ? existing.name : file.name;
+    const name = (meta && zippyCostumeVariantLabel(meta.baseName, meta.variant, meta.url, index, meta.total))
+      || (existing && existing.name) || file.name;
     if (!assetLib[cat]) assetLib[cat] = [];
     assetLib[cat][index] = {b64:b64, mime:mime, name:name, source:'upload'};
     const grid = document.getElementById('asset-' + cat + '-variant-' + index + '-grid');
-    if (grid) grid.innerHTML = '<div class="titem"><img src="' + dataUrl + '" alt="' + name + '"><div class="tlbl">' + name + '</div></div>';
-
-    const charIndex = Math.max(0, Number(String(cat).split('-').pop()) - 1);
-    const charNames = getProjectCharNamesForRefs();
-    const fullName = charNames[charIndex];
-    if (fullName) {
-      const variantKey = index === 0 ? 'uniform' : 'variant-' + index;
-      sbCostumeVariants[fullName + ':' + variantKey] = {b64:b64, mime:mime};
-    }
-    if (index === 0) {
-      const sbKey = 'cos' + (charIndex + 1);
-      sbRefs[sbKey] = b64;
-      sbRefMimes[sbKey] = mime;
-    }
-    const sbTile = document.getElementById('sbRefNcityCostume' + charIndex + 'Variant' + index);
-    if (sbTile) sbTile.innerHTML = '<img src="' + dataUrl + '" alt="' + name + '" style="width:100%;height:100%;object-fit:cover">';
+    if (grid) grid.innerHTML = '<div class="titem"><img src="' + dataUrl + '" alt="' + sbEscHtml(name) + '"><div class="tlbl">' + sbEscHtml(name) + '</div></div>';
+    syncCostumeVariantAssetToStoryboard(cat, index, assetLib[cat][index]);
     if (typeof updateAssetCounts === 'function') updateAssetCounts();
     if (typeof scheduleProjectAssetPersistence === 'function') scheduleProjectAssetPersistence();
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
   };
   reader.readAsDataURL(file);
+}
+function replaceNcityCostumeVariant(cat, index, files) {
+  replaceCostumeVariant(cat, index, files);
 }
 function zippyCostumeRefLabel(name, url, index, total) {
   const normalized = String(url || '').toLowerCase();
@@ -76559,6 +76588,23 @@ function zippyCostumeRefLabel(name, url, index, total) {
   if (normalized.indexOf('tennis') !== -1 || normalized.indexOf('테니스') !== -1) return name + ' 테니스복';
   if (normalized.indexOf('uniform') !== -1 || normalized.indexOf('school') !== -1 || normalized.indexOf('교복') !== -1) return name + ' 교복';
   return name + (total > 1 ? ' 의상 ' + (index + 1) : ' 의상');
+}
+function zippyCostumeVariantLabel(name, variant, url, index, total) {
+  const key = String(variant || '').toLowerCase();
+  const labels = {
+    'uniform': '교복',
+    'uniform-summer-straight': '여름 교복 · 생머리',
+    'uniform-winter': '겨울 교복',
+    'uniform-winter-ponytail': '겨울 교복 · 포니테일',
+    'uniform-winter-straight': '겨울 교복 · 생머리',
+    'tennis': '테니스복',
+    'gymnastics-practice': '체조 연습복',
+    'gymnastics-competition': '체조 경기복',
+    'coach': '코치복',
+    'teacher': '교사복'
+  };
+  const displayName = key === 'coach' ? String(name || '').replace(/\s*코치$/, '') : name;
+  return displayName + ' ' + (labels[key] || zippyCostumeRefLabel('', url, index, total).trim() || ('의상 ' + (index + 1)));
 }
 function zippyFirstAssetUrl(value) {
   const urls = zippyAssetUrls(value);

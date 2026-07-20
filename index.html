@@ -913,7 +913,7 @@ input[type=file]{display:none}
     </div>
   </div>
   <div class="landing-grid">
-    <div class="project-card" onclick="openMVStudio()" style="border-color:#2563EB;background:linear-gradient(180deg,rgba(232,90,160,.10),var(--card))">
+    <div class="project-card" id="mvStudioLandingCard" onclick="openMVStudio()" style="border-color:#2563EB;background:linear-gradient(180deg,rgba(232,90,160,.10),var(--card))">
       <div class="pc-name">🎛️ 리메이크 MV 스튜디오</div>
       <div class="pc-name-en">REMAKE STUDIO · Z-TV</div>
       <div class="pc-desc">명곡 리메이크 + 뮤직비디오 제작<br>Suno 레시피 · 12장르-시대 · 영상 프롬프트</div>
@@ -921,6 +921,7 @@ input[type=file]{display:none}
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">12장르</span>
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">Suno레시피</span>
         <span style="font-size:10px;padding:3px 8px;background:var(--sf);border-radius:4px;color:var(--mu);font-family:var(--font-mono)">MV편성</span>
+        <span id="mvStudioDraftBadge" style="display:none;font-size:10px;padding:3px 8px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.32);border-radius:4px;color:#2563EB;font-family:var(--font-mono)"></span>
       </div>
     </div>
                                     <div class="project-card" data-project-card="proof-of-taste" onclick="selectProject('proof-of-taste')">
@@ -67787,7 +67788,7 @@ function selectProject(key) {
         return;
       }
 
-      const costumeEntries = zippyCostumeRefEntries(zippyCostumeAssetRefValue(currentProject, name, displayName));
+      const costumeEntries = zippyCostumeRefEntries(zippyCostumeAssetRefValue(currentProject, name, displayName), name, currentProject);
       const cards = costumeEntries.length ? costumeEntries : (sbIsNcityVisualProject() ? [] : [{variant:'uniform', url:''}]);
       cards.forEach(function(entry, idx) {
         const label = zippyCostumeVariantLabel(displayName, entry.variant, entry.url, idx, cards.length);
@@ -67993,6 +67994,7 @@ function sbEnforceNcityAppearanceLock(shot, prompt) {
 }
 function sbPromptCostumeVariantValue(fullName, url, index) {
   if (sbIsNcityVisualProject() && fullName === '주연 · 독고탄 (밤)') return String(index);
+  if (isCloudRiderProject()) return cloudRiderCostumeVariantForRef(fullName, url, index);
   if (/tennis|테니스/i.test(url || '')) return 'tennis';
   if (/uniform|school|교복/i.test(url || '') || index === 0) return 'uniform';
   return 'variant-' + index;
@@ -68094,6 +68096,7 @@ function resetSBPromptEditor(shotId) {
 function genVideoPrompt(shotId) {
   var shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
   if (!shot || !currentProject) return;
+  if (isCloudRiderProject()) normalizeCloudRiderShotState(shot, currentProject);
   var preset = SCENE_PRESETS[String(shot.scene)] || {};
   if ((typeof shot.ep !== 'undefined' && shot.ep < 0) || shot.loc) preset = {};
   var _gloc = ((typeof resolveShotLoc==='function' && resolveShotLoc(shot)) || preset.loc || '');
@@ -68680,9 +68683,9 @@ async function loadDefaultCostumeRefs(options) {
     const alKey = 'costume-' + (i + 1);
     const fullName = charNames[i];
     const baseName = zippyCostumeCharacterName(fullName);
-    const costumeEntries = zippyCostumeRefEntries(project.defaultCostumeRefs[fullName] || project.defaultCostumeRefs[baseName]);
+    const costumeEntries = zippyCostumeRefEntries(project.defaultCostumeRefs[fullName] || project.defaultCostumeRefs[baseName], fullName, project);
     const urls = costumeEntries.map(function(entry) { return entry.url; });
-    const assetEntriesForCharacter = hasSeparateCostumeAssets ? zippyCostumeRefEntries(costumeAssetRefs[fullName] || costumeAssetRefs[baseName]) : [];
+    const assetEntriesForCharacter = hasSeparateCostumeAssets ? zippyCostumeRefEntries(costumeAssetRefs[fullName] || costumeAssetRefs[baseName], fullName, project) : [];
     if (!urls.length && !assetEntriesForCharacter.length) continue;
     let firstImg = null;
     for (let u = 0; u < urls.length; u++) {
@@ -68996,7 +68999,7 @@ function buildSBRefUI() {
       charNames.forEach(function(name, i) {
         const baseName = zippyCostumeCharacterName(name);
         const cat = 'costume-' + (i + 1);
-        const costumeEntries = zippyCostumeRefEntries(currentProject.defaultCostumeRefs && (currentProject.defaultCostumeRefs[name] || currentProject.defaultCostumeRefs[baseName]));
+        const costumeEntries = zippyCostumeRefEntries(currentProject.defaultCostumeRefs && (currentProject.defaultCostumeRefs[name] || currentProject.defaultCostumeRefs[baseName]), name, currentProject);
         const cards = costumeEntries.length ? costumeEntries : (sbIsNcityVisualProject() ? [] : [{variant:'uniform', url:''}]);
         cards.forEach(function(entry, variantIndex) {
           const label = zippyCostumeVariantLabel(baseName, entry.variant, entry.url, variantIndex, cards.length);
@@ -69166,6 +69169,62 @@ function sbCharKeywords(presetKey){
 }
 function isCloudRiderProject() {
   return currentProjectKey === 'cloudrider' || (currentProject && (currentProject.name === 'CLOUDRIDER' || currentProject.nameEn === '클라우드라이더'));
+}
+
+function isCloudRiderProjectData(project) {
+  return !!(project && (project.name === 'CLOUDRIDER' || project.nameEn === '클라우드라이더'));
+}
+
+function cloudRiderCostumeVariantForRef(fullName, url, index) {
+  const text = (String(fullName || '') + ' ' + String(url || '')).toLowerCase();
+  if (/정비복|maintenance|mechanic/.test(text)) return 'maintenance';
+  if (/비행복|flight/.test(text)) return 'flight';
+  if (/어린시절|child[_-]?hana|childhood/.test(text)) return 'childhood';
+  if (/다온|daon/.test(text)) return 'humanoid';
+  if (/스파크|spark/.test(text)) return 'hologram';
+  if (/아버지|father/.test(text)) return 'workwear';
+  if (/나란|카이|료|미라|글로벌 파일럿|naran|kai|ryo|mira|globalpilots/.test(text)) return 'pilot';
+  if (/군중|유목민|펍 손님|crowd|nomad/.test(text)) return 'crowd';
+  return index === 0 ? 'primary' : 'variant-' + index;
+}
+
+function cloudRiderCanonicalLocationForShot(shot, projectOverride) {
+  const project = projectOverride || currentProject;
+  if (!isCloudRiderProjectData(project)) return '';
+  const names = project.spaceNames || project.locations || [];
+  const unit = Number(shot && (shot.ep != null ? shot.ep : shot.scene));
+  if (Number.isInteger(unit) && unit >= 1 && unit <= names.length) return names[unit - 1] || '';
+  return names[0] || '';
+}
+
+function normalizeCloudRiderShotLocation(shot, projectOverride) {
+  const project = projectOverride || currentProject;
+  if (!shot || !isCloudRiderProjectData(project)) return false;
+  const names = project.spaceNames || project.locations || [];
+  if (!shot.loc || names.indexOf(shot.loc) !== -1) return false;
+  shot.loc = cloudRiderCanonicalLocationForShot(shot, project);
+  return true;
+}
+
+function normalizeCloudRiderShotState(shot, projectOverride) {
+  const project = projectOverride || currentProject;
+  if (!shot || !isCloudRiderProjectData(project)) return false;
+  let changed = normalizeCloudRiderShotLocation(shot, project);
+  const variants = shot.costumeVariants;
+  if (variants && typeof variants === 'object') {
+    Object.keys(variants).forEach(function(fullName) {
+      if (variants[fullName] !== 'uniform') return;
+      variants[fullName] = cloudRiderCostumeVariantForRef(fullName, '', 0);
+      changed = true;
+    });
+  }
+  ['promptOverride', 'videoPromptOverride'].forEach(function(key) {
+    const prompt = String(shot[key] || '');
+    if (!/\[SP-[^\]]+\]|N시의 무법자|HEXA|POLY|LAST SHOT|그레이글리치/.test(prompt)) return;
+    delete shot[key];
+    changed = true;
+  });
+  return changed;
 }
 
 function isNcityNoFaceDetailShot(shot) {
@@ -70862,6 +70921,9 @@ function zippyNasApplySnapshotState(snap) {
     });
   }
   applySBShotEditorSnapshot(snap);
+  if (isCloudRiderProject() && typeof SB_SHOTS !== 'undefined') {
+    SB_SHOTS.forEach(function(shot) { normalizeCloudRiderShotState(shot, currentProject); });
+  }
 }
 async function zippyNasApplyStoryboardLoad(data, opts) {
   const options = opts || {};
@@ -71435,6 +71497,9 @@ async function restoreStoryboardState(projectKey) {
       });
     }
     applySBShotEditorSnapshot(snap);
+    if (isCloudRiderProject() && typeof SB_SHOTS !== 'undefined') {
+      SB_SHOTS.forEach(function(shot) { normalizeCloudRiderShotState(shot, currentProject); });
+    }
     if (typeof backfillContinuityCardsFromGenerated === 'function') backfillContinuityCardsFromGenerated('state-restore');
     if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
@@ -71829,8 +71894,11 @@ var SB_SP_MAP = {'SP-ALLEY':'SP-POLY','SP-ALLEY43':'SP-POLY','SP-BAR':'SP-LS-BAR
 function sbCodeOf(s){ var m=(s||'').match(/\[(SP-[A-Z0-9-]+|\uC5F4\uCC28)\]/i); return m?m[1].toUpperCase():''; }
 function resolveShotLoc(shot){
   if(!shot) return '';
-  if(shot.loc) return shot.loc;
   var names=(currentProject&&(currentProject.spaceNames||currentProject.locations))||[];
+  if(shot.loc){
+    if(!isCloudRiderProject() || names.indexOf(shot.loc)!==-1) return shot.loc;
+    return cloudRiderCanonicalLocationForShot(shot, currentProject);
+  }
   if(!names.length) return '';
   var src=(shot.sceneName||'')+' '+(shot.frame||'')+' '+(shot.desc||'');
   var code=sbCodeOf(src);
@@ -72129,6 +72197,7 @@ function sbHideLoading(shotId){
 async function generateSBShot(shotId, _seq) {
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return {ok:false, shotId:shotId, error:'쇼트를 찾을 수 없음'};
+  if (isCloudRiderProject()) normalizeCloudRiderShotState(shot, currentProject);
   if (!(_seq)) sbShowLoading(shotId, '레퍼런스 준비 중...');
   if (typeof sbReferenceLoadPromise !== 'undefined' && sbReferenceLoadPromise) {
     await sbReferenceLoadPromise;
@@ -76498,13 +76567,16 @@ function zippyAssetUrls(value) {
   if (typeof value === 'object') return Object.keys(value).map(function(key) { return value[key]; }).filter(Boolean);
   return [value];
 }
-function zippyCostumeRefEntries(value) {
+function zippyCostumeRefEntries(value, fullName, projectOverride) {
   if (!value) return [];
   if (!Array.isArray(value) && typeof value === 'object') {
     return Object.keys(value).map(function(variant) { return {variant:variant, url:value[variant]}; }).filter(function(entry) { return entry.url; });
   }
+  const cloudRider = isCloudRiderProjectData(projectOverride || currentProject);
   return zippyAssetUrls(value).map(function(url, index) {
-    const variant = /tennis/i.test(url) ? 'tennis' : (index === 0 ? 'uniform' : 'variant-' + index);
+    const variant = cloudRider
+      ? cloudRiderCostumeVariantForRef(fullName, url, index)
+      : (/tennis/i.test(url) ? 'tennis' : (index === 0 ? 'uniform' : 'variant-' + index));
     return {variant:variant, url:url};
   });
 }
@@ -76535,9 +76607,12 @@ function zippyCostumeVariantMetaForCategory(cat, index, projectOverride) {
   const fullName = charNames[charIndex] || '';
   if (!fullName) return null;
   const baseName = zippyCostumeCharacterName(fullName);
-  const entries = zippyCostumeRefEntries(zippyCostumeAssetRefValue(project, fullName, baseName));
+  const entries = zippyCostumeRefEntries(zippyCostumeAssetRefValue(project, fullName, baseName), fullName, project);
   const assetDisplayName = zippyCostumeAssetDisplayName(fullName);
-  const entry = entries[index] || {variant:index === 0 ? 'uniform' : 'variant-' + index, url:''};
+  const fallbackVariant = isCloudRiderProjectData(project)
+    ? cloudRiderCostumeVariantForRef(fullName, '', index)
+    : (index === 0 ? 'uniform' : 'variant-' + index);
+  const entry = entries[index] || {variant:fallbackVariant, url:''};
   return {charIndex:charIndex, fullName:fullName, baseName:assetDisplayName, variant:entry.variant, url:entry.url || '', total:Math.max(entries.length, index + 1)};
 }
 function syncCostumeVariantAssetToStoryboard(cat, index, asset) {
@@ -76607,7 +76682,16 @@ function zippyCostumeVariantLabel(name, variant, url, index, total) {
     'gymnastics-practice': '체조 연습복',
     'gymnastics-competition': '체조 경기복',
     'coach': '코치복',
-    'teacher': '교사복'
+    'teacher': '교사복',
+    'maintenance': '정비복',
+    'flight': '비행복',
+    'childhood': '어린 시절 의상',
+    'humanoid': '휴머노이드 기본 바디',
+    'hologram': '홀로그램 아바타',
+    'workwear': '작업복',
+    'pilot': '파일럿 의상',
+    'crowd': '군중 의상',
+    'primary': '기본 의상'
   };
   const displayName = key === 'coach' ? String(name || '').replace(/\s*코치$/, '') : name;
   return displayName + ' ' + (labels[key] || zippyCostumeRefLabel('', url, index, total).trim() || ('의상 ' + (index + 1)));
@@ -81849,6 +81933,10 @@ function updatePromptPreview() {
 #mvStudio .mvs-rec .rh{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--mvs-line);background:var(--mvs-panel);font-family:var(--mvs-mono);font-size:10px;letter-spacing:2px;color:var(--mvs-a2);text-transform:uppercase}
 #mvStudio .mvs-rec pre{margin:0;padding:12px;font-family:var(--mvs-mono);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:var(--mvs-ink)}
 #mvStudio .mvs-foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--mvs-line);font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)}
+#mvStudio .mvs-work-tabs{position:sticky;bottom:0;z-index:6;display:flex;align-items:center;gap:5px;margin:18px -2px 0;padding:8px 2px;background:color-mix(in srgb,var(--mvs-bg) 94%,transparent);border-top:1px solid var(--mvs-line);overflow-x:auto;scrollbar-width:thin}
+#mvStudio .mvs-work-tab{flex:0 0 auto;max-width:210px;height:32px;padding:0 10px;border:1px solid var(--mvs-line);border-radius:5px;background:var(--mvs-panel);color:var(--mvs-dim);font-family:var(--mvs-mono);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+#mvStudio .mvs-work-tab[aria-selected="true"]{border-color:var(--mvs-a2);color:var(--mvs-ink);box-shadow:inset 0 -2px 0 var(--mvs-a2)}
+#mvStudio .mvs-work-tab-new{width:32px;padding:0;font-size:16px;color:var(--mvs-a2)}
 #mvStudio .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--mvs-dim2);border-top-color:var(--mvs-a2);border-radius:50%;animation:mvspin .7s linear infinite;vertical-align:-1px;margin-right:6px}
 @keyframes mvspin{to{transform:rotate(360deg)}}
 @media(max-width:760px){#mvStudio .mvs-track{grid-template-columns:30px minmax(0,1fr) auto}#mvStudio .mvs-track audio{grid-column:2/4}}
@@ -81861,6 +81949,7 @@ function updatePromptPreview() {
     <header class="mvs-head">
       <div class="mvs-mark"><b>MV</b><span>STUDIO</span></div>
       <label style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--mvs-dim,#9aa)" title="이 MV의 이미지 스타일 (편입·이미지 생성 시 적용)">🎨 <select id="mvsStyleSel" onchange="if(window.mvApplyStyle)window.mvApplyStyle(this.value)" style="font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--mvs-line);border-radius:6px;background:var(--mvs-bg);color:#fff"></select></label>
+      <span id="mvsDraftStatus" class="note"></span>
       <button class="mvs-btn" id="mvsHistBtn">🕘 히스토리</button>
       <button class="mvs-x" id="mvsClose" aria-label="닫기">✕</button>
       <div class="mvs-sub">음원 업로드 → 오디오 분석 → 씬 생성 → 프로젝트 에셋 연동 → 얼굴락 스토리보드 · STUDIO ZIPPY</div>
@@ -81931,6 +82020,7 @@ function updatePromptPreview() {
       <div id="mvsRecipe"></div>
     </div>
 
+    <div id="mvsWorkTabs" class="mvs-work-tabs" role="tablist" aria-label="MV 작업 탭"></div>
     <div class="mvs-foot">MV STUDIO · 오디오=Gemini 분석 / 영상=파이프라인 얼굴락 생성 / Suno 레시피=복사용 · STUDIO ZIPPY</div>
   </div>
 </div>
@@ -81956,7 +82046,7 @@ function updatePromptPreview() {
   const MV_MAX_TRACKS=3;
   const MV_MAX_INLINE_BYTES=14*1024*1024;
   let audioTracks=[];
-  let cuts=[], analysis=null, selProjKey='', gi=-1;
+  let cuts=[], analysis=null, selProjKey='', mvDraftProjectKey='', gi=-1;
 
   function audioTitle(){
     const names=audioTracks.map(t=>String(t.name||'').replace(/\.(mp3|wav|m4a|aac|ogg|flac)$/i,'')).filter(Boolean);
@@ -81982,7 +82072,7 @@ function updatePromptPreview() {
       if(!audioTracks[i]) return;
       if(act==='remove') audioTracks.splice(i,1);
       else { const j=act==='up'?i-1:i+1; if(j<0||j>=audioTracks.length)return; const t=audioTracks[i]; audioTracks[i]=audioTracks[j]; audioTracks[j]=t; }
-      mvSessionId=''; analysis=null; cuts=[]; selProjKey='';
+      mvSessionId=''; analysis=null; cuts=[]; selProjKey=''; mvDraftProjectKey='';
       resetGeneratedMVUI(); renderAudioTracks(); syncAnalyzeButton(); saveMV();
     });
     const total=totalAnalysisBytes()/1024/1024;
@@ -82009,9 +82099,9 @@ function updatePromptPreview() {
   const MV_KEY='zippy_mvstudio_v1';
   function saveMV(){
     // 저장할 게 없으면 키 제거(빈 상태 클로버링 방지)
-    if(!(cuts&&cuts.length) && !audioTracks.length && !analysis){ try{localStorage.removeItem(MV_KEY);}catch(e){} return; }
+    if(!(cuts&&cuts.length) && !audioTracks.length && !analysis){ try{localStorage.removeItem(MV_KEY);}catch(e){} updateRecoveryUI(); return; }
     const meta=audioTracks.map(t=>({name:t.name||'',mime:t.mime||'',size:Number(t.size)||0}));
-    const base={ v:2, cuts, analysis, selProjKey, gi,
+    const base={ v:3, cuts, analysis, selProjKey, draftProjKey:mvDraftProjectKey||selProjKey||mvSelectedProjectKey(), gi,
       count:(($('mvsCount')||{}).value)||'', context:(($('mvsContext')||{}).value)||'',
       duration:(($('mvsDuration')||{}).value)||'', audioTracks:meta };
     // 용량 초과 시 무거운 오디오 필드부터 단계적으로 떨궈 핵심(cuts)은 반드시 저장
@@ -82021,14 +82111,16 @@ function updatePromptPreview() {
       base
     ];
     for(let i=0;i<tiers.length;i++){
-      try{ localStorage.setItem(MV_KEY, JSON.stringify(tiers[i])); return; }catch(e){ /* quota → 더 가볍게 재시도 */ }
+      try{ localStorage.setItem(MV_KEY, JSON.stringify(tiers[i])); updateRecoveryUI(); return; }catch(e){ /* quota → 더 가볍게 재시도 */ }
     }
+    updateRecoveryUI();
   }
   function restoreMV(){
     let s=null; try{ s=JSON.parse(localStorage.getItem(MV_KEY)||'null'); }catch(e){ s=null; }
     if(!s) return;
     cuts=Array.isArray(s.cuts)?s.cuts:[];
-    analysis=s.analysis||null; selProjKey=s.selProjKey||'';
+    analysis=s.analysis||null; selProjKey=s.selProjKey||''; mvDraftProjectKey=s.draftProjKey||selProjKey;
+    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>mvSanitizeLinkedCut(c,c,selProjKey));
     gi=(typeof s.gi==='number')?s.gi:-1;
     audioTracks=Array.isArray(s.audioTracks)?s.audioTracks.map(t=>({b64:t.b64||null,mime:t.mime||'',name:t.name||'',dataUrl:t.dataUrl||'',size:Number(t.size)||0,preparing:false})).slice(0,MV_MAX_TRACKS):[];
     if(!audioTracks.length&&s.audioName) audioTracks=[{b64:s.audioB64||null,mime:s.audioMime||'',name:s.audioName||'',dataUrl:s.audioDataUrl||'',size:0,preparing:false}];
@@ -82042,8 +82134,9 @@ function updatePromptPreview() {
       renderCuts();
       $('mvsStep2').classList.remove('off');
       if($('mvsAnStat')) $('mvsAnStat').textContent='✓ 복원됨 · '+cuts.length+'컷';
-      if(selProjKey){ if($('mvsProj')) $('mvsProj').value=selProjKey; $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복원됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
-      if($('mvsLink')) $('mvsLink').disabled=!(selProjKey||$('mvsProj').value);
+      if(mvDraftProjectKey&&$('mvsProj')) $('mvsProj').value=mvDraftProjectKey;
+      if(selProjKey){ $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복원됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
+      if($('mvsLink')) $('mvsLink').disabled=!mvDraftProjectKey;
     }
   }
 
@@ -82066,19 +82159,35 @@ function updatePromptPreview() {
   let mvSessionId='', mvIdSeq=0;
   function newSessionId(){ return 'mv'+Date.now().toString(36)+'_'+(++mvIdSeq)+'_'+Math.floor(Math.random()*1e6).toString(36); }
   function readHist(){ try{ return JSON.parse(localStorage.getItem(MV_HIST_KEY)||'[]')||[]; }catch(e){ return []; } }
+  function updateRecoveryUI(){
+    const historyCount=readHist().length;
+    const draftCount=Array.isArray(cuts)?cuts.length:0;
+    const badge=$('mvStudioDraftBadge');
+    if(badge){
+      badge.style.display=(draftCount||historyCount)?'inline-flex':'none';
+      badge.textContent=draftCount?('최근 작업 '+draftCount+'컷'):('히스토리 '+historyCount+'개');
+    }
+    const status=$('mvsDraftStatus');
+    if(status) status.textContent=draftCount?('자동 저장 · '+draftCount+'컷'):'';
+    const historyButton=$('mvsHistBtn');
+    if(historyButton) historyButton.textContent='🕘 히스토리'+(historyCount?(' '+historyCount):'');
+    renderWorkTabs();
+  }
   function writeHist(arr){
     const a=arr.slice(0,20);
     for(let cap=a.length; cap>=1; cap--){
-      try{ localStorage.setItem(MV_HIST_KEY, JSON.stringify(a.slice(0,cap))); return; }catch(e){ /* quota → 더 적게 */ }
+      try{ localStorage.setItem(MV_HIST_KEY, JSON.stringify(a.slice(0,cap))); updateRecoveryUI(); return; }catch(e){ /* quota → 더 적게 */ }
     }
     try{ localStorage.removeItem(MV_HIST_KEY); }catch(e){}
+    updateRecoveryUI();
   }
   function pushHistory(){
     if(!(cuts&&cuts.length)) return;
     if(!mvSessionId) mvSessionId=newSessionId();
+    const draftKey=mvDraftProjectKey||selProjKey||mvSelectedProjectKey()||'';
     const entry={ id:mvSessionId, ts:Date.now(), name:audioTitle(), trackNames:audioTracks.map(t=>t.name||'').filter(Boolean),
-      cutCount:cuts.length, projKey:selProjKey||'',
-      projName:(selProjKey&&PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||'',
+      cutCount:cuts.length, projKey:selProjKey||'', draftProjKey:draftKey,
+      projName:(draftKey&&PROJECTS[draftKey]&&PROJECTS[draftKey].name)||'',
       cuts:JSON.parse(JSON.stringify(cuts)), analysis:analysis?JSON.parse(JSON.stringify(analysis)):null,
       count:(($('mvsCount')||{}).value)||'', duration:(($('mvsDuration')||{}).value)||'', context:(($('mvsContext')||{}).value)||'' };
     const arr=readHist().filter(e=>e.id!==mvSessionId);
@@ -82104,28 +82213,58 @@ function updatePromptPreview() {
     }).join('');
     panel.querySelectorAll('button[data-act]').forEach(b=>b.onclick=()=>{
       if(b.dataset.act==='restore') restoreFromHistory(b.dataset.id);
-      else { writeHist(readHist().filter(e=>e.id!==b.dataset.id)); renderHistory(); }
+      else { writeHist(readHist().filter(e=>e.id!==b.dataset.id)); renderHistory(); updateRecoveryUI(); }
     });
+  }
+  function workTabLabel(projectKey, fallbackName){
+    const labels={cloudrider:'클라우드라이더',ncity:'N시',taste:'취향의 증거','love-renewal':'오늘은 왜지 LOVE',coffee:'오후 5시',universal:'UNIVERSAL','love-film':'LOVE'};
+    return labels[projectKey]||fallbackName||'새 MV';
+  }
+  function renderWorkTabs(){
+    const bar=$('mvsWorkTabs'); if(!bar) return;
+    const history=readHist();
+    const currentKey=mvDraftProjectKey||selProjKey||mvSelectedProjectKey()||'';
+    const tabs=[];
+    if(cuts&&cuts.length) tabs.push({id:'__current__',projectKey:currentKey,name:workTabLabel(currentKey,audioTitle()),cutCount:cuts.length,current:true});
+    history.filter(e=>!mvSessionId||e.id!==mvSessionId).forEach(e=>tabs.push({id:e.id,projectKey:e.draftProjKey||e.projKey||'',name:workTabLabel(e.draftProjKey||e.projKey||'',e.projName||e.name),cutCount:e.cutCount||0,current:false}));
+    const shown=tabs.slice(0,12);
+    bar.innerHTML=shown.map(t=>'<button type="button" class="mvs-work-tab" role="tab" aria-selected="'+(t.current?'true':'false')+'" data-work-id="'+esc(t.id)+'" title="'+esc(t.name)+' · '+t.cutCount+'컷">'+esc(t.name)+' · '+t.cutCount+'컷</button>').join('')
+      +'<button type="button" class="mvs-work-tab mvs-work-tab-new" data-work-new="1" title="새 MV 작업" aria-label="새 MV 작업">+</button>';
+    bar.querySelectorAll('[data-work-id]').forEach(button=>button.onclick=()=>{
+      if(button.dataset.workId==='__current__') return;
+      pushHistory();
+      restoreFromHistory(button.dataset.workId);
+    });
+    const add=bar.querySelector('[data-work-new]'); if(add) add.onclick=startNewWorkspace;
+  }
+  function startNewWorkspace(){
+    pushHistory();
+    cuts=[]; analysis=null; audioTracks=[]; selProjKey=''; mvDraftProjectKey=''; mvSessionId=''; gi=-1;
+    if($('mvsAudio')) $('mvsAudio').value='';
+    resetGeneratedMVUI(); renderAudioTracks(); renderGenres(); renderRecipe(); saveMV(); updateRecoveryUI();
   }
   function restoreFromHistory(id){
     const e=readHist().find(x=>x.id===id); if(!e) return;
     cuts=Array.isArray(e.cuts)?JSON.parse(JSON.stringify(e.cuts)):[];
-    analysis=e.analysis||null; selProjKey=e.projKey||''; mvSessionId=e.id;
+    analysis=e.analysis||null; selProjKey=e.projKey||''; mvDraftProjectKey=e.draftProjKey||selProjKey; mvSessionId=e.id;
+    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>mvSanitizeLinkedCut(c,c,selProjKey));
     const historyNames=Array.isArray(e.trackNames)&&e.trackNames.length?e.trackNames:[e.name].filter(Boolean);
     const currentNames=audioTracks.map(t=>t.name);
     if(historyNames.join('\n')!==currentNames.join('\n')) audioTracks=historyNames.slice(0,MV_MAX_TRACKS).map(name=>({b64:null,mime:'',name,dataUrl:'',size:0,preparing:false}));
     if($('mvsCount')&&e.count) $('mvsCount').value=e.count;
     if($('mvsDuration')&&e.duration) $('mvsDuration').value=e.duration;
     if($('mvsContext')) $('mvsContext').value=e.context||'';
+    if(mvDraftProjectKey&&$('mvsProj')) $('mvsProj').value=mvDraftProjectKey;
     renderAudioTracks();
     if(analysis) renderAnalysis();
     renderCuts();
     $('mvsStep2').classList.remove('off');
-    if(selProjKey){ if($('mvsProj')) $('mvsProj').value=selProjKey; $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복구됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
-    if($('mvsLink')) $('mvsLink').disabled=!(selProjKey||($('mvsProj')&&$('mvsProj').value));
+    if(selProjKey){ $('mvsStep3').classList.remove('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent='연동 상태 복구됨 ('+((PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||selProjKey)+')'; }
+    else { $('mvsStep3').classList.add('off'); if($('mvsProjInfo')) $('mvsProjInfo').textContent=mvDraftProjectKey?'선택한 프로젝트를 다시 연동하세요.':''; }
+    if($('mvsLink')) $('mvsLink').disabled=!mvDraftProjectKey;
     if($('mvsAnStat')) $('mvsAnStat').textContent='✓ 히스토리 복구 · '+cuts.length+'컷';
     toggleHist(false);
-    saveMV();
+    saveMV(); updateRecoveryUI();
   }
 
   function parseJSONObject(t){ if(!t)return null; const s=t.indexOf('{'),e=t.lastIndexOf('}'); if(s<0||e<0||e<s)return null; try{return JSON.parse(t.slice(s,e+1));}catch(x){return null;} }
@@ -82202,20 +82341,57 @@ ${context?('참고 컨텍스트: '+context):''}
     var src=key&&PROJECTS[key];
     return (src&&(src.spaceNames||src.locations))||[];
   }
+  function mvSelectedProjectKey(){ return ($('mvsProj')&&$('mvsProj').value)||''; }
+  function mvResetCutProjectBindings(c){
+    const next=Object.assign({},c);
+    if(!next.sourceDesc) next.sourceDesc=next.desc||'';
+    next.desc=next.sourceDesc||next.desc||'';
+    next.char=[]; next.loc=''; next.obj=[]; next.costumeMode='';
+    delete next.costumeVariant; delete next.baseCostumeVariant; delete next.combatCostumeSource;
+    return next;
+  }
+  function mvSanitizeLinkedCut(c, linked, projectKey){
+    const src=projectKey&&PROJECTS[projectKey];
+    if(!src) return mvResetCutProjectBindings(c);
+    const chars=Object.keys(src.characterPresets||src.characterDNA||{});
+    const spaces=src.spaceNames||src.locations||[];
+    const objKeys=(src.objectAssets||[]).map(o=>o.key);
+    const row=linked||{};
+    const no=Math.max(1,Number(c.no)||1);
+    const fallbackLoc=spaces.length?spaces[(no-1)%spaces.length]:'';
+    const foreignWorld=/\[SP-[^\]]+\]|N시의 무법자|HEXA|POLY|LAST SHOT|그레이글리치/;
+    const sourceDesc=String(c.sourceDesc||c.desc||'');
+    let linkedDesc=String(row.desc||sourceDesc);
+    if(projectKey==='cloudrider'&&foreignWorld.test(linkedDesc)) linkedDesc=foreignWorld.test(sourceDesc)?('CloudRider 티저 전환 컷 '+no):sourceDesc;
+    const next=Object.assign({},c,{
+      sourceDesc:c.sourceDesc||c.desc||'',
+      desc:linkedDesc,
+      char:(Array.isArray(row.char)?row.char:[]).filter(name=>chars.indexOf(name)!==-1).slice(0,2),
+      loc:spaces.indexOf(row.loc)!==-1?row.loc:fallbackLoc,
+      obj:(Array.isArray(row.obj)?row.obj:[]).filter(key=>objKeys.indexOf(key)!==-1).slice(0,3),
+      costumeMode:String(row.costumeMode||c.costumeMode||'')
+    });
+    if(projectKey!=='ncity'){
+      delete next.costumeVariant; delete next.baseCostumeVariant; delete next.combatCostumeSource;
+      if(next.costumeMode==='activity'||next.costumeMode==='combat') next.costumeMode='default';
+    }
+    return next;
+  }
   function renderCuts(){
     $('mvsSB').classList.add('show');
-    $('mvsSBTitle').textContent='🎞 스토리보드 · '+cuts.length+'컷'+(selProjKey?(' · '+(PROJECTS[selProjKey].name)):'');
+    const linkedProject=selProjKey&&PROJECTS[selProjKey];
+    $('mvsSBTitle').textContent='🎞 스토리보드 · '+cuts.length+'컷'+(linkedProject?(' · '+linkedProject.name):'');
     const spaces=mvSpaces();
     $('mvsList').innerHTML=cuts.map((c,i)=>{
+      const validLoc=spaces.indexOf(c.loc)!==-1?c.loc:'';
       const opts=['<option value="">📍 장소…</option>']
-        .concat(spaces.map(s=>'<option value="'+esc(s)+'"'+(c.loc===s?' selected':'')+'>'+esc(s)+'</option>'));
-      if(c.loc && spaces.indexOf(c.loc)<0) opts.push('<option value="'+esc(c.loc)+'" selected>'+esc(c.loc)+'</option>');
+        .concat(spaces.map(s=>'<option value="'+esc(s)+'"'+(validLoc===s?' selected':'')+'>'+esc(s)+'</option>'));
       return `<div class="mvs-cut">
       <div class="cno">${String(c.no).padStart(2,'0')}</div>
       <div class="cmid">
         <div class="ctop"><span class="ctrack">TRACK ${c.track||1}</span><span class="csec">${c.sec}</span><span class="ctc">티저 ${c.tc}${c.sourceTc?(' · 원곡 '+c.sourceTc):''}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
         <div class="cdesc">${c.desc}</div>
-        <div class="cloc"><select class="mvs-locsel" data-i="${i}" title="${spaces.length?'이 컷의 장소 지정':'프로젝트를 선택하면 장소 목록이 나옵니다'}" style="max-width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--mvs-line);border-radius:5px;background:var(--mvs-bg);color:${c.loc?'#fff':'var(--mvs-dim,#889)'}">${opts.join('')}</select></div>${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
+        <div class="cloc"><select class="mvs-locsel" data-i="${i}" title="${spaces.length?'이 컷의 장소 지정':'프로젝트를 선택하면 장소 목록이 나옵니다'}" style="max-width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--mvs-line);border-radius:5px;background:var(--mvs-bg);color:${validLoc?'#fff':'var(--mvs-dim,#889)'}">${opts.join('')}</select></div>${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
       </div>
       <button class="mvs-cpy" data-cp="${encodeURIComponent(cutPrompt(c))}">복사</button>
     </div>`;}).join('');
@@ -82225,7 +82401,7 @@ ${context?('참고 컨텍스트: '+context):''}
       cuts[i].loc=sel.value; saveMV(); renderCuts();
     });
   }
-  function objNm(k){ var src=selProjKey&&PROJECTS[selProjKey]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
+  function objNm(k){ var key=mvSelectedProjectKey()||selProjKey; var src=key&&PROJECTS[key]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
   function cutPrompt(c){ const t=audioTracks[(Number(c.track)||1)-1]; return `"${audioTitle()}" teaser music video — TRACK ${c.track||1}${t&&t.name?(' '+t.name):''} · source ${c.sourceTc||'-'} · teaser ${c.tc||'-'} — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec}]`; }
 
   function mvNcityDirectCombat(c){
@@ -82251,14 +82427,14 @@ ${context?('참고 컨텍스트: '+context):''}
   // ── ② 프로젝트 에셋 연동 (2차 LLM 패스로 인물·공간 반영) ──
   async function linkProject(){
     const key=$('mvsProj').value; if(!key||!cuts.length) return;
-    selProjKey=key; const src=PROJECTS[key];
+    const src=PROJECTS[key];
     const btn=$('mvsLink'); btn.disabled=true;
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간을 컷에 반영 중…';
     const chars=Object.keys(src.characterPresets||src.characterDNA||{});
     const spaces=(src.spaceNames||src.locations||[]);
     const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
-    const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.desc}`).join('\n');
+    const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.sourceDesc||c.desc}`).join('\n');
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
@@ -82278,8 +82454,9 @@ ${cutList}
       const arr=parseJSONArray(r&&r.textOut);
       if(!arr||!arr.length) throw new Error('연동 파싱 실패');
       const byNo={}; arr.forEach(x=>{byNo[x.no]=x;});
-      cuts=cuts.map(c=>{const x=byNo[c.no]; return x?Object.assign({},c,{desc:x.desc||c.desc,char:Array.isArray(x.char)?x.char:[],loc:x.loc||'',obj:Array.isArray(x.obj)?x.obj:[],costumeMode:x.costumeMode||c.costumeMode||''}):c;});
+      cuts=cuts.map(c=>mvSanitizeLinkedCut(c,byNo[c.no],key));
       if(key==='ncity') cuts=mvApplyNcityWardrobe(cuts);
+      selProjKey=key; mvDraftProjectKey=key;
       renderCuts();
       const objTagged=cuts.reduce((n,c)=>n+((c.obj&&c.obj.length)?1:0),0);
       $('mvsProjInfo').textContent='연동됨 · 인물 '+chars.length+'명 / 공간 '+spaces.length+'개 / 오브제 '+objs.length+'개 → 컷 반영 (오브제 태깅 '+objTagged+'컷)';
@@ -82296,14 +82473,21 @@ ${cutList}
   function toProject(){
     const P=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake']);
     if(!P){alert('mv-remake 프로젝트 없음 (배포 후 사용)');return;}
-    const src=selProjKey?PROJECTS[selProjKey]:null;
+    const selectedKey=mvSelectedProjectKey();
+    if(!selectedKey||selectedKey!==selProjKey){
+      $('mvsLinkStat').textContent='프로젝트를 선택한 뒤 2단계 에셋 연동을 먼저 완료하세요.';
+      $('mvsStep3').classList.add('off');
+      return;
+    }
+    const src=PROJECTS[selectedKey];
     if(src){
-      P.sourceProjectKey=selProjKey;
+      P.sourceProjectKey=selectedKey;
       P.characterPresets=JSON.parse(JSON.stringify(src.characterPresets||{}));
       P.characterDNA=Object.assign({},src.characterDNA||{});
       P.defaultFaceRefs=Object.assign({},src.defaultFaceRefs||{});
       P.defaultCharRefs=Object.assign({},src.defaultCharRefs||{});
       P.defaultSpaceRefs=Object.assign({},src.defaultSpaceRefs||{});
+      P.defaultSpaceSheets=Object.assign({},src.defaultSpaceSheets||{});
       P.spaceNames=(src.spaceNames||[]).slice();
       P.locations=(src.locations||src.spaceNames||[]).slice();
       P.spaceDNA=Object.assign({},src.spaceDNA||{});
@@ -82312,23 +82496,28 @@ ${cutList}
       P.defaultObjRefs=Object.assign({},src.defaultObjRefs||{});
       P.costumeAssets=JSON.parse(JSON.stringify(src.costumeAssets||[]));
       P.defaultCostumeRefs=Object.assign({},src.defaultCostumeRefs||{});
+      P.defaultCostumeAssetRefs=Object.assign({},src.defaultCostumeAssetRefs||{});
+      P.defaultSharedCostumeRefs=Object.assign({},src.defaultSharedCostumeRefs||{});
+      P.costumePolicy=JSON.parse(JSON.stringify(src.costumePolicy||{}));
       P.hasCostumes=(src.hasCostumes!==false);
-      if(src.costumes)P.costumes=Object.assign({},src.costumes);
+      P.costumes=Object.assign({},src.costumes||{});
       P.costumeDNA=Object.assign({},src.costumeDNA||{});
       P.combatArmorDNA=Object.assign({},src.combatArmorDNA||{});
-      P.quality=src.quality||P.quality; P.negative=src.negative||P.negative;
-      if(src.lightMap)P.lightMap=Object.assign({},src.lightMap);
-      if(src.emoMap)P.emoMap=Object.assign({},src.emoMap);
+      P.allAssetRefs=JSON.parse(JSON.stringify(src.allAssetRefs||[]));
+      P.quality=src.quality||''; P.negative=src.negative||''; P.stability=src.stability||'';
+      P.lightMap=Object.assign({},src.lightMap||{});
+      P.emoMap=Object.assign({},src.emoMap||{});
       // ★스타일 모드 복사 — 애니 프로젝트(클라우드라이더)는 실사강제 우회, 실사 프로젝트는 해제
       if(src.styleMode) P.styleMode=src.styleMode; else delete P.styleMode;
       if(src.defaultRatio)P.defaultRatio=src.defaultRatio;
     }else{ delete P.styleMode; delete P.sourceProjectKey; }
-    if(selProjKey==='ncity') cuts=mvApplyNcityWardrobe(cuts);
+    if(selectedKey==='ncity') cuts=mvApplyNcityWardrobe(cuts);
     const fallbackLoc=(P.spaceNames&&P.spaceNames[0])||'';
+    const linkedCuts=cuts.map(c=>mvSanitizeLinkedCut(c,c,selectedKey));
     P.name='🎬 '+audioTitle()+(src?(' — '+src.name):'');
     P.epTitles={'1':audioTitle()};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selProjKey||'',costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
+    P.storyboardShots=linkedCuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selectedKey,costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
     saveMV(); pushHistory();
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);
@@ -82395,7 +82584,7 @@ ${cutList}
     });
     if(!allocations.length){ alert('음원은 최대 '+MV_MAX_TRACKS+'곡까지 참조할 수 있습니다. 기존 곡을 제거한 뒤 추가하세요.'); return; }
     if(incoming.length>allocations.length) alert((incoming.length-allocations.length)+'곡은 최대 '+MV_MAX_TRACKS+'곡 제한으로 추가하지 않았습니다.');
-    mvSessionId=''; cuts=[]; analysis=null; selProjKey='';
+    mvSessionId=''; cuts=[]; analysis=null; selProjKey=''; mvDraftProjectKey='';
     resetGeneratedMVUI();
     for(const allocation of allocations){
       const f=allocation.f;
@@ -82423,7 +82612,7 @@ ${cutList}
     saveMV();
   }
   function clearAudio(){
-    audioTracks=[]; cuts=[]; analysis=null; selProjKey=''; mvSessionId='';
+    audioTracks=[]; cuts=[]; analysis=null; selProjKey=''; mvDraftProjectKey=''; mvSessionId='';
     $('mvsAudio').value='';
     resetGeneratedMVUI(); renderAudioTracks();
     $('mvsAudLblTxt').textContent='🎵 음원 선택·추가 (최대 3곡)';
@@ -82431,9 +82620,14 @@ ${cutList}
     saveMV();
   }
 
-  function open(){ $('mvStudio').classList.add('mvs-open'); document.body.style.overflow='hidden'; window.scrollTo(0,0); }
-  function close(){ $('mvStudio').classList.remove('mvs-open'); document.body.style.overflow=''; }
-  window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); if(selProjKey&&$('mvsProj')) $('mvsProj').value=selProjKey; open(); };
+  function open(){
+    if(cuts.length){ renderCuts(); $('mvsStep2').classList.remove('off'); if(selProjKey)$('mvsStep3').classList.remove('off'); }
+    updateRecoveryUI();
+    $('mvStudio').classList.add('mvs-open'); document.body.style.overflow='hidden'; window.scrollTo(0,0);
+    if(!cuts.length&&readHist().length) toggleHist(true);
+  }
+  function close(){ saveMV(); pushHistory(); updateRecoveryUI(); $('mvStudio').classList.remove('mvs-open'); document.body.style.overflow=''; }
+  window.openMVStudio=function(){ renderGenres(); renderRecipe(); fillProjects(); if((mvDraftProjectKey||selProjKey)&&$('mvsProj')) $('mvsProj').value=mvDraftProjectKey||selProjKey; open(); };
 
   function init(){
     if(!$('mvsClose'))return;
@@ -82449,12 +82643,29 @@ ${cutList}
     if($('mvsSkip')) $('mvsSkip').onclick=skipToStoryboard;
     if($('mvsHistBtn')) $('mvsHistBtn').onclick=()=>toggleHist();
     (function(){ var ss=$('mvsStyleSel'); if(ss && typeof window.styleOptionsHtml==='function'){ ss.innerHTML=window.styleOptionsHtml(); var def=(typeof PROJECTS!=='undefined'&&PROJECTS['mv-remake']&&PROJECTS['mv-remake'].styleMode)||'mvglossy'; if(ss.querySelector('option[value="'+def+'"]')) ss.value=def; } })();
-    $('mvsProj').addEventListener('change',()=>{ $('mvsLink').disabled=!$('mvsProj').value||!cuts.length; if(cuts.length) renderCuts(); });
+    $('mvsProj').addEventListener('change',()=>{
+      const nextKey=mvSelectedProjectKey();
+      if(nextKey!==selProjKey){
+        const previousWorkspaceKey=mvDraftProjectKey||selProjKey||'';
+        if(cuts.length&&previousWorkspaceKey&&nextKey!==previousWorkspaceKey){ pushHistory(); mvSessionId=''; }
+        cuts=cuts.map(mvResetCutProjectBindings);
+        selProjKey=''; mvDraftProjectKey=nextKey;
+        $('mvsStep3').classList.add('off');
+        $('mvsProjInfo').textContent=nextKey?'프로젝트가 변경되었습니다. 인물·공간을 다시 연동하세요.':'';
+        $('mvsLinkStat').textContent='';
+        saveMV();
+        if(cuts.length&&nextKey) pushHistory();
+      }
+      $('mvsLink').disabled=!nextKey||!cuts.length;
+      if(cuts.length) renderCuts();
+    });
     $('mvsLink').onclick=linkProject;
     $('mvsToProject').onclick=toProject;
     $('mvsCopyAll').onclick=()=>copyText(cuts.map(c=>String(c.no).padStart(2,'0')+'. ['+c.sec+' '+c.tc+'] '+cutPrompt(c)).join('\n\n'),$('mvsCopyAll'));
     $('mvsGenres').addEventListener('click',e=>{const b=e.target.closest('.mvs-g');if(!b)return;gi=+b.dataset.i;document.querySelectorAll('#mvsGenres .mvs-g').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRecipe();});
+    window.addEventListener('pagehide',()=>{saveMV();pushHistory();});
     restoreMV();
+    updateRecoveryUI();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

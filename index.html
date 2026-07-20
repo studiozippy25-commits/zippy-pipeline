@@ -69228,6 +69228,38 @@ function cloudRiderLocationCode(value, projectOverride) {
   }) || '';
 }
 
+function cloudRiderLocationFromShotText(shot, projectOverride) {
+  const project = projectOverride || currentProject;
+  const names = (project && (project.spaceNames || project.locations)) || [];
+  if (!shot || !names.length) return '';
+  const source = [shot.loc, shot.rawLocation, shot.sceneName, shot.frame, shot.desc, shot.screen]
+    .filter(Boolean).join(' ').toLowerCase().replace(/무래동/g, '문래동');
+  if (!source.trim()) return '';
+  let best = '';
+  let bestScore = 0;
+  names.forEach(function(name) {
+    const aliases = [String(name).replace(/^\[CR-SP-[A-Z0-9-]+\]\s*/i, '')];
+    Object.keys(CLOUDRIDER_LEGACY_LOCATION_MAP).forEach(function(legacy) {
+      if (CLOUDRIDER_LEGACY_LOCATION_MAP[legacy] === name) aliases.push(legacy);
+    });
+    let score = 0;
+    aliases.forEach(function(alias) {
+      const normalized = String(alias).toLowerCase();
+      let aliasScore = source.indexOf(normalized) !== -1 ? 20 : 0;
+      const tokens = normalized.split(/[\s·,\-\/]+/).filter(function(token) { return token.length >= 2; });
+      tokens.forEach(function(token) {
+        if (source.indexOf(token) !== -1) aliasScore += Math.min(token.length, 6);
+      });
+      if (aliasScore > score) score = aliasScore;
+    });
+    if (score > bestScore) {
+      best = name;
+      bestScore = score;
+    }
+  });
+  return best;
+}
+
 function isCloudRiderProject() {
   if (currentProjectKey === 'cloudrider' || isCloudRiderProjectData(currentProject)) return true;
   if (currentProjectKey !== 'mv-remake') return false;
@@ -69263,8 +69295,11 @@ function cloudRiderCanonicalLocationForShot(shot, projectOverride) {
   const project = projectOverride || currentProject;
   if (!isCloudRiderProjectContext(project)) return '';
   const names = project.spaceNames || project.locations || [];
-  const mvNumber = shot && shot.mv && String(shot.id || '').match(/(\d+)$/);
-  if (mvNumber && names.length) return names[(Math.max(1, Number(mvNumber[1])) - 1) % names.length] || names[0] || '';
+  const explicit = cloudRiderLocationCode(shot && shot.loc, project);
+  if (explicit) return explicit;
+  const inferred = cloudRiderLocationFromShotText(shot, project);
+  if (inferred) return inferred;
+  if (shot && shot.mv) return names[0] || '';
   const unit = Number(shot && (shot.ep != null ? shot.ep : shot.scene));
   if (Number.isInteger(unit) && unit >= 1 && unit <= names.length) return names[unit - 1] || '';
   return names[0] || '';
@@ -82525,12 +82560,23 @@ ${context?('참고 컨텍스트: '+context):''}
     const objKeys=(src.objectAssets||[]).map(o=>o.key);
     const row=linked||{};
     const no=Math.max(1,Number(c.no)||1);
-    const fallbackLoc=spaces.length?spaces[(no-1)%spaces.length]:'';
     const foreignWorld=/\[SP-[^\]]+\]|N시의 무법자|HEXA|POLY|LAST SHOT|그레이글리치/;
     const sourceDesc=String(c.sourceDesc||c.desc||'');
     let linkedDesc=String(row.desc||sourceDesc);
     if(projectKey==='cloudrider'&&foreignWorld.test(linkedDesc)) linkedDesc=foreignWorld.test(sourceDesc)?('CloudRider 티저 전환 컷 '+no):sourceDesc;
     const linkedLocation=projectKey==='cloudrider'?cloudRiderLocationCode(row.loc,src):row.loc;
+    const currentLocation=projectKey==='cloudrider'?cloudRiderLocationCode(c.loc,src):c.loc;
+    const inferredLocation=projectKey==='cloudrider'?cloudRiderLocationFromShotText({
+      loc:row.loc||c.loc||'',
+      rawLocation:row.rawLocation||c.rawLocation||'',
+      sceneName:row.sceneName||c.sceneName||'',
+      frame:row.frame||c.frame||'',
+      desc:linkedDesc||sourceDesc,
+      screen:row.screen||c.screen||''
+    },src):'';
+    const fallbackLoc=projectKey==='cloudrider'
+      ? (currentLocation||inferredLocation||spaces[0]||'')
+      : (spaces.length?spaces[(no-1)%spaces.length]:'');
     const next=Object.assign({},c,{
       sourceDesc:c.sourceDesc||c.desc||'',
       desc:linkedDesc,

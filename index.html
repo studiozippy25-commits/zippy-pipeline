@@ -81771,6 +81771,20 @@ function updatePromptPreview() {
 #mvStudio .note{font-family:var(--mvs-mono);font-size:11px;color:var(--mvs-dim)}
 #mvStudio .mvs-analysis{display:none;margin-top:12px;padding:11px 13px;border:1px solid rgba(58,208,192,.3);background:rgba(58,208,192,.06);border-radius:9px;font-family:var(--mvs-mono);font-size:12px;line-height:1.6;color:var(--mvs-ink)}
 #mvStudio .mvs-analysis b{color:var(--mvs-a2)}
+#mvStudio .mvs-audio-list{display:grid;gap:8px;margin-top:10px}
+#mvStudio .mvs-track{display:grid;grid-template-columns:30px minmax(0,1fr) minmax(180px,280px) auto;gap:9px;align-items:center;padding:9px 10px;border:1px solid var(--mvs-line);border-radius:8px;background:var(--mvs-bg)}
+#mvStudio .mvs-track .mvs-track-no{font-family:var(--mvs-disp);font-size:18px;color:var(--mvs-a2);text-align:center}
+#mvStudio .mvs-track .mvs-track-meta{min-width:0}
+#mvStudio .mvs-track .mvs-track-name{font-size:12px;font-weight:700;color:var(--mvs-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mvStudio .mvs-track .mvs-track-state{font-family:var(--mvs-mono);font-size:9px;color:var(--mvs-dim);margin-top:2px}
+#mvStudio .mvs-track audio{width:100%;height:30px}
+#mvStudio .mvs-track-tools{display:flex;gap:4px}
+#mvStudio .mvs-track-btn{width:30px;height:30px;padding:0;border:1px solid var(--mvs-line);border-radius:5px;background:transparent;color:var(--mvs-dim);cursor:pointer;font-size:13px}
+#mvStudio .mvs-track-btn:hover:not(:disabled){border-color:var(--mvs-a2);color:var(--mvs-ink)}
+#mvStudio .mvs-track-btn:disabled{opacity:.28;cursor:default}
+#mvStudio .mvs-track-btn.del{border-color:rgba(255,90,120,.42);color:var(--mvs-rec)}
+#mvStudio .mvs-track-summary{font-family:var(--mvs-mono);font-size:10px;color:var(--mvs-dim);margin-top:7px}
+#mvStudio .mvs-cut .ctrack{font-family:var(--mvs-mono);font-size:9.5px;color:#0a0a0f;background:var(--mvs-a);padding:2px 6px;border-radius:4px;font-weight:700}
 /* storyboard */
 #mvStudio .mvs-sb{display:none;margin-top:14px;flex-direction:column}
 #mvStudio .mvs-sb.show{display:flex}
@@ -81806,6 +81820,7 @@ function updatePromptPreview() {
 #mvStudio .mvs-foot{margin-top:26px;padding-top:14px;border-top:1px solid var(--mvs-line);font-family:var(--mvs-mono);font-size:10.5px;color:var(--mvs-dim2)}
 #mvStudio .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--mvs-dim2);border-top-color:var(--mvs-a2);border-radius:50%;animation:mvspin .7s linear infinite;vertical-align:-1px;margin-right:6px}
 @keyframes mvspin{to{transform:rotate(360deg)}}
+@media(max-width:760px){#mvStudio .mvs-track{grid-template-columns:30px minmax(0,1fr) auto}#mvStudio .mvs-track audio{grid-column:2/4}}
 @media(max-width:640px){#mvStudio select{min-width:0;width:100%}}
 </style>
 
@@ -81830,17 +81845,20 @@ function updatePromptPreview() {
     <div class="mvs-step" id="mvsStep1">
       <div class="mvs-sl"><b>1</b> 음원 업로드</div>
       <div class="mvs-row">
-        <label class="mvs-up" for="mvsAudio"><span id="mvsAudLblTxt">🎵 음원 파일 선택 (mp3·wav)</span></label>
-        <input type="file" id="mvsAudio" accept="audio/*" hidden>
-        <audio id="mvsPlayer" controls style="display:none"></audio>
-        <button class="mvs-btn" id="mvsClear" style="display:none;border-color:var(--mvs-rec);color:var(--mvs-rec)">✕ 음원 제거</button>
+        <label class="mvs-up" for="mvsAudio"><span id="mvsAudLblTxt">🎵 음원 선택·추가 (최대 3곡)</span></label>
+        <input type="file" id="mvsAudio" accept="audio/*" multiple hidden>
+        <button class="mvs-btn" id="mvsClear" style="display:none;border-color:var(--mvs-rec);color:var(--mvs-rec)">✕ 전체 제거</button>
       </div>
-      <div class="note" id="mvsAudNote" style="margin-top:8px">mp3 권장. 큰 wav는 자동으로 모노·16kHz로 경량화한 뒤 분석합니다.</div>
-      <textarea id="mvsContext" placeholder="(선택) 곡 컨텍스트·가사·주제를 넣으면 분석이 더 정확해집니다"></textarea>
+      <div id="mvsAudioList" class="mvs-audio-list"></div>
+      <div class="note" id="mvsAudNote" style="margin-top:8px">선택 순서가 티저의 곡 순서입니다. mp3 권장, 총 분석 용량은 14MB까지입니다.</div>
+      <textarea id="mvsContext" placeholder="(선택) 티저 컨텍스트·곡별 사용 의도·가사·전환 아이디어를 넣으면 분석이 더 정확해집니다"></textarea>
       <div class="mvs-row" style="margin-top:10px">
         <span class="note">컷 수</span>
         <input type="number" id="mvsCount" value="30" min="4" max="300" step="1" title="원하는 컷 수를 직접 입력 (4~300)" style="width:76px;padding:9px 10px;border:1px solid var(--mvs-line);border-radius:6px;background:var(--mvs-bg);color:#fff;font-family:inherit;font-size:13px;text-align:center">
         <span class="note" style="font-size:11px">직접 입력 (4~300)</span>
+        <span class="note">티저</span>
+        <input type="number" id="mvsDuration" value="90" min="15" max="300" step="5" title="완성 티저 길이 (15~300초)" style="width:76px;padding:9px 10px;border:1px solid var(--mvs-line);border-radius:6px;background:var(--mvs-bg);color:#fff;font-family:inherit;font-size:13px;text-align:center">
+        <span class="note" style="font-size:11px">초</span>
         <button class="mvs-btn p" id="mvsAnalyze" disabled>🎬 오디오 분석 &amp; 씬 생성</button>
         <button class="mvs-btn" id="mvsSkip" title="음원 없이 빈 스토리보드로 바로 이동">⏭ 곡 없이 스토리보드</button>
         <span class="note" id="mvsAnStat"></span>
@@ -81904,21 +81922,71 @@ function updatePromptPreview() {
   ];
 
   const $=id=>document.getElementById(id);
-  let audio={b64:null,mime:'',name:'',dataUrl:''};
+  const MV_MAX_TRACKS=3;
+  const MV_MAX_INLINE_BYTES=14*1024*1024;
+  let audioTracks=[];
   let cuts=[], analysis=null, selProjKey='', gi=-1;
+
+  function audioTitle(){
+    const names=audioTracks.map(t=>String(t.name||'').replace(/\.(mp3|wav|m4a|aac|ogg|flac)$/i,'')).filter(Boolean);
+    return names.length?names.join(' + '):'MV';
+  }
+  function readyAudioTracks(){ return audioTracks.filter(t=>t&&t.b64&&!t.preparing); }
+  function b64Bytes(v){ return Math.ceil(String(v||'').length*3/4); }
+  function totalAnalysisBytes(){ return readyAudioTracks().reduce((n,t)=>n+b64Bytes(t.b64),0); }
+  function syncAnalyzeButton(){
+    const btn=$('mvsAnalyze'); if(!btn) return;
+    btn.disabled=!audioTracks.length||readyAudioTracks().length!==audioTracks.length||totalAnalysisBytes()>MV_MAX_INLINE_BYTES;
+  }
+  function renderAudioTracks(){
+    const list=$('mvsAudioList'); if(!list) return;
+    list.innerHTML=audioTracks.map((t,i)=>'<div class="mvs-track">'
+      +'<div class="mvs-track-no">'+(i+1)+'</div>'
+      +'<div class="mvs-track-meta"><div class="mvs-track-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div><div class="mvs-track-state">'+(t.preparing?'분석용 오디오 준비 중':(t.b64?'준비됨':(t.error?'준비 실패':'재첨부 필요')))+' · '+((Number(t.size)||0)/1024/1024).toFixed(1)+'MB</div></div>'
+      +(t.dataUrl?'<audio controls preload="metadata" src="'+esc(t.dataUrl)+'"></audio>':'<div class="note">미리듣기 없음</div>')
+      +'<div class="mvs-track-tools"><button class="mvs-track-btn" data-track-act="up" data-i="'+i+'" title="앞으로 이동" aria-label="앞으로 이동" '+(i===0?'disabled':'')+'>↑</button><button class="mvs-track-btn" data-track-act="down" data-i="'+i+'" title="뒤로 이동" aria-label="뒤로 이동" '+(i===audioTracks.length-1?'disabled':'')+'>↓</button><button class="mvs-track-btn del" data-track-act="remove" data-i="'+i+'" title="이 곡 제거" aria-label="이 곡 제거">✕</button></div>'
+      +'</div>').join('');
+    list.querySelectorAll('[data-track-act]').forEach(btn=>btn.onclick=()=>{
+      const i=Number(btn.dataset.i), act=btn.dataset.trackAct;
+      if(!audioTracks[i]) return;
+      if(act==='remove') audioTracks.splice(i,1);
+      else { const j=act==='up'?i-1:i+1; if(j<0||j>=audioTracks.length)return; const t=audioTracks[i]; audioTracks[i]=audioTracks[j]; audioTracks[j]=t; }
+      mvSessionId=''; analysis=null; cuts=[]; selProjKey='';
+      resetGeneratedMVUI(); renderAudioTracks(); syncAnalyzeButton(); saveMV();
+    });
+    const total=totalAnalysisBytes()/1024/1024;
+    $('mvsAudLblTxt').textContent=audioTracks.length< MV_MAX_TRACKS?'🎵 음원 추가 ('+audioTracks.length+'/'+MV_MAX_TRACKS+')':'🎵 최대 '+MV_MAX_TRACKS+'곡 선택됨';
+    $('mvsClear').style.display=audioTracks.length?'inline-flex':'none';
+    syncAnalyzeButton();
+    const note=$('mvsAudNote');
+    if(note&&!audioTracks.some(t=>t.preparing)) note.textContent=total>14?'총 '+total.toFixed(1)+'MB · 14MB 초과: 곡을 줄여주세요':'✓ '+audioTracks.length+'곡 · 분석용 '+total.toFixed(1)+'MB · 표시 순서대로 조합 분석';
+  }
+  function resetGeneratedMVUI(){
+    const an=$('mvsAnalysis'); if(an) an.style.display='none';
+    const sb=$('mvsSB'); if(sb) sb.classList.remove('show');
+    const list=$('mvsList'); if(list) list.innerHTML='';
+    const step2=$('mvsStep2'); if(step2) step2.classList.add('off');
+    const step3=$('mvsStep3'); if(step3) step3.classList.add('off');
+    if($('mvsAnStat')) $('mvsAnStat').textContent='';
+    if($('mvsProj')) $('mvsProj').value='';
+    if($('mvsLink')) $('mvsLink').disabled=true;
+    if($('mvsLinkStat')) $('mvsLinkStat').textContent='';
+    if($('mvsProjInfo')) $('mvsProjInfo').textContent='';
+  }
 
   // ── 작업물 영속화(localStorage) — 스튜디오 나갔다/리로드해도 유지 ──
   const MV_KEY='zippy_mvstudio_v1';
   function saveMV(){
     // 저장할 게 없으면 키 제거(빈 상태 클로버링 방지)
-    if(!(cuts&&cuts.length) && !(audio&&audio.name) && !analysis){ try{localStorage.removeItem(MV_KEY);}catch(e){} return; }
-    const base={ v:1, cuts, analysis, selProjKey, gi,
+    if(!(cuts&&cuts.length) && !audioTracks.length && !analysis){ try{localStorage.removeItem(MV_KEY);}catch(e){} return; }
+    const meta=audioTracks.map(t=>({name:t.name||'',mime:t.mime||'',size:Number(t.size)||0}));
+    const base={ v:2, cuts, analysis, selProjKey, gi,
       count:(($('mvsCount')||{}).value)||'', context:(($('mvsContext')||{}).value)||'',
-      audioName:(audio&&audio.name)||'', audioMime:(audio&&audio.mime)||'' };
+      duration:(($('mvsDuration')||{}).value)||'', audioTracks:meta };
     // 용량 초과 시 무거운 오디오 필드부터 단계적으로 떨궈 핵심(cuts)은 반드시 저장
     const tiers=[
-      Object.assign({}, base, {audioDataUrl:(audio&&audio.dataUrl)||'', audioB64:(audio&&audio.b64)||''}),
-      Object.assign({}, base, {audioB64:(audio&&audio.b64)||''}),
+      Object.assign({}, base, {audioTracks:audioTracks.map(t=>({name:t.name||'',mime:t.mime||'',size:Number(t.size)||0,dataUrl:t.dataUrl||'',b64:t.b64||''}))}),
+      Object.assign({}, base, {audioTracks:audioTracks.map(t=>({name:t.name||'',mime:t.mime||'',size:Number(t.size)||0,b64:t.b64||''}))}),
       base
     ];
     for(let i=0;i<tiers.length;i++){
@@ -81931,12 +81999,13 @@ function updatePromptPreview() {
     cuts=Array.isArray(s.cuts)?s.cuts:[];
     analysis=s.analysis||null; selProjKey=s.selProjKey||'';
     gi=(typeof s.gi==='number')?s.gi:-1;
-    audio={ b64:s.audioB64||null, mime:s.audioMime||'', name:s.audioName||'', dataUrl:s.audioDataUrl||'' };
+    audioTracks=Array.isArray(s.audioTracks)?s.audioTracks.map(t=>({b64:t.b64||null,mime:t.mime||'',name:t.name||'',dataUrl:t.dataUrl||'',size:Number(t.size)||0,preparing:false})).slice(0,MV_MAX_TRACKS):[];
+    if(!audioTracks.length&&s.audioName) audioTracks=[{b64:s.audioB64||null,mime:s.audioMime||'',name:s.audioName||'',dataUrl:s.audioDataUrl||'',size:0,preparing:false}];
     if($('mvsCount')&&s.count) $('mvsCount').value=s.count;
+    if($('mvsDuration')&&s.duration) $('mvsDuration').value=s.duration;
     if($('mvsContext')&&s.context) $('mvsContext').value=s.context;
-    if(audio.dataUrl){ const pl=$('mvsPlayer'); if(pl){ pl.src=audio.dataUrl; pl.style.display='inline-block'; } const cb=$('mvsClear'); if(cb) cb.style.display='inline-flex'; }
-    if(audio.name && $('mvsAudLblTxt')) $('mvsAudLblTxt').textContent='🎵 '+audio.name+' (복원됨)';
-    if(audio.b64){ if($('mvsAnalyze')) $('mvsAnalyze').disabled=false; if($('mvsAudNote')) $('mvsAudNote').textContent='✓ 이전 작업 복원됨 — 이어서 진행하거나 재분석하세요'; }
+    renderAudioTracks();
+    if(audioTracks.length&&readyAudioTracks().length!==audioTracks.length&&$('mvsAudNote')) $('mvsAudNote').textContent='곡 목록은 복원됐지만 오디오 데이터는 저장 한도를 넘어 빠졌습니다. 같은 곡을 다시 첨부하면 재분석할 수 있습니다.';
     if(analysis) renderAnalysis();
     if(cuts.length){
       renderCuts();
@@ -81954,7 +82023,6 @@ function updatePromptPreview() {
     const n=Math.max(4,Math.min(300,parseInt(($('mvsCount')&&$('mvsCount').value)||'30',10)||30));
     cuts=[]; for(let i=1;i<=n;i++) cuts.push({no:i,sec:'',tc:'',type:'',desc:'',energy:'',char:[],loc:''});
     analysis=null;
-    if(!audio||!audio.name) audio=Object.assign({b64:null,mime:'',name:'(곡 없음)',dataUrl:''}, audio||{}, {name:(audio&&audio.name)||'(곡 없음)'});
     mvSessionId=''; // 새 세션
     renderCuts();
     $('mvsStep2').classList.remove('off');
@@ -81977,11 +82045,11 @@ function updatePromptPreview() {
   function pushHistory(){
     if(!(cuts&&cuts.length)) return;
     if(!mvSessionId) mvSessionId=newSessionId();
-    const entry={ id:mvSessionId, ts:Date.now(), name:(audio&&audio.name)||'(제목 없음)',
+    const entry={ id:mvSessionId, ts:Date.now(), name:audioTitle(), trackNames:audioTracks.map(t=>t.name||'').filter(Boolean),
       cutCount:cuts.length, projKey:selProjKey||'',
       projName:(selProjKey&&PROJECTS[selProjKey]&&PROJECTS[selProjKey].name)||'',
       cuts:JSON.parse(JSON.stringify(cuts)), analysis:analysis?JSON.parse(JSON.stringify(analysis)):null,
-      count:(($('mvsCount')||{}).value)||'', context:(($('mvsContext')||{}).value)||'' };
+      count:(($('mvsCount')||{}).value)||'', duration:(($('mvsDuration')||{}).value)||'', context:(($('mvsContext')||{}).value)||'' };
     const arr=readHist().filter(e=>e.id!==mvSessionId);
     arr.unshift(entry);
     writeHist(arr);
@@ -82012,10 +82080,13 @@ function updatePromptPreview() {
     const e=readHist().find(x=>x.id===id); if(!e) return;
     cuts=Array.isArray(e.cuts)?JSON.parse(JSON.stringify(e.cuts)):[];
     analysis=e.analysis||null; selProjKey=e.projKey||''; mvSessionId=e.id;
-    if(!audio) audio={b64:null,mime:'',name:'',dataUrl:''};
-    audio.name=e.name||audio.name||'';
+    const historyNames=Array.isArray(e.trackNames)&&e.trackNames.length?e.trackNames:[e.name].filter(Boolean);
+    const currentNames=audioTracks.map(t=>t.name);
+    if(historyNames.join('\n')!==currentNames.join('\n')) audioTracks=historyNames.slice(0,MV_MAX_TRACKS).map(name=>({b64:null,mime:'',name,dataUrl:'',size:0,preparing:false}));
     if($('mvsCount')&&e.count) $('mvsCount').value=e.count;
+    if($('mvsDuration')&&e.duration) $('mvsDuration').value=e.duration;
     if($('mvsContext')) $('mvsContext').value=e.context||'';
+    renderAudioTracks();
     if(analysis) renderAnalysis();
     renderCuts();
     $('mvsStep2').classList.remove('off');
@@ -82037,23 +82108,36 @@ function updatePromptPreview() {
 
   // ── ① 오디오 분석 + 씬 생성 (Gemini audio) ──
   async function analyzeAudio(){
-    if(!audio.b64) return;
+    const tracks=readyAudioTracks();
+    if(!tracks.length||tracks.length!==audioTracks.length) return;
+    if(totalAnalysisBytes()>MV_MAX_INLINE_BYTES){ $('mvsAnStat').innerHTML='<span style="color:var(--mvs-rec)">✗ 분석용 오디오 합계가 14MB를 넘습니다. 곡을 줄여주세요.</span>'; return; }
     const count=Math.max(4,Math.min(300,parseInt($('mvsCount').value||'30',10)||30));
+    const teaserSeconds=Math.max(15,Math.min(300,parseInt(($('mvsDuration')&&$('mvsDuration').value)||'90',10)||90));
     const context=($('mvsContext').value||'').trim();
     const btn=$('mvsAnalyze'); btn.disabled=true;
-    $('mvsAnStat').innerHTML='<span class="spin"></span>Gemini가 음원을 듣고 분석 중…';
+    $('mvsAnStat').innerHTML='<span class="spin"></span>Gemini가 '+tracks.length+'곡을 비교하고 티저 흐름을 설계 중…';
     const model='gemini-2.5-flash';
+    const trackList=tracks.map((t,i)=>(i+1)+'. '+t.name).join('\n');
     const prompt=
-`너는 뮤직비디오 감독이다. 첨부된 음원을 실제로 듣고 분석한 뒤 뮤직비디오 스토리보드를 짠다.
-먼저 분석: 추정 BPM, 무드, 에너지 곡선, 곡 구조(인트로/벌스/훅/브릿지/아웃트로 + 대략 타임코드), 가사가 있으면 주제.
+`너는 영화 티저와 뮤직비디오를 함께 설계하는 음악감독 겸 MV 감독이다. 첨부된 ${tracks.length}곡을 각각 실제로 듣고, 표시된 순서대로 조합한 하나의 티저 스토리보드를 만든다.
+첨부 곡 순서:
+${trackList}
+
+각 곡마다 추정 BPM, 무드, 에너지 곡선, 구조(인트로/벌스/훅/브릿지/아웃트로와 원곡 타임코드), 보컬·가사 주제를 따로 분석한다. 이어서 어느 곡의 어느 구간에서 다음 곡으로 넘어가야 자연스러운지 전환 계획을 작성한다. 모든 곡을 최소 한 구간 이상 사용하고, 서로 다른 곡의 타임코드를 섞지 않는다.
 ${context?('참고 컨텍스트: '+context):''}
-그 분석에 근거해 정확히 ${count}개의 서로 다른 컷을 작성. 곡의 에너지·구조·무드 변화에 맞춰 컷 강도/내용이 변해야 하고, 훅엔 시각적 하이라이트를 둔다. 모든 컷은 장소·피사체·행동·카메라가 서로 다르게(반복 금지). 이 단계에선 특정 인물명 없이 '주인공/퍼포머' 수준으로.
+완성 티저 길이는 정확히 약 ${teaserSeconds}초다. 그 흐름에 근거해 정확히 ${count}개의 서로 다른 컷을 작성한다. tc는 완성 티저의 누적 타임코드, sourceTc는 해당 원곡에서 실제로 가져올 타임코드다. track은 1~${tracks.length} 중 하나다. 곡 전환 직전과 직후에는 화면·동작·리듬을 연결하는 매치컷 또는 사운드 브리지를 둔다. 곡의 에너지·구조·무드 변화에 맞춰 컷 강도와 내용이 변해야 하고, 핵심 훅에는 시각적 하이라이트를 둔다. 모든 컷은 장소·피사체·행동·카메라가 서로 다르게 한다. 이 단계에서는 특정 인물명 없이 '주인공/퍼포머' 수준으로 쓴다.
 반드시 아래 JSON만 출력(설명 금지):
-{"analysis":{"bpm":"~120","mood":"...","structure":"...","lyricsTheme":"..."},"cuts":[{"sec":"섹션","tc":"m:ss","shot":"샷 앵글 렌즈 무빙","desc":"구체 한국어 한 문장(장소+피사체+행동+빛)","energy":"low|mid|high"}]}`;
+{"analysis":{"tracks":[{"track":1,"name":"곡명","bpm":"~120","mood":"...","structure":"...","lyricsTheme":"...","recommendedRange":"0:00-0:30"}],"transitionPlan":"1번 곡 0:00-0:28 → 전환 방식 → 2번 곡 0:42-1:10","mood":"전체 티저 무드","structure":"전체 티저 구조"},"cuts":[{"track":1,"sourceTc":"0:12","sec":"인트로","tc":"0:00","shot":"샷 앵글 렌즈 무빙","desc":"구체 한국어 한 문장(장소+피사체+행동+빛)","energy":"low|mid|high"}]}`;
     try{
+      const requestParts=[];
+      tracks.forEach((t,i)=>{
+        requestParts.push({text:'REFERENCE TRACK '+(i+1)+' — '+t.name});
+        requestParts.push({inline_data:{mime_type:t.mime,data:t.b64}});
+      });
+      requestParts.push({text:prompt});
       const res=await fetch(`https://pipeline.studiozippy25.workers.dev/proxy/gemini/${model}`,{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:audio.mime,data:audio.b64}},{text:prompt}]}],generationConfig:{responseModalities:['TEXT']}})
+        body:JSON.stringify({contents:[{parts:requestParts}],generationConfig:{responseModalities:['TEXT']}})
       });
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error((e&&e.error&&e.error.message)||('HTTP '+res.status));}
       const data=await res.json();
@@ -82062,7 +82146,7 @@ ${context?('참고 컨텍스트: '+context):''}
       const obj=parseJSONObject(txt);
       if(!obj||!obj.cuts||!obj.cuts.length) throw new Error('분석 파싱 실패');
       analysis=obj.analysis||{};
-      cuts=obj.cuts.map((c,i)=>({no:i+1,sec:String(c.sec||''),tc:String(c.tc||''),type:String(c.shot||''),desc:String(c.desc||''),energy:String(c.energy||''),char:[],loc:''}));
+      cuts=obj.cuts.map((c,i)=>({no:i+1,track:Math.max(1,Math.min(tracks.length,parseInt(c.track,10)||1)),sourceTc:String(c.sourceTc||''),sec:String(c.sec||''),tc:String(c.tc||''),type:String(c.shot||''),desc:String(c.desc||''),energy:String(c.energy||''),char:[],loc:''}));
       renderAnalysis(); renderCuts();
       $('mvsStep2').classList.remove('off');
       $('mvsAnStat').textContent='✓ '+cuts.length+'컷 생성됨 — 아래 2단계에서 프로젝트를 연동하세요';
@@ -82076,7 +82160,8 @@ ${context?('참고 컨텍스트: '+context):''}
   function renderAnalysis(){
     if(!analysis) return;
     const a=analysis, el=$('mvsAnalysis'); el.style.display='block';
-    el.innerHTML=`<b>BPM</b> ${a.bpm||'-'} · <b>무드</b> ${a.mood||'-'}<br><b>구조</b> ${a.structure||'-'}${a.lyricsTheme?('<br><b>가사</b> '+a.lyricsTheme):''}`;
+    const trackRows=Array.isArray(a.tracks)?a.tracks.map(t=>'<div><b>TRACK '+esc(t.track||'')+'</b> '+esc(t.name||'')+' · '+esc(t.bpm||'-')+' · '+esc(t.mood||'-')+(t.recommendedRange?(' · 권장 '+esc(t.recommendedRange)):'')+'</div>').join(''):'';
+    el.innerHTML=trackRows+(a.transitionPlan?('<div style="margin-top:7px"><b>전환</b> '+esc(a.transitionPlan)+'</div>'):'')+'<div style="margin-top:7px"><b>전체 무드</b> '+esc(a.mood||'-')+'<br><b>전체 구조</b> '+esc(a.structure||'-')+'</div>';
   }
 
   function mvSpaces(){
@@ -82097,7 +82182,7 @@ ${context?('참고 컨텍스트: '+context):''}
       return `<div class="mvs-cut">
       <div class="cno">${String(c.no).padStart(2,'0')}</div>
       <div class="cmid">
-        <div class="ctop"><span class="csec">${c.sec}</span><span class="ctc">${c.tc}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
+        <div class="ctop"><span class="ctrack">TRACK ${c.track||1}</span><span class="csec">${c.sec}</span><span class="ctc">티저 ${c.tc}${c.sourceTc?(' · 원곡 '+c.sourceTc):''}</span>${(c.char&&c.char.length)?('<span class="cchar">'+c.char.join(', ')+'</span>'):''}<span class="cshot">${c.type}</span></div>
         <div class="cdesc">${c.desc}</div>
         <div class="cloc"><select class="mvs-locsel" data-i="${i}" title="${spaces.length?'이 컷의 장소 지정':'프로젝트를 선택하면 장소 목록이 나옵니다'}" style="max-width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--mvs-line);border-radius:5px;background:var(--mvs-bg);color:${c.loc?'#fff':'var(--mvs-dim,#889)'}">${opts.join('')}</select></div>${(c.obj&&c.obj.length)?('<div class="cloc" style="color:var(--mvs-a)">🎬 '+c.obj.map(objNm).join(', ')+'</div>'):''}
       </div>
@@ -82110,7 +82195,7 @@ ${context?('참고 컨텍스트: '+context):''}
     });
   }
   function objNm(k){ var src=selProjKey&&PROJECTS[selProjKey]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
-  function cutPrompt(c){ return `"${audio.name||'MV'}" music video — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec} ${c.tc}]`; }
+  function cutPrompt(c){ const t=audioTracks[(Number(c.track)||1)-1]; return `"${audioTitle()}" teaser music video — TRACK ${c.track||1}${t&&t.name?(' '+t.name):''} · source ${c.sourceTc||'-'} · teaser ${c.tc||'-'} — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec}]`; }
 
   function mvNcityDirectCombat(c){
     const objects=Array.isArray(c&&c.obj)?c.obj:[];
@@ -82142,7 +82227,7 @@ ${context?('참고 컨텍스트: '+context):''}
     const spaces=(src.spaceNames||src.locations||[]);
     const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
-    const cutList=cuts.map(c=>`${c.no}. [${c.sec} ${c.tc}] ${c.desc}`).join('\n');
+    const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.desc}`).join('\n');
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
@@ -82152,7 +82237,7 @@ ${context?('참고 컨텍스트: '+context):''}
 인물 DNA 요약:
 ${dna||'(없음)'}
 
-각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다(섹션·타임코드·샷 유지, 곡 흐름 유지). 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
+각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다. TRACK 번호, 원곡 타임코드, 티저 타임코드, 섹션과 샷은 절대 바꾸지 말고 곡 흐름을 유지한다. 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
 컷들:
 ${cutList}
 반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"],"costumeMode":"activity|combat|default"}]`;
@@ -82209,10 +82294,10 @@ ${cutList}
     }else{ delete P.styleMode; delete P.sourceProjectKey; }
     if(selProjKey==='ncity') cuts=mvApplyNcityWardrobe(cuts);
     const fallbackLoc=(P.spaceNames&&P.spaceNames[0])||'';
-    P.name='🎬 '+(audio.name||'MV').replace(/\.(mp3|wav|m4a|aac|ogg)$/i,'')+(src?(' — '+src.name):'');
-    P.epTitles={'1':(audio.name||'MV')};
+    P.name='🎬 '+audioTitle()+(src?(' — '+src.name):'');
+    P.epTitles={'1':audioTitle()};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,sourceProjectKey:selProjKey||'',costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
+    P.storyboardShots=cuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selProjKey||'',costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
     saveMV(); pushHistory();
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);
@@ -82268,16 +82353,50 @@ ${cutList}
     const b64=await blobToB64(blob);
     return {b64,mime:'audio/wav',note:'wav 경량화(모노 16kHz · '+Math.round(blob.size/1024/1024*10)/10+'MB)'};
   }
+  async function addAudioFiles(fileList){
+    const incoming=Array.from(fileList||[]).filter(f=>f&&(/^audio\//.test(f.type)||/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(f.name||'')));
+    if(!incoming.length) return;
+    const reserved=new Set(), allocations=[];
+    incoming.forEach(f=>{
+      const existing=audioTracks.findIndex((t,i)=>!reserved.has(i)&&!t.b64&&!t.preparing&&t.name===f.name);
+      if(existing>=0){ reserved.add(existing); allocations.push({f,index:existing}); }
+      else if(audioTracks.length+allocations.filter(a=>a.index<0).length<MV_MAX_TRACKS) allocations.push({f,index:-1});
+    });
+    if(!allocations.length){ alert('음원은 최대 '+MV_MAX_TRACKS+'곡까지 참조할 수 있습니다. 기존 곡을 제거한 뒤 추가하세요.'); return; }
+    if(incoming.length>allocations.length) alert((incoming.length-allocations.length)+'곡은 최대 '+MV_MAX_TRACKS+'곡 제한으로 추가하지 않았습니다.');
+    mvSessionId=''; cuts=[]; analysis=null; selProjKey='';
+    resetGeneratedMVUI();
+    for(const allocation of allocations){
+      const f=allocation.f;
+      const track={b64:null,mime:f.type||'audio/mpeg',name:f.name||'음원',dataUrl:'',size:Number(f.size)||0,preparing:true,error:'',note:''};
+      if(allocation.index>=0) audioTracks[allocation.index]=track; else audioTracks.push(track);
+      renderAudioTracks();
+      try{
+        track.dataUrl=await fileToDataUrl(f);
+        const prepared=await toAnalysisAudio(f);
+        track.b64=prepared.b64; track.mime=prepared.mime; track.note=prepared.note||'';
+      }catch(err){
+        try{
+          const url=track.dataUrl||await fileToDataUrl(f);
+          track.dataUrl=url; track.b64=String(url).split(',')[1]||''; track.mime=f.type||'audio/mpeg';
+          track.error='경량화 실패, 원본 사용';
+        }catch(fallbackErr){
+          track.b64=null; track.error='준비 실패: '+(fallbackErr&&fallbackErr.message||fallbackErr);
+        }
+      }
+      track.preparing=false;
+      renderAudioTracks();
+    }
+    const total=totalAnalysisBytes()/1024/1024;
+    if(total>14) $('mvsAudNote').textContent='총 '+total.toFixed(1)+'MB · 14MB 초과: 한 곡을 제거하거나 더 작은 파일을 사용하세요.';
+    saveMV();
+  }
   function clearAudio(){
-    audio={b64:null,mime:'',name:'',dataUrl:''}; cuts=[]; analysis=null; selProjKey=''; gi=gi; mvSessionId='';
-    const pl=$('mvsPlayer'); try{pl.pause();}catch(e){} pl.removeAttribute('src'); pl.style.display='none';
-    $('mvsClear').style.display='none'; $('mvsAudio').value='';
-    $('mvsAudLblTxt').textContent='🎵 음원 파일 선택 (mp3·wav)';
-    $('mvsAudNote').textContent='mp3 권장. 큰 wav는 자동으로 모노·16kHz로 경량화한 뒤 분석합니다.';
-    $('mvsAnalyze').disabled=true; $('mvsAnStat').textContent='';
-    $('mvsAnalysis').style.display='none'; $('mvsSB').classList.remove('show'); $('mvsList').innerHTML='';
-    $('mvsStep2').classList.add('off'); $('mvsStep3').classList.add('off');
-    $('mvsProj').value=''; $('mvsLink').disabled=true; $('mvsLinkStat').textContent=''; $('mvsProjInfo').textContent='';
+    audioTracks=[]; cuts=[]; analysis=null; selProjKey=''; mvSessionId='';
+    $('mvsAudio').value='';
+    resetGeneratedMVUI(); renderAudioTracks();
+    $('mvsAudLblTxt').textContent='🎵 음원 선택·추가 (최대 3곡)';
+    $('mvsAudNote').textContent='선택 순서가 티저의 곡 순서입니다. mp3 권장, 총 분석 용량은 14MB까지입니다.';
     saveMV();
   }
 
@@ -82290,25 +82409,9 @@ ${cutList}
     $('mvsClose').onclick=close;
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('mvStudio').classList.contains('mvs-open'))close();});
     $('mvsAudio').addEventListener('change', async e=>{
-      const f=e.target.files&&e.target.files[0]; if(!f)return;
-      mvSessionId=''; // 새 음원 = 새 히스토리 세션
-      audio.name=f.name;
-      const url=await fileToDataUrl(f); audio.dataUrl=url;
-      const pl=$('mvsPlayer'); pl.src=url; pl.style.display='inline-block';
-      $('mvsClear').style.display='inline-flex';
-      $('mvsAudLblTxt').textContent='🎵 '+f.name+' ('+Math.round(f.size/1024/1024*10)/10+'MB)';
-      $('mvsAnStat').textContent=''; $('mvsAnalyze').disabled=true;
-      $('mvsAudNote').innerHTML='<span class="spin"></span>분석용 오디오 준비 중…';
-      try{
-        const a=await toAnalysisAudio(f);
-        audio.b64=a.b64; audio.mime=a.mime;
-        $('mvsAudNote').innerHTML='✓ 준비됨 · '+a.note+' — 컷 수 고르고 분석하세요';
-      }catch(err){
-        audio.b64=String(url).split(',')[1]||''; audio.mime=f.type||'audio/mpeg';
-        $('mvsAudNote').innerHTML='<span style="color:var(--mvs-rec)">경량화 실패 — 원본으로 시도 ('+(err&&err.message||err)+')</span>';
-      }
-      $('mvsAnalyze').disabled=false;
-      saveMV();
+      const selected=Array.from(e.target.files||[]);
+      e.target.value='';
+      await addAudioFiles(selected);
     });
     $('mvsClear').onclick=clearAudio;
     $('mvsAnalyze').onclick=analyzeAudio;

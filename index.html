@@ -69235,27 +69235,45 @@ function cloudRiderLocationFromShotText(shot, projectOverride) {
   const source = [shot.loc, shot.rawLocation, shot.sceneName, shot.frame, shot.desc, shot.screen]
     .filter(Boolean).join(' ').toLowerCase().replace(/무래동/g, '문래동');
   if (!source.trim()) return '';
+  const shortAliases = {
+    'CR-SP-MULLAE-GARAGE': ['문래동 차고', '문래 차고', '서울 문래', '문래동', '문래 골목'],
+    'CR-SP-MAINT-HAON': ['정비 베이', '정비베이'],
+    'CR-SP-MULLAE-ROOFTOP': ['문래동 옥상', '문래 옥상', '옥상 활주대'],
+    'CR-SP-HAN-RIVER': ['한강 상공', '한강'],
+    'CR-SP-GOBI-STATION': ['몽골 고비 관측소', '고비 관측소', '몽골'],
+    'CR-SP-GOBI-ROUTE': ['고비 사구', '고비 모래길'],
+    'CR-SP-CAUCASUS-VILLAGE': ['카프카스 절벽'],
+    'CR-SP-CAUCASUS-CANYON': ['카프카스 협곡'],
+    'CR-SP-HIGHLAND-AIRWAY': ['고산 공중로'],
+    'CR-SP-FREEZING-COCKPIT': ['북해 진입 전'],
+    'CR-SP-ICELAND-HARBOR': ['아이슬란드 항구', '북해 해무'],
+    'CR-SP-AURORA-TOWER': ['오로라 통신탑', '북해 통신탑'],
+    'CR-SP-JAPAN-RESCUE': ['일본 항만'],
+    'CR-SP-COASTAL-RUNWAY': ['해안 활주로', '항만 활주로'],
+    'CR-SP-POLAR-ENTRY': ['극지 진입'],
+    'CR-SP-MAGNETIC-STORM': ['자기폭풍', '극지 하늘'],
+    'CR-SP-BLACK-BEACH': ['검은 해변'],
+    'CR-SP-MEMORY-HAON': ['기억실'],
+    'CR-SP-RETURN-ROUTE': ['서울 귀환', '세계 항로에서 서울로'],
+    'CR-SP-MULLAE-OPEN-SKY': ['문래동 옥상과 열린 하늘', '문래 열린 하늘'],
+    'CR-SP-NORTH-SEA-EXTERIOR': ['북해 외부']
+  };
   let best = '';
   let bestScore = 0;
   names.forEach(function(name) {
     const aliases = [String(name).replace(/^\[CR-SP-[A-Z0-9-]+\]\s*/i, '')];
+    const codeMatch = String(name).match(/^\[(CR-SP-[A-Z0-9-]+)\]/i);
+    if (codeMatch && shortAliases[codeMatch[1].toUpperCase()]) aliases.push.apply(aliases, shortAliases[codeMatch[1].toUpperCase()]);
     Object.keys(CLOUDRIDER_LEGACY_LOCATION_MAP).forEach(function(legacy) {
       if (CLOUDRIDER_LEGACY_LOCATION_MAP[legacy] === name) aliases.push(legacy);
     });
-    let score = 0;
     aliases.forEach(function(alias) {
-      const normalized = String(alias).toLowerCase();
-      let aliasScore = source.indexOf(normalized) !== -1 ? 20 : 0;
-      const tokens = normalized.split(/[\s·,\-\/]+/).filter(function(token) { return token.length >= 2; });
-      tokens.forEach(function(token) {
-        if (source.indexOf(token) !== -1) aliasScore += Math.min(token.length, 6);
-      });
-      if (aliasScore > score) score = aliasScore;
+      const normalized = String(alias).toLowerCase().replace(/무래동/g, '문래동').trim();
+      if (normalized && source.indexOf(normalized) !== -1 && normalized.length > bestScore) {
+        best = name;
+        bestScore = normalized.length;
+      }
     });
-    if (score > bestScore) {
-      best = name;
-      bestScore = score;
-    }
   });
   return best;
 }
@@ -72026,7 +72044,7 @@ function sbLocOptions(sel) {
 function setShotLoc(shotId, val) {
   if (typeof SB_SHOTS === 'undefined') return;
   var s = SB_SHOTS.find(function(x){ return x.id === shotId; });
-  if (s) { s.loc = val; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); saveStoryboardState('shot-location'); }
+  if (s) { s.loc = val; s.locSource = 'manual'; if (typeof buildStoryboardTimeline==='function') buildStoryboardTimeline(); saveStoryboardState('shot-location'); }
 }
 function sbObjName(key){var oa=(currentProject&&currentProject.objectAssets)||[];for(var i=0;i<oa.length;i++){if(oa[i].key===key)return oa[i].name;}return key;}
 function renderShotObjControl(shot){
@@ -82278,7 +82296,7 @@ function updatePromptPreview() {
     if(!s) return;
     cuts=Array.isArray(s.cuts)?s.cuts:[];
     analysis=s.analysis||null; selProjKey=s.selProjKey||''; mvDraftProjectKey=s.draftProjKey||selProjKey; mvSessionId=s.sessionId||'';
-    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>mvSanitizeLinkedCut(c,c,selProjKey));
+    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>{ const restored=Object.assign({},c,{locationContext:c.locationContext||s.context||''}); return mvSanitizeLinkedCut(restored,restored,selProjKey); });
     gi=(typeof s.gi==='number')?s.gi:-1;
     audioTracks=Array.isArray(s.audioTracks)?s.audioTracks.map(t=>({b64:t.b64||null,mime:t.mime||'',name:t.name||'',dataUrl:t.dataUrl||'',size:Number(t.size)||0,preparing:false})).slice(0,MV_MAX_TRACKS):[];
     if(!audioTracks.length&&s.audioName) audioTracks=[{b64:s.audioB64||null,mime:s.audioMime||'',name:s.audioName||'',dataUrl:s.audioDataUrl||'',size:0,preparing:false}];
@@ -82303,7 +82321,8 @@ function updatePromptPreview() {
   // ── 곡 없이 바로 스토리보드(빈 스캐폴드) ──
   function skipToStoryboard(){
     const n=Math.max(4,Math.min(300,parseInt(($('mvsCount')&&$('mvsCount').value)||'30',10)||30));
-    cuts=[]; for(let i=1;i<=n;i++) cuts.push({no:i,sec:'',tc:'',type:'',desc:'',energy:'',char:[],loc:''});
+    const locationContext=(($('mvsContext')||{}).value)||'';
+    cuts=[]; for(let i=1;i<=n;i++) cuts.push({no:i,sec:'',tc:'',type:'',desc:'',energy:'',char:[],loc:'',locationContext});
     analysis=null;
     mvSessionId=''; // 새 세션
     renderCuts();
@@ -82420,7 +82439,7 @@ function updatePromptPreview() {
     const e=readHist().find(x=>x.id===id); if(!e) return;
     cuts=Array.isArray(e.cuts)?JSON.parse(JSON.stringify(e.cuts)):[];
     analysis=e.analysis||null; selProjKey=e.projKey||''; mvDraftProjectKey=e.draftProjKey||selProjKey; mvSessionId=e.id;
-    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>mvSanitizeLinkedCut(c,c,selProjKey));
+    if(selProjKey&&PROJECTS[selProjKey]) cuts=cuts.map(c=>{ const restored=Object.assign({},c,{locationContext:c.locationContext||e.context||''}); return mvSanitizeLinkedCut(restored,restored,selProjKey); });
     const historyNames=Array.isArray(e.trackNames)&&e.trackNames.length?e.trackNames:[e.name].filter(Boolean);
     const currentNames=audioTracks.map(t=>t.name);
     if(historyNames.join('\n')!==currentNames.join('\n')) audioTracks=historyNames.slice(0,MV_MAX_TRACKS).map(name=>({b64:null,mime:'',name,dataUrl:'',size:0,preparing:false}));
@@ -82468,8 +82487,9 @@ function updatePromptPreview() {
 ${trackList}
 
 각 곡마다 추정 BPM, 무드, 에너지 곡선, 구조(인트로/벌스/훅/브릿지/아웃트로와 원곡 타임코드), 보컬·가사 주제를 따로 분석한다. 이어서 어느 곡의 어느 구간에서 다음 곡으로 넘어가야 자연스러운지 전환 계획을 작성한다. 모든 곡을 최소 한 구간 이상 사용하고, 서로 다른 곡의 타임코드를 섞지 않는다.
-${context?('참고 컨텍스트: '+context):''}
-완성 티저 길이는 정확히 약 ${teaserSeconds}초다. 그 흐름에 근거해 정확히 ${count}개의 서로 다른 컷을 작성한다. tc는 완성 티저의 누적 타임코드, sourceTc는 해당 원곡에서 실제로 가져올 타임코드다. track은 1~${tracks.length} 중 하나다. 곡 전환 직전과 직후에는 화면·동작·리듬을 연결하는 매치컷 또는 사운드 브리지를 둔다. 곡의 에너지·구조·무드 변화에 맞춰 컷 강도와 내용이 변해야 하고, 핵심 훅에는 시각적 하이라이트를 둔다. 모든 컷은 장소·피사체·행동·카메라가 서로 다르게 한다. 이 단계에서는 특정 인물명 없이 '주인공/퍼포머' 수준으로 쓴다.
+참고 컨텍스트가 있으면 그 안의 장소·시대·인물·사건 지시를 최우선으로 유지한다. 같은 시퀀스의 연속 컷은 같은 장소를 유지해도 되며, 다양성은 장소 교체가 아니라 샷·동작·피사체·카메라로 만든다.
+${context?('제작 컨텍스트(권위 지시): '+context):''}
+완성 티저 길이는 정확히 약 ${teaserSeconds}초다. 그 흐름에 근거해 정확히 ${count}개의 서로 다른 컷을 작성한다. tc는 완성 티저의 누적 타임코드, sourceTc는 해당 원곡에서 실제로 가져올 타임코드다. track은 1~${tracks.length} 중 하나다. 곡 전환 직전과 직후에는 화면·동작·리듬을 연결하는 매치컷 또는 사운드 브리지를 둔다. 곡의 에너지·구조·무드 변화에 맞춰 컷 강도와 내용이 변해야 하고, 핵심 훅에는 시각적 하이라이트를 둔다. 장소를 억지로 바꾸지 말고 같은 장소 안에서 피사체·행동·샷·카메라를 다르게 한다. 이 단계에서는 특정 인물명 없이 '주인공/퍼포머' 수준으로 쓴다.
 반드시 아래 JSON만 출력(설명 금지):
 {"analysis":{"tracks":[{"track":1,"name":"곡명","bpm":"~120","mood":"...","structure":"...","lyricsTheme":"...","recommendedRange":"0:00-0:30"}],"transitionPlan":"1번 곡 0:00-0:28 → 전환 방식 → 2번 곡 0:42-1:10","mood":"전체 티저 무드","structure":"전체 티저 구조"},"cuts":[{"track":1,"sourceTc":"0:12","sec":"인트로","tc":"0:00","shot":"샷 앵글 렌즈 무빙","desc":"구체 한국어 한 문장(장소+피사체+행동+빛)","energy":"low|mid|high"}]}`;
     try{
@@ -82490,7 +82510,7 @@ ${context?('참고 컨텍스트: '+context):''}
       const obj=parseJSONObject(txt);
       if(!obj||!obj.cuts||!obj.cuts.length) throw new Error('분석 파싱 실패');
       analysis=obj.analysis||{};
-      cuts=obj.cuts.map((c,i)=>({no:i+1,track:Math.max(1,Math.min(tracks.length,parseInt(c.track,10)||1)),sourceTc:String(c.sourceTc||''),sec:String(c.sec||''),tc:String(c.tc||''),type:String(c.shot||''),desc:String(c.desc||''),energy:String(c.energy||''),char:[],loc:''}));
+      cuts=obj.cuts.map((c,i)=>({no:i+1,track:Math.max(1,Math.min(tracks.length,parseInt(c.track,10)||1)),sourceTc:String(c.sourceTc||''),sec:String(c.sec||''),tc:String(c.tc||''),type:String(c.shot||''),desc:String(c.desc||''),energy:String(c.energy||''),char:[],loc:'',locationContext:context}));
       renderAnalysis(); renderCuts();
       $('mvsStep2').classList.remove('off');
       $('mvsAnStat').textContent='✓ '+cuts.length+'컷 생성됨 — 아래 2단계에서 프로젝트를 연동하세요';
@@ -82566,22 +82586,31 @@ ${context?('참고 컨텍스트: '+context):''}
     if(projectKey==='cloudrider'&&foreignWorld.test(linkedDesc)) linkedDesc=foreignWorld.test(sourceDesc)?('CloudRider 티저 전환 컷 '+no):sourceDesc;
     const linkedLocation=projectKey==='cloudrider'?cloudRiderLocationCode(row.loc,src):row.loc;
     const currentLocation=projectKey==='cloudrider'?cloudRiderLocationCode(c.loc,src):c.loc;
+    const manualLocation=projectKey==='cloudrider'&&c.locSource==='manual'?currentLocation:'';
+    const sourceLocation=projectKey==='cloudrider'?cloudRiderLocationFromShotText({
+      rawLocation:c.rawLocation||'',
+      sceneName:c.sceneName||'',
+      frame:c.frame||'',
+      desc:[sourceDesc,c.locationContext||''].filter(Boolean).join(' '),
+      screen:c.screen||''
+    },src):'';
     const inferredLocation=projectKey==='cloudrider'?cloudRiderLocationFromShotText({
-      loc:row.loc||c.loc||'',
       rawLocation:row.rawLocation||c.rawLocation||'',
       sceneName:row.sceneName||c.sceneName||'',
       frame:row.frame||c.frame||'',
       desc:linkedDesc||sourceDesc,
       screen:row.screen||c.screen||''
     },src):'';
-    const fallbackLoc=projectKey==='cloudrider'
-      ? (currentLocation||inferredLocation||spaces[0]||'')
-      : (spaces.length?spaces[(no-1)%spaces.length]:'');
+    const resolvedLocation=projectKey==='cloudrider'
+      ? (manualLocation||sourceLocation||linkedLocation||inferredLocation||currentLocation||spaces[0]||'')
+      : (spaces.indexOf(linkedLocation)!==-1?linkedLocation:(currentLocation||(spaces.length?spaces[(no-1)%spaces.length]:'')));
+    const resolvedLocationSource=manualLocation?'manual':(sourceLocation?'source-text':(linkedLocation?'linked':(inferredLocation?'linked-text':(currentLocation?'existing':'default'))));
     const next=Object.assign({},c,{
       sourceDesc:c.sourceDesc||c.desc||'',
       desc:linkedDesc,
       char:(Array.isArray(row.char)?row.char:[]).filter(name=>chars.indexOf(name)!==-1).slice(0,2),
-      loc:spaces.indexOf(linkedLocation)!==-1?linkedLocation:fallbackLoc,
+      loc:resolvedLocation,
+      locSource:projectKey==='cloudrider'?resolvedLocationSource:(c.locSource||'linked'),
       obj:(Array.isArray(row.obj)?row.obj:[]).filter(key=>objKeys.indexOf(key)!==-1).slice(0,3),
       costumeMode:String(row.costumeMode||c.costumeMode||'')
     });
@@ -82612,7 +82641,7 @@ ${context?('참고 컨텍스트: '+context):''}
     $('mvsList').querySelectorAll('.mvs-cpy').forEach(b=>b.onclick=()=>copyText(decodeURIComponent(b.dataset.cp),b));
     $('mvsList').querySelectorAll('.mvs-locsel').forEach(sel=>sel.onchange=()=>{
       const i=+sel.dataset.i; if(!cuts[i]) return;
-      cuts[i].loc=sel.value; saveMV(); renderCuts();
+      cuts[i].loc=sel.value; cuts[i].locSource='manual'; saveMV(); renderCuts();
     });
   }
   function objNm(k){ var key=mvSelectedProjectKey()||selProjKey; var src=key&&PROJECTS[key]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
@@ -82656,8 +82685,10 @@ ${context?('참고 컨텍스트: '+context):''}
     const spaces=(src.spaceNames||src.locations||[]);
     const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
+    const locationContext=(($('mvsContext')||{}).value)||'';
     const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.sourceDesc||c.desc}`).join('\n');
     const cloudRiderMVRules=key==='cloudrider'?`\nCloudRider 전용 규칙: 하온이 비행체·항로·콕핏·캐노피·이륙·착륙·하늘 장면에 등장하면 obj에 obj-haon과 obj-haon-proportion을 반드시 포함하고, 콕핏/탑승 장면이면 obj-haon-occupancy와 obj-haon-cockpit도 포함한다. 탑승 레퍼런스는 좌석 배치·안전벨트·조종간·캐노피 시야만 참고하고 얼굴·의상은 하나·다온 각각의 승인 레퍼런스를 우선한다. 하온은 고정 6m급 2인승 기체이며 4개 원형 덕티드 로터와 둥근 캐노피를 유지한다. 하나·다온이 컷에 등장하면 반드시 실제 좌석에 탑승시키고 빈 좌석·무인 콕핏을 만들지 않는다. 하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석이다. 작은 드론·장난감·미니어처로 축소하거나 기체 레퍼런스의 외형을 재설계하지 않는다.\n`:'';
+    const cloudRiderLocationRules=key==='cloudrider'?`\nCloudRider LOCATION LOCK: 원본에 문래동/무래동/문래 차고가 있으면 [CR-SP-MULLAE-GARAGE] 서울 문래 차고로 고정한다. 옥상이 명시된 경우에만 문래 옥상 공간을 쓴다. 문래 장면을 몽골·아이슬란드·극지·해외 항로로 옮기지 말라. 원본이 해외 이동을 명시하지 않았다면 여러 나라를 돌며 배치하지 말라.\n`:'';
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
@@ -82666,9 +82697,10 @@ ${context?('참고 컨텍스트: '+context):''}
 오브제(등장 시 아래 '키'만 사용): ${objs.join(' / ')||'(없음)'}
 인물 DNA 요약:
 ${dna||'(없음)'}
+제작 컨텍스트의 장소 지시(있으면 권위 지시): ${locationContext||'(없음)'}
 
-각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다. TRACK 번호, 원곡 타임코드, 티저 타임코드, 섹션과 샷은 절대 바꾸지 말고 곡 흐름을 유지한다. 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
-${cloudRiderMVRules}
+각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다. 원본 컷 desc에 장소·지역·실내외이 명시되어 있으면 그 공간 의도가 최우선이며 다른 나라나 도시로 옮기지 말고, 위 공간 목록의 가장 정확한 이름으로만 정규화한다. 같은 공간을 여러 컷에 반복해도 되며, 다양성을 위해 장소를 임의로 바꾸지 말라. 원본에 장소 단서가 전혀 없을 때만 세계관과 연속성에 맞는 공간을 선택한다. TRACK 번호, 원곡 타임코드, 티저 타임코드, 섹션과 샷은 절대 바꾸지 말고 곡 흐름을 유지한다. 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
+${cloudRiderLocationRules}${cloudRiderMVRules}
 컷들:
 ${cutList}
 반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"],"costumeMode":"activity|combat|default"}]`;
@@ -82678,7 +82710,7 @@ ${cutList}
       const arr=parseJSONArray(r&&r.textOut);
       if(!arr||!arr.length) throw new Error('연동 파싱 실패');
       const byNo={}; arr.forEach(x=>{byNo[x.no]=x;});
-      cuts=cuts.map(c=>mvSanitizeLinkedCut(c,byNo[c.no],key));
+      cuts=cuts.map(c=>{ const prepared=Object.assign({},c,{locationContext:c.locationContext||locationContext}); return mvSanitizeLinkedCut(prepared,byNo[c.no],key); });
       if(key==='ncity') cuts=mvApplyNcityWardrobe(cuts);
       selProjKey=key; mvDraftProjectKey=key;
       renderCuts();
@@ -82741,7 +82773,7 @@ ${cutList}
     P.name='🎬 '+audioTitle()+(src?(' — '+src.name):'');
     P.epTitles={'1':audioTitle()};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=linkedCuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selectedKey,costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
+    P.storyboardShots=linkedCuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,locSource:c.locSource||'',time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selectedKey,costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
     saveMV(); pushHistory();
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);

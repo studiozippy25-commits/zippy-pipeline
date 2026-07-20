@@ -9514,6 +9514,11 @@ const PROJECTS = {
                   "desc": "레트로 아날로그 게이지 + 홀로그램 UI 공존. 조종간, 수동전환 레버, 아빠의 부적 폴라로이드."
             },
             {
+                  "key": "obj-haon-occupancy",
+                  "name": "[기체·하온] 탑승·좌석 배치 레퍼런스",
+                  "desc": "하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석에 앉는 2인 탑승 구도. 안전벨트, 조종간, 좌석 간격, 캐노피 시야만 고정한다. 얼굴·의상·기체 외형의 권한은 기존 캐논 레퍼런스에 있다."
+            },
+            {
                   "key": "obj-haon-rotor",
                   "name": "[기체·하온] 덕티드 로터 디테일",
                   "desc": "원형 덕티드 팬 회전/기동 상태. 앞쌍 대형·뒤쌍 소형 원칙."
@@ -9622,6 +9627,7 @@ const PROJECTS = {
       "defaultObjRefs": {
             "obj-haon": "assets/cloudrider/lock/153_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png?v=260707",
             "obj-haon-cockpit": "assets/cloudrider/lock/149_HAON_FINAL_INTERIOR_COCKPIT_TWO_SEAT_REWORKED_260706.png?v=260707",
+            "obj-haon-occupancy": "assets/cloudrider/lock/154_HAON_FINAL_INTERIOR_OCCUPANCY_SEAT_MAP_260720.png?v=260720",
             "obj-haon-rotor": "assets/cloudrider/obj/099_HAON_FINAL_EXTRA_02_FUNCTIONAL_DETAIL_SHEET_260706.png?v=260707",
             "obj-haon-proportion": "assets/cloudrider/obj/098_HAON_FINAL_EXTRA_01_TURNAROUND_PROPORTION_LOCK_260706.png?v=260707",
             "obj-spark-ui": "assets/cloudrider/obj/101_CR_MECH_SPARK_HOLOGRAM_UI_v001_v5_0_final.png?v=260707",
@@ -53176,6 +53182,13 @@ const PROJECTS = {
                   "kind": "lock",
                   "file": "153_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png",
                   "url": "assets/cloudrider/lock/153_HAON_FINAL_AIRCRAFT_SHEET_CANONICAL_LOCK_260706.png?v=260707"
+            },
+            {
+                  "no": 154,
+                  "category": "핵심 락",
+                  "kind": "lock",
+                  "file": "154_HAON_FINAL_INTERIOR_OCCUPANCY_SEAT_MAP_260720.png",
+                  "url": "assets/cloudrider/lock/154_HAON_FINAL_INTERIOR_OCCUPANCY_SEAT_MAP_260720.png?v=260720"
             }
       ]
 },
@@ -69485,7 +69498,7 @@ function getSBRefsForShot(sceneNum, shotId) {
       const haonText = cloudRiderShotVisualText(_targetShot);
       if (/하온|haon/.test(haonText)) {
         const isHaonInterior = /콕핏|조종석|캐노피 내부|cockpit|interior/.test(haonText);
-        const haonRefKeys = isHaonInterior ? ['obj-haon-cockpit'] : ['obj-haon-proportion', 'obj-haon'];
+        const haonRefKeys = isHaonInterior ? ['obj-haon-occupancy', 'obj-haon-cockpit', 'obj-haon'] : ['obj-haon-proportion', 'obj-haon'];
         haonRefKeys.slice().reverse().forEach(function(key) {
           if (explicitObjKeys.indexOf(key) === -1) explicitObjKeys.unshift(key);
         });
@@ -82486,7 +82499,10 @@ ${context?('참고 컨텍스트: '+context):''}
     if(!aircraft) return next;
     const allowed=new Set(((src&&src.objectAssets)||[]).map(o=>o.key));
     const objects=Array.isArray(next.obj)?next.obj.slice():[];
-    ['obj-haon','obj-haon-proportion','obj-haon-cockpit'].forEach(k=>{
+    const guardKeys=/콕핏|조종석|캐노피 내부|탑승|좌석|cockpit|interior|occupancy|seat/.test(text)
+      ? ['obj-haon-occupancy','obj-haon-cockpit','obj-haon']
+      : ['obj-haon-proportion','obj-haon'];
+    guardKeys.forEach(k=>{
       if(allowed.has(k)&&objects.indexOf(k)===-1) objects.unshift(k);
     });
     next.obj=objects.slice(0,3);
@@ -82595,7 +82611,7 @@ ${context?('참고 컨텍스트: '+context):''}
     const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
     const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.sourceDesc||c.desc}`).join('\n');
-    const cloudRiderMVRules=key==='cloudrider'?`\nCloudRider 전용 규칙: 하온이 비행체·항로·콕핏·캐노피·이륙·착륙·하늘 장면에 등장하면 obj에 obj-haon과 obj-haon-proportion을 반드시 포함하고, 콕핏/탑승 장면이면 obj-haon-cockpit도 포함한다. 하온은 고정 6m급 2인승 기체이며 4개 원형 덕티드 로터와 둥근 캐노피를 유지한다. 하나·다온이 컷에 등장하면 반드시 실제 좌석에 탑승시키고 빈 좌석·무인 콕핏을 만들지 않는다. 하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석이다. 작은 드론·장난감·미니어처로 축소하거나 기체 레퍼런스의 외형을 재설계하지 않는다.\n`:'';
+    const cloudRiderMVRules=key==='cloudrider'?`\nCloudRider 전용 규칙: 하온이 비행체·항로·콕핏·캐노피·이륙·착륙·하늘 장면에 등장하면 obj에 obj-haon과 obj-haon-proportion을 반드시 포함하고, 콕핏/탑승 장면이면 obj-haon-occupancy와 obj-haon-cockpit도 포함한다. 탑승 레퍼런스는 좌석 배치·안전벨트·조종간·캐노피 시야만 참고하고 얼굴·의상은 하나·다온 각각의 승인 레퍼런스를 우선한다. 하온은 고정 6m급 2인승 기체이며 4개 원형 덕티드 로터와 둥근 캐노피를 유지한다. 하나·다온이 컷에 등장하면 반드시 실제 좌석에 탑승시키고 빈 좌석·무인 콕핏을 만들지 않는다. 하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석이다. 작은 드론·장난감·미니어처로 축소하거나 기체 레퍼런스의 외형을 재설계하지 않는다.\n`:'';
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.

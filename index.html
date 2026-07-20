@@ -69327,13 +69327,25 @@ function normalizeCloudRiderShotLocation(shot, projectOverride) {
   const project = projectOverride || currentProject;
   if (!shot || !isCloudRiderProjectContext(project)) return false;
   const names = project.spaceNames || project.locations || [];
-  if (!shot.loc) return false;
+  const authoredLocation = shot.mv ? cloudRiderLocationFromShotText({
+    rawLocation: shot.rawLocation || '',
+    sceneName: shot.sceneName || '',
+    frame: shot.frame || '',
+    desc: [shot.sourceDesc || '', shot.desc || '', shot.locationContext || ''].filter(Boolean).join(' '),
+    screen: shot.screen || ''
+  }, project) : '';
   const migratedLocation = cloudRiderLocationCode(shot.loc, project);
+  if (shot.mv && shot.locSource !== 'manual' && authoredLocation && authoredLocation !== migratedLocation) {
+    shot.loc = authoredLocation;
+    shot.locSource = 'source-text';
+    return true;
+  }
   if (migratedLocation) {
     if (migratedLocation === shot.loc) return false;
     shot.loc = migratedLocation;
     return true;
   }
+  if (!shot.loc && !authoredLocation) return false;
   shot.loc = cloudRiderCanonicalLocationForShot(shot, project);
   return true;
 }

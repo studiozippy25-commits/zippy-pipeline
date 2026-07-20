@@ -71896,8 +71896,10 @@ function resolveShotLoc(shot){
   if(!shot) return '';
   var names=(currentProject&&(currentProject.spaceNames||currentProject.locations))||[];
   if(shot.loc){
-    if(!isCloudRiderProject() || names.indexOf(shot.loc)!==-1) return shot.loc;
-    return cloudRiderCanonicalLocationForShot(shot, currentProject);
+    if(names.indexOf(shot.loc)!==-1) return shot.loc;
+    if(isCloudRiderProject()) return cloudRiderCanonicalLocationForShot(shot, currentProject);
+    if(!shot.mv) return shot.loc; // 일반 프로젝트 자유 loc은 기존 동작 유지
+    // MV 컷의 미등록 loc(타 프로젝트 잔재)은 무시 → 아래 추론/프리셋으로 폴백
   }
   if(!names.length) return '';
   var src=(shot.sceneName||'')+' '+(shot.frame||'')+' '+(shot.desc||'');
@@ -82517,7 +82519,7 @@ ${cutList}
     P.name='🎬 '+audioTitle()+(src?(' — '+src.name):'');
     P.epTitles={'1':audioTitle()};
     P.scenePresets={'1':{loc:fallbackLoc,time:'',emo:[],light:[],shot:'',angle:'',lens:'',costume:'',scene:'MV'}};
-    P.storyboardShots=linkedCuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:c.loc||fallbackLoc,time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selectedKey,costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
+    P.storyboardShots=linkedCuts.map(c=>({ep:1,scene:1,sceneName:'MV',id:'MV-'+String(c.no).padStart(2,'0'),frame:(c.type||''),desc:c.desc,func:c.sec,pri:'key',char:(c.char||[]),obj:(c.obj||[]),loc:((c.loc&&(P.spaceNames||[]).indexOf(c.loc)>=0)?c.loc:fallbackLoc),time:'',mv:true,musicTrack:Number(c.track)||1,sourceTimecode:c.sourceTc||'',teaserTimecode:c.tc||'',sourceProjectKey:selectedKey,costumeMode:c.costumeMode||'',costumeVariant:Number.isInteger(c.costumeVariant)?c.costumeVariant:undefined,baseCostumeVariant:Number.isInteger(c.baseCostumeVariant)?c.baseCostumeVariant:undefined,combatCostumeSource:c.combatCostumeSource}));
     saveMV(); pushHistory();
     close();
     var sp=(typeof selectProject==='function')?selectProject:(window.selectProject||null);

@@ -69873,10 +69873,15 @@ function buildSBCharacterWardrobeBinding(shot, images) {
 function buildCloudRiderHaonAircraftLock(shot, images) {
   if (!isCloudRiderProject()) return '';
   const text = ((shot && ((shot.desc || '') + ' ' + (shot.frame || '') + ' ' + (shot.loc || '') + ' ' + (Array.isArray(shot.obj) ? shot.obj.join(' ') : ''))) || '').toLowerCase();
+  const shotCharText = (shot && Array.isArray(shot.char) ? shot.char.join(' ') : '').toLowerCase();
   const labels = (images || []).map(function(img) { return String((img && img._label) || '').toLowerCase(); }).join(' ');
   if (text.indexOf('하온') === -1 && text.indexOf('haon') === -1 && labels.indexOf('하온') === -1 && labels.indexOf('haon') === -1) return '';
   const isCockpit = /콕핏|조종석|캐노피 내부|cockpit|interior/.test(text);
   const isDetail = /\becu\b|\bcu\b|insert|인서트|매크로|detail|디테일|로터 포드|랜딩기어|패널 틈/.test(text);
+  const isDistant = /distant|far background|tiny in the sky|실루엣|원거리|아주 멀리|먼 항로|점처럼/.test(text);
+  const isFlight = /비행|하늘|항로|활주|이륙|착륙|상공|비행중|비행 중|flight|flying|airborne|airway|takeoff|landing|sky/.test(text);
+  const hasHana = /하나|hana/.test(text + ' ' + shotCharText);
+  const hasDaon = /다온|daon/.test(text + ' ' + shotCharText);
   const lines = [
     'HAON AIRCRAFT CANONICAL LOCK — NON-NEGOTIABLE:',
     '하온 is a fixed hero aircraft, not a generic jet, not a car, not a fighter, not a motorcycle, and not a costume source.',
@@ -69895,7 +69900,19 @@ function buildCloudRiderHaonAircraftLock(shot, images) {
   ];
   if (isCockpit) lines.push('CURRENT COCKPIT SHOT: preserve two adult seats, side-by-side spacing, canopy width, dashboard span, and seat-to-control distances. A close interior crop does not redefine the exterior aircraft size.');
   if (isDetail) lines.push('CURRENT DETAIL/INSERT SHOT: this crop shows only a component. Preserve real component scale relative to an adult hand/tool and do not reinterpret the complete aircraft as miniature. This detail image is not a new whole-aircraft scale authority.');
-  if (!isCockpit && !isDetail) lines.push('CURRENT EXTERIOR/ESTABLISHING SHOT: when a person, doorway, vehicle bay, railing, stretcher, or tool cart is already scripted, preserve it as a truthful scale witness beside the fixed 6m aircraft. Do not add an unscripted person solely as a measuring prop.');
+  if (!isCockpit && !isDetail && !isDistant) lines.push('CURRENT EXTERIOR COMPOSITION SCALE LOCK: HAON is a major foreground or midground subject, not a tiny background accent. In a garage, maintenance bay, rooftop, runway, dock, or people-with-aircraft shot, let HAON occupy roughly 35–65% of the frame width (or a similarly substantial cropped area), with the fuselage, canopy, and at least one large rotor pod clearly readable. Keep any scripted person, doorway, vehicle bay, railing, stretcher, or tool cart as a truthful scale witness beside it. Do not add an unscripted person solely as a measuring prop.');
+  if (!isCockpit && !isDetail && isDistant) lines.push('CURRENT DISTANT EXTERIOR EXCEPTION: the shot explicitly calls for distance, but HAON must still read as a real 6m two-seat aircraft with visible canopy and four-pod silhouette, never a toy-like speck. Preserve a nearby building, bridge, aircraft, cloud layer, or landscape feature as a truthful scale witness.');
+  if ((isFlight || isCockpit) && (hasHana || hasDaon)) {
+    lines.push('HAON FLIGHT OCCUPANCY LOCK — NON-NEGOTIABLE: When the canopy or cockpit is visible during flight, the scripted occupants must be visibly seated inside HAON. Do not render an empty cockpit or empty seats.');
+    if (hasHana && hasDaon) {
+      lines.push('SEAT ASSIGNMENT: 하나 is seated in seat 1, the left/front pilot position, hands on the flight controls; 다온 is seated in seat 2, the right-side co-pilot/navigator position, looking at the instruments or through the canopy. Preserve both faces and upper shoulders from their own approved references.');
+    } else if (hasHana) {
+      lines.push('SEAT ASSIGNMENT: 하나 is seated in the pilot position with hands on the flight controls. Keep the other seat empty only if the shot explicitly requires a single occupant; never replace 하나 with a generic pilot.');
+    } else {
+      lines.push('SEAT ASSIGNMENT: 다온 is seated in the specified occupied position, visibly connected to the cockpit controls or navigator instruments. Keep the other seat empty only if the shot explicitly requires a single occupant; never replace 다온 with a generic pilot.');
+    }
+    lines.push('EXTERIOR CANOPY RULE: In a flying three-quarter or side view, show the two seated head-and-shoulder silhouettes through the canopy whenever the canopy is readable. Do not hide the occupants behind opaque black glass, and do not invent extra passengers, empty-seat staging, or unrelated faces.');
+  }
   return lines.join('\n') + '\n\n';
 }
 
@@ -82459,6 +82476,31 @@ ${context?('참고 컨텍스트: '+context):''}
     delete next.costumeVariant; delete next.baseCostumeVariant; delete next.combatCostumeSource;
     return next;
   }
+  function mvCloudRiderHaonGuard(c, projectKey, src){
+    const key=projectKey==='mv-remake'&&src&&src.sourceProjectKey?src.sourceProjectKey:projectKey;
+    if(key!=='cloudrider') return c;
+    const next=Object.assign({},c);
+    const text=String((next.desc||next.sourceDesc||'')+' '+(next.type||'')+' '+(next.loc||'')).toLowerCase();
+    const charText=Array.isArray(next.char)?next.char.join(' ').toLowerCase():'';
+    const aircraft=/하온|haon|비행체|항공체|비행|항로|활주|이륙|착륙|상공|콕핏|조종석|캐노피|aircraft|flight|flying|airway|takeoff|landing|sky/.test(text);
+    if(!aircraft) return next;
+    const allowed=new Set(((src&&src.objectAssets)||[]).map(o=>o.key));
+    const objects=Array.isArray(next.obj)?next.obj.slice():[];
+    ['obj-haon','obj-haon-proportion','obj-haon-cockpit'].forEach(k=>{
+      if(allowed.has(k)&&objects.indexOf(k)===-1) objects.unshift(k);
+    });
+    next.obj=objects.slice(0,3);
+    const hasHana=/하나|hana/.test(text+' '+charText);
+    const hasDaon=/다온|daon/.test(text+' '+charText);
+    const guard='CLOUDRIDER MV HAON LOCK: 하온은 고정 6m급 2인승 기체이며 작은 드론·장난감이 아니다. 기존 하온 캐노니컬 레퍼런스의 크림화이트·딥네이비 외형, 4개 원형 덕티드 로터, 둥근 2인승 캐노피를 우선한다.';
+    if(String(next.desc||'').indexOf('CLOUDRIDER MV HAON LOCK')===-1) next.desc=String(next.desc||next.sourceDesc||'')+' '+guard;
+    if(hasHana||hasDaon){
+      const occupancy='FLIGHT OCCUPANCY: 비행 또는 콕핏이 보이는 컷에서 지정된 인물은 반드시 하온 안에 실제로 탑승해 있어야 하며 빈 좌석·무인 콕핏으로 만들지 않는다.';
+      if(String(next.desc).indexOf('FLIGHT OCCUPANCY')===-1) next.desc+=' '+occupancy;
+      if(hasHana&&hasDaon&&String(next.desc).indexOf('SEAT MAP')===-1) next.desc+=' SEAT MAP: 하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석; 두 사람의 얼굴과 상반신은 각자 승인 레퍼런스를 따른다.';
+    }
+    return next;
+  }
   function mvSanitizeLinkedCut(c, linked, projectKey){
     const src=projectKey&&PROJECTS[projectKey];
     if(!src) return mvResetCutProjectBindings(c);
@@ -82485,7 +82527,7 @@ ${context?('참고 컨텍스트: '+context):''}
       delete next.costumeVariant; delete next.baseCostumeVariant; delete next.combatCostumeSource;
       if(next.costumeMode==='activity'||next.costumeMode==='combat') next.costumeMode='default';
     }
-    return next;
+    return mvCloudRiderHaonGuard(next,projectKey,src);
   }
   function renderCuts(){
     $('mvsSB').classList.add('show');
@@ -82512,7 +82554,15 @@ ${context?('참고 컨텍스트: '+context):''}
     });
   }
   function objNm(k){ var key=mvSelectedProjectKey()||selProjKey; var src=key&&PROJECTS[key]; var oa=(src&&src.objectAssets)||[]; for(var i=0;i<oa.length;i++)if(oa[i].key===k)return oa[i].name; return k; }
-  function cutPrompt(c){ const t=audioTracks[(Number(c.track)||1)-1]; return `"${audioTitle()}" teaser music video — TRACK ${c.track||1}${t&&t.name?(' '+t.name):''} · source ${c.sourceTc||'-'} · teaser ${c.tc||'-'} — ${c.desc}${(c.char&&c.char.length)?(' / 등장: '+c.char.join(', ')):''}${(c.obj&&c.obj.length)?(' / 오브제: '+c.obj.map(objNm).join(', ')):''}${c.loc?(' / 장소: '+c.loc):''}; ${c.type}; cinematic music-video cut [${c.sec}]`; }
+  function cutPrompt(c){
+    const t=audioTracks[(Number(c.track)||1)-1];
+    const selectedKey=mvSelectedProjectKey()||selProjKey;
+    const selected=selectedKey&&PROJECTS[selectedKey];
+    const sourceKey=c.sourceProjectKey||selectedKey;
+    const src=sourceKey==='mv-remake'&&selected&&selected.sourceProjectKey?PROJECTS[selected.sourceProjectKey]:PROJECTS[sourceKey];
+    const safe=mvCloudRiderHaonGuard(c,sourceKey,src);
+    return `"${audioTitle()}" teaser music video — TRACK ${safe.track||1}${t&&t.name?(' '+t.name):''} · source ${safe.sourceTc||'-'} · teaser ${safe.tc||'-'} — ${safe.desc}${(safe.char&&safe.char.length)?(' / 등장: '+safe.char.join(', ')):''}${(safe.obj&&safe.obj.length)?(' / 오브제: '+safe.obj.map(objNm).join(', ')):''}${safe.loc?(' / 장소: '+safe.loc):''}; ${safe.type}; cinematic music-video cut [${safe.sec}]${sourceKey==='cloudrider'||(src&&src.sourceProjectKey==='cloudrider')?' — Use the attached CloudRider character, environment, and HAON reference images as authoritative visual sources; preserve identity, aircraft scale, four rotors, two seats, and visible occupants when scripted.':''}`;
+  }
 
   function mvNcityDirectCombat(c){
     const objects=Array.isArray(c&&c.obj)?c.obj:[];
@@ -82545,6 +82595,7 @@ ${context?('참고 컨텍스트: '+context):''}
     const objs=(src.objectAssets||[]).map(o=>o.key+': '+o.name);
     const dna=Object.entries(src.characterDNA||{}).map(([k,v])=>k+': '+String(v).replace(/\s+/g,' ').slice(0,140)).join('\n');
     const cutList=cuts.map(c=>`${c.no}. [TRACK ${c.track||1} · 원곡 ${c.sourceTc||'-'} · 티저 ${c.tc||'-'} · ${c.sec}] ${c.sourceDesc||c.desc}`).join('\n');
+    const cloudRiderMVRules=key==='cloudrider'?`\nCloudRider 전용 규칙: 하온이 비행체·항로·콕핏·캐노피·이륙·착륙·하늘 장면에 등장하면 obj에 obj-haon과 obj-haon-proportion을 반드시 포함하고, 콕핏/탑승 장면이면 obj-haon-cockpit도 포함한다. 하온은 고정 6m급 2인승 기체이며 4개 원형 덕티드 로터와 둥근 캐노피를 유지한다. 하나·다온이 컷에 등장하면 반드시 실제 좌석에 탑승시키고 빈 좌석·무인 콕핏을 만들지 않는다. 하나는 왼쪽/앞 조종석, 다온은 오른쪽 보조석이다. 작은 드론·장난감·미니어처로 축소하거나 기체 레퍼런스의 외형을 재설계하지 않는다.\n`:'';
     $('mvsLinkStat').innerHTML='<span class="spin"></span>인물·공간·오브제를 컷에 반영 중…';
     const prompt=
 `아래 뮤직비디오 컷들을 "${src.name}" 세계관으로 재구성한다.
@@ -82555,6 +82606,7 @@ ${context?('참고 컨텍스트: '+context):''}
 ${dna||'(없음)'}
 
 각 컷의 desc를 위 인물·공간·오브제를 실제로 등장시켜 다시 쓴다. TRACK 번호, 원곡 타임코드, 티저 타임코드, 섹션과 샷은 절대 바꾸지 말고 곡 흐름을 유지한다. 각 컷에 등장 인물(char: 위 이름 0~2명), 공간(loc: 위 공간명 1개), 오브제(obj: 위 '키' 0~3개, 컷에 실제로 보이는 것만)를 지정. 인물 없는 설정샷은 char 빈 배열. 독고탄(밤)이 나오면 costumeMode를 반드시 activity 또는 combat로 지정한다. 아머 파츠·전투·추격·교전·무기 사용 장면은 combat, 바·일상·대화·휴식 장면은 activity. 같은 연속 비트에서는 의상 모드를 바꾸지 않는다.
+${cloudRiderMVRules}
 컷들:
 ${cutList}
 반드시 JSON 배열만 출력: [{"no":1,"desc":"재구성 한국어 한 문장","char":["인물명"],"loc":"공간명","obj":["오브제키"],"costumeMode":"activity|combat|default"}]`;

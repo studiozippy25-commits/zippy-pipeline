@@ -82946,5 +82946,255 @@ ${cutList}
 </script>
 
 <!--MVSTUDIO_END-->
+<script>
+/* HISTORY MEMORY GUARD: keep IndexedDB history intact while loading only visible images. */
+(function(){
+  const ZIPPY_HISTORY_REF = '__ZIPPY_HISTORY_REF__';
+  const zippySBHistoryRefs = Object.create(null);
+  const zippySBHistorySeqRefs = Object.create(null);
+  const zippySBHistoryLoads = Object.create(null);
+
+  function zippyGetHistoryItem(id){
+    return openHistDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        const tx = db.transaction(HIST_STORE, 'readonly');
+        const req = tx.objectStore(HIST_STORE).get(id);
+        req.onsuccess = function(){ resolve(req.result || null); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+
+  function zippyHistoryMeta(item){
+    const meta = item && item.meta ? item.meta : {};
+    return {
+      id: item.id,
+      mime: item.mime || 'image/png',
+      step: item.step || '',
+      desc: item.desc || '',
+      date: item.date || '',
+      time: item.time || '',
+      timestamp: Number(item.timestamp || 0),
+      meta: meta,
+      dedupeKey: item.dedupeKey || meta.dedupeKey || '',
+      _b64Length: typeof item.b64 === 'string' ? item.b64.length : 0
+    };
+  }
+
+  function zippyLoadHistoryMeta(){
+    return openHistDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        const out = [];
+        const tx = db.transaction(HIST_STORE, 'readonly');
+        const req = tx.objectStore(HIST_STORE).openCursor();
+        req.onsuccess = function(e){
+          const cursor = e.target.result;
+          if (!cursor) { resolve(out); return; }
+          out.push(zippyHistoryMeta(cursor.value));
+          cursor.continue();
+        };
+        req.onerror = function(){ reject(req.error); };
+      });
+    });
+  }
+
+  async function hydrateHistoryImages(root){
+    const scope = root || document.getElementById('hist-content') || document;
+    const nodes = Array.from(scope.querySelectorAll('img[data-hist-img-id]'));
+    const load = async function(img){
+      if (!img || img.dataset.historyLoading === '1' || img.dataset.hydrated === '1') return;
+      const id = Number(img.getAttribute('data-hist-img-id'));
+      if (!id) return;
+      img.dataset.historyLoading = '1';
+      try {
+        const item = await zippyGetHistoryItem(id);
+        if (item && item.b64) {
+          img.src = 'data:' + (item.mime || 'image/png') + ';base64,' + item.b64;
+          img.dataset.hydrated = '1';
+          histRenderImages[String(id)] = item;
+        }
+      } catch(e) { console.warn('History thumbnail load failed:', e); }
+      delete img.dataset.historyLoading;
+    };
+    if (typeof IntersectionObserver === 'function') {
+      const observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if (!entry.isIntersecting) return;
+          observer.unobserve(entry.target);
+          load(entry.target);
+        });
+      }, {rootMargin:'700px 0px'});
+      nodes.forEach(function(node){ observer.observe(node); });
+    } else {
+      for (let i = 0; i < Math.min(nodes.length, 24); i++) await load(nodes[i]);
+    }
+  }
+
+  async function refreshHistory(){
+    let items = [];
+    try { items = await zippyLoadHistoryMeta(); } catch(e) { console.warn('History metadata load failed:', e); }
+    if (histFilter !== 'all') items = items.filter(function(i){ return (i.step || '').includes(histFilter); });
+    const content = document.getElementById('hist-content');
+    const stats = document.getElementById('hist-stats');
+    if (!content) return;
+    const totalBytes = items.reduce(function(sum, item){ return sum + (Number(item._b64Length || 0) * 0.75); }, 0);
+    if (stats) stats.innerHTML = '이미지 <strong>' + items.length + '</strong>장 · <strong>' + (totalBytes / 1024 / 1024).toFixed(1) + ' MB</strong>';
+    if (!items.length) {
+      content.innerHTML = '<div class="hist-empty">생성된 이미지가 없습니다.<br><span style="font-size:12px;opacity:.6">이미지를 생성하면 자동으로 여기에 저장됩니다.</span></div>';
+      return;
+    }
+    items.sort(function(a,b){ return b.timestamp - a.timestamp; });
+    Object.keys(histRenderImages).forEach(function(k){ delete histRenderImages[k]; });
+    const groups = {};
+    items.forEach(function(item){
+      const date = item.date || 'unknown';
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(item);
+      histRenderImages[String(item.id)] = item;
+    });
+    let html = '';
+    Object.keys(groups).forEach(function(date){
+      const imgs = groups[date];
+      html += '<div class="hist-date-group"><div class="hist-date-label">' + histEsc(date) + ' (' + imgs.length + '장)</div><div class="hist-grid">';
+      imgs.forEach(function(img){
+        html += '<div class="hist-card" onclick="openHistModal(' + img.id + ')">';
+        html += renderHistThumb(img.id);
+        html += '<div class="hist-card-info"><div class="hist-card-step">' + histEsc(img.step) + '</div><div class="hist-card-time">' + histEsc(img.time) + '</div><div class="hist-card-desc">' + histEsc(img.desc) + '</div><div class="hist-card-actions">';
+        html += '<button class="hist-card-btn" onclick="event.stopPropagation();downloadHistImg(' + img.id + ')">⬇ 저장</button>';
+        html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToAsset(' + img.id + ')">→ Asset</button>';
+        html += '<button class="hist-card-btn" onclick="event.stopPropagation();sendHistToStoryboard(' + img.id + ')">→ 스토리보드</button>';
+        html += '<button class="hist-card-btn del" onclick="event.stopPropagation();deleteFromHistory(' + img.id + ')">✕</button></div></div></div>';
+      });
+      html += '</div></div>';
+    });
+    content.innerHTML = html;
+    hydrateHistoryImages(content);
+  }
+
+  async function openHistModal(id){
+    const img = await zippyGetHistoryItem(id);
+    if (!img) return;
+    histModalData = img;
+    const el = document.getElementById('histModalImg');
+    if (el) el.src = 'data:' + (img.mime || 'image/png') + ';base64,' + img.b64;
+    const modal = document.getElementById('histModal');
+    if (modal) modal.style.display = 'flex';
+  }
+  async function downloadHistImg(id){
+    const img = await zippyGetHistoryItem(id); if (!img || !img.b64) return;
+    const a = document.createElement('a'); a.href = 'data:' + (img.mime || 'image/png') + ';base64,' + img.b64; a.download = 'hist_' + (img.step || 'img') + '_' + id + '.png'; a.click();
+  }
+  async function sendHistToAsset(id){
+    const img = await zippyGetHistoryItem(id); if (!img || !img.b64) return;
+    assetLib.char.push({b64:img.b64, mime:img.mime || 'image/png', name:'hist_' + img.id}); renderAssetGrid('char'); updateAssetCounts(); alert('Asset Library 인물 에셋에 추가되었습니다.');
+  }
+  async function sendHistToStoryboard(id){
+    const img = await zippyGetHistoryItem(id); if (!img || !img.b64) return;
+    const ok = await restoreHistoryItemToStoryboard(img);
+    if (!ok) alert('스토리보드 슬롯을 찾지 못했습니다. 프로젝트를 선택한 뒤 다시 시도해주세요.');
+  }
+  async function selectHistForVideo(type, imgId){
+    const img = await zippyGetHistoryItem(imgId); if (!img || !img.b64) return;
+    if (type === 'start') { vidStartReadSeq += 1; vidStartB64 = img.b64; vidStartMime = img.mime || 'image/png'; vidStartMeta = null; const input = document.getElementById('vidStartInput'); if (input) input.value = ''; }
+    else { vidEndReadSeq += 1; vidEndB64 = img.b64; vidEndMime = img.mime || 'image/png'; const input = document.getElementById('vidEndInput'); if (input) input.value = ''; }
+    const el = document.getElementById(type === 'start' ? 'vidStartFrame' : 'vidEndFrame'); if (el) el.innerHTML = '<img src="data:' + (img.mime || 'image/png') + ';base64,' + img.b64 + '" style="width:100%;height:100%;object-fit:cover">'; setVidFrameClearEnabled(type, true); updateVidCost();
+  }
+  function loadFromHistory(type){
+    zippyLoadHistoryMeta().then(function(items){
+      if (!items.length) { alert('히스토리에 이미지가 없습니다'); return; }
+      const modal = document.createElement('div'); modal.className = 'hist-modal'; modal.style.display='flex'; modal.style.flexDirection='column'; modal.style.gap='12px'; modal.onclick=function(e){if(e.target===modal)modal.remove();};
+      items.sort(function(a,b){return b.timestamp-a.timestamp;});
+      let html='<div style="max-width:800px;width:100%"><div style="font-family:var(--font-mono);font-size:14px;color:#fff;margin-bottom:12px;font-weight:700">이미지 선택 → ' + (type==='start'?'START':'END') + ' 프레임</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;max-height:70vh;overflow-y:auto">';
+      items.slice(0,30).forEach(function(img){ html+='<div style="cursor:pointer;border:2px solid transparent;border-radius:6px;overflow:hidden" onclick="selectHistForVideo(\''+type+'\','+img.id+');this.closest(\'.hist-modal\').remove()">'+renderHistThumb(img.id,'width:100%;aspect-ratio:16/9;object-fit:cover;display:block')+'<div style="padding:4px 6px;background:rgba(0,0,0,.6);font-family:var(--font-mono);font-size:9px;color:#fff">'+histEsc(img.step)+' · '+histEsc(img.time)+'</div></div>'; });
+      html+='</div></div>'; modal.innerHTML=html; document.body.appendChild(modal); hydrateHistoryImages(modal);
+    });
+  }
+
+  function zippyParseStoryboardHistoryItem(item){
+    if (!item) return null;
+    const meta = item.meta || {};
+    const isSB = meta.source === 'storyboard' || String(item.step || '').indexOf('SB-스토리보드') !== -1;
+    if (!isSB || !sbHistoryItemBelongsToCurrentProject(item)) return null;
+    let shotId = meta.shotId || '';
+    if (!shotId && item.desc) shotId = String(item.desc).split('·')[0].trim().replace(/\s+#\d+$/, '');
+    if (!shotId) return null;
+    if (typeof zippyNasResolveStoryboardShotId === 'function') shotId = zippyNasResolveStoryboardShotId(shotId);
+    return {id:item.id, mime:item.mime || 'image/png', shotId:shotId, frameIndex:Number(meta.frameIndex || 0), timestamp:Number(item.timestamp || 0)};
+  }
+  function zippyLoadStoryboardHistoryRefs(){
+    return openHistDB().then(function(db){
+      return new Promise(function(resolve, reject){
+        const latest = Object.create(null); const tx = db.transaction(HIST_STORE, 'readonly'); const req = tx.objectStore(HIST_STORE).openCursor();
+        req.onsuccess=function(e){ const cursor=e.target.result; if(!cursor){resolve(Object.keys(latest).map(function(k){return latest[k];}));return;} const ref=zippyParseStoryboardHistoryItem(cursor.value); if(ref){const key=ref.shotId+'::'+ref.frameIndex; if(!latest[key]||ref.timestamp>=latest[key].timestamp)latest[key]=ref;} cursor.continue(); };
+        req.onerror=function(){reject(req.error);};
+      });
+    });
+  }
+  function zippyHistoryMarker(v){ return v === ZIPPY_HISTORY_REF; }
+  function zippyHistoryLoad(ref){
+    if (!ref || !ref.id) return Promise.resolve('');
+    const key=String(ref.id); if(zippySBHistoryLoads[key])return zippySBHistoryLoads[key];
+    zippySBHistoryLoads[key]=zippyGetHistoryItem(ref.id).then(function(item){return item && item.b64 ? item.b64 : '';}).catch(function(){return '';});
+    return zippySBHistoryLoads[key];
+  }
+  function zippyClearSBHistoryRefs(){ Object.keys(zippySBHistoryRefs).forEach(function(k){delete zippySBHistoryRefs[k];}); Object.keys(zippySBHistorySeqRefs).forEach(function(k){delete zippySBHistorySeqRefs[k];}); }
+
+  async function restoreStoryboardFromHistory(opts){
+    const options=opts||{}; const btn=document.getElementById('btnSBRecoverHistory'); const oldText=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='연결 중...';}
+    try{
+      const refs=await zippyLoadStoryboardHistoryRefs(); zippyClearSBHistoryRefs();
+      refs.forEach(function(ref){
+        if(ref.frameIndex>0){ if(!zippySBHistorySeqRefs[ref.shotId])zippySBHistorySeqRefs[ref.shotId]=[]; zippySBHistorySeqRefs[ref.shotId][ref.frameIndex-1]=ref; if(!sbSeqImages[ref.shotId])sbSeqImages[ref.shotId]=[]; sbSeqImages[ref.shotId][ref.frameIndex-1]=ZIPPY_HISTORY_REF; if(!sbGenImages[ref.shotId])sbGenImages[ref.shotId]=ZIPPY_HISTORY_REF; }
+        else { zippySBHistoryRefs[ref.shotId]=ref; sbGenImages[ref.shotId]=ZIPPY_HISTORY_REF; }
+        if(typeof sbLocalDeletedImages!=='undefined')delete sbLocalDeletedImages[ref.shotId];
+      });
+      if(typeof backfillContinuityCardsFromGenerated==='function')backfillContinuityCardsFromGenerated('history-recovery');
+      if(typeof buildStoryboardTimeline==='function')buildStoryboardTimeline();
+      if(typeof hydrateVisibleSBTimelineImagesSoon==='function')hydrateVisibleSBTimelineImagesSoon();
+      if(typeof sbRefreshVideoShotOptions==='function')sbRefreshVideoShotOptions();
+      await saveStoryboardState('history-recovery',{localOnly:true});
+      const main=refs.filter(function(r){return !r.frameIndex;}).length; const seq=refs.filter(function(r){return r.frameIndex>0;}).length; if(!options.silent)alert(refs.length?'히스토리 연결 완료 · '+main+'컷 / 흐름 '+seq+'프레임':'복구할 스토리보드 히스토리가 없습니다.'); return {ok:true,images:main,sequenceFrames:seq,refs:refs.length};
+    }catch(e){console.warn('Storyboard history recovery failed:',e);if(!options.silent)alert('히스토리 복구 실패: '+(e&&e.message?e.message:e));return {ok:false,error:e};}
+    finally{if(btn){btn.disabled=false;btn.textContent=oldText||'히스토리에서 복구';}}
+  }
+  async function autoRestoreStoryboardFromHistoryIfMissing(){ try { if(typeof loadHistory!=='function'||typeof SB_SHOTS==='undefined')return; await restoreStoryboardFromHistory({silent:true,auto:true}); } catch(e){console.warn('Auto storyboard history recovery failed:',e);} }
+
+  function sbStoryboardSnapshot(){
+    function compact(src){ const out={}; let bytes=0; Object.keys(src||{}).forEach(function(k){const v=src[k]; if(Array.isArray(v)){const arr=v.map(function(x){if(typeof x==='string')bytes+=x.length;return (zippyHistoryMarker(x)?'':x);}); if(arr.some(Boolean))out[k]=arr;} else if(typeof v==='string'&&v&&!zippyHistoryMarker(v)){bytes+=v.length;out[k]=v;} }); return bytes>8000000?{}:out; }
+    return {genImages:compact(sbGenImages),seqImages:compact(sbSeqImages),continuityCards:sbPlainMap(sbContinuityCards),localDeletedImages:sbPlainMap(sbLocalDeletedImages),cameraPositions:typeof sbCameraPositions!=='undefined'?sbPlainMap(sbCameraPositions):{},cameraControls:typeof sbCameraControls!=='undefined'?sbPlainMap(sbCameraControls):{},shotLocations:typeof SB_SHOTS!=='undefined'?SB_SHOTS.filter(function(s){return s&&s.id&&s.loc;}).map(function(s){return{id:s.id,loc:s.loc};}):[],shotEdits:sbShotEditorSnapshot(),savedAt:new Date().toISOString()};
+  }
+
+  async function hydrateSBTimelineImages(root,opts){
+    const options=opts||{}; const scope=root||document.getElementById('sbTimelineInner'); if(!scope)return; const nodes=Array.from(scope.querySelectorAll('img[data-sb-img-key],img[data-sb-seq-key]')); let i=0;
+    function visible(el){if(!options.visibleOnly)return true;const group=el.closest('.sb-scene');return !group||group.style.display!=='none';}
+    while(i<nodes.length){const batch=nodes.slice(i,i+4);i+=4;await Promise.all(batch.map(async function(img){if(!visible(img))return;const key=img.getAttribute('data-sb-img-key');const seqKey=img.getAttribute('data-sb-seq-key');const idx=Number(img.getAttribute('data-sb-seq-index')||0);let b64=''; if(key){b64=sbGenImages[key]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[key])b64=await zippyHistoryLoad(zippySBHistoryRefs[key]);if(b64){sbGenImages[key]=b64;img.src='data:image/png;base64,'+b64;img.dataset.hydratedB64Len=String(b64.length);}}else if(seqKey){const arr=sbSeqImages[seqKey]||[];b64=arr[idx]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistorySeqRefs[seqKey]&&zippySBHistorySeqRefs[seqKey][idx])b64=await zippyHistoryLoad(zippySBHistorySeqRefs[seqKey][idx]);if(b64){if(!sbSeqImages[seqKey])sbSeqImages[seqKey]=[];sbSeqImages[seqKey][idx]=b64;img.src='data:image/png;base64,'+b64;img.dataset.hydratedB64Len=String(b64.length);}}})); await new Promise(function(resolve){requestAnimationFrame(resolve);});}
+  }
+  function hydrateVisibleSBTimelineImagesSoon(root){const scope=root||document.getElementById('sbTimelineInner');if(!scope)return;hydrateSBTimelineImages(scope,{visibleOnly:true,force:true});}
+
+  async function openSBLightbox(shotId){let b64=sbGenImages[shotId]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[shotId]){b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);if(b64)sbGenImages[shotId]=b64;}if(!b64)return;let lb=document.getElementById('sbLightbox');if(!lb){lb=document.createElement('div');lb.id='sbLightbox';lb.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.88);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';lb.onclick=function(e){if(e.target===lb)lb.style.display='none';};lb.innerHTML='<img id="sbLbImg" style="max-width:92vw;max-height:82vh;border-radius:8px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain"><div style="display:flex;gap:10px"><button onclick="downloadSBLightboxImage()">↓ 다운로드</button><button onclick="sendSBLightboxToVideo()">START로 보내기</button><button onclick="deleteSBLightboxImage()">삭제</button><button onclick="document.getElementById(\'sbLightbox\').style.display=\'none\'">✕ 닫기</button></div>';document.body.appendChild(lb);}lb.dataset.shotId=shotId;lb.dataset.seqIndex='';document.getElementById('sbLbImg').src='data:image/png;base64,'+b64;lb.style.display='flex';}
+  async function openSeqFrame(shotId,idx){let arr=sbSeqImages[shotId]||[];let b64=arr[idx]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistorySeqRefs[shotId]&&zippySBHistorySeqRefs[shotId][idx]){b64=await zippyHistoryLoad(zippySBHistorySeqRefs[shotId][idx]);if(b64){if(!sbSeqImages[shotId])sbSeqImages[shotId]=[];sbSeqImages[shotId][idx]=b64;}}if(!b64)return;await openSBLightbox(shotId);const lb=document.getElementById('sbLightbox');if(lb)lb.dataset.seqIndex=String(idx);const im=document.getElementById('sbLbImg');if(im)im.src='data:image/png;base64,'+b64;}
+  async function downloadSBImg(shotId){let b64=sbGenImages[shotId]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[shotId])b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);if(!b64)return;const a=document.createElement('a');a.href='data:image/png;base64,'+b64;a.download='SB_'+shotId+'_'+Date.now()+'.png';a.click();}
+  async function sendSBToVideo(shotId){let b64=sbGenImages[shotId]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[shotId])b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);if(!b64){alert('이미지를 불러오는 중입니다. 다시 시도해주세요');return;}const shot=SB_SHOTS.find(function(s){return s.id===shotId;})||{id:shotId,frame:'',desc:'',func:''};const prompt=buildSBVideoPrompt(shot);const meta={source:'storyboard',shotId:shot.id||shotId,frame:shot.frame||'',desc:shot.desc||'',func:shot.func||'',videoPrompt:prompt};if(typeof window.zippySendImageToVideoTab==='function')window.zippySendImageToVideoTab(b64,'image/png',prompt,meta);else{vidStartB64=b64;vidStartMime='image/png';vidStartMeta=meta;const el=document.getElementById('vidStartFrame');if(el)el.innerHTML='<img src="data:image/png;base64,'+b64+'" style="width:100%;height:100%;object-fit:cover">';const promptEl=document.getElementById('vidTabPrompt');if(promptEl)promptEl.value=prompt;goStep('vid');}}
+  function clearStoryboard(){Object.keys(sbGenImages).forEach(function(k){delete sbGenImages[k];});Object.keys(sbSeqImages).forEach(function(k){delete sbSeqImages[k];});zippyClearSBHistoryRefs();if(typeof sbContinuityCards!=='undefined')Object.keys(sbContinuityCards).forEach(function(k){delete sbContinuityCards[k];});buildStoryboardTimeline();saveStoryboardState('storyboard-cleared');}
+  window.hydrateHistoryImages=hydrateHistoryImages;
+  window.refreshHistory=refreshHistory;
+  window.openHistModal=openHistModal;
+  window.downloadHistImg=downloadHistImg;
+  window.sendHistToAsset=sendHistToAsset;
+  window.sendHistToStoryboard=sendHistToStoryboard;
+  window.selectHistForVideo=selectHistForVideo;
+  window.loadFromHistory=loadFromHistory;
+  window.restoreStoryboardFromHistory=restoreStoryboardFromHistory;
+  window.autoRestoreStoryboardFromHistoryIfMissing=autoRestoreStoryboardFromHistoryIfMissing;
+  window.sbStoryboardSnapshot=sbStoryboardSnapshot;
+  window.hydrateSBTimelineImages=hydrateSBTimelineImages;
+  window.hydrateVisibleSBTimelineImagesSoon=hydrateVisibleSBTimelineImagesSoon;
+  window.openSBLightbox=openSBLightbox;
+  window.openSeqFrame=openSeqFrame;
+  window.downloadSBImg=downloadSBImg;
+  window.sendSBToVideo=sendSBToVideo;
+  window.clearStoryboard=clearStoryboard;
+})();
+</script>
 </body>
 </html>

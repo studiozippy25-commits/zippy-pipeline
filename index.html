@@ -82948,6 +82948,7 @@ ${cutList}
 <!--MVSTUDIO_END-->
 <script>
 /* HISTORY MEMORY GUARD: keep IndexedDB history intact while loading only visible images. */
+globalThis.__zippyHistoryGuardLoaded = true;
 (function(){
   const ZIPPY_HISTORY_REF = '__ZIPPY_HISTORY_REF__';
   const zippySBHistoryRefs = Object.create(null);
@@ -83194,6 +83195,24 @@ ${cutList}
   window.downloadSBImg=downloadSBImg;
   window.sendSBToVideo=sendSBToVideo;
   window.clearStoryboard=clearStoryboard;
+  globalThis.hydrateHistoryImages=hydrateHistoryImages;
+  globalThis.refreshHistory=refreshHistory;
+  globalThis.openHistModal=openHistModal;
+  globalThis.downloadHistImg=downloadHistImg;
+  globalThis.sendHistToAsset=sendHistToAsset;
+  globalThis.sendHistToStoryboard=sendHistToStoryboard;
+  globalThis.selectHistForVideo=selectHistForVideo;
+  globalThis.loadFromHistory=loadFromHistory;
+  globalThis.restoreStoryboardFromHistory=restoreStoryboardFromHistory;
+  globalThis.autoRestoreStoryboardFromHistoryIfMissing=autoRestoreStoryboardFromHistoryIfMissing;
+  globalThis.sbStoryboardSnapshot=sbStoryboardSnapshot;
+  globalThis.hydrateSBTimelineImages=hydrateSBTimelineImages;
+  globalThis.hydrateVisibleSBTimelineImagesSoon=hydrateVisibleSBTimelineImagesSoon;
+  globalThis.openSBLightbox=openSBLightbox;
+  globalThis.openSeqFrame=openSeqFrame;
+  globalThis.downloadSBImg=downloadSBImg;
+  globalThis.sendSBToVideo=sendSBToVideo;
+  globalThis.clearStoryboard=clearStoryboard;
 })();
 </script>
 </body>

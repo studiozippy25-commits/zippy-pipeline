@@ -70379,11 +70379,114 @@ function buildStoryboardBranchIdentityLock(shot, images) {
   return lines.join('\n');
 }
 
+
+/* STORYBOARD ONE-CLICK SIX-PACK BRANCHES (260724) */
+const STORYBOARD_BRANCH_SIX_PACK = [
+  {key:'six-emotion', label:'감정 MCU · 정면 3/4 · 85mm', group:'추천 6컷', prompt:'front three-quarter eye-level angle, medium close-up chest-up, 85mm portrait lens, exact same frozen action with facial emotion readable'},
+  {key:'six-profile', label:'프로필 CU · 85mm', group:'추천 6컷', prompt:'clean side profile angle, close-up, 85mm portrait lens, same frozen action and screen direction'},
+  {key:'six-ots', label:'OTS MS · 50mm', group:'추천 6컷', prompt:'motivated over-the-shoulder angle, medium shot waist-up, 50mm natural lens, same action instant with foreground shoulder depth'},
+  {key:'six-low', label:'로우 FS · 35mm', group:'추천 6컷', prompt:'low angle below the subject looking up, full shot head-to-toe, 35mm lens, grounded feet and dynamic spatial energy'},
+  {key:'six-high', label:'하이 MLS · 50mm', group:'추천 6컷', prompt:'high angle looking down, medium-long knees-up shot, 50mm lens, same frozen action with distinct background geometry'},
+  {key:'six-space', label:'공간 WS · 24mm', group:'추천 6컷', prompt:'eye-level wide shot, 24mm lens, full readable environment and subject geography, same frozen action without changing identity or wardrobe'}
+];
+
+function storyboardMountBranchCards(shotId) {
+  const baseCard = document.getElementById('sb-shot-' + String(shotId).replace(/[^a-z0-9]/gi,'-'));
+  if (!baseCard || !baseCard.parentElement) return false;
+  const parent = baseCard.parentElement;
+  Array.from(parent.querySelectorAll('.sb-branch-card[data-parent-shot]')).forEach(function(card) {
+    if (card.getAttribute('data-parent-shot') === String(shotId)) card.remove();
+  });
+  const branchHtml = renderStoryboardBranchCards(shotId);
+  if (branchHtml) baseCard.insertAdjacentHTML('afterend', branchHtml);
+  return true;
+}
+
+async function generateStoryboardBranchSixPack(shotId) {
+  const shot = SB_SHOTS.find(function(item){ return item.id === shotId; });
+  const base = sbGenImages[shotId] || ((sbSeqImages[shotId] || [])[0]);
+  if (!shot || !base) {
+    alert('먼저 원본 스토리보드 이미지를 생성해주세요.');
+    return;
+  }
+  const domId = String(shotId).replace(/[^a-z0-9]/gi,'-');
+  const button = document.getElementById('sbbranch-sixpack-' + domId);
+  const status = document.getElementById('sbbranch-' + domId);
+  if (button) {
+    button.disabled = true;
+    button.textContent = '⚡ 추천 6컷 생성 중...';
+  }
+  let completed = 0;
+  let cursor = 0;
+  const results = new Array(STORYBOARD_BRANCH_SIX_PACK.length);
+  function updateStatus() {
+    if (status) status.textContent = '추천 파생 ' + completed + ' / 6 완료 · 3개씩 병렬 생성';
+  }
+  updateStatus();
+  async function worker() {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= STORYBOARD_BRANCH_SIX_PACK.length) return;
+      const preset = STORYBOARD_BRANCH_SIX_PACK[index];
+      try {
+        const b64 = await generateSBShot(shotId, {
+          phase: storyboardBranchPrompt(preset),
+          returnOnly: true,
+          branch: true,
+          seedImage: base,
+          seedMime: 'image/png'
+        });
+        if (!b64) throw new Error('이미지 없음');
+        results[index] = {
+          presetKey:preset.key,
+          label:preset.group + ' · ' + preset.label,
+          prompt:preset.prompt,
+          group:preset.group,
+          b64:b64,
+          createdAt:new Date().toISOString()
+        };
+      } catch (error) {
+        results[index] = {error:error};
+      }
+      completed += 1;
+      updateStatus();
+    }
+  }
+  await Promise.all([worker(), worker(), worker()]);
+  const branches = storyboardBranchList(shotId);
+  const successful = results.filter(function(result){ return result && result.b64; });
+  successful.forEach(function(branch) {
+    branches.push(branch);
+    zippyNasSaveImage(
+      'storyboard_branch',
+      shotId + '_' + branch.presetKey + '_' + Date.now(),
+      branch.b64,
+      'image/png',
+      {shotId:shotId, presetKey:branch.presetKey, reason:'manual-shot-six-pack'}
+    );
+  });
+  await saveStoryboardState('manual-shot-six-pack');
+  buildStoryboardTimeline();
+  storyboardMountBranchCards(shotId);
+  if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
+  const failed = results.length - successful.length;
+  if (failed) {
+    alert('추천 6컷 중 ' + successful.length + '컷 생성 완료 · ' + failed + '컷 실패. 실패한 컷은 버튼을 다시 눌러 추가 생성할 수 있습니다.');
+  }
+}
+
 function renderStoryboardBranchControls(shotId) {
   if (typeof sbGenImages === 'undefined' || !sbGenImages[shotId]) return '';
   const groups = ['앵글','샷','렌즈'];
   const domId = String(shotId).replace(/[^a-z0-9]/gi,'-');
-  let html = '<details class="sb-branch-panel" style="margin:7px 0;border:1px solid var(--bd);border-radius:7px;padding:6px;background:rgba(14,165,233,.025)"><summary style="cursor:pointer;font-family:var(--font-mono);font-size:10px;color:var(--bl);font-weight:700">⑂ 원본에서 샷 분기 · 앵글/사이즈/렌즈</summary>';
+  const branches = storyboardBranchList(shotId);
+  let html = '<div class="sb-branch-panel" style="margin:7px 0;border:1px solid var(--bd);border-radius:7px;padding:6px;background:rgba(14,165,233,.025)">';
+  html += '<button id="sbbranch-sixpack-' + domId + '" class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardBranchSixPack(\'' + sbQuoteJs(shotId) + '\')" style="width:100%;padding:9px 7px;border-color:var(--or);background:rgba(245,158,11,.09);color:var(--or);font-weight:800;font-size:11px">⚡ 추천 파생 6컷 한 번에 생성</button>';
+  html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin:5px 0 0;text-align:center">감정 MCU · 프로필 CU · OTS MS · 로우 FS · 하이 MLS · 공간 WS</div>';
+  html += '<div class="sb-branch-status" id="sbbranch-' + domId + '" style="font-family:var(--font-mono);font-size:9px;color:var(--or);font-weight:700;margin-top:5px;text-align:center"></div>';
+  if (branches.length) html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin-top:5px;text-align:center">현재 파생 샷 ' + branches.length + '개 · 독립 카드로 누적</div>';
+  html += '<details style="margin-top:6px;border-top:1px solid var(--bd);padding-top:5px"><summary style="cursor:pointer;font-family:var(--font-mono);font-size:9px;color:var(--mu);font-weight:700">고급 설정 · 직접 앵글/사이즈/렌즈 선택</summary>';
   html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin:7px 0 3px">자주 쓰는 조합</div><div style="display:flex;gap:3px;flex-wrap:wrap">';
   Object.keys(STORYBOARD_BRANCH_DEFAULT_COMBOS).forEach(function(key) {
     const combo = STORYBOARD_BRANCH_DEFAULT_COMBOS[key];
@@ -70395,7 +70498,7 @@ function renderStoryboardBranchControls(shotId) {
     '<label style="font-family:var(--font-mono);font-size:8px;color:var(--mu)">샷 사이즈<select id="sbbranch-size-' + domId + '" style="width:100%;margin-top:2px;padding:5px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px">' + storyboardBranchSelectOptions('샷') + '</select></label>' +
     '<label style="font-family:var(--font-mono);font-size:8px;color:var(--mu)">렌즈<select id="sbbranch-lens-' + domId + '" style="width:100%;margin-top:2px;padding:5px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px">' + storyboardBranchSelectOptions('렌즈') + '</select></label>' +
     '</div>';
-  html += '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardBranchCombo(\'' + sbQuoteJs(shotId) + '\')" style="width:100%;margin-top:5px;padding:6px;border-color:var(--or);color:var(--or);font-weight:700">조합 분기 생성</button>';
+  html += '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardBranchCombo(\'' + sbQuoteJs(shotId) + '\')" style="width:100%;margin-top:5px;padding:6px;border-color:var(--or);color:var(--or);font-weight:700">선택 조합 1컷 생성</button>';
   html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin-top:7px">빠른 단일 변경</div>';
   groups.forEach(function(group) {
     html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin:6px 0 3px">' + group + '</div><div style="display:flex;gap:3px;flex-wrap:wrap">';
@@ -70406,11 +70509,7 @@ function renderStoryboardBranchControls(shotId) {
     });
     html += '</div>';
   });
-  const branches = storyboardBranchList(shotId);
-  if (branches.length) {
-    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin-top:8px">파생 샷 ' + branches.length + '개 · 원본 오른쪽 독립 카드로 표시</div>';
-  }
-  html += '<div class="sb-branch-status" id="sbbranch-' + String(shotId).replace(/[^a-z0-9]/gi,'-') + '" style="font-family:var(--font-mono);font-size:9px;color:var(--or);margin-top:5px"></div></details>';
+  html += '</details></div>';
   return html;
 }
 
@@ -70446,9 +70545,10 @@ async function generateStoryboardBranch(shotId, presetKey, replaceIndex) {
     if (Number.isInteger(replaceIndex) && branches[replaceIndex]) branches[replaceIndex] = branch;
     else branches.push(branch);
     zippyNasSaveImage('storyboard_branch', shotId + '_' + presetKey + '_' + Date.now(), b64, 'image/png', {shotId:shotId, presetKey:presetKey, reason:'manual-shot-branch'});
-    buildStoryboardTimeline();
-    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     await saveStoryboardState('manual-shot-branch');
+    buildStoryboardTimeline();
+    storyboardMountBranchCards(shotId);
+    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
   } catch (error) {
     if (statusEl) statusEl.textContent = '';
     alert('파생 샷 생성 실패: ' + error.message);
@@ -70493,10 +70593,11 @@ function regenerateStoryboardBranch(shotId, index) {
   return generateStoryboardBranch(shotId, branch.presetKey, index, preset);
 }
 
-function deleteStoryboardBranch(shotId, index) {
+async function deleteStoryboardBranch(shotId, index) {
   storyboardBranchList(shotId).splice(index, 1);
+  await saveStoryboardState('manual-shot-branch-deleted');
   buildStoryboardTimeline();
-  saveStoryboardState('manual-shot-branch-deleted');
+  storyboardMountBranchCards(shotId);
 }
 
 function downloadStoryboardBranch(shotId, index) {

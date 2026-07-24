@@ -70299,6 +70299,86 @@ function storyboardBranchSelectOptions(group) {
   return html;
 }
 
+
+/* STORYBOARD DERIVED SHOT CARDS + MINAMI FACE LOCK (260724) */
+function renderStoryboardBranchCards(shotId) {
+  const branches = storyboardBranchList(shotId);
+  if (!branches.length) return '';
+  const safeShotId = sbQuoteJs(shotId);
+  const domId = String(shotId).replace(/[^a-z0-9]/gi,'-');
+  return branches.map(function(branch, index) {
+    const label = branch.label || branch.presetKey || ('파생 ' + (index + 1));
+    return '<div class="sb-shot sb-branch-card" data-parent-shot="' + sbQuoteAttr(shotId) + '" id="sb-branch-' + domId + '-' + index + '" style="border-color:rgba(14,165,233,.55);background:linear-gradient(180deg,rgba(14,165,233,.055),rgba(255,255,255,.012))">' +
+      '<div class="sb-shot-hdr"><span class="sb-shot-id">↳ ' + sbEscHtml(shotId) + ' · B' + String(index + 1).padStart(2,'0') + '</span><span class="sb-shot-pri opt" style="border-color:var(--bl);color:var(--bl)">파생</span></div>' +
+      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + sbQuoteAttr(label) + '">' + sbEscHtml(label) + '</div>' +
+      '<img src="data:image/png;base64,' + branch.b64 + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;display:block;cursor:pointer;border:1px solid var(--bd)" onclick="event.preventDefault();event.stopPropagation();openStoryboardBranch(\'' + safeShotId + '\',' + index + ')">' +
+      '<div class="sb-card-actions" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">' +
+        '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();downloadStoryboardBranch(\'' + safeShotId + '\',' + index + ')">↓ 저장</button>' +
+        '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();sendStoryboardBranchToVideo(\'' + safeShotId + '\',' + index + ')" style="border-color:var(--pu);color:var(--pu)">START</button>' +
+        '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();regenerateStoryboardBranch(\'' + safeShotId + '\',' + index + ')" style="border-color:var(--cy);color:var(--cy)">↻ 재생성</button>' +
+        '<button class="hist-card-btn del" onclick="event.preventDefault();event.stopPropagation();deleteStoryboardBranch(\'' + safeShotId + '\',' + index + ')" style="border-color:var(--er);color:var(--er)">삭제</button>' +
+      '</div>' +
+      '<div style="font-family:var(--font-mono);font-size:9px;color:var(--mu);margin-top:6px">원본에서 분기된 독립 샷 · 계속 누적</div>' +
+    '</div>';
+  }).join('');
+}
+
+function sendStoryboardBranchToVideo(shotId, index) {
+  const branch = storyboardBranchList(shotId)[index];
+  if (!branch || !branch.b64) return;
+  const shot = SB_SHOTS.find(function(item){ return item.id === shotId; }) || {id:shotId, frame:'', desc:'', func:''};
+  const prompt = (typeof buildSBVideoPrompt === 'function') ? buildSBVideoPrompt(shot) : '';
+  const meta = {
+    source: 'storyboard',
+    shotId: shotId,
+    frame: shot.frame || '',
+    desc: shot.desc || '',
+    func: shot.func || '',
+    videoPrompt: prompt,
+    storyboardVariant: 'branch',
+    branchIndex: index
+  };
+  if (typeof window.zippySendImageToVideoTab === 'function') {
+    window.zippySendImageToVideoTab(branch.b64, 'image/png', prompt, meta);
+  } else {
+    alert('영상 탭 연결을 찾지 못했습니다.');
+  }
+}
+
+function storyboardIsMinamiIdentityShot(shot) {
+  if (!shot) return false;
+  const projectKey = String(typeof currentProjectKey !== 'undefined' ? currentProjectKey : '').toLowerCase();
+  const projectName = String((typeof currentProject !== 'undefined' && currentProject && currentProject.name) || '').toLowerCase();
+  if (projectKey.indexOf('love') === -1 && projectName.indexOf('오늘은 왠지 love') === -1) return false;
+  const text = [
+    shot.desc, shot.frame, shot.func,
+    Array.isArray(shot.char) ? shot.char.join(' ') : shot.char
+  ].filter(Boolean).join(' ');
+  return /이루리|(?:^|[\s·])루리(?:$|[\s·])|미나미|minami/i.test(text);
+}
+
+function orderStoryboardBranchIdentityRefs(images, seedRef) {
+  const refs = Array.isArray(images) ? images.slice() : [];
+  const face = refs.filter(function(ref){ return ref && ref._type === 'face'; });
+  const character = refs.filter(function(ref){ return ref && ref._type === 'character'; });
+  const rest = refs.filter(function(ref){ return ref && ref._type !== 'face' && ref._type !== 'character' && ref._type !== 'continuity-seed'; });
+  return face.concat(character, seedRef ? [seedRef] : [], rest);
+}
+
+function buildStoryboardBranchIdentityLock(shot, images) {
+  const faceLabels = (images || []).filter(function(ref){ return ref && ref._type === 'face'; }).map(function(ref){ return ref._label || 'approved face sheet'; });
+  const lines = [
+    '\nBRANCH FACE IDENTITY LOCK — HIGHER PRIORITY THAN THE GENERATED SEED:',
+    'The canonical FACE reference image(s) are the ONLY facial-identity authority. The generated seed is wardrobe, pose, location, lighting and frozen-action continuity only; never copy, average, or amplify any facial drift already present in that seed.',
+    'Reconstruct the exact approved actor face from the canonical face references at the requested new camera angle. No alternate actor, face merge, beauty reinterpretation, eye enlargement, jaw reshaping, nose/lip changes, age drift, or hairstyle substitution.'
+  ];
+  if (faceLabels.length) lines.push('Canonical face authority attached first: ' + faceLabels.join(', ') + '.');
+  if (storyboardIsMinamiIdentityShot(shot)) {
+    lines.push('MINAMI / IRURI ABSOLUTE LOCK: preserve the approved 이루리/미나미 face exactly — same soft brown eye shape and spacing, small natural lips, delicate natural nose, youthful cheek and jaw proportions, wispy see-through bangs, long dark side ponytail, and the small YELLOW ATOM HAIRPIN in the exact same side position whenever the head is visible. Never turn her into a generic idol, a different actress, or a sharper/more mature face.');
+  }
+  return lines.join('\n');
+}
+
 function renderStoryboardBranchControls(shotId) {
   if (typeof sbGenImages === 'undefined' || !sbGenImages[shotId]) return '';
   const groups = ['앵글','샷','렌즈'];
@@ -70328,19 +70408,7 @@ function renderStoryboardBranchControls(shotId) {
   });
   const branches = storyboardBranchList(shotId);
   if (branches.length) {
-    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin:8px 0 4px">파생 샷 ' + branches.length + '개</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px">';
-    branches.forEach(function(branch, index) {
-      html += '<div style="border:1px solid var(--bd);border-radius:6px;padding:4px;min-width:0">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:3px"><span style="font-family:var(--font-mono);font-size:8px;color:var(--cy)">' + sbEscHtml(branch.label || branch.presetKey || '') + '</span><span style="display:flex;gap:2px">' +
-          '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();downloadStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px">↓</button>' +
-          '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();regenerateStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px;color:var(--cy)">↻</button>' +
-          '<button class="hist-card-btn del" onclick="event.preventDefault();event.stopPropagation();deleteStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px;color:var(--er)">×</button>' +
-        '</span></div>' +
-        '<img src="data:image/png;base64,' + branch.b64 + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block;cursor:pointer" onclick="event.preventDefault();event.stopPropagation();openStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')">' +
-      '</div>';
-    });
-    html += '</div>';
+    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin-top:8px">파생 샷 ' + branches.length + '개 · 원본 오른쪽 독립 카드로 표시</div>';
   }
   html += '<div class="sb-branch-status" id="sbbranch-' + String(shotId).replace(/[^a-z0-9]/gi,'-') + '" style="font-family:var(--font-mono);font-size:9px;color:var(--or);margin-top:5px"></div></details>';
   return html;
@@ -70349,7 +70417,8 @@ function renderStoryboardBranchControls(shotId) {
 function storyboardBranchPrompt(preset) {
   return [
     'MANUAL SHOT BRANCH — SEED IMAGE CONTINUITY LOCK:',
-    'The attached generated storyboard image is the exact continuity seed for character identity, face, hair, wardrobe, props, location architecture, set dressing, time of day, lighting direction, color, and the frozen story instant.',
+    'The attached generated storyboard image is continuity authority for wardrobe, pose, props, location architecture, set dressing, time of day, lighting direction, color, and the frozen story instant — but NOT for facial identity.',
+    'The separately attached canonical FACE reference sheet remains the only facial-identity authority, even if the generated seed already contains facial drift.',
     'The seed image is NOT composition authority. Reconstruct the same physical moment from a new camera according to this single requested variation: ' + preset.prompt + '.',
     'Change only the requested angle, shot size, or lens. Preserve screen direction and plausible unseen geometry. Do not mirror the seed, crop-and-enlarge it, copy its camera position, make a collage, or show several views.'
   ].join('\n');
@@ -70379,7 +70448,7 @@ async function generateStoryboardBranch(shotId, presetKey, replaceIndex) {
     zippyNasSaveImage('storyboard_branch', shotId + '_' + presetKey + '_' + Date.now(), b64, 'image/png', {shotId:shotId, presetKey:presetKey, reason:'manual-shot-branch'});
     buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
-    saveStoryboardState('manual-shot-branch');
+    await saveStoryboardState('manual-shot-branch');
   } catch (error) {
     if (statusEl) statusEl.textContent = '';
     alert('파생 샷 생성 실패: ' + error.message);
@@ -72446,6 +72515,7 @@ function renderShotCard(shot, sceneVal) {
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
   html += `</div>`;
+  if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
   return html;
 }
 
@@ -72852,6 +72922,7 @@ function buildStoryboardTimeline() {
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
       html += `</div>`;
+      if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
     });
     html += `</div>`;
   });
@@ -73117,7 +73188,8 @@ ${negativeBlock}`;
       if (continuityImageRef) sbInsertContinuityImageReference(imgInputs, continuityImageRef);
     }
     if (_seq && _seq.seedImage && imgMode !== 'zimage') {
-      imgInputs.unshift({b64:_seq.seedImage, mime:_seq.seedMime || 'image/png', _type:'continuity-seed', _label:'Generated storyboard seed — identity/space/light continuity only'});
+      const seedRef = {b64:_seq.seedImage, mime:_seq.seedMime || 'image/png', _type:'continuity-seed', _label:'Generated storyboard seed — wardrobe/pose/space/light continuity only; never face authority'};
+      imgInputs = (typeof orderStoryboardBranchIdentityRefs === 'function') ? orderStoryboardBranchIdentityRefs(imgInputs, seedRef) : [seedRef].concat(imgInputs);
     }
     const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
 	    if (isProofOfTasteProject() && imgMode !== 'zimage') {
@@ -73142,7 +73214,7 @@ ${negativeBlock}`;
     if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityAppearanceLock(shot, shot.promptOverride);
     if (_seq && _seq.phase) {
       if (_seq.branch) {
-        _finalPrompt += '\n\nSHOT BRANCH OVERRIDE — MORE SPECIFIC THAN CAMERA ABOVE:\n' + _seq.phase + '\nThe attached generated seed is continuity authority for identity, wardrobe, props, environment, lighting, and the frozen action instant only. It is explicitly NOT framing authority. Reconstruct a genuinely new camera view; do not mirror, crop, zoom, or copy the seed composition. Produce one independent 16:9 frame.';
+        _finalPrompt += '\n\nSHOT BRANCH OVERRIDE — MORE SPECIFIC THAN CAMERA ABOVE:\n' + _seq.phase + '\nThe attached generated seed is continuity authority for wardrobe, props, environment, lighting, and the frozen action instant only. It is explicitly NOT face authority and NOT framing authority. Reconstruct a genuinely new camera view; do not mirror, crop, zoom, or copy the seed composition. Produce one independent 16:9 frame.' + ((typeof buildStoryboardBranchIdentityLock === 'function') ? buildStoryboardBranchIdentityLock(shot, imgInputs) : '');
       } else {
         _finalPrompt += '\n\nSEQUENCE FRAME OVERRIDE — MORE SPECIFIC THAN ACTION ABOVE:\n' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): preserve character identity, exact wardrobe, location architecture, time of day, screen direction, and lighting logic. The frame override is the ONLY visible beat for this call. Previous frames are not attached and are never composition authority. Change camera size/side/height or foreground layer as directed. Produce one independent 16:9 frame; never a collage, split screen, triptych, contact sheet, or several moments in one image.';
         if (sbIsNcityDokgoCombatCostume(shot)) _finalPrompt += '\nDOKGO COMBAT 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 he wears the same selected combat outfit, the same approved engraved lower-face mask, and no eyeglasses. Never change to factory/day mode between sequence frames.';
@@ -83880,5 +83952,299 @@ globalThis.__zippyHistoryGuardLoaded = true;
   globalThis.clearStoryboard=clearStoryboard;
 })();
 </script>
+<script>
+/* STORYBOARD LIGHTBOX NAVIGATION (260724) — PROJECT-AGNOSTIC */
+(function(){
+  if (window.__storyboardLightboxNavigation260724) return;
+  window.__storyboardLightboxNavigation260724 = true;
+
+  const originalOpenSBLightbox = window.openSBLightbox;
+  const originalOpenSeqFrame = window.openSeqFrame;
+  const originalDownloadSBLightboxImage = window.downloadSBLightboxImage;
+  const originalDeleteSBLightboxImage = window.deleteSBLightboxImage;
+  const originalSendSBLightboxToVideo = window.sendSBLightboxToVideo;
+
+  function storyboardLightboxHasImage(value) {
+    return typeof value === 'string' && value.length > 0;
+  }
+
+  function storyboardLightboxItems() {
+    const shots = (typeof SB_SHOTS !== 'undefined' && Array.isArray(SB_SHOTS)) ? SB_SHOTS : [];
+    const items = [];
+    shots.forEach(function(shot) {
+      if (!shot || !shot.id) return;
+      const shotId = shot.id;
+      const sequence = (typeof sbSeqImages !== 'undefined' && Array.isArray(sbSeqImages[shotId]))
+        ? sbSeqImages[shotId]
+        : [];
+      const sequenceIndexes = [];
+      sequence.forEach(function(value, index) {
+        if (storyboardLightboxHasImage(value)) sequenceIndexes.push(index);
+      });
+      if (sequenceIndexes.length) {
+        sequenceIndexes.forEach(function(index, order) {
+          items.push({
+            key: shotId + ':seq:' + index,
+            type: 'seq',
+            shotId: shotId,
+            index: index,
+            label: shotId + ' · 3컷 ' + (order + 1) + '/' + sequenceIndexes.length
+          });
+        });
+      } else {
+        const base = (typeof sbGenImages !== 'undefined') ? sbGenImages[shotId] : '';
+        if (storyboardLightboxHasImage(base)) {
+          items.push({
+            key: shotId + ':base',
+            type: 'base',
+            shotId: shotId,
+            index: -1,
+            label: shotId
+          });
+        }
+      }
+      const branches = (typeof sbShotBranches !== 'undefined' && Array.isArray(sbShotBranches[shotId]))
+        ? sbShotBranches[shotId]
+        : [];
+      branches.forEach(function(branch, index) {
+        if (!branch || !storyboardLightboxHasImage(branch.b64)) return;
+        items.push({
+          key: shotId + ':branch:' + index,
+          type: 'branch',
+          shotId: shotId,
+          index: index,
+          label: shotId + ' · ' + (branch.label || '분기 ' + (index + 1))
+        });
+      });
+    });
+    return items;
+  }
+
+  function storyboardEnsureLightboxNavigationUI() {
+    const lightbox = document.getElementById('sbLightbox');
+    if (!lightbox) return null;
+    lightbox.style.overflow = 'hidden';
+    let previousButton = document.getElementById('sbLbPrevious');
+    let nextButton = document.getElementById('sbLbNext');
+    let counter = document.getElementById('sbLbCounter');
+    if (!previousButton) {
+      previousButton = document.createElement('button');
+      previousButton.id = 'sbLbPrevious';
+      previousButton.type = 'button';
+      previousButton.setAttribute('aria-label', '이전 이미지');
+      previousButton.textContent = '‹';
+      previousButton.style.cssText = 'position:absolute;left:18px;top:50%;transform:translateY(-50%);width:54px;height:76px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(8,12,18,.72);color:#fff;font-size:48px;line-height:1;cursor:pointer;z-index:2;backdrop-filter:blur(8px)';
+      previousButton.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        storyboardLightboxNavigate(-1);
+      };
+      lightbox.appendChild(previousButton);
+    }
+    if (!nextButton) {
+      nextButton = document.createElement('button');
+      nextButton.id = 'sbLbNext';
+      nextButton.type = 'button';
+      nextButton.setAttribute('aria-label', '다음 이미지');
+      nextButton.textContent = '›';
+      nextButton.style.cssText = 'position:absolute;right:18px;top:50%;transform:translateY(-50%);width:54px;height:76px;border-radius:14px;border:1px solid rgba(255,255,255,.35);background:rgba(8,12,18,.72);color:#fff;font-size:48px;line-height:1;cursor:pointer;z-index:2;backdrop-filter:blur(8px)';
+      nextButton.onclick = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        storyboardLightboxNavigate(1);
+      };
+      lightbox.appendChild(nextButton);
+    }
+    if (!counter) {
+      counter = document.createElement('div');
+      counter.id = 'sbLbCounter';
+      counter.style.cssText = 'position:absolute;top:16px;left:50%;transform:translateX(-50%);max-width:76vw;padding:7px 13px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(8,12,18,.72);color:#fff;font-family:var(--font-mono);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;backdrop-filter:blur(8px)';
+      lightbox.appendChild(counter);
+    }
+    return {lightbox:lightbox, previousButton:previousButton, nextButton:nextButton, counter:counter};
+  }
+
+  function storyboardUpdateLightboxNavigation(entry) {
+    const ui = storyboardEnsureLightboxNavigationUI();
+    if (!ui || !entry) return;
+    const items = storyboardLightboxItems();
+    const index = items.findIndex(function(item) { return item.key === entry.key; });
+    const safeIndex = index < 0 ? 0 : index;
+    ui.lightbox.dataset.navKey = entry.key;
+    ui.lightbox.dataset.navType = entry.type;
+    ui.lightbox.dataset.branchIndex = entry.type === 'branch' ? String(entry.index) : '';
+    ui.counter.textContent = (safeIndex + 1) + ' / ' + Math.max(items.length, 1) + ' · ' + entry.label;
+    const disabled = items.length < 2;
+    ui.previousButton.disabled = disabled;
+    ui.nextButton.disabled = disabled;
+    ui.previousButton.style.opacity = disabled ? '.28' : '1';
+    ui.nextButton.style.opacity = disabled ? '.28' : '1';
+  }
+
+  async function storyboardShowLightboxItem(entry) {
+    if (!entry) return false;
+    let result;
+    if (entry.type === 'seq') {
+      result = await originalOpenSeqFrame(entry.shotId, entry.index);
+    } else {
+      result = await originalOpenSBLightbox(entry.shotId);
+    }
+    const lightbox = document.getElementById('sbLightbox');
+    const image = document.getElementById('sbLbImg');
+    if (!lightbox || !image) return false;
+    if (entry.type === 'branch') {
+      const branches = (typeof sbShotBranches !== 'undefined' && Array.isArray(sbShotBranches[entry.shotId]))
+        ? sbShotBranches[entry.shotId]
+        : [];
+      const branch = branches[entry.index];
+      if (!branch || !branch.b64) return false;
+      image.src = 'data:image/png;base64,' + branch.b64;
+      lightbox.dataset.seqIndex = '';
+    }
+    lightbox.dataset.shotId = entry.shotId;
+    lightbox.style.display = 'flex';
+    storyboardUpdateLightboxNavigation(entry);
+    return result === undefined ? true : result;
+  }
+
+  async function storyboardLightboxNavigate(direction) {
+    const lightbox = document.getElementById('sbLightbox');
+    if (!lightbox || lightbox.style.display === 'none' || lightbox.dataset.navBusy === '1') return;
+    const items = storyboardLightboxItems();
+    if (items.length < 2) return;
+    let currentIndex = items.findIndex(function(item) { return item.key === lightbox.dataset.navKey; });
+    if (currentIndex < 0) currentIndex = 0;
+    const nextIndex = (currentIndex + direction + items.length) % items.length;
+    lightbox.dataset.navBusy = '1';
+    try {
+      await storyboardShowLightboxItem(items[nextIndex]);
+    } finally {
+      lightbox.dataset.navBusy = '';
+    }
+  }
+
+  async function openNavigableSBLightbox(shotId) {
+    const items = storyboardLightboxItems();
+    const entry = items.find(function(item) {
+      return item.shotId === shotId && item.type === 'base';
+    }) || items.find(function(item) {
+      return item.shotId === shotId;
+    });
+    if (entry) return storyboardShowLightboxItem(entry);
+    return originalOpenSBLightbox(shotId);
+  }
+
+  async function openNavigableSBSequenceFrame(shotId, index) {
+    const entry = storyboardLightboxItems().find(function(item) {
+      return item.shotId === shotId && item.type === 'seq' && item.index === Number(index);
+    });
+    if (entry) return storyboardShowLightboxItem(entry);
+    return originalOpenSeqFrame(shotId, index);
+  }
+
+  async function openNavigableStoryboardBranch(shotId, index) {
+    const entry = storyboardLightboxItems().find(function(item) {
+      return item.shotId === shotId && item.type === 'branch' && item.index === Number(index);
+    });
+    if (entry) return storyboardShowLightboxItem(entry);
+  }
+
+  function storyboardLightboxVisibleImage() {
+    const image = document.getElementById('sbLbImg');
+    if (!image || !/^data:image\/[^;]+;base64,/.test(image.src || '')) return null;
+    const comma = image.src.indexOf(',');
+    return {
+      src: image.src,
+      b64: comma >= 0 ? image.src.slice(comma + 1) : '',
+      mime: ((image.src.match(/^data:([^;]+)/) || [])[1]) || 'image/png'
+    };
+  }
+
+  function downloadNavigatedSBLightboxImage() {
+    const lightbox = document.getElementById('sbLightbox');
+    const visible = storyboardLightboxVisibleImage();
+    if (!lightbox || !visible) return originalDownloadSBLightboxImage();
+    const suffix = lightbox.dataset.navType === 'seq'
+      ? 'seq_' + (Number(lightbox.dataset.seqIndex || 0) + 1)
+      : (lightbox.dataset.navType === 'branch' ? 'branch_' + (Number(lightbox.dataset.branchIndex || 0) + 1) : 'base');
+    const link = document.createElement('a');
+    link.href = visible.src;
+    link.download = 'SB_' + (lightbox.dataset.shotId || 'shot') + '_' + suffix + '_' + Date.now() + '.png';
+    link.click();
+  }
+
+  function deleteNavigatedSBLightboxImage() {
+    const lightbox = document.getElementById('sbLightbox');
+    if (!lightbox) return originalDeleteSBLightboxImage();
+    const shotId = lightbox.dataset.shotId || '';
+    const type = lightbox.dataset.navType || 'base';
+    lightbox.style.display = 'none';
+    if (type === 'branch') return deleteStoryboardBranch(shotId, Number(lightbox.dataset.branchIndex || 0));
+    if (type === 'seq') return deleteSBSeqFrame(shotId, Number(lightbox.dataset.seqIndex || 0));
+    return deleteSBImage(shotId);
+  }
+
+  function sendNavigatedSBLightboxToVideo() {
+    const lightbox = document.getElementById('sbLightbox');
+    const visible = storyboardLightboxVisibleImage();
+    const shotId = lightbox && lightbox.dataset ? lightbox.dataset.shotId : '';
+    if (!lightbox || !visible || !shotId) return originalSendSBLightboxToVideo();
+    const shot = (typeof SB_SHOTS !== 'undefined' && Array.isArray(SB_SHOTS))
+      ? (SB_SHOTS.find(function(item) { return item.id === shotId; }) || {id:shotId, frame:'', desc:'', func:''})
+      : {id:shotId, frame:'', desc:'', func:''};
+    const prompt = (typeof buildSBVideoPrompt === 'function') ? buildSBVideoPrompt(shot) : '';
+    const meta = {
+      source: 'storyboard',
+      shotId: shotId,
+      frame: shot.frame || '',
+      desc: shot.desc || '',
+      func: shot.func || '',
+      videoPrompt: prompt,
+      storyboardVariant: lightbox.dataset.navType || 'base'
+    };
+    if (typeof window.zippySendImageToVideoTab === 'function') {
+      window.zippySendImageToVideoTab(visible.b64, visible.mime, prompt, meta);
+      lightbox.style.display = 'none';
+      return;
+    }
+    return originalSendSBLightboxToVideo();
+  }
+
+  document.addEventListener('keydown', function(event) {
+    const lightbox = document.getElementById('sbLightbox');
+    if (!lightbox || lightbox.style.display === 'none') return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      storyboardLightboxNavigate(-1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      storyboardLightboxNavigate(1);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      lightbox.style.display = 'none';
+    }
+  });
+
+  window.storyboardLightboxItems = storyboardLightboxItems;
+  window.storyboardLightboxNavigate = storyboardLightboxNavigate;
+  window.storyboardShowLightboxItem = storyboardShowLightboxItem;
+  window.openSBLightbox = openNavigableSBLightbox;
+  window.openSeqFrame = openNavigableSBSequenceFrame;
+  window.openStoryboardBranch = openNavigableStoryboardBranch;
+  window.downloadSBLightboxImage = downloadNavigatedSBLightboxImage;
+  window.deleteSBLightboxImage = deleteNavigatedSBLightboxImage;
+  window.sendSBLightboxToVideo = sendNavigatedSBLightboxToVideo;
+  globalThis.storyboardLightboxItems = storyboardLightboxItems;
+  globalThis.storyboardLightboxNavigate = storyboardLightboxNavigate;
+  globalThis.storyboardShowLightboxItem = storyboardShowLightboxItem;
+  globalThis.openSBLightbox = openNavigableSBLightbox;
+  globalThis.openSeqFrame = openNavigableSBSequenceFrame;
+  globalThis.openStoryboardBranch = openNavigableStoryboardBranch;
+  globalThis.downloadSBLightboxImage = downloadNavigatedSBLightboxImage;
+  globalThis.deleteSBLightboxImage = deleteNavigatedSBLightboxImage;
+  globalThis.sendSBLightboxToVideo = sendNavigatedSBLightboxToVideo;
+})();
+</script>
+
 </body>
 </html>

@@ -68164,6 +68164,7 @@ function genVideoPrompt(shotId) {
   var loveReferenceLightingLock = (typeof buildLoveReferenceLightingLock === 'function') ? buildLoveReferenceLightingLock(shot, sbCam) : '';
   var loveHandOwnershipLock = (typeof buildLoveHandOwnershipLock === 'function') ? buildLoveHandOwnershipLock(shot) : '';
   var loveShotVariationLock = (typeof buildLoveShotVariationLock === 'function') ? buildLoveShotVariationLock(shot, sbCam) : '';
+  var storyboardCoverageLock = (typeof buildStoryboardCoverageLock === 'function') ? buildStoryboardCoverageLock(shot) : '';
   var ratio = currentProject.defaultRatio || '16:9';
   var desc = shot.desc || '';
   var dokgoMaskLock = sbNcityAppearanceLock(shot);
@@ -68206,6 +68207,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'SPACE DNA: ' + (spaceDna || _gloc || '') + '\n\n';
   imgPrompt += 'MOOD: ' + (emoDna || '') + '\n';
   imgPrompt += 'LIGHTING: ' + (lightDna || shot.light || '') + ' ' + (shot.time || preset.time || '') + '\n\n';
+  if (storyboardCoverageLock) imgPrompt += storyboardCoverageLock;
   if (loveHandOwnershipLock) imgPrompt += loveHandOwnershipLock;
   if (loveShotVariationLock) imgPrompt += loveShotVariationLock;
   if (loveReferenceLightingLock) imgPrompt += loveReferenceLightingLock;
@@ -70122,6 +70124,329 @@ function buildLoveShotVariationLock(shot, sbCam) {
   ].join('\n') + '\n\n';
 }
 
+
+function storyboardCoverageEnabled() {
+  if (!currentProject || currentProject.hasStoryboard === false) return false;
+  const policy = currentProject.storyboardCoveragePolicy || {};
+  return policy.enabled !== false;
+}
+
+function storyboardCoverageActionBeats(shot) {
+  const actionPattern = /떨어|놓친|감는다|누른|press|drop|suspend|scatter|올라간|찰칵|달리|걷|돌아|잡|놓|열|닫|꺼내|건네|밀어|당겨|넘어|멈추|들어|나오|앉|일어나|입맞춤|키스|포옹|안는다|hug|kiss|turn|run|walk|open|close|reach|throw|catch|freeze|fires?|strikes?|lands?|rises?|falls?|enters?|exits?|grabs?|releases?/i;
+  return String((shot && (shot.sourceScript || shot.func || shot.desc)) || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .split(/[.!?。]+|→|↔|\/|·/)
+    .map(function(value){ return value.trim(); })
+    .filter(function(value){ return value.length >= 4 && actionPattern.test(value); });
+}
+
+function storyboardShotNeedsTemporalCoverage(shot) {
+  if (!storyboardCoverageEnabled() || !shot) return false;
+  if (typeof loveShotNeedsDenseSequence === 'function' && isLoveFilmStoryboardProject() && loveShotNeedsDenseSequence(shot)) return true;
+  const text = [shot.sourceScript, shot.func, shot.desc].filter(Boolean).join(' ');
+  const beats = storyboardCoverageActionBeats(shot);
+  if (beats.length >= 2) return true;
+  if (/동시에|교차|번갈아|몽타주|연속|차례로|각각|meanwhile|simultaneously|montage|cross-?cut|sequence of/i.test(text)) return true;
+  return Number(shot.durationSec || 0) >= 7 && beats.length >= 1;
+}
+
+function storyboardNormalizeCameraSignature(shot) {
+  return String((shot && shot.frame) || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\s*\/\s*/g, '/')
+    .trim();
+}
+
+function storyboardShotRepeatsPreviousCamera(shot) {
+  if (!storyboardCoverageEnabled() || !shot || typeof SB_SHOTS === 'undefined') return false;
+  const index = SB_SHOTS.indexOf(shot);
+  if (index <= 0) return false;
+  const previous = SB_SHOTS[index - 1];
+  const sameEpisode = Number(previous.ep) === Number(shot.ep);
+  const sameScene = String(previous.scene) === String(shot.scene);
+  if (!sameEpisode || !sameScene) return false;
+  const currentSignature = storyboardNormalizeCameraSignature(shot);
+  const previousSignature = storyboardNormalizeCameraSignature(previous);
+  return !!currentSignature && currentSignature === previousSignature;
+}
+
+function storyboardShotCoverageMode(shot) {
+  if (storyboardShotNeedsTemporalCoverage(shot)) return 'temporal';
+  if (storyboardShotRepeatsPreviousCamera(shot)) return 'camera';
+  return '';
+}
+
+function storyboardShotNeedsCoverageSequence(shot) {
+  return !!storyboardShotCoverageMode(shot);
+}
+
+function buildStoryboardTemporalCoveragePhases(shot) {
+  if (typeof buildLoveDenseSequencePhases === 'function' && isLoveFilmStoryboardProject()) {
+    const lovePhases = buildLoveDenseSequencePhases(shot);
+    if (lovePhases) return lovePhases;
+  }
+  const beats = storyboardCoverageActionBeats(shot);
+  const source = String((shot && (shot.sourceScript || shot.desc)) || '').trim();
+  const first = beats[0] || source;
+  const second = beats[1] || source;
+  const third = beats[2] || source;
+  return [
+    'FRAME 1 of 3 — EXCLUSIVE SETUP CUT. Render only the beginning/setup for: "' + first + '". Use a wider or alternate-side establishing composition. EXCLUDE the peak, outcome, reaction, other timeline beats, split screen, collage, and multi-panel layout.',
+    'FRAME 2 of 3 — EXCLUSIVE DECISIVE CUT. Render only the peak instant for: "' + second + '". Move closer or change camera side/height from frame 1. EXCLUDE the setup, later reaction, other timeline beats, split screen, collage, and multi-panel layout.',
+    'FRAME 3 of 3 — EXCLUSIVE RESULT/REACTION CUT. Render only the immediate result or reaction implied by: "' + third + '". Use a distinct reaction angle or tactile insert. EXCLUDE the setup, peak action, other timeline beats, split screen, collage, and multi-panel layout.'
+  ];
+}
+
+function buildStoryboardCameraVariationPhases(shot) {
+  const originalFrame = String((shot && shot.frame) || 'original storyboard camera');
+  const action = String((shot && (shot.sourceScript || shot.desc)) || 'the scripted action');
+  return [
+    'CAMERA OPTION 1 of 3 — BASE COVERAGE. Preserve the scripted action "' + action + '" and the original camera intent "' + originalFrame + '", but choose a clearly different blocking axis or foreground layer from the immediately preceding shot. One instant only.',
+    'CAMERA OPTION 2 of 3 — LENS/SIZE ALTERNATIVE. Show the exact same single action instant, identity, wardrobe, location, time, and screen direction, but change BOTH shot size and lens distance from option 1; move to the opposite 30–45 degree camera side when continuity permits. Do not repeat the preceding-shot composition.',
+    'CAMERA OPTION 3 of 3 — HEIGHT/DEPTH ALTERNATIVE. Show the exact same single action instant, identity, wardrobe, location, time, and screen direction, but change camera height and add a motivated foreground or background depth layer. Do not repeat option 1, option 2, or the preceding-shot composition.'
+  ].map(function(phase) {
+    return phase + ' Produce one independent horizontal frame only; no action progression, collage, split screen, contact sheet, or several camera views in one image.';
+  });
+}
+
+function buildStoryboardCoveragePhases(shot) {
+  return storyboardShotCoverageMode(shot) === 'camera'
+    ? buildStoryboardCameraVariationPhases(shot)
+    : buildStoryboardTemporalCoveragePhases(shot);
+}
+
+function buildStoryboardCoverageLock(shot) {
+  if (!storyboardCoverageEnabled()) return '';
+  const mode = storyboardShotCoverageMode(shot);
+  const lines = [
+    'STORYBOARD COVERAGE ENGINE (260724) — PROJECT-AGNOSTIC:',
+    'Every generation call produces ONE independent horizontal cinematic frame. Never combine several actions, poses, timelines, camera views, split screens, contact sheets, or collage panels in one image.',
+    'Location references control architecture, materials, palette, and set dressing only. They do not control shot composition. The current CAMERA and sequence-frame override control framing.',
+    'Preserve identity, wardrobe, props, location geography, time of day, screen direction, and story continuity while varying coverage.'
+  ];
+  if (mode === 'temporal') lines.push('CURRENT COVERAGE TYPE: TEMPORAL. Separate setup, decisive instant, and result/reaction into three exclusive frames; never show two beats together.');
+  if (mode === 'camera') lines.push('CURRENT COVERAGE TYPE: CAMERA ALTERNATIVES. Keep the same action instant while changing at least two of shot size, lens distance, camera side, camera height, foreground layer, or blocking.');
+  return lines.join('\n') + '\n\n';
+}
+
+function renderStoryboardCoveragePlaceholders(shotId, coverageMode) {
+  const safeId = (typeof sbQuoteJs === 'function') ? sbQuoteJs(shotId) : String(shotId).replace(/'/g, "\\'");
+  const labels = coverageMode === 'camera'
+    ? ['기준 구도', '렌즈·사이즈', '높이·깊이']
+    : ['시작', '정점', '직후'];
+  return '<div class="sb-seq-grid sb-seq-loading" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:hidden;margin-bottom:8px">' +
+    labels.map(function(label, index) {
+      return '<div class="sb-shot-empty sb-seq-slot" data-seq-slot="' + index + '" onclick="generateSBSequence(\'' + safeId + '\')" style="width:100%;height:auto;min-height:96px;aspect-ratio:16/9;margin:0;flex-direction:column;gap:5px;text-align:center"><strong>' + (index + 1) + '</strong><span>' + label + '</span><small style="font-size:8px;color:var(--mu)">동시 생성</small></div>';
+    }).join('') +
+    '</div>';
+}
+
+const STORYBOARD_BRANCH_PRESETS = {
+  'angle-front': {group:'앵글', label:'정면', prompt:'straight-on frontal camera axis at eye level; preserve screen direction and natural anatomy'},
+  'angle-front34': {group:'앵글', label:'정면 3/4', prompt:'front three-quarter camera view, approximately 35–45 degrees off axis'},
+  'angle-profile': {group:'앵글', label:'측면', prompt:'clean 90-degree profile / side camera view'},
+  'angle-rear34': {group:'앵글', label:'후면 3/4', prompt:'rear three-quarter camera view, preserve recognizable silhouette and location continuity'},
+  'angle-back': {group:'앵글', label:'후면', prompt:'direct rear view; do not invent a visible face, preserve hair, wardrobe back design, and body identity'},
+  'angle-ots': {group:'앵글', label:'OTS', prompt:'over-the-shoulder composition with a motivated foreground shoulder and clear eyeline'},
+  'angle-pov': {group:'앵글', label:'POV', prompt:'subjective point-of-view composition from the scripted observer'},
+  'angle-top': {group:'앵글', label:'탑샷', prompt:'true overhead top shot, camera looking straight down, readable blocking geometry'},
+  'angle-high': {group:'앵글', label:'하이', prompt:'high-angle camera above the subject, looking down without distortion'},
+  'angle-eye': {group:'앵글', label:'아이레벨', prompt:'neutral human eye-level camera'},
+  'angle-low': {group:'앵글', label:'로우', prompt:'low-angle camera below the subject, looking up with controlled perspective'},
+  'angle-dutch': {group:'앵글', label:'더치', prompt:'restrained 10–15 degree Dutch tilt motivated by the scene, not an extreme gimmick'},
+  'size-ews': {group:'샷', label:'EWS', prompt:'extreme wide establishing shot; subject small, complete environment geography readable'},
+  'size-ws': {group:'샷', label:'WS', prompt:'wide shot showing full environment and blocking'},
+  'size-ls': {group:'샷', label:'LS', prompt:'long shot with full subject and meaningful surroundings'},
+  'size-fs': {group:'샷', label:'FS', prompt:'full shot, head-to-toe subject with grounded feet'},
+  'size-mls': {group:'샷', label:'MLS', prompt:'medium-long shot framed approximately knees-up'},
+  'size-ms': {group:'샷', label:'MS', prompt:'medium shot framed approximately waist-up'},
+  'size-mcu': {group:'샷', label:'MCU', prompt:'medium close-up framed chest-up'},
+  'size-bust': {group:'샷', label:'바스트', prompt:'bust shot framed upper torso and head, natural shoulder room'},
+  'size-cu': {group:'샷', label:'CU', prompt:'close-up emphasizing face or the scripted primary subject'},
+  'size-bcu': {group:'샷', label:'BCU', prompt:'big close-up, face filling most of frame while preserving natural features'},
+  'size-ecu': {group:'샷', label:'ECU', prompt:'extreme close-up of the single scripted detail only'},
+  'size-insert': {group:'샷', label:'인서트', prompt:'tactile insert shot of the exact scripted hand or object; no unrelated face or body'},
+  'lens-18': {group:'렌즈', label:'18mm', prompt:'18mm rectilinear wide lens, close spatial energy, controlled edge distortion'},
+  'lens-24': {group:'렌즈', label:'24mm', prompt:'24mm wide cinematic lens with readable depth and environment'},
+  'lens-35': {group:'렌즈', label:'35mm', prompt:'35mm natural wide-normal perspective'},
+  'lens-50': {group:'렌즈', label:'50mm', prompt:'50mm natural perspective with moderate optical separation'},
+  'lens-85': {group:'렌즈', label:'85mm', prompt:'85mm portrait compression and optical background separation'},
+  'lens-135': {group:'렌즈', label:'135mm', prompt:'135mm telephoto compression with layered foreground and background'},
+  'lens-macro': {group:'렌즈', label:'매크로', prompt:'true macro lens, razor-thin depth on the scripted tactile detail'}
+};
+
+const STORYBOARD_BRANCH_DEFAULT_COMBOS = {
+  'dialogue-ms': {label:'대화 기본', keys:['angle-eye','size-ms','lens-50']},
+  'emotion-mcu': {label:'감정 강조', keys:['angle-front34','size-mcu','lens-85']},
+  'profile-cu': {label:'프로필 감정', keys:['angle-profile','size-cu','lens-85']},
+  'space-ws': {label:'공간 확보', keys:['angle-eye','size-ws','lens-24']},
+  'dynamic-low': {label:'역동 강조', keys:['angle-low','size-fs','lens-35']}
+};
+
+function storyboardBranchList(shotId) {
+  if (typeof sbShotBranches === 'undefined') return [];
+  if (!Array.isArray(sbShotBranches[shotId])) sbShotBranches[shotId] = [];
+  return sbShotBranches[shotId];
+}
+
+function storyboardBranchSelectOptions(group) {
+  let html = '<option value="">원본 유지</option>';
+  Object.keys(STORYBOARD_BRANCH_PRESETS).forEach(function(key) {
+    const preset = STORYBOARD_BRANCH_PRESETS[key];
+    if (preset.group === group) html += '<option value="' + key + '">' + preset.label + '</option>';
+  });
+  return html;
+}
+
+function renderStoryboardBranchControls(shotId) {
+  if (typeof sbGenImages === 'undefined' || !sbGenImages[shotId]) return '';
+  const groups = ['앵글','샷','렌즈'];
+  const domId = String(shotId).replace(/[^a-z0-9]/gi,'-');
+  let html = '<details class="sb-branch-panel" style="margin:7px 0;border:1px solid var(--bd);border-radius:7px;padding:6px;background:rgba(14,165,233,.025)"><summary style="cursor:pointer;font-family:var(--font-mono);font-size:10px;color:var(--bl);font-weight:700">⑂ 원본에서 샷 분기 · 앵글/사이즈/렌즈</summary>';
+  html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin:7px 0 3px">자주 쓰는 조합</div><div style="display:flex;gap:3px;flex-wrap:wrap">';
+  Object.keys(STORYBOARD_BRANCH_DEFAULT_COMBOS).forEach(function(key) {
+    const combo = STORYBOARD_BRANCH_DEFAULT_COMBOS[key];
+    html += '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardDefaultBranch(\'' + sbQuoteJs(shotId) + '\',\'' + key + '\')" style="font-size:8px;padding:4px 7px;border-color:var(--or);color:var(--or)">' + combo.label + '</button>';
+  });
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:5px;margin-top:7px">' +
+    '<label style="font-family:var(--font-mono);font-size:8px;color:var(--mu)">앵글<select id="sbbranch-angle-' + domId + '" style="width:100%;margin-top:2px;padding:5px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px">' + storyboardBranchSelectOptions('앵글') + '</select></label>' +
+    '<label style="font-family:var(--font-mono);font-size:8px;color:var(--mu)">샷 사이즈<select id="sbbranch-size-' + domId + '" style="width:100%;margin-top:2px;padding:5px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px">' + storyboardBranchSelectOptions('샷') + '</select></label>' +
+    '<label style="font-family:var(--font-mono);font-size:8px;color:var(--mu)">렌즈<select id="sbbranch-lens-' + domId + '" style="width:100%;margin-top:2px;padding:5px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px">' + storyboardBranchSelectOptions('렌즈') + '</select></label>' +
+    '</div>';
+  html += '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardBranchCombo(\'' + sbQuoteJs(shotId) + '\')" style="width:100%;margin-top:5px;padding:6px;border-color:var(--or);color:var(--or);font-weight:700">조합 분기 생성</button>';
+  html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin-top:7px">빠른 단일 변경</div>';
+  groups.forEach(function(group) {
+    html += '<div style="font-family:var(--font-mono);font-size:8px;color:var(--mu);margin:6px 0 3px">' + group + '</div><div style="display:flex;gap:3px;flex-wrap:wrap">';
+    Object.keys(STORYBOARD_BRANCH_PRESETS).forEach(function(key) {
+      const preset = STORYBOARD_BRANCH_PRESETS[key];
+      if (preset.group !== group) return;
+      html += '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();generateStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',\'' + key + '\')" style="font-size:8px;padding:3px 6px;border-color:var(--bl);color:var(--bl)">' + preset.label + '</button>';
+    });
+    html += '</div>';
+  });
+  const branches = storyboardBranchList(shotId);
+  if (branches.length) {
+    html += '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700;margin:8px 0 4px">파생 샷 ' + branches.length + '개</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px">';
+    branches.forEach(function(branch, index) {
+      html += '<div style="border:1px solid var(--bd);border-radius:6px;padding:4px;min-width:0">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:3px"><span style="font-family:var(--font-mono);font-size:8px;color:var(--cy)">' + sbEscHtml(branch.label || branch.presetKey || '') + '</span><span style="display:flex;gap:2px">' +
+          '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();downloadStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px">↓</button>' +
+          '<button class="hist-card-btn" onclick="event.preventDefault();event.stopPropagation();regenerateStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px;color:var(--cy)">↻</button>' +
+          '<button class="hist-card-btn del" onclick="event.preventDefault();event.stopPropagation();deleteStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')" style="font-size:8px;padding:2px 4px;color:var(--er)">×</button>' +
+        '</span></div>' +
+        '<img src="data:image/png;base64,' + branch.b64 + '" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;display:block;cursor:pointer" onclick="event.preventDefault();event.stopPropagation();openStoryboardBranch(\'' + sbQuoteJs(shotId) + '\',' + index + ')">' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+  html += '<div class="sb-branch-status" id="sbbranch-' + String(shotId).replace(/[^a-z0-9]/gi,'-') + '" style="font-family:var(--font-mono);font-size:9px;color:var(--or);margin-top:5px"></div></details>';
+  return html;
+}
+
+function storyboardBranchPrompt(preset) {
+  return [
+    'MANUAL SHOT BRANCH — SEED IMAGE CONTINUITY LOCK:',
+    'The attached generated storyboard image is the exact continuity seed for character identity, face, hair, wardrobe, props, location architecture, set dressing, time of day, lighting direction, color, and the frozen story instant.',
+    'The seed image is NOT composition authority. Reconstruct the same physical moment from a new camera according to this single requested variation: ' + preset.prompt + '.',
+    'Change only the requested angle, shot size, or lens. Preserve screen direction and plausible unseen geometry. Do not mirror the seed, crop-and-enlarge it, copy its camera position, make a collage, or show several views.'
+  ].join('\n');
+}
+
+async function generateStoryboardBranch(shotId, presetKey, replaceIndex) {
+  const presetOverride = arguments.length > 3 ? arguments[3] : null;
+  const preset = presetOverride || STORYBOARD_BRANCH_PRESETS[presetKey];
+  const shot = SB_SHOTS.find(function(item){ return item.id === shotId; });
+  const base = sbGenImages[shotId] || ((sbSeqImages[shotId] || [])[0]);
+  if (!preset || !shot || !base) return;
+  const statusEl = document.getElementById('sbbranch-' + shotId.replace(/[^a-z0-9]/gi,'-'));
+  if (statusEl) statusEl.textContent = preset.label + ' 파생 샷 생성 중...';
+  try {
+    const b64 = await generateSBShot(shotId, {
+      phase: storyboardBranchPrompt(preset),
+      returnOnly: true,
+      branch: true,
+      seedImage: base,
+      seedMime: 'image/png'
+    });
+    if (!b64) throw new Error('이미지 없음');
+    const branches = storyboardBranchList(shotId);
+    const branch = {presetKey:presetKey, label:preset.group + ' · ' + preset.label, prompt:preset.prompt, group:preset.group, b64:b64, createdAt:new Date().toISOString()};
+    if (Number.isInteger(replaceIndex) && branches[replaceIndex]) branches[replaceIndex] = branch;
+    else branches.push(branch);
+    zippyNasSaveImage('storyboard_branch', shotId + '_' + presetKey + '_' + Date.now(), b64, 'image/png', {shotId:shotId, presetKey:presetKey, reason:'manual-shot-branch'});
+    buildStoryboardTimeline();
+    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
+    saveStoryboardState('manual-shot-branch');
+  } catch (error) {
+    if (statusEl) statusEl.textContent = '';
+    alert('파생 샷 생성 실패: ' + error.message);
+  }
+}
+
+function generateStoryboardBranchCombo(shotId) {
+  const domId = String(shotId).replace(/[^a-z0-9]/gi,'-');
+  const keys = ['angle','size','lens'].map(function(kind) {
+    const select = document.getElementById('sbbranch-' + kind + '-' + domId);
+    return select ? select.value : '';
+  }).filter(Boolean);
+  if (!keys.length) {
+    alert('앵글, 샷 사이즈, 렌즈 중 하나 이상을 선택해주세요.');
+    return;
+  }
+  const presets = keys.map(function(key){ return STORYBOARD_BRANCH_PRESETS[key]; }).filter(Boolean);
+  const combo = {
+    group: '조합',
+    label: presets.map(function(preset){ return preset.label; }).join(' + '),
+    prompt: presets.map(function(preset){ return preset.prompt; }).join('. ')
+  };
+  return generateStoryboardBranch(shotId, 'combo:' + keys.join('+'), null, combo);
+}
+
+function generateStoryboardDefaultBranch(shotId, comboKey) {
+  const saved = STORYBOARD_BRANCH_DEFAULT_COMBOS[comboKey];
+  if (!saved) return;
+  const presets = saved.keys.map(function(key){ return STORYBOARD_BRANCH_PRESETS[key]; }).filter(Boolean);
+  const combo = {
+    group: '기본',
+    label: saved.label,
+    prompt: presets.map(function(preset){ return preset.prompt; }).join('. ')
+  };
+  return generateStoryboardBranch(shotId, 'default:' + comboKey, null, combo);
+}
+
+function regenerateStoryboardBranch(shotId, index) {
+  const branch = storyboardBranchList(shotId)[index];
+  if (!branch) return;
+  const preset = STORYBOARD_BRANCH_PRESETS[branch.presetKey] || {group:branch.group || '조합', label:String(branch.label || '').replace(/^.*?·\s*/, ''), prompt:branch.prompt || ''};
+  return generateStoryboardBranch(shotId, branch.presetKey, index, preset);
+}
+
+function deleteStoryboardBranch(shotId, index) {
+  storyboardBranchList(shotId).splice(index, 1);
+  buildStoryboardTimeline();
+  saveStoryboardState('manual-shot-branch-deleted');
+}
+
+function downloadStoryboardBranch(shotId, index) {
+  const branch = storyboardBranchList(shotId)[index];
+  if (!branch || !branch.b64) return;
+  const a = document.createElement('a');
+  a.href = 'data:image/png;base64,' + branch.b64;
+  a.download = 'SB_' + shotId + '_' + branch.presetKey + '_' + Date.now() + '.png';
+  a.click();
+}
+
+async function openStoryboardBranch(shotId, index) {
+  const branch = storyboardBranchList(shotId)[index];
+  if (!branch || !branch.b64) return;
+  await openSBLightbox(shotId);
+  const image = document.getElementById('sbLbImg');
+  if (image) image.src = 'data:image/png;base64,' + branch.b64;
+}
+
 function buildLoveReferenceLightingLock(shot, sbCam) {
   const rawKey = String(typeof currentProjectKey !== 'undefined' ? currentProjectKey : '').toLowerCase();
   const projectName = String((typeof currentProject !== 'undefined' && currentProject && currentProject.name) || '').toLowerCase();
@@ -71417,7 +71742,8 @@ var sbContinuityCards = {};
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
 
 const sbGenImages = {};
-const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름 3컷
+const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름/카메라 3컷
+const sbShotBranches = {}; // shotId -> [{presetKey,label,prompt,b64}] 수동 샷 분기
 const sbLocalDeletedImages = {};
 const SB_STATE_DB_VER = 1;
 const SB_STATE_STORE = 'state';
@@ -71616,6 +71942,7 @@ function sbStoryboardSnapshot() {
   return {
     genImages: sbPlainMap(sbGenImages),
     seqImages: sbPlainMap(sbSeqImages),
+    branchImages: sbPlainMap(sbShotBranches),
     continuityCards: sbPlainMap(sbContinuityCards),
     localDeletedImages: sbPlainMap(sbLocalDeletedImages),
     cameraPositions: (typeof sbCameraPositions !== 'undefined') ? sbPlainMap(sbCameraPositions) : {},
@@ -71826,6 +72153,8 @@ async function restoreStoryboardState(projectKey) {
     Object.assign(sbGenImages, snap.genImages || {});
     Object.keys(sbSeqImages).forEach(function(k) { delete sbSeqImages[k]; });
     Object.assign(sbSeqImages, snap.seqImages || {});
+    Object.keys(sbShotBranches).forEach(function(k) { delete sbShotBranches[k]; });
+    Object.assign(sbShotBranches, snap.branchImages || {});
     Object.keys(sbLocalDeletedImages).forEach(function(k) { delete sbLocalDeletedImages[k]; });
     Object.assign(sbLocalDeletedImages, snap.localDeletedImages || {});
     if (typeof sbContinuityCards !== 'undefined') {
@@ -71940,6 +72269,10 @@ function deleteSBImage(shotId) {
     delete sbSeqImages[resolvedId];
     if (resolvedId !== shotId) delete sbSeqImages[shotId];
   }
+  if (typeof sbShotBranches !== 'undefined') {
+    delete sbShotBranches[resolvedId];
+    if (resolvedId !== shotId) delete sbShotBranches[shotId];
+  }
   if (typeof sbContinuityCards !== 'undefined') {
     delete sbContinuityCards[resolvedId];
     if (resolvedId !== shotId) delete sbContinuityCards[shotId];
@@ -71957,6 +72290,10 @@ async function regenerateSBShot(shotId) {
   if (typeof sbLocalDeletedImages !== 'undefined') {
     delete sbLocalDeletedImages[resolvedId];
     if (resolvedId !== shotId) delete sbLocalDeletedImages[shotId];
+  }
+  if (typeof sbShotBranches !== 'undefined') {
+    delete sbShotBranches[resolvedId];
+    if (resolvedId !== shotId) delete sbShotBranches[shotId];
   }
   if (typeof sbContinuityCards !== 'undefined') {
     delete sbContinuityCards[resolvedId];
@@ -72073,7 +72410,8 @@ function hydrateVisibleSBTimelineImagesSoon(root) {
 
 function renderShotCard(shot, sceneVal) {
   if (typeof applyLoveHandOwnershipDefaults === 'function') applyLoveHandOwnershipDefaults(shot);
-  const denseSequence = (typeof loveShotNeedsDenseSequence === 'function') && loveShotNeedsDenseSequence(shot);
+  const coverageMode = (typeof storyboardShotCoverageMode === 'function') ? storyboardShotCoverageMode(shot) : '';
+  const coverageSequence = !!coverageMode;
   const imgKey = shot.id;
   const safeShotJs = sbQuoteJs(shot.id);
   const hasImg = sbGenImages[imgKey];
@@ -72091,11 +72429,12 @@ function renderShotCard(shot, sceneVal) {
     html += renderSBTimelineImage(imgKey);
     html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${safeShotJs}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${safeShotJs}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="이 컴퓨터에서만 삭제 · NAS 원본 유지">삭제</button></div></div>`;
   } else {
-    html += denseSequence
-      ? `<div class="sb-shot-empty" onclick="generateSBSequence('${safeShotJs}')">+ 촘촘 3컷 생성</div>`
+    html += coverageSequence
+      ? renderStoryboardCoveragePlaceholders(shot.id, coverageMode)
       : `<div class="sb-shot-empty" onclick="generateSBShot('${safeShotJs}')">+ 생성</div>`;
     html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
   }
+  if (hasImg && typeof renderStoryboardBranchControls === 'function') html += renderStoryboardBranchControls(shot.id);
   html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
   html += `<div class="sb-shot-info"><strong>${sbEscHtml(shot.frame || '')}</strong></div>`;
   html += `<div class="sb-shot-desc">${sbEscHtml(shot.desc || '')}</div>`;
@@ -72103,7 +72442,7 @@ function renderShotCard(shot, sceneVal) {
   html += `<div style="margin-top:5px"><div style="font-family:var(--font-mono);font-size:9px;color:var(--bl);margin-bottom:2px">📍 장소 (선택)</div><select onchange="setShotLoc('${safeShotJs}', this.value)" style="width:100%;padding:5px 8px;border:1px solid var(--bd);background:rgba(14,165,233,.04);color:var(--tx);font-family:var(--font-mono);font-size:10px;border-radius:4px;outline:none">${sbLocOptions(resolveShotLoc(shot))}</select></div>`;
   html += renderShotObjControl(shot);
   html += renderSBCameraControl(shot);
-  html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${denseSequence?'🎞 촘촘 3컷 생성 · 독립 구도':'🎞 흐름 3컷 생성 · 독립 구도'}</button>`;
+  html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
   html += `</div>`;
@@ -72481,7 +72820,8 @@ function buildStoryboardTimeline() {
     html += `<div class="sb-scene-hdr">${scLabel}<br><span style="font-size:10px;color:var(--mu);font-weight:400">${preset.loc||''} / ${(preset.time||'').split('(')[0].trim()}</span></div>`;
     shots.forEach(shot => {
       if (typeof applyLoveHandOwnershipDefaults === 'function') applyLoveHandOwnershipDefaults(shot);
-      const denseSequence2 = (typeof loveShotNeedsDenseSequence === 'function') && loveShotNeedsDenseSequence(shot);
+      const coverageMode2 = (typeof storyboardShotCoverageMode === 'function') ? storyboardShotCoverageMode(shot) : '';
+      const coverageSequence2 = !!coverageMode2;
       const imgKey = shot.id;
       const safeShotJs2 = sbQuoteJs(shot.id);
       const hasImg = sbGenImages[imgKey];
@@ -72497,17 +72837,18 @@ function buildStoryboardTimeline() {
         html += renderSBTimelineImage(imgKey);
         html += `<div class="refine-wrap" data-sb-img-key="${sbQuoteAttr(imgKey)}" data-imgmime="image/png" style="margin-bottom:6px"><div style="display:flex;gap:4px;flex-wrap:wrap"><input type="text" class="refine-input" placeholder="수정..." style="flex:1;min-width:90px;padding:4px 8px;border:1px solid var(--bd);font-size:11px;border-radius:4px;outline:none;font-family:var(--font-body)"><button onclick="refineImage(this)" style="padding:4px 8px;border:1px solid var(--bl);background:rgba(14,165,233,.08);color:var(--bl);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;white-space:nowrap">⟳</button><div class="edit-dropdown" style="display:inline-block"><button class="edit-dropdown-btn" onclick="toggleEditMenu(this)" style="padding:4px 8px;font-size:10px">🔧 편집 ▾</button><div class="edit-dropdown-menu"><div class="edit-menu-item" onclick="openModOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">✎</span><div><div class="emi-label">브러시 수정</div><div class="emi-desc">영역 지정 수정</div></div></div><div class="edit-menu-item" onclick="editRelight(this)"><span class="emi-icon">💡</span><div><div class="emi-label">조명 보정</div><div class="emi-desc">Relight</div></div></div><div class="edit-menu-item" onclick="editExpand(this)"><span class="emi-icon">🔲</span><div><div class="emi-label">이미지 확장</div><div class="emi-desc">Outpainting</div></div></div><div class="edit-menu-item" onclick="editCharSwap(this)"><span class="emi-icon">👤</span><div><div class="emi-label">캐릭터 교체</div><div class="emi-desc">Character Swap</div></div></div><div class="edit-menu-item" onclick="editOutfitSwap(this)"><span class="emi-icon">👗</span><div><div class="emi-label">의상 교체</div><div class="emi-desc">Outfit Swap</div></div></div><div class="edit-menu-item" onclick="editSkinEnhance(this)"><span class="emi-icon">✨</span><div><div class="emi-label">피부 보정</div><div class="emi-desc">Skin Enhancer</div></div></div><div class="edit-menu-item" onclick="openPPOverlay(getEditImgData(this).b64,getEditImgData(this).mime)"><span class="emi-icon">📦</span><div><div class="emi-label">소품 배치</div><div class="emi-desc">Product Placement</div></div></div></div></div>${renderSBDownloadButton(imgKey)}${renderSBStartButton(imgKey)}<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBShot('${safeShotJs2}')" style="border-color:var(--cy);color:var(--cy);white-space:nowrap" title="기존 컷을 새 이미지로 교체">↻ 재생성</button><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBImage('${safeShotJs2}')" style="border-color:var(--er);color:var(--er);white-space:nowrap" title="잘못 나온 컷 삭제">삭제</button></div></div>`;
       } else {
-        html += denseSequence2
-          ? `<div class="sb-shot-empty" onclick="generateSBSequence('${safeShotJs2}')">+ 촘촘 3컷 생성</div>`
+        html += coverageSequence2
+          ? renderStoryboardCoveragePlaceholders(shot.id, coverageMode2)
           : `<div class="sb-shot-empty" onclick="generateSBShot('${safeShotJs2}')">+ 생성</div>`;
         html += `<div class="sb-card-actions">${renderSBDownloadButton(imgKey)}</div>`;
       }
+      if (hasImg && typeof renderStoryboardBranchControls === 'function') html += renderStoryboardBranchControls(shot.id);
       html += `<div class="sbseq-status" id="sbseq-${shot.id.replace(/[^a-z0-9]/gi,'-')}" style="font-family:var(--font-mono);font-size:11px;color:var(--or);font-weight:700;margin:3px 0"></div>`;
   html += `<div class="sb-shot-info"><strong>${sbEscHtml(shot.frame || '')}</strong></div>`;
       html += `<div class="sb-shot-desc">${sbEscHtml(shot.desc || '')}</div>`;
       html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${sbEscHtml(shot.func || '')}</div>`;
       html += renderSBCameraControl(shot);
-      html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${denseSequence2?'🎞 촘촘 3컷 생성 · 독립 구도':'🎞 흐름 3컷 생성 · 독립 구도'}</button>`;
+      html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode2==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode2==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
       html += `</div>`;
@@ -72684,6 +73025,7 @@ async function generateSBShot(shotId, _seq) {
   const loveReferenceLightingLock = (typeof buildLoveReferenceLightingLock === 'function') ? buildLoveReferenceLightingLock(shot, sbCam) : '';
   const loveHandOwnershipLock = (typeof buildLoveHandOwnershipLock === 'function') ? buildLoveHandOwnershipLock(shot) : '';
   const loveShotVariationLock = (typeof buildLoveShotVariationLock === 'function') ? buildLoveShotVariationLock(shot, sbCam) : '';
+  const storyboardCoverageLock = (typeof buildStoryboardCoverageLock === 'function') ? buildStoryboardCoverageLock(shot) : '';
   const cloudriderWorldToneLock = (typeof buildCloudRiderWorldToneLock === 'function') ? buildCloudRiderWorldToneLock() : '';
   const cloudriderCanonSafetyLock = (typeof buildCloudRiderCanonSafetyLock === 'function') ? buildCloudRiderCanonSafetyLock(shot) : '';
   const cloudriderHaonLock = (typeof buildCloudRiderHaonAircraftLock === 'function') ? buildCloudRiderHaonAircraftLock(shot, images) : '';
@@ -72753,7 +73095,7 @@ SPACE DNA: ${spaceDna || resolveShotLoc(shot) || preset.loc || ''}
 MOOD: ${emoDna || ''}
 LIGHTING: ${lightDna || shot.light || ''} ${shot.time || preset.time || ''}
 
-${loveHandOwnershipLock}${loveShotVariationLock}${loveReferenceLightingLock}CAMERA POSITION (concrete, anti-textbook):
+${storyboardCoverageLock}${loveHandOwnershipLock}${loveShotVariationLock}${loveReferenceLightingLock}CAMERA POSITION (concrete, anti-textbook):
 ${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
 Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
 
@@ -72762,7 +73104,9 @@ Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered compos
   ${visualStyleBlock}
 
 ${negativeBlock}`;
-  const emptyEl = document.querySelector('#sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-')+' .sb-shot-empty');
+  const _emptyCard = document.getElementById('sb-shot-'+shot.id.replace(/[^a-z0-9]/gi,'-'));
+  const _emptySlots = _emptyCard ? Array.from(_emptyCard.querySelectorAll('.sb-shot-empty')) : [];
+  const emptyEl = (_seq && Number.isInteger(_seq.slotIndex) && _emptySlots[_seq.slotIndex]) ? _emptySlots[_seq.slotIndex] : (_emptySlots[0] || null);
   if(emptyEl){emptyEl.textContent='생성 중...';emptyEl.style.cursor='wait';}
   if(!(_seq)) sbShowLoading(shotId, '생성 중...');
   try {
@@ -72771,6 +73115,9 @@ ${negativeBlock}`;
     if (imgMode !== 'zimage' && typeof sbGetValidatedContinuityImageReference === 'function' && !sbIsNcityDokgoCombatCostume(shot)) {
       const continuityImageRef = await sbGetValidatedContinuityImageReference(shot, sbCam);
       if (continuityImageRef) sbInsertContinuityImageReference(imgInputs, continuityImageRef);
+    }
+    if (_seq && _seq.seedImage && imgMode !== 'zimage') {
+      imgInputs.unshift({b64:_seq.seedImage, mime:_seq.seedMime || 'image/png', _type:'continuity-seed', _label:'Generated storyboard seed — identity/space/light continuity only'});
     }
     const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
 	    if (isProofOfTasteProject() && imgMode !== 'zimage') {
@@ -72794,9 +73141,13 @@ ${negativeBlock}`;
       : prompt;
     if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityAppearanceLock(shot, shot.promptOverride);
     if (_seq && _seq.phase) {
-      _finalPrompt += '\n\nSEQUENCE FRAME OVERRIDE — MORE SPECIFIC THAN ACTION ABOVE:\n' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): preserve character identity, exact wardrobe, location architecture, time of day, screen direction, and lighting logic. The frame override is the ONLY visible beat for this call. Previous frames are not attached and are never composition authority. Change camera size/side/height or foreground layer as directed. Produce one independent 16:9 frame; never a collage, split screen, triptych, contact sheet, or several moments in one image.';
-      if (sbIsNcityDokgoCombatCostume(shot)) _finalPrompt += '\nDOKGO COMBAT 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 he wears the same selected combat outfit, the same approved engraved lower-face mask, and no eyeglasses. Never change to factory/day mode between sequence frames.';
-      if (sbIsNcityYujinTacticalShot(shot)) _finalPrompt += '\nSEO YUJIN TACTICAL 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 she wears the same approved black-and-purple lower-face mask and the same black tactical Western outfit. Never switch to her ordinary unmasked face or bartender mode.';
+      if (_seq.branch) {
+        _finalPrompt += '\n\nSHOT BRANCH OVERRIDE — MORE SPECIFIC THAN CAMERA ABOVE:\n' + _seq.phase + '\nThe attached generated seed is continuity authority for identity, wardrobe, props, environment, lighting, and the frozen action instant only. It is explicitly NOT framing authority. Reconstruct a genuinely new camera view; do not mirror, crop, zoom, or copy the seed composition. Produce one independent 16:9 frame.';
+      } else {
+        _finalPrompt += '\n\nSEQUENCE FRAME OVERRIDE — MORE SPECIFIC THAN ACTION ABOVE:\n' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): preserve character identity, exact wardrobe, location architecture, time of day, screen direction, and lighting logic. The frame override is the ONLY visible beat for this call. Previous frames are not attached and are never composition authority. Change camera size/side/height or foreground layer as directed. Produce one independent 16:9 frame; never a collage, split screen, triptych, contact sheet, or several moments in one image.';
+        if (sbIsNcityDokgoCombatCostume(shot)) _finalPrompt += '\nDOKGO COMBAT 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 he wears the same selected combat outfit, the same approved engraved lower-face mask, and no eyeglasses. Never change to factory/day mode between sequence frames.';
+        if (sbIsNcityYujinTacticalShot(shot)) _finalPrompt += '\nSEO YUJIN TACTICAL 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 she wears the same approved black-and-purple lower-face mask and the same black tactical Western outfit. Never switch to her ordinary unmasked face or bartender mode.';
+      }
     }
     let result;
     try {
@@ -72866,25 +73217,34 @@ ${negativeBlock}`;
 async function generateSBSequence(shotId) {
   const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
   if (!shot) return;
-  const phases = ((typeof buildLoveDenseSequencePhases === 'function') && buildLoveDenseSequencePhases(shot)) || [
+  const coverageMode = (typeof storyboardShotCoverageMode === 'function') ? storyboardShotCoverageMode(shot) : '';
+  const phases = ((typeof buildStoryboardCoveragePhases === 'function') && buildStoryboardCoveragePhases(shot)) || [
     'FRAME 1 of 3 — BEGINNING: the setup instant just before the main action begins. Use a wider or alternate-side setup composition.',
     'FRAME 2 of 3 — PEAK: the single decisive instant of the action at its height. Change shot size or camera height.',
     'FRAME 3 of 3 — AFTERMATH: the immediate result or reaction. Use a distinct reaction angle or tactile insert.'
   ];
   const _idc = shot.id.replace(/[^a-z0-9]/gi,'-');
-  const emptyEl = document.querySelector('#sb-shot-' + _idc + ' .sb-shot-empty');
+  const sequenceCard = document.getElementById('sb-shot-' + _idc);
+  const emptyEls = sequenceCard ? Array.from(sequenceCard.querySelectorAll('.sb-shot-empty')) : [];
+  const emptyEl = emptyEls[0] || null;
   const statusEl = document.getElementById('sbseq-' + _idc);
-  function _setStat(m){ if(statusEl) statusEl.textContent=m; if(emptyEl){ emptyEl.textContent=m; emptyEl.style.cursor='wait'; } sbShowLoading(shotId, m); }
-  _setStat('🎞 흐름 3컷 생성 시작...');
+  function _setStat(m){ if(statusEl) statusEl.textContent=m; emptyEls.forEach(function(el){ el.style.cursor='wait'; }); }
+  _setStat(coverageMode === 'camera' ? '🎥 카메라 3안 생성 시작...' : '🎞 흐름 3컷 생성 시작...');
   const seq = [];
   try {
-    for (let i = 0; i < 3; i++) {
-      _setStat('🎞 흐름 ' + (i+1) + '/3 생성 중... (동일 공간 유지)');
-      const b64 = await generateSBShot(shotId, { phase: phases[i], returnOnly: true });
-      if (!b64) break;
-      seq.push(b64);
-    }
-    if (seq.length) {
+    _setStat(coverageMode === 'camera' ? '🎥 카메라 3안 동시 생성 중...' : '🎞 독립 3컷 동시 생성 중...');
+    const parallelResults = await Promise.allSettled(phases.map(function(phase, index) {
+      return generateSBShot(shotId, { phase: phase, returnOnly: true, slotIndex: index });
+    }));
+    const failedFrames = parallelResults
+      .map(function(result, index){ return result.status === 'rejected' ? (index + 1) : 0; })
+      .filter(Boolean);
+    if (failedFrames.length) throw new Error('동시 생성 실패 프레임: ' + failedFrames.join(', '));
+    parallelResults.forEach(function(result) {
+      if (result.value) seq.push(result.value);
+    });
+    _setStat('✅ 3/3 생성 완료 · 동시에 표시 중...');
+    if (seq.length === 3) {
       sbSeqImages[shotId] = seq;
       sbGenImages[shotId] = seq[0];
       if (typeof recordContinuityCardForShot === 'function') recordContinuityCardForShot(shot, (typeof getSBCameraSpec === 'function') ? getSBCameraSpec(shot, SCENE_PRESETS[String(shot.scene)] || {}) : null, seq[0]);
@@ -72907,7 +73267,7 @@ async function generateSBSequence(shotId) {
     }
   } catch(e) {
     alert('흐름 3컷 생성 실패 (' + shotId + '): ' + e.message);
-    if (emptyEl) { emptyEl.textContent = '+ 생성'; emptyEl.style.cursor='pointer'; }
+    emptyEls.forEach(function(el){ el.textContent = '+ 다시 시도'; el.style.cursor='pointer'; });
     sbHideLoading(shotId);
     return {ok:false, shotId:shotId, error:e && e.message ? e.message : String(e)};
   }
@@ -72973,7 +73333,7 @@ async function generateStoryboardBatch(scope, episodeNumber) {
     document.getElementById('sbLoadStatus').textContent = msg;
     if (progress) progress.textContent = `${label} ${i+1} / ${remaining.length}`;
     try {
-      const result = ((typeof loveShotNeedsDenseSequence === 'function') && loveShotNeedsDenseSequence(remaining[i]))
+      const result = ((typeof storyboardShotNeedsCoverageSequence === 'function') && storyboardShotNeedsCoverageSequence(remaining[i]))
         ? await generateSBSequence(remaining[i].id)
         : await generateSBShot(remaining[i].id);
       if (result && result.ok) succeeded++;
@@ -73001,6 +73361,7 @@ async function generateStoryboardBatch(scope, episodeNumber) {
 function clearStoryboard() {
   Object.keys(sbGenImages).forEach(k=>delete sbGenImages[k]);
   Object.keys(sbSeqImages).forEach(k=>delete sbSeqImages[k]);
+  Object.keys(sbShotBranches).forEach(k=>delete sbShotBranches[k]);
   if (typeof sbContinuityCards !== 'undefined') Object.keys(sbContinuityCards).forEach(k=>delete sbContinuityCards[k]);
   buildStoryboardTimeline();
   saveStoryboardState('storyboard-cleared');
@@ -73067,6 +73428,7 @@ function deleteSBEditorShot(index) {
   SB_SHOTS.splice(index, 1);
   delete sbGenImages[shot.id];
   delete sbSeqImages[shot.id];
+  delete sbShotBranches[shot.id];
   delete sbContinuityCards[shot.id];
   delete sbLocalDeletedImages[shot.id];
   delete sbCameraPositions[shot.id];
@@ -73376,20 +73738,67 @@ function deleteSBLightboxImage() {
   if (lb) lb.style.display = 'none';
   if (shotId) sendSBToVideo(shotId);
 }
+function downloadSBSeqFrame(shotId, index) {
+  const arr = (typeof sbSeqImages !== 'undefined') ? sbSeqImages[shotId] : null;
+  if (!arr || !arr[index]) return;
+  const a = document.createElement('a');
+  a.href = 'data:image/png;base64,' + arr[index];
+  a.download = 'SB_' + shotId + '_coverage_' + (index + 1) + '_' + Date.now() + '.png';
+  a.click();
+}
+
+async function regenerateSBSeqFrame(shotId, index) {
+  const shot = SB_SHOTS.find(function(item){ return item.id === shotId; });
+  if (!shot) return;
+  const phases = (typeof buildStoryboardCoveragePhases === 'function') ? buildStoryboardCoveragePhases(shot) : [];
+  if (!phases[index]) return;
+  const statusEl = document.getElementById('sbseq-' + shotId.replace(/[^a-z0-9]/gi,'-'));
+  if (statusEl) statusEl.textContent = '↻ ' + (index + 1) + '/3 재생성 중...';
+  try {
+    const b64 = await generateSBShot(shotId, {phase: phases[index], returnOnly:true, slotIndex:index});
+    if (!b64) throw new Error('이미지 없음');
+    if (!sbSeqImages[shotId]) sbSeqImages[shotId] = [];
+    sbSeqImages[shotId][index] = b64;
+    if (index === 0 || !sbGenImages[shotId]) sbGenImages[shotId] = b64;
+    await saveStoryboardFrameToHistory(shotId, b64, index + 1, 'coverage-frame-regenerated');
+    zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (index + 1), b64, 'image/png', {shotId:shotId, frameIndex:index + 1, reason:'coverage-frame-regenerated'});
+    buildStoryboardTimeline();
+    if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
+    saveStoryboardState('coverage-frame-regenerated');
+  } catch (error) {
+    alert((index + 1) + '번 컷 재생성 실패: ' + error.message);
+    if (statusEl) statusEl.textContent = '';
+  }
+}
+
 function seq3up(imgKey){
   var arr = (typeof sbSeqImages!=='undefined') ? sbSeqImages[imgKey] : null;
   if(!arr || !arr.length) return '';
-		  var lab=['시작','정점','직후'];
-		  var h='';
-		  for(var i=0;i<arr.length;i++){
-		    h+='<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:2px"><div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);font-weight:700">'+(i+1)+'. '+(lab[i]||'')+'</div><button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeqFrame(\''+imgKey+'\','+i+')" style="border-color:var(--er);color:var(--er);font-size:9px;padding:2px 6px" title="이 흐름 컷만 삭제">삭제</button></div><img alt="" data-sb-seq-key="'+sbQuoteAttr(imgKey)+'" data-sb-seq-index="'+i+'" style="width:100%;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')"></div>';
-		  }
-	  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="시퀀스 전체 삭제">시퀀스 전체 삭제</button></div>';
-	  return h;
-	}
+  var shot = (typeof SB_SHOTS!=='undefined') ? SB_SHOTS.find(function(item){return item.id===imgKey;}) : null;
+  var mode = (shot && typeof storyboardShotCoverageMode==='function') ? storyboardShotCoverageMode(shot) : 'temporal';
+  var lab = mode==='camera' ? ['기준 구도','렌즈·사이즈','높이·깊이'] : ['시작','정점','직후'];
+  var h='<div class="sb-seq-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:hidden;margin-bottom:8px">';
+  for(var i=0;i<arr.length;i++){
+    h+='<div class="sb-seq-cell" style="min-width:0;border:1px solid var(--bd);border-radius:7px;padding:5px;background:rgba(255,255,255,.025)">' +
+      '<div style="display:flex;justify-content:space-between;gap:4px;align-items:center;margin-bottom:4px">' +
+        '<div style="font-family:var(--font-mono);font-size:9px;color:var(--cy);font-weight:700">'+(i+1)+'. '+(lab[i]||'')+'</div>' +
+        '<div style="display:flex;gap:3px">' +
+          '<button class="hist-card-btn" onclick="event.stopPropagation();downloadSBSeqFrame(\''+imgKey+'\','+i+')" style="font-size:8px;padding:2px 5px" title="이 컷 저장">↓</button>' +
+          '<button class="hist-card-btn" onclick="event.stopPropagation();regenerateSBSeqFrame(\''+imgKey+'\','+i+')" style="border-color:var(--cy);color:var(--cy);font-size:8px;padding:2px 5px" title="이 컷만 재생성">↻</button>' +
+          '<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeqFrame(\''+imgKey+'\','+i+')" style="border-color:var(--er);color:var(--er);font-size:8px;padding:2px 5px" title="이 컷만 삭제">×</button>' +
+        '</div>' +
+      '</div>' +
+      '<img alt="" data-sb-seq-key="'+sbQuoteAttr(imgKey)+'" data-sb-seq-index="'+i+'" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:5px;cursor:pointer;border:1px solid var(--bd);display:block" onclick="openSeqFrame(\''+imgKey+'\','+i+')">' +
+    '</div>';
+  }
+  h+='</div>';
+  h+='<div class="sb-card-actions">'+renderSBDownloadButton(imgKey)+renderSBStartButton(imgKey)+'<button class="hist-card-btn del" onclick="event.stopPropagation();deleteSBSeq(\''+imgKey+'\')" style="border-color:var(--er);color:var(--er)" title="3컷 전체 삭제">3컷 전체 삭제</button></div>';
+  return h;
+}
 function deleteSBSeq(imgKey){
   if(typeof sbSeqImages!=='undefined') delete sbSeqImages[imgKey];
   if(typeof sbGenImages!=='undefined') delete sbGenImages[imgKey];
+  if(typeof sbShotBranches!=='undefined') delete sbShotBranches[imgKey];
   if(typeof buildStoryboardTimeline==='function') buildStoryboardTimeline();
   saveStoryboardState('sequence-deleted');
 }
@@ -83418,7 +83827,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
 
   function sbStoryboardSnapshot(){
     function compact(src){ const out={}; let bytes=0; Object.keys(src||{}).forEach(function(k){const v=src[k]; if(Array.isArray(v)){const arr=v.map(function(x){if(typeof x==='string')bytes+=x.length;return (zippyHistoryMarker(x)?'':x);}); if(arr.some(Boolean))out[k]=arr;} else if(typeof v==='string'&&v&&!zippyHistoryMarker(v)){bytes+=v.length;out[k]=v;} }); return bytes>8000000?{}:out; }
-    return {genImages:compact(sbGenImages),seqImages:compact(sbSeqImages),continuityCards:sbPlainMap(sbContinuityCards),localDeletedImages:sbPlainMap(sbLocalDeletedImages),cameraPositions:typeof sbCameraPositions!=='undefined'?sbPlainMap(sbCameraPositions):{},cameraControls:typeof sbCameraControls!=='undefined'?sbPlainMap(sbCameraControls):{},shotLocations:typeof SB_SHOTS!=='undefined'?SB_SHOTS.filter(function(s){return s&&s.id&&s.loc;}).map(function(s){return{id:s.id,loc:s.loc};}):[],shotEdits:sbShotEditorSnapshot(),savedAt:new Date().toISOString()};
+    return {genImages:compact(sbGenImages),seqImages:compact(sbSeqImages),branchImages:sbPlainMap(sbShotBranches),continuityCards:sbPlainMap(sbContinuityCards),localDeletedImages:sbPlainMap(sbLocalDeletedImages),cameraPositions:typeof sbCameraPositions!=='undefined'?sbPlainMap(sbCameraPositions):{},cameraControls:typeof sbCameraControls!=='undefined'?sbPlainMap(sbCameraControls):{},shotLocations:typeof SB_SHOTS!=='undefined'?SB_SHOTS.filter(function(s){return s&&s.id&&s.loc;}).map(function(s){return{id:s.id,loc:s.loc};}):[],shotEdits:sbShotEditorSnapshot(),savedAt:new Date().toISOString()};
   }
 
   async function hydrateSBTimelineImages(root,opts){
@@ -83432,7 +83841,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
   async function openSeqFrame(shotId,idx){let arr=sbSeqImages[shotId]||[];let b64=arr[idx]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistorySeqRefs[shotId]&&zippySBHistorySeqRefs[shotId][idx]){b64=await zippyHistoryLoad(zippySBHistorySeqRefs[shotId][idx]);if(b64){if(!sbSeqImages[shotId])sbSeqImages[shotId]=[];sbSeqImages[shotId][idx]=b64;}}if(!b64)return;await openSBLightbox(shotId);const lb=document.getElementById('sbLightbox');if(lb)lb.dataset.seqIndex=String(idx);const im=document.getElementById('sbLbImg');if(im)im.src='data:image/png;base64,'+b64;}
   async function downloadSBImg(shotId){let b64=sbGenImages[shotId]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[shotId])b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);if(!b64)return;const a=document.createElement('a');a.href='data:image/png;base64,'+b64;a.download='SB_'+shotId+'_'+Date.now()+'.png';a.click();}
   async function sendSBToVideo(shotId){let b64=sbGenImages[shotId]||'';if(zippyHistoryMarker(b64))b64='';if(!b64&&zippySBHistoryRefs[shotId])b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);if(!b64){alert('이미지를 불러오는 중입니다. 다시 시도해주세요');return;}const shot=SB_SHOTS.find(function(s){return s.id===shotId;})||{id:shotId,frame:'',desc:'',func:''};const prompt=buildSBVideoPrompt(shot);const meta={source:'storyboard',shotId:shot.id||shotId,frame:shot.frame||'',desc:shot.desc||'',func:shot.func||'',videoPrompt:prompt};if(typeof window.zippySendImageToVideoTab==='function')window.zippySendImageToVideoTab(b64,'image/png',prompt,meta);else{vidStartB64=b64;vidStartMime='image/png';vidStartMeta=meta;const el=document.getElementById('vidStartFrame');if(el)el.innerHTML='<img src="data:image/png;base64,'+b64+'" style="width:100%;height:100%;object-fit:cover">';const promptEl=document.getElementById('vidTabPrompt');if(promptEl)promptEl.value=prompt;goStep('vid');}}
-  function clearStoryboard(){Object.keys(sbGenImages).forEach(function(k){delete sbGenImages[k];});Object.keys(sbSeqImages).forEach(function(k){delete sbSeqImages[k];});zippyClearSBHistoryRefs();if(typeof sbContinuityCards!=='undefined')Object.keys(sbContinuityCards).forEach(function(k){delete sbContinuityCards[k];});buildStoryboardTimeline();saveStoryboardState('storyboard-cleared');}
+  function clearStoryboard(){Object.keys(sbGenImages).forEach(function(k){delete sbGenImages[k];});Object.keys(sbSeqImages).forEach(function(k){delete sbSeqImages[k];});Object.keys(sbShotBranches).forEach(function(k){delete sbShotBranches[k];});zippyClearSBHistoryRefs();if(typeof sbContinuityCards!=='undefined')Object.keys(sbContinuityCards).forEach(function(k){delete sbContinuityCards[k];});buildStoryboardTimeline();saveStoryboardState('storyboard-cleared');}
   window.hydrateHistoryImages=hydrateHistoryImages;
   window.refreshHistory=refreshHistory;
   window.openHistModal=openHistModal;

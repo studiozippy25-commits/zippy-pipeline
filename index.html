@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="location-scout.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -1161,6 +1162,7 @@ input[type=file]{display:none}
   <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
   <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
   <button class="stab" id="tabGrok" onclick="goStep('grok')" style="border-bottom-color:#FDBA74;color:#FDBA74">Grok Imagine</button>
+  <button class="stab" id="tabScout" onclick="goStep('scout')" style="border-bottom-color:#2DD4BF;color:#2DD4BF">🌍 LOCATION SCOUT</button>
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
@@ -1170,6 +1172,73 @@ input[type=file]{display:none}
   <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
+</div>
+
+<!-- ═══════════════ LOCATION SCOUT ═══════════════ -->
+<div class="panel" id="pScout">
+  <div class="ls-hero">
+    <div>
+      <div class="slbl ls-kicker">LOCATION SCOUT — GOOGLE 장소 탐색</div>
+      <h2>촬영 장소를 찾고, 쇼트의 공간 정보로 연결합니다.</h2>
+      <p>장소 이미지는 에셋 라이브러리에 복사하지 않습니다. Google 출처가 포함된 프리뷰만 표시하고, 저장 카드에는 장소명·주소·좌표·뷰 설정만 기록합니다.</p>
+    </div>
+    <div class="ls-health" id="lsHealth"><span></span> 연결 확인 전</div>
+  </div>
+
+  <form class="ls-search" id="lsSearchForm" onsubmit="locationScoutSearch(event)">
+    <label for="lsQuery">장소·주소·키워드</label>
+    <div class="ls-search-row">
+      <input id="lsQuery" autocomplete="off" maxlength="120" placeholder="예: 성수동 오래된 공장, 서울숲, 인천 폐창고">
+      <button class="btn ls-primary" id="lsSearchBtn" type="submit">장소 검색</button>
+    </div>
+    <div class="ls-hints"><button type="button" onclick="locationScoutQuickSearch('성수동 오래된 공장')">성수동 공장</button><button type="button" onclick="locationScoutQuickSearch('인천 오래된 창고')">인천 창고</button><button type="button" onclick="locationScoutQuickSearch('서울 옥상 야경')">서울 옥상</button></div>
+  </form>
+
+  <div class="ls-workspace">
+    <aside class="ls-results-pane">
+      <div class="ls-section-head"><div><b>SEARCH RESULTS</b><span id="lsResultCount">검색 전</span></div></div>
+      <div id="lsResults" class="ls-results"><div class="ls-empty">검색어를 입력하면 장소 후보가 여기에 표시됩니다.</div></div>
+    </aside>
+
+    <section class="ls-viewer-pane">
+      <div class="ls-viewer-head">
+        <div><b id="lsSelectedName">장소를 선택하세요</b><span id="lsSelectedAddress">위성·거리 프리뷰를 한 화면에서 비교합니다.</span></div>
+        <div class="ls-view-tabs"><button id="lsSatelliteTab" class="on" type="button" onclick="locationScoutSetView('satellite')">SATELLITE</button><button id="lsStreetTab" type="button" onclick="locationScoutSetView('streetview')">STREET VIEW</button></div>
+      </div>
+      <div class="ls-preview" id="lsPreview"><div class="ls-preview-empty"><span>◎</span><b>LOCATION PREVIEW</b><small>검색 결과에서 장소를 선택하세요.</small></div></div>
+      <div class="ls-attribution">Google Maps Platform · 이미지 내부의 Google/제공자 출처 표기를 유지합니다.</div>
+      <div class="ls-road-nav" id="lsRoadNav" hidden>
+        <button type="button" onclick="locationScoutRotate(-15)">↶ 15°</button>
+        <button class="forward" id="lsForwardBtn" type="button" onclick="locationScoutMoveForward()">↑ 앞으로 이동</button>
+        <button type="button" onclick="locationScoutRotate(15)">15° ↷</button>
+        <button id="lsBackBtn" type="button" onclick="locationScoutGoBack()" disabled>← 이전 위치</button>
+      </div>
+
+      <div class="ls-controls" id="lsControls">
+        <label id="lsZoomControl">위성 줌 <output id="lsZoomOut">17</output><input id="lsZoom" type="range" min="12" max="20" value="17" oninput="locationScoutControlChanged()"></label>
+        <label id="lsHeadingControl" hidden>방향 <output id="lsHeadingOut">0°</output><input id="lsHeading" type="range" min="0" max="359" value="0" oninput="locationScoutControlChanged()"></label>
+        <label id="lsPitchControl" hidden>틸트 <output id="lsPitchOut">0°</output><input id="lsPitch" type="range" min="-30" max="30" value="0" oninput="locationScoutControlChanged()"></label>
+        <label id="lsFovControl" hidden>화각 <output id="lsFovOut">80°</output><input id="lsFov" type="range" min="30" max="120" value="80" oninput="locationScoutControlChanged()"></label>
+      </div>
+
+      <div class="ls-meta" id="lsMeta"><span>좌표 —</span><span>스트리트뷰 —</span></div>
+      <div class="ls-actions">
+        <button class="btn ls-primary" type="button" onclick="locationScoutSaveCard()">장소 카드 저장</button>
+        <button class="btn bgh" type="button" onclick="locationScoutOpenMaps()">Google 지도·로드뷰 열기 ↗</button>
+        <button class="btn bgh" type="button" onclick="locationScoutCopyBrief()">장소 브리프 복사</button>
+      </div>
+      <div class="ls-story-link">
+        <select id="lsShotSelect"><option value="">스토리보드 쇼트 선택</option></select>
+        <button class="btn bor" type="button" onclick="locationScoutSendToShot()">선택 쇼트의 장소로 연결</button>
+      </div>
+      <div class="ls-status" id="lsStatus" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <section class="ls-saved-section">
+    <div class="ls-section-head"><div><b>SAVED LOCATION CARDS</b><span>이 브라우저에 메타데이터만 저장</span></div><button type="button" onclick="locationScoutClearCards()">전체 비우기</button></div>
+    <div id="lsSavedCards" class="ls-card-grid"><div class="ls-empty">저장한 장소 카드가 없습니다.</div></div>
+  </section>
 </div>
 
 <!-- zippy-instagram-module -->
@@ -80936,7 +81005,7 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -80947,6 +81016,8 @@ function goStep(n){
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
     else if(n==='grok') el.classList.toggle('active',id==='pGrok');
+    else if(n==='scout') el.classList.toggle('active',id==='pScout');
+    else if(n==='insta') el.classList.toggle('active',id==='pInsta');
     else el.classList.toggle('active', id==='p'+n);
   });
   const d1=document.getElementById('out1').style.display!=='none';
@@ -80961,6 +81032,8 @@ function goStep(n){
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tabGrok').className='stab '+(n==='grok'?'a1':'');
+  document.getElementById('tabScout').className='stab '+(n==='scout'?'a1':'');
+  document.getElementById('tabInsta').className='stab '+(n==='insta'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
   if(n==='sb') {
@@ -80978,6 +81051,7 @@ function goStep(n){
   if(n==='voice') vbInitVoiceTab();
   if(n==='hist') refreshHistory();
   if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
+  if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();
 }
 function setSt(pfx,idx){
   for(let i=0;i<4;i++){const el=document.getElementById(`${pfx}${i}`);if(el)el.className='ps'+(i<idx?' fin':i===idx?' cur':'');}
@@ -85011,6 +85085,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
   globalThis.sendSBLightboxToVideo = sendNavigatedSBLightboxToVideo;
 })();
 </script>
+<script src="location-scout.js"></script>
 
 </body>
 </html>

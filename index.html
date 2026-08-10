@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="location-scout.css">
+<link rel="stylesheet" href="director-v3.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -1331,6 +1332,8 @@ input[type=file]{display:none}
     인물 → Omni Reference | 공간 → Style Reference | 사물 → Omni Reference
   </div>
 
+  <div id="directorV3AssetMount"></div>
+
   <!-- 프로젝트 전체 레퍼런스 갤러리 -->
   <div id="projectRefAssetSection" style="display:none;margin-bottom:20px;border:1px solid var(--bd);border-radius:10px;overflow:hidden">
     <div style="padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
@@ -1692,6 +1695,7 @@ input[type=file]{display:none}
     쇼트리스트 기반 전체 스토리보드. 각 쇼트를 선택해서 이미지를 개별 생성하거나, <strong>전체 생성</strong>으로 한번에 만들 수 있습니다.<br>
     생성된 이미지는 연쇄 수정(Chain Edit)이 가능합니다.
   </div>
+  <div id="directorV3Mount"></div>
   <div class="sb-subtabs">
     <button class="sb-subtab on" id="sbSubtabBoard" onclick="setSBSubtab('board')">타임라인</button>
     <button class="sb-subtab" id="sbSubtabVideo" onclick="setSBSubtab('video')">영상 생성</button>
@@ -68439,8 +68443,14 @@ function genVideoPrompt(shotId) {
   vidPrompt += '[EN] ' + (enCameraLayer ? enCameraLayer + '. ' : '') + projQuality + '\n';
   vidPrompt += '[STABILITY] ' + projStability + '\n';
   vidPrompt += '[NEG] ' + projNegative + '\n';
+  var defaultImgPrompt = (window.ZippyDirectorV3) ? window.ZippyDirectorV3.composeImagePrompt(shot, imgPrompt) : imgPrompt;
+  var defaultVidPrompt = (window.ZippyDirectorV3) ? window.ZippyDirectorV3.composeVideoPrompt(shot, vidPrompt) : vidPrompt;
   var displayedImgPrompt = (shot.promptOverride || '').trim() || imgPrompt;
   var displayedVidPrompt = (shot.videoPromptOverride || '').trim() || vidPrompt;
+  if (window.ZippyDirectorV3) {
+    displayedImgPrompt = window.ZippyDirectorV3.composeImagePrompt(shot, displayedImgPrompt);
+    displayedVidPrompt = window.ZippyDirectorV3.composeVideoPrompt(shot, displayedVidPrompt);
+  }
   // Show modal
   var modal = document.getElementById('vidPromptModal');
   if (!modal) {
@@ -68472,8 +68482,8 @@ function genVideoPrompt(shotId) {
     document.body.appendChild(modal);
   }
   modal.style.display = 'flex';
-  modal.dataset.defaultImagePrompt = imgPrompt;
-  modal.dataset.defaultVideoPrompt = vidPrompt;
+  modal.dataset.defaultImagePrompt = defaultImgPrompt;
+  modal.dataset.defaultVideoPrompt = defaultVidPrompt;
   document.getElementById('vpShotId').textContent = shotId;
   document.getElementById('vpEditorControls').innerHTML = renderSBPromptEditorControls(shot);
   document.getElementById('vpImgContent').value = displayedImgPrompt;
@@ -72789,6 +72799,7 @@ function renderShotCard(shot, sceneVal) {
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += renderSBGrokButton(shot.id);
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
+  if (window.ZippyDirectorV3) html += window.ZippyDirectorV3.cardControls(shot);
   html += `</div>`;
   if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
   return html;
@@ -73197,6 +73208,7 @@ function buildStoryboardTimeline() {
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += renderSBGrokButton(shot.id);
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
+      if (window.ZippyDirectorV3) html += window.ZippyDirectorV3.cardControls(shot);
       html += `</div>`;
       if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
     });
@@ -73257,9 +73269,16 @@ async function generateSBShotWithGrok(shotId, includeCurrent) {
 }
 async function generateSBShot(shotId, _seq, _provider) {
   const providerOptions = (_provider && typeof _provider === 'object') ? _provider : {provider:_provider || 'default'};
-  const useGrokImageBridge = providerOptions.provider === 'grok';
+  let useGrokImageBridge = providerOptions.provider === 'grok';
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return {ok:false, shotId:shotId, error:'쇼트를 찾을 수 없음'};
+  if (providerOptions.provider === 'default' && window.ZippyDirectorV3 && window.ZippyDirectorV3.state().mode === 'production') {
+    useGrokImageBridge = window.ZippyDirectorV3.routeShot(shot).image === 'grok-image-edit';
+  }
+  if (!(_seq) && window.ZippyDirectorV3) {
+    const directorGate = window.ZippyDirectorV3.beforeGenerate(shot, {provider:useGrokImageBridge ? 'grok-image' : 'storyboard-image'});
+    if (!directorGate.ok) return {ok:false, shotId:shotId, error:directorGate.error};
+  }
   if (typeof applyLoveHandOwnershipDefaults === 'function') applyLoveHandOwnershipDefaults(shot);
   if (isCloudRiderProject()) normalizeCloudRiderShotState(shot, currentProject);
   if (!(_seq)) sbShowLoading(shotId, useGrokImageBridge ? 'Grok 레퍼런스 준비 중...' : '레퍼런스 준비 중...');
@@ -73529,6 +73548,7 @@ ${negativeBlock}`;
         if (sbIsNcityYujinTacticalShot(shot)) _finalPrompt += '\nSEO YUJIN TACTICAL 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 she wears the same approved black-and-purple lower-face mask and the same black tactical Western outfit. Never switch to her ordinary unmasked face or bartender mode.';
       }
     }
+    if (window.ZippyDirectorV3) _finalPrompt = window.ZippyDirectorV3.composeImagePrompt(shot, _finalPrompt);
     let result;
     if (useGrokImageBridge) {
       progress(imgInputs.length ? 'Grok image_edit · 카드 안에서 생성 중...' : 'Grok image_gen · 카드 안에서 생성 중...');
@@ -73598,9 +73618,11 @@ ${negativeBlock}`;
 	    }
 	    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
 	    saveStoryboardState(generationReason);
+	    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:true, provider:useGrokImageBridge ? 'grok-image' : 'storyboard-image', model:result.model || result.imageTool || '', cost:result.cost || result.cost_usd || (result.usage && result.usage.cost), jobId:result.jobId || ''});
 	    return {ok:true, shotId:shotId, b64:imgB64};
 	  } catch(e) {
 	    if (_seq && _seq.returnOnly) throw e;
+	    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:false, provider:useGrokImageBridge ? 'grok-image' : 'storyboard-image', error:e && e.message ? e.message : String(e)});
 	    alert('Shot '+shotId+' 생성 실패: '+e.message);
     if(emptyEl){emptyEl.textContent='+ 생성';emptyEl.style.cursor='pointer';}
 	    sbHideLoading(shotId);
@@ -73610,6 +73632,10 @@ ${negativeBlock}`;
 async function generateSBSequence(shotId) {
   const shot = SB_SHOTS.find(function(s){ return s.id === shotId; });
   if (!shot) return;
+  if (window.ZippyDirectorV3) {
+    const directorGate = window.ZippyDirectorV3.beforeGenerate(shot, {provider:'storyboard-sequence'});
+    if (!directorGate.ok) return {ok:false, shotId:shotId, error:directorGate.error};
+  }
   const coverageMode = (typeof storyboardShotCoverageMode === 'function') ? storyboardShotCoverageMode(shot) : '';
   const phases = ((typeof buildStoryboardCoveragePhases === 'function') && buildStoryboardCoveragePhases(shot)) || [
     'FRAME 1 of 3 — BEGINNING: the setup instant just before the main action begins. Use a wider or alternate-side setup composition.',
@@ -73654,11 +73680,13 @@ async function generateSBSequence(shotId) {
       }
       if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
       saveStoryboardState('sequence-generated');
+      if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:true, provider:'storyboard-sequence'});
       return {ok:true, shotId:shotId, sequenceCount:seq.length, b64:seq[0]};
     } else {
       throw new Error('생성 결과 없음');
     }
   } catch(e) {
+    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:false, provider:'storyboard-sequence', error:e && e.message ? e.message : String(e)});
     alert('흐름 3컷 생성 실패 (' + shotId + '): ' + e.message);
     emptyEls.forEach(function(el){ el.textContent = '+ 다시 시도'; el.style.cursor='pointer'; });
     sbHideLoading(shotId);
@@ -73709,6 +73737,10 @@ async function generateStoryboardBatch(scope, episodeNumber) {
   const remaining = sourceShots.filter(s=>!sbGenImages[s.id]);
   const label = isEpisode ? sbGroupChipLabel(episodeNumber) + ' 쇼트' : (isAll ? '전체 쇼트' : '필수 쇼트');
   if(remaining.length===0){alert(label + '가 이미 모두 생성되었습니다.');return;}
+  if (window.ZippyDirectorV3) {
+    const directorBatchGate = window.ZippyDirectorV3.beforeBatch(remaining);
+    if (!directorBatchGate.ok) return {ok:false, blocked:true, error:directorBatchGate.error};
+  }
   const batchBtns = ['btnSBAll','btnSBAllShots','btnSBEpisode']
     .map(id=>document.getElementById(id))
     .filter(Boolean);
@@ -74363,7 +74395,18 @@ const CAMERA_MOVES = [
   {id:"infinite-zoom",category:"Specials",preview:"dolly-in",name:"Infinite zoom",ko:"인피니트 줌",desc:"중앙 타깃으로 계속 안쪽 세계로 들어감.",media:"https://aicameramovements.com/previews/hq/s3-infinite-zoom-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s3-infinite-zoom-hq.jpg",prompt:"infinite zoom. Continuously zoom inward toward the exact center target with smooth acceleration until the next visual world fills the frame."},
   {id:"earth-zoom-out",category:"Specials",preview:"drone-out",name:"Earth zoom out",ko:"어스 줌 아웃",desc:"거리/도시/행성 스케일까지 빠르게 확장.",media:"https://aicameramovements.com/previews/hq/s4-earth-zoom-out-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s4-earth-zoom-out-hq.jpg",prompt:"earth zoom out. Pull upward from the starting point through street, city, landscape, and planet scale while keeping the original location centered."},
   {id:"time-lapse",category:"Specials",preview:"timelapse",name:"Time-lapse",ko:"타임랩스",desc:"고정 카메라에서 시간만 빠르게 흐름.",media:"https://aicameramovements.com/previews/hq/s5-time-lapse-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s5-time-lapse-hq.jpg",prompt:"locked-camera time-lapse. Hold a fixed composition while time rapidly compresses through light, crowd, weather, or environmental changes."},
-  {id:"pass-through-objects",category:"Specials",preview:"pov",name:"Pass-through objects",ko:"오브젝트 통과",desc:"표면/문/장벽을 향해 전진해 안쪽 공간으로 통과.",media:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.jpg",prompt:"pass-through movement. Move forward toward a visible object, surface, or barrier and continue into the revealed space beyond with a centered smooth glide."}
+  {id:"pass-through-objects",category:"Specials",preview:"pov",name:"Pass-through objects",ko:"오브젝트 통과",desc:"표면/문/장벽을 향해 전진해 안쪽 공간으로 통과.",media:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.mp4",poster:"https://aicameramovements.com/previews/hq/s6-pass-through-objects-hq.jpg",prompt:"pass-through movement. Move forward toward a visible object, surface, or barrier and continue into the revealed space beyond with a centered smooth glide."},
+  {id:"dolly-zoom-in",category:"Zoom/Lens",preview:"dolly-in",name:"Dolly zoom in",ko:"돌리 줌 인",desc:"카메라는 전진하고 줌은 반대로 보정해 배경 원근만 늘림.",prompt:"dolly zoom in. Move the camera physically toward the subject while zooming the lens wider at the matched inverse rate, keeping subject size stable as background perspective expands. End on a stable frame."},
+  {id:"dolly-zoom-out",category:"Zoom/Lens",preview:"dolly-out",name:"Dolly zoom out",ko:"돌리 줌 아웃",desc:"카메라는 후진하고 줌은 반대로 보정해 배경이 압축됨.",prompt:"dolly zoom out. Move the camera physically backward while zooming the lens tighter at the matched inverse rate, keeping subject size stable as background perspective compresses. End cleanly."},
+  {id:"roll-clockwise",category:"Physical Moves",preview:"orbit",name:"Camera roll clockwise",ko:"시계방향 카메라 롤",desc:"렌즈 축을 중심으로 화면을 시계방향 회전.",prompt:"clockwise camera roll. Rotate only around the optical axis at a controlled rate, keeping the subject centered, identity intact, and the physical environment coherent. Settle level or on the declared angle."},
+  {id:"roll-counterclockwise",category:"Physical Moves",preview:"orbit-ccw",name:"Camera roll counterclockwise",ko:"반시계 카메라 롤",desc:"렌즈 축을 중심으로 화면을 반시계 회전.",prompt:"counterclockwise camera roll. Rotate only around the optical axis in the opposite direction, preserving subject scale, face, wardrobe, lighting, and spatial coherence. Finish on a readable composition."},
+  {id:"dutch-angle-left",category:"Physical Moves",preview:"static",name:"Dutch angle left",ko:"왼쪽 더치 앵글",desc:"수평선을 왼쪽으로 기울여 불안과 압박을 만듦.",prompt:"Dutch angle left. Hold the camera position while canting the horizon left by a restrained intentional angle. Keep architecture, anatomy, and gravity coherent; do not rotate the subject independently."},
+  {id:"dutch-angle-right",category:"Physical Moves",preview:"static",name:"Dutch angle right",ko:"오른쪽 더치 앵글",desc:"수평선을 오른쪽으로 기울여 불안과 압박을 만듦.",prompt:"Dutch angle right. Hold the camera position while canting the horizon right by a restrained intentional angle. Preserve subject anatomy, floor contact, and consistent gravity."},
+  {id:"bullet-time",category:"Specials",preview:"orbit",name:"Bullet time",ko:"불릿 타임",desc:"행동은 거의 정지하고 카메라만 대상 주위를 이동.",prompt:"bullet time. Freeze the single decisive action instant while the camera travels on one short declared arc around it. Preserve exact anatomy, props, particles, contact, and lighting from every angle; no duplicate limbs or extra moments."},
+  {id:"fpv-drone",category:"Drone/Crane",preview:"chase",name:"FPV drone",ko:"FPV 드론",desc:"좁은 경로를 빠르게 통과하는 1인칭 드론 동선.",prompt:"FPV drone flight. Follow one continuous collision-free path through the declared openings with believable banking, inertia, clearance, horizon behavior, and scale. Never teleport or pass through solid geometry."},
+  {id:"crane-overhead",category:"Drone/Crane",preview:"crane-up",name:"Crane to overhead",ko:"크레인 오버헤드",desc:"피사체 높이에서 수직 탑샷까지 한 동선으로 상승.",prompt:"crane to overhead. Rise from the starting camera height on one smooth physical crane path and finish in a true top-down composition, preserving screen geography, scale, subject identity, and the declared 180-degree axis."},
+  {id:"rack-focus",category:"Zoom/Lens",preview:"static",name:"Rack focus",ko:"랙 포커스",desc:"카메라는 고정하고 두 거리층 사이 초점을 이동.",prompt:"rack focus. Keep camera position and framing locked while shifting focus once from the declared foreground subject to the declared background subject, or the reverse. Preserve both subjects and change only the focal plane."},
+  {id:"macro-probe",category:"Specials",preview:"pov",name:"Macro probe",ko:"매크로 프로브",desc:"아주 가까운 전경 틈을 지나 세부 공간으로 진입.",prompt:"macro probe movement. Advance slowly at macro distance through one physically open gap, maintaining believable lens clearance, shallow depth of field, surface scale, texture, and a stable final target. Never pass through solid material."}
 ];
 const CAMERA_MOVE_ALIASES = {
   'slow-push-in':'dolly-in', 'orbit-soft':'orbit-clockwise', 'handheld-subtle':'handheld-shot',
@@ -74599,7 +74642,8 @@ function sbSelectVideoShot(shotId) {
   if (meta) meta.innerHTML = '<b>' + escSBText(shot.id) + '</b><br>' + escSBText(shot.frame || '') + '<br>' + escSBText(shot.desc || '');
 }
 function buildSBVideoPrompt(shot) {
-  return appendCameraMoveToPrompt(buildSBVideoPromptBase(shot), getSelectedSBCameraMoveId(shot));
+  const prompt = appendCameraMoveToPrompt(buildSBVideoPromptBase(shot), getSelectedSBCameraMoveId(shot));
+  return window.ZippyDirectorV3 ? window.ZippyDirectorV3.composeVideoPrompt(shot, prompt) : prompt;
 }
 function syncSBVideoGateway() {
   const sb = document.getElementById('sbGrokBuildBridgeUrl');
@@ -74618,6 +74662,10 @@ async function sbGenerateSelectedVideo() {
   const b64 = sbGenImages[shotId];
   const shot = SB_SHOTS.find(s => s.id === shotId);
   if (!b64 || !shot) { alert('영상으로 만들 스토리보드 컷을 선택하세요'); return; }
+  if (window.ZippyDirectorV3) {
+    const directorGate = window.ZippyDirectorV3.beforeGenerate(shot, {provider:'grok-video'});
+    if (!directorGate.ok) return;
+  }
   if (sbVideoAbortController) sbVideoAbortController.abort();
   sbVideoAbortController = new AbortController();
   syncSBVideoGateway();
@@ -74669,7 +74717,9 @@ async function sbGenerateSelectedVideo() {
       if (typeof renderVidTabHistory === 'function') renderVidTabHistory();
     }
     renderSBVideoHistory();
+    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:true, provider:'grok-video', model:data.model || 'Grok Build CLI', cost:data.cost || data.cost_usd || (data.usage && data.usage.cost), jobId:data.job_id || ''});
   } catch(e) {
+    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:false, provider:'grok-video', error:e && e.message ? e.message : String(e)});
     if (status) { status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatGrokBuildError(e); status.style.color = isVideoAbortError(e) ? 'var(--mu)' : 'var(--er)'; }
   } finally {
     sbVideoAbortController = null;
@@ -85086,6 +85136,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
 })();
 </script>
 <script src="location-scout.js"></script>
+<script src="director-v3.js"></script>
 
 </body>
 </html>

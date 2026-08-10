@@ -1,6 +1,23 @@
 API KEY.rtf
+.DS_Store
+**/.DS_Store
+._*
+**/._*
+.wrangler/
+.claude/
+.env
+.env.*
+!.env.example
+.dev.vars
+*.pem
+*.key
+*.p12
+*.pfx
 ~$*
 *.bak
+*.bak_*
+*.backup
+index*.html.bak*
 logo_b64.txt
 LOCAL_SETUP_GUIDE.md
 START_LOCAL.bat

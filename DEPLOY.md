@@ -14,14 +14,14 @@
 |---|---|
 | GitHub repo | `studiozippy25-commits/zippy-pipeline` (branch `main`) |
 | 로컬 클론 | `/Users/hyunwooheo/.zippy-deploy/zippy-pipeline` |
-| 배포 대상 파일 | `index.html` (단일 파일, ~1.4MB, 모든 데이터·CSS·JS 인라인) |
+| 배포 대상 파일 | `index.html` 및 승인된 `assets/` 파일 (`index.html`은 2026-08 기준 약 8MB) |
 | 배포 방식 | Cloudflare Workers Static Assets + GitHub 연동 **자동배포** (push→main 트리거) |
 | 라이브 URL | https://zippy-pipeline.studiozippy25.workers.dev/ |
 | 인증 | `~/.git-credentials` (chmod 600)에 PAT 저장됨. **토큰 값을 출력/로그하지 말 것** |
 | 커밋 푸터 | `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` |
 
 - `wrangler`로 수동 배포하지 않는다. **push가 곧 배포**다. `wrangler`/Pages 배포 흔적은 홈페이지(`studiozippy-site`) 쪽일 수 있으므로 파이프라인 배포에 쓰지 않는다.
-- 이 repo에는 `wrangler.toml`/`wrangler.jsonc`가 없다. 수동 Wrangler 배포를 시도하지 말고 GitHub 연동 자동배포만 사용한다.
+- 이 repo의 `wrangler.jsonc`는 Cloudflare Workers Static Assets 설정 권위 파일이다. Git에는 유지하되 `.assetsignore`로 공개 정적 에셋 업로드에서는 제외한다.
 - Cloudflare 빌드 로그에 `npx wrangler deploy`가 계속 보이면, 레포 문제가 아니라 Cloudflare 배포 설정 문제일 가능성이 큽니다. 배포 프로젝트 설정에서 빌드 커맨드를 `npx wrangler deploy`에서 자동 빌드 방식으로 되돌려야 합니다.
 - 강제 재배포가 필요해도 빈 커밋(`--allow-empty`)에 의존하지 않는다. Cloudflare GitHub 연동이 트리 변경 없는 커밋을 새 HTML 게시로 처리하지 않을 수 있으므로, `index.html`에 무해한 고유 marker/meta 같은 **실제 바이트 변경**을 넣고 push한다.
 - 데이터 구조: `index.html` 안 `const PROJECTS = { ... }` 객체에 프로젝트별로 들어있음. N시 = `ncity` 프로젝트.
@@ -89,7 +89,8 @@ node -e 'const fs=require("fs");const s=fs.readFileSync("index.html","utf8");con
 ### STEP 3 — 커밋 & 푸시 (foreground)
 ```bash
 cd ~/.zippy-deploy/zippy-pipeline
-git add -A
+git status --short
+git add index.html <이번 작업에서 의도한 assets/... 파일만>
 git commit -q -m "ncity: <변경 요약>
 
 <본문>
@@ -100,6 +101,7 @@ git push origin main
 - **push는 반드시 foreground.** (백그라운드 push가 origin에 안 닿은 사고 있었음)
 - 강제 재배포 목적이면 빈 커밋 금지. `index.html`에 실제 바이트 변화가 있어야 한다.
 - 기본 브랜치가 `main`이고 여기에 직접 push해 배포한다.
+- `git add -A`를 사용하지 않는다. `.DS_Store`, 백업, 로컬 캐시, 키 파일이 함께 올라갈 수 있으므로 의도한 파일만 명시적으로 stage한다.
 
 ### STEP 4 — 라이브 검증 (자동배포 폴링)
 push 후 ~1–3분. 방금 넣은 고유 문자열이 라이브에 뜰 때까지 폴링:
@@ -139,10 +141,24 @@ done
 - [ ] push를 foreground로 했나? `git log origin/main --oneline -1`로 반영 확인.
 - [ ] 강제 재배포라면 빈 커밋이 아니라 `index.html` 실제 delta를 넣었나?
 - [ ] 라이브 curl 폴링으로 실제 반영 확인했나?
+- [ ] `.wrangler/`, `.DS_Store`, `._*`, `index.html.bak_*`, 키·토큰·환경 파일이 staged/tracked되지 않았나?
+- [ ] `/.wrangler/cache/wrangler-account.json`, `/wrangler.jsonc`, `/DEPLOY.md`, `/index.html.bak_*`가 라이브에서 404인가?
+- [ ] 라이브 응답에 `_headers`의 `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `X-Robots-Tag`, CSP가 있는가?
 
 ---
 
-## 6. (옵션) 이미지 생성 — gti (ChatGPT/Codex 구독)
+## 6. 보안 경계
+
+- GitHub 저장소가 공개 상태일 수 있으므로 Git에 들어간 파일은 외부 공개 자료로 취급한다.
+- `.assetsignore`는 Cloudflare에 업로드할 정적 파일의 최종 허용 경계다. `assets.directory`가 저장소 루트(`.`)이므로 제외 규칙 누락은 즉시 공개 URL 노출로 이어진다.
+- `.wrangler/`, `wrangler.jsonc`, 배포 문서, 백업 HTML, macOS 메타파일, 환경 파일, 인증서와 키는 정적 에셋으로 배포하지 않는다.
+- `_headers`는 Cloudflare Workers가 해석하며 파일 자체는 공개하지 않는다. 보안 헤더를 제거하거나 완화할 때는 실제 기능 영향과 클릭재킹·정보 유출 위험을 함께 검토한다.
+- 브릿지 키와 공급자 API 키는 HTML, Git, 문서에 기록하지 않는다. 브라우저 저장값을 로그·스크린샷·오류 메시지에 포함하지 않는다.
+- 배포 후 GitHub check run의 `Workers Builds: zippy-pipeline` 성공과 라이브 404/보안 헤더를 모두 확인한다.
+
+---
+
+## 7. (옵션) 이미지 생성 — gti (ChatGPT/Codex 구독)
 - 라이브러리: `god-tibo-imagen` (`~/studioZIPPY/gti-bridge/`), 인증 `~/.codex/auth.json`.
 - 배치 예시: `~/studioZIPPY/gti-bridge/gen6_batch.mjs`, `gen6_batch_masked.mjs`, `gen6_add.mjs`.
 - 실행: `cd ~/studioZIPPY/gti-bridge && node <스크립트>.mjs` (장당 ~30–130초).
@@ -150,7 +166,7 @@ done
 
 ---
 
-## 7. 롤백
+## 8. 롤백
 ```bash
 cd ~/.zippy-deploy/zippy-pipeline
 git checkout index.html              # 커밋 전 되돌리기

@@ -67589,6 +67589,7 @@ function selectProject(key) {
     Object.keys(sbCostumeVariants).forEach(function(k){ delete sbCostumeVariants[k]; });
   }
   if (typeof sbGenImages !== 'undefined') Object.keys(sbGenImages).forEach(function(k){ delete sbGenImages[k]; });
+  if (typeof sbGrokStoryboardFrameCache !== 'undefined') Object.keys(sbGrokStoryboardFrameCache).forEach(function(k){ delete sbGrokStoryboardFrameCache[k]; });
   if (typeof sbSeqImages !== 'undefined') Object.keys(sbSeqImages).forEach(function(k){ delete sbSeqImages[k]; });
   if (typeof sbLocalDeletedImages !== 'undefined') Object.keys(sbLocalDeletedImages).forEach(function(k){ delete sbLocalDeletedImages[k]; });
   if (typeof sbContinuityCards !== 'undefined') Object.keys(sbContinuityCards).forEach(function(k){ delete sbContinuityCards[k]; });
@@ -72002,6 +72003,7 @@ var sbContinuityCards = {};
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zippyNasInit); else zippyNasInit();
 
 const sbGenImages = {};
+const sbGrokStoryboardFrameCache = {};
 const sbSeqImages = {}; // shotId -> [b64,b64,b64] 흐름/카메라 3컷
 const sbShotBranches = {}; // shotId -> [{presetKey,label,prompt,b64}] 수동 샷 분기
 const sbLocalDeletedImages = {};
@@ -72610,6 +72612,15 @@ function renderSBStartButton(shotId) {
   const onClick = ready ? "event.stopPropagation();sendSBToVideo('" + safeId + "')" : 'event.stopPropagation()';
   return '<button class="hist-card-btn" onclick="' + onClick + '"' + disabled + ' title="' + sbQuoteAttr(title) + '" style="border-color:var(--pu);color:var(--pu);white-space:nowrap">START로 보내기</button>';
 }
+function renderSBGrokButton(shotId) {
+  const ready = !!(typeof sbGenImages !== 'undefined' && sbGenImages[shotId]);
+  const safeId = sbQuoteJs(shotId);
+  const label = ready ? '✦ Grok으로 수정 · 현재 컷+레퍼런스' : '✦ Grok으로 생성 · 레퍼런스 적용';
+  const title = ready
+    ? '현재 스토리보드 컷을 PRIMARY로, 샷 레퍼런스를 보조 자료로 Grok image_edit 실행'
+    : '이 샷의 인물·얼굴·의상·장소·소품 레퍼런스를 Grok으로 전달해 카드 안에 생성';
+  return '<button class="sb-grok-btn" onclick="event.stopPropagation();generateSBShotWithGrok(\'' + safeId + '\',' + (ready ? 'true' : 'false') + ')" title="' + sbQuoteAttr(title) + '" style="margin-top:4px;width:100%;padding:7px;border:1px solid #FDBA74;background:rgba(253,186,116,.08);color:#FDBA74;font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:800">' + label + '</button>';
+}
 function renderSBTimelineImage(shotId) {
   const safeId = sbQuoteJs(shotId);
   return '<img class="sb-shot-img" alt="" data-sb-img-key="' + sbQuoteAttr(shotId) + '" onclick="openSBLightbox(\'' + safeId + '\')">';
@@ -72704,6 +72715,7 @@ function renderShotCard(shot, sceneVal) {
   html += renderSBCameraControl(shot);
   html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += renderSBGrokButton(shot.id);
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
   html += `</div>`;
   if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
@@ -73111,6 +73123,7 @@ function buildStoryboardTimeline() {
       html += renderSBCameraControl(shot);
       html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode2==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode2==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
+  html += renderSBGrokButton(shot.id);
   html += `<button onclick="event.stopPropagation();genVideoPrompt('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--pu);background:rgba(124,58,237,.06);color:var(--pu);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">프롬프트 보기·수정</button>`;
       html += `</div>`;
       if (typeof renderStoryboardBranchCards === 'function') html += renderStoryboardBranchCards(shot.id);
@@ -73155,12 +73168,29 @@ function sbHideLoading(shotId){
   var card=document.getElementById('sb-shot-'+String(shotId).replace(/[^a-z0-9]/gi,'-'));
   if(!card) return; var ov=card.querySelector('.sb-loading-ov'); if(ov) ov.remove();
 }
-async function generateSBShot(shotId, _seq) {
+async function generateSBShotWithGrok(shotId, includeCurrent) {
+  let currentFrame = '';
+  if (includeCurrent && typeof sbGenImages !== 'undefined') {
+    if (sbGenImages[shotId] && typeof sbGrokStoryboardFrameCache !== 'undefined' && sbGrokStoryboardFrameCache[shotId]) {
+      currentFrame = sbGrokStoryboardFrameCache[shotId];
+    } else if (typeof globalThis.zippyResolveStoryboardImageB64 === 'function') {
+      sbShowLoading(shotId, '현재 컷 불러오는 중...');
+      currentFrame = await globalThis.zippyResolveStoryboardImageB64(shotId) || '';
+    } else {
+      currentFrame = sbGenImages[shotId] || '';
+      if (currentFrame === '__ZIPPY_HISTORY_REF__') currentFrame = '';
+    }
+  }
+  return generateSBShot(shotId, null, {provider:'grok', currentFrame:currentFrame});
+}
+async function generateSBShot(shotId, _seq, _provider) {
+  const providerOptions = (_provider && typeof _provider === 'object') ? _provider : {provider:_provider || 'default'};
+  const useGrokImageBridge = providerOptions.provider === 'grok';
   const shot = SB_SHOTS.find(s=>s.id===shotId);
   if(!shot) return {ok:false, shotId:shotId, error:'쇼트를 찾을 수 없음'};
   if (typeof applyLoveHandOwnershipDefaults === 'function') applyLoveHandOwnershipDefaults(shot);
   if (isCloudRiderProject()) normalizeCloudRiderShotState(shot, currentProject);
-  if (!(_seq)) sbShowLoading(shotId, '레퍼런스 준비 중...');
+  if (!(_seq)) sbShowLoading(shotId, useGrokImageBridge ? 'Grok 레퍼런스 준비 중...' : '레퍼런스 준비 중...');
   if (typeof sbReferenceLoadPromise !== 'undefined' && sbReferenceLoadPromise) {
     await sbReferenceLoadPromise;
   }
@@ -73374,6 +73404,21 @@ ${negativeBlock}`;
   try {
     // 이미지 모드 분기: cloud=Gemini(이미지 레퍼런스 사용) / zimage=Z-Image Turbo(텍스트만)
     let imgInputs = (imgMode === 'zimage') ? [] : [...images];
+    if (useGrokImageBridge) imgInputs = [...images];
+    const grokCurrentFrame = useGrokImageBridge
+      ? (providerOptions.currentFrame || ((typeof sbGrokStoryboardFrameCache !== 'undefined' && sbGrokStoryboardFrameCache[shotId]) || ''))
+      : '';
+    if (useGrokImageBridge && grokCurrentFrame) {
+      const currentFrame = grokCurrentFrame;
+      if (currentFrame) {
+        imgInputs.unshift({
+          b64: currentFrame,
+          mime: 'image/png',
+          _type: 'primary',
+          _label: 'PRIMARY current storyboard frame — preserve composition and continuity unless the edited prompt explicitly changes it'
+        });
+      }
+    }
     if (imgMode !== 'zimage' && typeof sbGetValidatedContinuityImageReference === 'function' && !sbIsNcityDokgoCombatCostume(shot)) {
       const continuityImageRef = await sbGetValidatedContinuityImageReference(shot, sbCam);
       if (continuityImageRef) sbInsertContinuityImageReference(imgInputs, continuityImageRef);
@@ -73383,7 +73428,7 @@ ${negativeBlock}`;
       imgInputs = (typeof orderStoryboardBranchIdentityRefs === 'function') ? orderStoryboardBranchIdentityRefs(imgInputs, seedRef) : [seedRef].concat(imgInputs);
     }
     const progress = function(msg) { if(emptyEl) emptyEl.textContent = msg; if(!(_seq)) sbShowLoading(shotId, msg); };
-	    if (isProofOfTasteProject() && imgMode !== 'zimage') {
+	    if (isProofOfTasteProject() && imgMode !== 'zimage' && !useGrokImageBridge) {
 	      progress('PoT 레퍼런스 압축 중...');
 	      const potLateShot = isProofOfTasteLateShot(shot);
 	      imgInputs = await prepareProofOfTasteRefsForGeneration(imgInputs, shot, {
@@ -73413,7 +73458,18 @@ ${negativeBlock}`;
       }
     }
     let result;
-    try {
+    if (useGrokImageBridge) {
+      progress(imgInputs.length ? 'Grok image_edit · 카드 안에서 생성 중...' : 'Grok image_gen · 카드 안에서 생성 중...');
+      const grokResult = await callGrokBuildImageBridge({
+        images: imgInputs,
+        prompt: _finalPrompt,
+        aspectRatio: (currentProject && currentProject.defaultRatio) || '16:9',
+        onProgress: progress,
+        source: 'zippy_storyboard_card'
+      });
+      const storyboardPng = await grokImageConvertToPng(grokResult.b64, grokResult.mime);
+      result = {imgB64:storyboardPng, mime:'image/png', imageTool:grokResult.imageTool, jobId:grokResult.jobId};
+    } else try {
       result = await callImageGen({
         images: imgInputs,
         prompt: _finalPrompt,
@@ -73456,9 +73512,11 @@ ${negativeBlock}`;
 	    if(!imgB64) throw new Error('이미지 없음');
 	    if (_seq && _seq.returnOnly) return imgB64;
 	    sbGenImages[shotId] = imgB64;
+	    sbGrokStoryboardFrameCache[shotId] = imgB64;
 	    if (typeof recordContinuityCardForShot === 'function') recordContinuityCardForShot(shot, sbCam, imgB64);
-	    await saveStoryboardFrameToHistory(shotId, imgB64, 0, 'shot-generated');
-	    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: 'shot-generated'});
+	    const generationReason = useGrokImageBridge ? 'grok-storyboard-generated' : 'shot-generated';
+	    await saveStoryboardFrameToHistory(shotId, imgB64, 0, generationReason);
+	    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: generationReason});
 	    try {
 	      buildStoryboardTimeline();
 	      if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
@@ -73467,7 +73525,7 @@ ${negativeBlock}`;
 	      updateSBProgress();
 	    }
 	    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
-	    saveStoryboardState('shot-generated');
+	    saveStoryboardState(generationReason);
 	    return {ok:true, shotId:shotId, b64:imgB64};
 	  } catch(e) {
 	    if (_seq && _seq.returnOnly) throw e;
@@ -78571,7 +78629,27 @@ async function grokBuildImageUrlToData(imageUrl, signal) {
   return { b64: dataUrl.slice(comma + 1), mime: blob.type || 'image/png' };
 }
 
-async function callGrokBuildImageBridge({images=[], prompt, aspectRatio='auto', signal=null, onProgress=null}) {
+async function grokImageConvertToPng(b64, mime) {
+  if (!b64 || /image\/png/i.test(mime || '')) return b64;
+  return new Promise(function(resolve, reject) {
+    const image = new Image();
+    image.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.naturalWidth || image.width;
+        canvas.height = image.naturalHeight || image.height;
+        const context = canvas.getContext('2d');
+        if (!context) throw new Error('PNG 변환용 Canvas를 만들지 못했습니다.');
+        context.drawImage(image, 0, 0);
+        resolve(canvas.toDataURL('image/png').split(',')[1]);
+      } catch(e) { reject(e); }
+    };
+    image.onerror = function() { reject(new Error('Grok 결과 이미지를 PNG로 변환하지 못했습니다.')); };
+    image.src = 'data:' + (mime || 'image/jpeg') + ';base64,' + b64;
+  });
+}
+
+async function callGrokBuildImageBridge({images=[], prompt, aspectRatio='auto', signal=null, onProgress=null, source='zippy_grok_imagine_tab'}) {
   const sourceImages = Array.isArray(images) ? images.filter(function(image) { return image && image.b64; }) : [];
   if (onProgress) onProgress(sourceImages.length ? '레퍼런스 압축 중... ' + sourceImages.length + '개' : 'image_gen 준비 중...');
   const bridgeImages = await prepareImageRefsForJsonBridge(sourceImages, {
@@ -78599,7 +78677,7 @@ async function callGrokBuildImageBridge({images=[], prompt, aspectRatio='auto', 
       };
     }),
     metadata: {
-      source: 'zippy_grok_imagine_tab',
+      source: source,
       task: sourceImages.length ? 'image_edit' : 'image_gen',
       original_reference_count: sourceImages.length,
       sent_reference_count: bridgeImages.length
@@ -78812,12 +78890,13 @@ function grokImageRefreshStoryboardShots() {
   if (shots.some(function(shot) { return shot.id === previous; })) select.value = previous;
 }
 
-function grokImageSendToStoryboard() {
+async function grokImageSendToStoryboard() {
   if (!grokImageResultB64) { alert('먼저 결과 이미지를 생성하세요'); return; }
   const shotId = document.getElementById('grokImageStoryboardShot')?.value || '';
   if (!shotId) { alert('보낼 스토리보드 쇼트를 선택하세요'); return; }
   if (typeof sbGenImages === 'undefined') { alert('스토리보드 상태를 찾지 못했습니다'); return; }
-  sbGenImages[shotId] = grokImageResultB64;
+  sbGenImages[shotId] = await grokImageConvertToPng(grokImageResultB64, grokImageResultMime);
+  if (typeof sbGrokStoryboardFrameCache !== 'undefined') sbGrokStoryboardFrameCache[shotId] = sbGenImages[shotId];
   if (typeof saveStoryboardState === 'function') saveStoryboardState('grok-imagine');
   if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
   if (typeof zippyNasScheduleAutoSave === 'function') zippyNasScheduleAutoSave('grok-imagine');
@@ -84398,6 +84477,13 @@ globalThis.__zippyHistoryGuardLoaded = true;
     zippySBHistoryLoads[key]=zippyGetHistoryItem(ref.id).then(function(item){return item && item.b64 ? item.b64 : '';}).catch(function(){return '';});
     return zippySBHistoryLoads[key];
   }
+  globalThis.zippyResolveStoryboardImageB64 = async function(shotId){
+    let b64=(typeof sbGenImages!=='undefined'&&sbGenImages[shotId])||'';
+    if(zippyHistoryMarker(b64))b64='';
+    if(!b64&&zippySBHistoryRefs[shotId])b64=await zippyHistoryLoad(zippySBHistoryRefs[shotId]);
+    if(b64&&typeof sbGenImages!=='undefined')sbGenImages[shotId]=b64;
+    return b64;
+  };
   function zippyClearSBHistoryRefs(){ Object.keys(zippySBHistoryRefs).forEach(function(k){delete zippySBHistoryRefs[k];}); Object.keys(zippySBHistorySeqRefs).forEach(function(k){delete zippySBHistorySeqRefs[k];}); }
 
   async function restoreStoryboardFromHistory(opts){

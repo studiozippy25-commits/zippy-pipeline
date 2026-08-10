@@ -1160,6 +1160,7 @@ input[type=file]{display:none}
   <button class="stab a1" id="tab1" onclick="goStep(1)">캐릭터 시트</button>
   <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
   <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
+  <button class="stab" id="tabGrok" onclick="goStep('grok')" style="border-bottom-color:#FDBA74;color:#FDBA74">Grok Imagine</button>
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
@@ -1521,6 +1522,95 @@ input[type=file]{display:none}
     </div>
   </div>
   <div id="igHistoryWrap" style="margin-top:14px"></div>
+</div>
+
+<!-- ═══════════════ GROK IMAGINE BUILD ═══════════════ -->
+<div class="panel" id="pGrok">
+  <div class="slbl" style="color:#FDBA74">GROK IMAGINE — BUILD BRIDGE 이미지 생성 · 수정</div>
+  <div style="padding:12px 16px;background:rgba(251,146,60,.06);border:1px solid rgba(251,146,60,.24);border-radius:8px;margin-bottom:16px;font-family:var(--font-mono);font-size:12px;color:#FDBA74;line-height:1.7">
+    참조가 없으면 <b>image_gen</b>, 한 장 이상이면 <b>image_edit</b>로 자동 분기합니다. 기존 Grok Build/SuperGrok 로그인 사용량을 사용하며 별도 xAI API 키는 필요하지 않습니다.
+  </div>
+
+  <div class="mb-wrap" style="margin-bottom:14px">
+    <div class="mb-header">
+      <div style="font-family:var(--font-mono);font-size:13px;color:#FDBA74;font-weight:700">브릿지 연결</div>
+      <span id="grokImageModeBadge" style="font-family:var(--font-mono);font-size:10px;padding:4px 8px;border:1px solid rgba(251,146,60,.35);border-radius:999px;color:#FDBA74">IMAGE_GEN</span>
+    </div>
+    <div style="padding:12px 14px;display:grid;grid-template-columns:minmax(230px,1fr) minmax(160px,.45fr) auto;gap:8px;align-items:end">
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--mu)">Grok Bridge URL
+        <input id="grokImageBridgeUrl" type="url" value="http://127.0.0.1:8790" style="padding:8px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+      </label>
+      <label style="display:grid;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--mu)">Bridge Key
+        <input id="grokImageBridgeKey" type="password" autocomplete="off" placeholder="선택" style="padding:8px 9px;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono)">
+      </label>
+      <button class="btn bgh bsm" onclick="checkGrokBuildImageBridge()">연결 확인</button>
+    </div>
+    <div id="grokImageBridgeStatus" style="padding:0 14px 12px;font-family:var(--font-mono);font-size:10px;color:var(--mu)">미확인</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);gap:14px;align-items:start">
+    <div>
+      <div class="mb-wrap" style="margin-bottom:14px">
+        <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:#FDBA74;font-weight:700">생성·수정 지시</div></div>
+        <div style="padding:14px">
+          <textarea id="grokImagePrompt" class="ci" placeholder="새 이미지 설명 또는 수정 지시를 입력하세요. 예: 인물의 얼굴과 의상은 그대로 유지하고 배경만 비 오는 성수동 밤거리로 변경" style="width:100%;min-height:150px;font-size:13px;line-height:1.65;resize:vertical"></textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:end">
+            <label style="display:grid;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--mu)">화면비
+              <select id="grokImageRatio" class="msel"><option value="auto">자동</option><option value="16:9" selected>16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="3:4">3:4</option></select>
+            </label>
+            <button class="ca-pre" onclick="grokImageAppendPrompt('cinematic live-action film still, natural skin texture, physically motivated lighting, ')" type="button">+ 시네마틱</button>
+            <button class="ca-pre" onclick="grokImageAppendPrompt('preserve the exact face identity, hairstyle, body proportions and wardrobe, ')" type="button">+ 정체성 고정</button>
+            <button class="ca-pre" onclick="grokImageAppendPrompt('preserve the composition and camera position; change only the requested element, ')" type="button">+ 부분 수정</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-wrap" style="margin-bottom:14px">
+        <div class="mb-header">
+          <div style="font-family:var(--font-mono);font-size:13px;color:#FDBA74;font-weight:700">수정·일관성 레퍼런스</div>
+          <div id="grokImageRefCount" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">0장</div>
+        </div>
+        <div style="padding:14px">
+          <div id="grokImageDrop" class="mb-drop" onclick="document.getElementById('grokImageFileInput').click()">
+            <div style="font-size:20px;color:#FDBA74">+</div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)"><b style="color:#FDBA74">클릭 또는 드래그</b> · 이미지 여러 장 가능</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:4px">첫 이미지는 주 구도·정체성 기준이며 각 이미지의 역할을 지정할 수 있습니다.</div>
+            <input id="grokImageFileInput" type="file" accept="image/*" multiple style="display:none" onchange="grokImageAddFiles(this.files)">
+          </div>
+          <div id="grokImageRefGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px"></div>
+          <button class="btn bgh bsm" onclick="grokImageClearRefs()" style="margin-top:10px;border-color:var(--er);color:var(--er)">레퍼런스 비우기</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="btn bor" id="grokImageGenerateBtn" onclick="grokImageGenerate()">▶ Grok Imagine 실행</button>
+        <button class="btn bgh" id="grokImageAbortBtn" onclick="grokImageAbort()" disabled style="border-color:var(--er);color:var(--er);opacity:.45">중단</button>
+      </div>
+      <div id="grokImageStatus" style="display:none;padding:11px 13px;border:1px solid rgba(251,146,60,.24);border-radius:7px;background:rgba(251,146,60,.06);font-family:var(--font-mono);font-size:11px;color:#FDBA74;white-space:pre-wrap"></div>
+    </div>
+
+    <div class="mb-wrap">
+      <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--gr);font-weight:700">결과 · 연속 수정</div></div>
+      <div style="padding:14px">
+        <div id="grokImageResult" style="min-height:360px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--bd);border-radius:8px;background:var(--sf);overflow:hidden;font-family:var(--font-mono);font-size:11px;color:var(--mu)">결과 대기</div>
+        <div style="margin-top:12px;padding:10px;border:1px solid rgba(251,146,60,.2);border-radius:7px;background:rgba(251,146,60,.04)">
+          <div style="font-family:var(--font-mono);font-size:11px;color:#FDBA74;font-weight:700;margin-bottom:6px">결과 이미지 수정</div>
+          <textarea id="grokImageRefinePrompt" class="ci" placeholder="예: 얼굴·의상·구도는 그대로 두고 조명을 늦은 오후 역광으로 변경" style="width:100%;min-height:72px;font-size:12px;resize:vertical"></textarea>
+          <button class="btn bor bsm" id="grokImageRefineBtn" onclick="grokImageRefine()">image_edit 수정</button>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn bgh bsm" onclick="grokImageDownload()">다운로드</button>
+          <button class="btn bgh bsm" onclick="grokImageUseResultAsReference()">결과를 레퍼런스로</button>
+          <button class="btn bor bsm" onclick="grokImageSendToVideo()">영상 START로</button>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:7px;margin-top:8px">
+          <select id="grokImageStoryboardShot" class="msel"><option value="">스토리보드 쇼트 선택</option></select>
+          <button class="btn bgh bsm" onclick="grokImageSendToStoryboard()">선택 쇼트로</button>
+        </div>
+        <div id="grokImageHistory" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════ STORYBOARD ═══════════════ -->
@@ -74922,23 +75012,27 @@ function getLocalVideoGatewayHeaders() {
   return getLocal5080GatewayHeaders({json:true});
 }
 function getGrokBuildBridgeBase(sourceId) {
-  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeUrl') || document.getElementById('sbGrokBuildBridgeUrl');
+  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeUrl') || document.getElementById('sbGrokBuildBridgeUrl') || document.getElementById('grokImageBridgeUrl');
   const value = (el && el.value.trim()) || DEFAULT_GROK_BUILD_BRIDGE;
   try { localStorage.setItem('zippy_grok_build_bridge', value); } catch(e) {}
   const main = document.getElementById('grokBuildBridgeUrl');
   const sb = document.getElementById('sbGrokBuildBridgeUrl');
+  const image = document.getElementById('grokImageBridgeUrl');
   if (main && main !== el) main.value = value;
   if (sb && sb !== el) sb.value = value;
+  if (image && image !== el) image.value = value;
   return value.replace(/\/+$/, '');
 }
 function getGrokBuildBridgeKey(sourceId) {
-  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey');
+  const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey') || document.getElementById('grokImageBridgeKey');
   const key = (el?.value || '').trim();
   try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
   const main = document.getElementById('grokBuildBridgeKey');
   const sb = document.getElementById('sbGrokBuildBridgeKey');
+  const image = document.getElementById('grokImageBridgeKey');
   if (key && main && main !== el) main.value = key;
   if (key && sb && sb !== el) sb.value = key;
+  if (key && image && image !== el) image.value = key;
   return key;
 }
 function getGrokBuildBridgeHeaders(json, keySourceId) {
@@ -78427,6 +78521,331 @@ async function callGtiBridge({images=[], prompt, negative='', signal=null, onPro
   }
   throw new Error('gti 브리지 연결 실패 (' + Array.from(new Set(tried)).join(' → ') + '). 로컬 브리지 서버(npm start)가 켜져 있는지 확인하세요. · ' + ((lastError && lastError.message) || 'Failed to fetch'));
 }
+
+function grokBuildImageRefRole(image, index) {
+  const type = String(image?._type || image?.role || '').toLowerCase();
+  if (type === 'character' || type === 'face' || type === 'identity') return 'character_identity_reference';
+  if (type === 'costume' || type === 'wardrobe') return 'wardrobe_only_reference';
+  if (type === 'background' || type === 'location') return 'location_and_background_reference';
+  if (type === 'prop' || type === 'object') return 'prop_and_object_reference';
+  if (type === 'style') return 'visual_style_reference';
+  return index === 0 ? 'primary_composition_and_identity_reference' : 'continuity_reference';
+}
+
+async function checkGrokBuildImageBridge() {
+  const status = document.getElementById('grokImageBridgeStatus');
+  if (status) { status.textContent = '브릿지 확인 중...'; status.style.color = 'var(--mu)'; }
+  try {
+    const res = await fetch(getGrokBuildBridgeBase('grokImageBridgeUrl') + '/health', {
+      headers: getGrokBuildBridgeHeaders(false, 'grokImageBridgeKey')
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!data?.image_inputs?.text_to_image || !data?.image_inputs?.image_edit) {
+      throw new Error('이미지 확장 전 브릿지입니다. Grok 브릿지를 업데이트하고 재시작하세요.');
+    }
+    if (status) {
+      status.textContent = '연결됨 · image_gen + image_edit · ' + (data.grok_bin || 'Grok Build');
+      status.style.color = 'var(--ok)';
+    }
+    return true;
+  } catch(e) {
+    if (status) { status.textContent = '연결 실패 · ' + formatGrokBuildError(e); status.style.color = 'var(--er)'; }
+    return false;
+  }
+}
+
+async function grokBuildImageUrlToData(imageUrl, signal) {
+  const res = await fetch(imageUrl, { signal });
+  if (!res.ok) throw new Error('Grok 이미지 다운로드 실패: HTTP ' + res.status);
+  const blob = await res.blob();
+  if (!String(blob.type || '').startsWith('image/')) throw new Error('Grok 결과가 이미지 형식이 아닙니다.');
+  const dataUrl = await new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function() { resolve(String(reader.result || '')); };
+    reader.onerror = function() { reject(reader.error || new Error('Grok 이미지 읽기 실패')); };
+    reader.readAsDataURL(blob);
+  });
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) throw new Error('Grok 이미지 base64 변환 실패');
+  return { b64: dataUrl.slice(comma + 1), mime: blob.type || 'image/png' };
+}
+
+async function callGrokBuildImageBridge({images=[], prompt, aspectRatio='auto', signal=null, onProgress=null}) {
+  const sourceImages = Array.isArray(images) ? images.filter(function(image) { return image && image.b64; }) : [];
+  if (onProgress) onProgress(sourceImages.length ? '레퍼런스 압축 중... ' + sourceImages.length + '개' : 'image_gen 준비 중...');
+  const bridgeImages = await prepareImageRefsForJsonBridge(sourceImages, {
+    maxRefs: sourceImages.length > 8 ? 6 : Math.max(1, sourceImages.length),
+    maxSide: sourceImages.length > 8 ? 640 : 768,
+    quality: sourceImages.length > 8 ? 0.70 : 0.76,
+    byteBudget: sourceImages.length > 8 ? 7 * 1024 * 1024 : 6 * 1024 * 1024,
+    singleRefMaxBytes: 2 * 1024 * 1024,
+    fallbackMaxSide: 512,
+    fallbackQuality: 0.66,
+    hardInputMaxBytes: 24 * 1024 * 1024
+  });
+  if (sourceImages.length && !bridgeImages.length) {
+    throw new Error('수정용 레퍼런스를 전송 가능한 크기로 준비하지 못했습니다. 이미지 크기를 줄여 다시 시도하세요.');
+  }
+  const payload = {
+    prompt: String(prompt || '').trim(),
+    aspect_ratio: aspectRatio || 'auto',
+    reference_images: bridgeImages.map(function(image, index) {
+      return {
+        b64: image.b64,
+        mime: image.mime || 'image/png',
+        label: image._label || image.name || ('reference_' + (index + 1)),
+        role: grokBuildImageRefRole(image, index)
+      };
+    }),
+    metadata: {
+      source: 'zippy_grok_imagine_tab',
+      task: sourceImages.length ? 'image_edit' : 'image_gen',
+      original_reference_count: sourceImages.length,
+      sent_reference_count: bridgeImages.length
+    }
+  };
+  if (onProgress) onProgress(sourceImages.length ? 'Grok Build image_edit 실행 중...' : 'Grok Build image_gen 실행 중...');
+  const res = await fetch(getGrokBuildBridgeBase('grokImageBridgeUrl') + '/v1/grok/build/image', {
+    method: 'POST',
+    headers: getGrokBuildBridgeHeaders(true, 'grokImageBridgeKey'),
+    body: JSON.stringify(payload),
+    signal
+  });
+  const data = await res.json().catch(() => ({}));
+  const rawUrl = data.image_url || data?.image?.url || data?.artifacts?.[0]?.url || '';
+  const imageUrl = normalizeGrokBuildVideoUrl(rawUrl, 'grokImageBridgeUrl');
+  if (!res.ok || !imageUrl) {
+    const tail = data.output ? '\n\nCLI 출력:\n' + String(data.output).slice(-1800) : '';
+    const jobNote = data.job_id ? '\njob_id: ' + data.job_id : '';
+    throw new Error((data.detail || data.error || data.message || ('HTTP ' + res.status)) + jobNote + tail);
+  }
+  if (onProgress) onProgress('Grok Imagine 결과 수신 중...');
+  const imageData = await grokBuildImageUrlToData(imageUrl, signal);
+  return Object.assign(imageData, {
+    textOut: 'Grok Imagine · ' + (data.image_tool || (sourceImages.length ? 'image_edit' : 'image_gen')),
+    jobId: data.job_id || '',
+    imageTool: data.image_tool || ''
+  });
+}
+
+let grokImageRefs = [];
+let grokImageResultB64 = '';
+let grokImageResultMime = 'image/png';
+let grokImageAbortController = null;
+let grokImageHistory = [];
+
+function grokImageEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(char) {
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char];
+  });
+}
+
+function grokImageAppendPrompt(text) {
+  const input = document.getElementById('grokImagePrompt');
+  if (!input) return;
+  input.value += String(text || '');
+  input.focus();
+}
+
+function grokImageReadFile(file) {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function() {
+      const dataUrl = String(reader.result || '');
+      const comma = dataUrl.indexOf(',');
+      if (comma < 0) return reject(new Error('이미지 변환 실패'));
+      resolve({b64:dataUrl.slice(comma + 1), mime:file.type || 'image/png', name:file.name || ('reference_' + Date.now()), role:'auto', _label:file.name || 'reference'});
+    };
+    reader.onerror = function() { reject(reader.error || new Error('이미지 읽기 실패')); };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function grokImageAddFiles(files) {
+  const list = Array.from(files || []).filter(function(file) { return file && /^image\//i.test(file.type || ''); });
+  for (const file of list.slice(0, Math.max(0, 12 - grokImageRefs.length))) {
+    try { grokImageRefs.push(await grokImageReadFile(file)); } catch(e) { console.warn('Grok ref read failed', e); }
+  }
+  const input = document.getElementById('grokImageFileInput');
+  if (input) input.value = '';
+  grokImageRenderRefs();
+}
+
+function grokImageRoleSelect(role, index) {
+  const options = [['auto','자동 / 연속성'],['identity','인물·얼굴 정체성'],['wardrobe','의상 전용'],['location','장소·배경'],['object','소품·오브젝트'],['style','스타일·조명']];
+  return '<select class="msel" onchange="grokImageSetRefRole('+index+',this.value)" style="width:100%;font-size:10px">' + options.map(function(option) {
+    return '<option value="'+option[0]+'"'+(option[0]===role?' selected':'')+'>'+option[1]+'</option>';
+  }).join('') + '</select>';
+}
+
+function grokImageRenderRefs() {
+  const grid = document.getElementById('grokImageRefGrid');
+  const count = document.getElementById('grokImageRefCount');
+  const badge = document.getElementById('grokImageModeBadge');
+  if (count) count.textContent = grokImageRefs.length + '장';
+  if (badge) badge.textContent = grokImageRefs.length ? 'IMAGE_EDIT · ' + grokImageRefs.length + ' REF' : 'IMAGE_GEN';
+  if (!grid) return;
+  grid.innerHTML = grokImageRefs.map(function(ref, index) {
+    return '<div style="border:1px solid var(--bd);border-radius:7px;padding:6px;background:var(--card)"><div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:5px;background:var(--sf)"><img src="data:'+grokImageEscape(ref.mime || 'image/png')+';base64,'+ref.b64+'" style="width:100%;height:100%;object-fit:cover"><button type="button" onclick="grokImageRemoveRef('+index+')" style="position:absolute;right:4px;top:4px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.68);color:white;cursor:pointer">×</button>'+(index===0?'<span style="position:absolute;left:4px;top:4px;padding:2px 5px;border-radius:4px;background:#FDBA74;color:#111;font-family:var(--font-mono);font-size:9px;font-weight:800">PRIMARY</span>':'')+'</div><div title="'+grokImageEscape(ref.name)+'" style="font-family:var(--font-mono);font-size:9px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:6px 0">'+grokImageEscape(ref.name)+'</div>'+grokImageRoleSelect(ref.role || 'auto', index)+'</div>';
+  }).join('');
+}
+
+function grokImageSetRefRole(index, role) {
+  if (!grokImageRefs[index]) return;
+  grokImageRefs[index].role = role || 'auto';
+  grokImageRefs[index]._type = role || 'auto';
+}
+
+function grokImageRemoveRef(index) { grokImageRefs.splice(index, 1); grokImageRenderRefs(); }
+function grokImageClearRefs() { grokImageRefs = []; grokImageRenderRefs(); }
+
+function grokImageSetBusy(busy) {
+  const generate = document.getElementById('grokImageGenerateBtn');
+  const refine = document.getElementById('grokImageRefineBtn');
+  const abort = document.getElementById('grokImageAbortBtn');
+  if (generate) { generate.disabled = busy; generate.textContent = busy ? 'Grok 실행 중...' : '▶ Grok Imagine 실행'; }
+  if (refine) refine.disabled = busy;
+  if (abort) { abort.disabled = !busy; abort.style.opacity = busy ? '1' : '.45'; }
+}
+
+function grokImageShowStatus(message, color) {
+  const status = document.getElementById('grokImageStatus');
+  if (!status) return;
+  status.style.display = 'block';
+  status.style.color = color || '#FDBA74';
+  status.textContent = String(message || '');
+}
+
+function grokImageShowResult(b64, mime) {
+  const output = document.getElementById('grokImageResult');
+  if (output) output.innerHTML = '<img src="data:'+grokImageEscape(mime)+';base64,'+b64+'" style="width:100%;max-height:620px;object-fit:contain;cursor:zoom-in" onclick="openLightbox(this.src)">';
+}
+
+function grokImageSetResult(result, prompt) {
+  grokImageResultB64 = result.b64;
+  grokImageResultMime = result.mime || 'image/png';
+  grokImageShowResult(grokImageResultB64, grokImageResultMime);
+  grokImageHistory.unshift({b64:grokImageResultB64,mime:grokImageResultMime,prompt:prompt,tool:result.imageTool || '',jobId:result.jobId || ''});
+  grokImageHistory = grokImageHistory.slice(0, 12);
+  grokImageRenderHistory();
+  if (typeof saveToHistory === 'function') saveToHistory(grokImageResultB64, 'Grok-Imagine-' + (result.imageTool || 'image'), String(prompt || '').slice(0, 80));
+}
+
+function grokImageRenderHistory() {
+  const history = document.getElementById('grokImageHistory');
+  if (!history) return;
+  history.innerHTML = grokImageHistory.map(function(item, index) {
+    return '<button type="button" onclick="grokImageRestoreHistory('+index+')" title="'+grokImageEscape(item.tool + ' ' + item.jobId)+'" style="padding:0;border:1px solid var(--bd);border-radius:5px;overflow:hidden;background:var(--card);aspect-ratio:1;cursor:pointer"><img src="data:'+grokImageEscape(item.mime)+';base64,'+item.b64+'" style="width:100%;height:100%;object-fit:cover"></button>';
+  }).join('');
+}
+
+function grokImageRestoreHistory(index) {
+  const item = grokImageHistory[index];
+  if (!item) return;
+  grokImageResultB64 = item.b64;
+  grokImageResultMime = item.mime || 'image/png';
+  grokImageShowResult(grokImageResultB64, grokImageResultMime);
+}
+
+async function grokImageRun(prompt, refs) {
+  if (!String(prompt || '').trim()) { alert('생성 또는 수정 지시를 입력하세요'); return; }
+  if (grokImageAbortController) grokImageAbortController.abort();
+  grokImageAbortController = new AbortController();
+  grokImageSetBusy(true);
+  grokImageShowStatus((refs && refs.length) ? 'image_edit 요청 준비 중...' : 'image_gen 요청 준비 중...');
+  try {
+    const result = await callGrokBuildImageBridge({images:refs || [],prompt:String(prompt).trim(),aspectRatio:document.getElementById('grokImageRatio')?.value || 'auto',signal:grokImageAbortController.signal,onProgress:function(message){grokImageShowStatus(message);}});
+    grokImageSetResult(result, prompt);
+    grokImageShowStatus((result.imageTool || ((refs && refs.length) ? 'image_edit' : 'image_gen')) + ' 완료' + (result.jobId ? ' · ' + result.jobId : ''), 'var(--ok)');
+  } catch(e) {
+    const aborted = e && (e.name === 'AbortError' || /abort/i.test(e.message || ''));
+    grokImageShowStatus(aborted ? '중단됨' : '실패 · ' + formatGrokBuildError(e), aborted ? 'var(--mu)' : 'var(--er)');
+  } finally {
+    grokImageAbortController = null;
+    grokImageSetBusy(false);
+  }
+}
+
+function grokImageGenerate() { return grokImageRun(document.getElementById('grokImagePrompt')?.value || '', grokImageRefs.slice()); }
+function grokImageAbort() { if (grokImageAbortController) grokImageAbortController.abort(); }
+
+function grokImageRefine() {
+  if (!grokImageResultB64) { alert('먼저 결과 이미지를 생성하세요'); return; }
+  const prompt = document.getElementById('grokImageRefinePrompt')?.value || '';
+  if (!prompt.trim()) { alert('수정 지시를 입력하세요'); return; }
+  const base = {b64:grokImageResultB64,mime:grokImageResultMime,name:'current_grok_result',_label:'current result primary',role:'auto'};
+  const additionalRefs = grokImageRefs.filter(function(ref) { return ref && ref.b64 !== grokImageResultB64; }).slice(0, 5);
+  return grokImageRun(prompt, [base].concat(additionalRefs));
+}
+
+function grokImageDownload() {
+  if (!grokImageResultB64) { alert('다운로드할 결과가 없습니다'); return; }
+  const ext = /jpe?g/i.test(grokImageResultMime) ? 'jpg' : /webp/i.test(grokImageResultMime) ? 'webp' : 'png';
+  const link = document.createElement('a');
+  link.href = 'data:' + grokImageResultMime + ';base64,' + grokImageResultB64;
+  link.download = 'grok_imagine_' + Date.now() + '.' + ext;
+  link.click();
+}
+
+function grokImageUseResultAsReference() {
+  if (!grokImageResultB64) { alert('먼저 결과 이미지를 생성하세요'); return; }
+  grokImageRefs.unshift({b64:grokImageResultB64,mime:grokImageResultMime,name:'grok_result_' + Date.now(),_label:'approved Grok result',role:'auto'});
+  grokImageRefs = grokImageRefs.slice(0, 12);
+  grokImageRenderRefs();
+}
+
+function grokImageSendToVideo() {
+  if (!grokImageResultB64) { alert('먼저 결과 이미지를 생성하세요'); return; }
+  const imagePrompt = document.getElementById('grokImagePrompt')?.value || '';
+  const motionPrompt = 'Animate this exact source frame as one continuous cinematic shot. Preserve identity, wardrobe, location, lighting and composition. Use restrained natural subject motion and a subtle motivated camera move.';
+  if (typeof window.zippySendImageToVideoTab === 'function') window.zippySendImageToVideoTab(grokImageResultB64, grokImageResultMime, motionPrompt, {source:'grok_imagine',imagePrompt:imagePrompt});
+  else alert('영상 탭 연결을 찾지 못했습니다.');
+}
+
+function grokImageRefreshStoryboardShots() {
+  const select = document.getElementById('grokImageStoryboardShot');
+  if (!select) return;
+  const previous = select.value;
+  const shots = (typeof SB_SHOTS !== 'undefined' && Array.isArray(SB_SHOTS)) ? SB_SHOTS : [];
+  select.innerHTML = '<option value="">스토리보드 쇼트 선택</option>' + shots.map(function(shot) { return '<option value="'+grokImageEscape(shot.id)+'">'+grokImageEscape(shot.id + ' · ' + (shot.desc || shot.frame || ''))+'</option>'; }).join('');
+  if (shots.some(function(shot) { return shot.id === previous; })) select.value = previous;
+}
+
+function grokImageSendToStoryboard() {
+  if (!grokImageResultB64) { alert('먼저 결과 이미지를 생성하세요'); return; }
+  const shotId = document.getElementById('grokImageStoryboardShot')?.value || '';
+  if (!shotId) { alert('보낼 스토리보드 쇼트를 선택하세요'); return; }
+  if (typeof sbGenImages === 'undefined') { alert('스토리보드 상태를 찾지 못했습니다'); return; }
+  sbGenImages[shotId] = grokImageResultB64;
+  if (typeof saveStoryboardState === 'function') saveStoryboardState('grok-imagine');
+  if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline();
+  if (typeof zippyNasScheduleAutoSave === 'function') zippyNasScheduleAutoSave('grok-imagine');
+  goStep('sb');
+}
+
+function grokImageInitTab() {
+  const urlInput = document.getElementById('grokImageBridgeUrl');
+  const keyInput = document.getElementById('grokImageBridgeKey');
+  try {
+    const savedUrl = localStorage.getItem('zippy_grok_build_bridge') || DEFAULT_GROK_BUILD_BRIDGE;
+    const savedKey = localStorage.getItem('zippy_grok_build_bridge_key') || '';
+    if (urlInput && (!urlInput.value || urlInput.value === DEFAULT_GROK_BUILD_BRIDGE)) urlInput.value = savedUrl;
+    if (keyInput && !keyInput.value) keyInput.value = savedKey;
+  } catch(e) {}
+  grokImageRefreshStoryboardShots();
+  grokImageRenderRefs();
+  if (urlInput && !urlInput.dataset.boundSave) { urlInput.dataset.boundSave='1'; urlInput.addEventListener('change',function(){try{localStorage.setItem('zippy_grok_build_bridge',this.value.trim()||DEFAULT_GROK_BUILD_BRIDGE);}catch(e){}}); }
+  if (keyInput && !keyInput.dataset.boundSave) { keyInput.dataset.boundSave='1'; keyInput.addEventListener('change',function(){try{localStorage.setItem('zippy_grok_build_bridge_key',this.value.trim());}catch(e){}}); }
+  const drop = document.getElementById('grokImageDrop');
+  if (drop && !drop.dataset.boundDrop) {
+    drop.dataset.boundDrop='1';
+    drop.addEventListener('dragover',function(event){event.preventDefault();drop.classList.add('drag');});
+    drop.addEventListener('dragleave',function(){drop.classList.remove('drag');});
+    drop.addEventListener('drop',function(event){event.preventDefault();drop.classList.remove('drag');grokImageAddFiles(event.dataTransfer.files);});
+  }
+}
+
 async function callGPTImage({images=[], prompt, signal=null}) {
   const model = document.getElementById('gptImgModel')?.value || 'gpt-image-1';
   const quality = document.getElementById('gptImgQuality')?.value || 'auto';
@@ -80281,7 +80700,7 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB'].forEach(id=>{
+  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -80291,6 +80710,7 @@ function goStep(n){
     else if(n==='voice') el.classList.toggle('active',id==='pVoice');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
+    else if(n==='grok') el.classList.toggle('active',id==='pGrok');
     else el.classList.toggle('active', id==='p'+n);
   });
   const d1=document.getElementById('out1').style.display!=='none';
@@ -80304,6 +80724,7 @@ function goStep(n){
   document.getElementById('tabVoice').className='stab '+(n==='voice'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
+  document.getElementById('tabGrok').className='stab '+(n==='grok'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
   if(n==='sb') {
@@ -80320,6 +80741,7 @@ function goStep(n){
   if(n==='premiere') premiereRenderItems();
   if(n==='voice') vbInitVoiceTab();
   if(n==='hist') refreshHistory();
+  if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
 }
 function setSt(pfx,idx){
   for(let i=0;i<4;i++){const el=document.getElementById(`${pfx}${i}`);if(el)el.className='ps'+(i<idx?' fin':i===idx?' cur':'');}
@@ -82301,7 +82723,7 @@ function updatePromptPreview() {
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';

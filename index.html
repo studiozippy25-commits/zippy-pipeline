@@ -1578,7 +1578,10 @@ input[type=file]{display:none}
             <input id="grokImageFileInput" type="file" accept="image/*" multiple style="display:none" onchange="grokImageAddFiles(this.files)">
           </div>
           <div id="grokImageRefGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px"></div>
-          <button class="btn bgh bsm" onclick="grokImageClearRefs()" style="margin-top:10px;border-color:var(--er);color:var(--er)">레퍼런스 비우기</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn bgh bsm" onclick="grokImageOpenAssetPicker()" style="border-color:#FDBA74;color:#FDBA74">Asset Library에서 가져오기</button>
+            <button class="btn bgh bsm" onclick="grokImageClearRefs()" style="border-color:var(--er);color:var(--er)">레퍼런스 비우기</button>
+          </div>
         </div>
       </div>
 
@@ -78712,6 +78715,8 @@ let grokImageResultB64 = '';
 let grokImageResultMime = 'image/png';
 let grokImageAbortController = null;
 let grokImageHistory = [];
+let grokImageAssetPickerItems = [];
+let grokImageAssetPickerFilter = 'all';
 
 function grokImageEscape(value) {
   return String(value == null ? '' : value).replace(/[&<>"']/g, function(char) {
@@ -78724,6 +78729,91 @@ function grokImageAppendPrompt(text) {
   if (!input) return;
   input.value += String(text || '');
   input.focus();
+}
+
+function grokImageAssetRole(category) {
+  const key = String(category || '').toLowerCase();
+  if (key === 'char' || key.indexOf('char-') === 0 || key.indexOf('face-') === 0) return 'identity';
+  if (key.indexOf('costume-') === 0) return 'wardrobe';
+  if (key.indexOf('space-') === 0) return 'location';
+  if (key === 'obj' || key.indexOf('obj-') === 0) return 'object';
+  return 'auto';
+}
+
+function grokImageAssetRoleLabel(role) {
+  return {identity:'인물·얼굴',wardrobe:'의상',location:'장소·배경',object:'소품',style:'스타일',auto:'기타'}[role] || '기타';
+}
+
+function grokImageCollectAssetPickerItems() {
+  const items = [];
+  if (typeof assetLib === 'undefined') return items;
+  Object.keys(assetLib).forEach(function(category) {
+    const role = grokImageAssetRole(category);
+    (assetLib[category] || []).forEach(function(asset, assetIndex) {
+      if (!asset || !asset.b64) return;
+      items.push({
+        category: category,
+        assetIndex: assetIndex,
+        role: role,
+        b64: asset.b64,
+        mime: asset.mime || 'image/png',
+        name: asset.name || (category + ' ' + (assetIndex + 1))
+      });
+    });
+  });
+  return items;
+}
+
+function grokImageRenderAssetPicker(filter) {
+  grokImageAssetPickerFilter = filter || grokImageAssetPickerFilter || 'all';
+  const modal = document.getElementById('grokImageAssetPicker');
+  const grid = document.getElementById('grokImageAssetPickerGrid');
+  const count = document.getElementById('grokImageAssetPickerCount');
+  if (!modal || !grid) return;
+  const filtered = grokImageAssetPickerItems.map(function(item, index) { return {item:item,index:index}; }).filter(function(entry) {
+    return grokImageAssetPickerFilter === 'all' || entry.item.role === grokImageAssetPickerFilter;
+  });
+  if (count) count.textContent = filtered.length + '개 에셋 · 현재 레퍼런스 ' + grokImageRefs.length + '/12';
+  modal.querySelectorAll('[data-grok-asset-filter]').forEach(function(button) {
+    const active = button.getAttribute('data-grok-asset-filter') === grokImageAssetPickerFilter;
+    button.style.borderColor = active ? '#FDBA74' : 'var(--bd)';
+    button.style.color = active ? '#FDBA74' : 'var(--mu)';
+  });
+  grid.innerHTML = filtered.length ? filtered.map(function(entry) {
+    const item = entry.item;
+    const selected = grokImageRefs.some(function(ref) { return ref && ref.b64 === item.b64; });
+    return '<button type="button" onclick="grokImageAddAssetReference('+entry.index+')"'+(selected?' disabled':'')+' style="padding:0;border:1px solid '+(selected?'var(--ok)':'var(--bd)')+';border-radius:7px;overflow:hidden;background:var(--card);text-align:left;cursor:'+(selected?'default':'pointer')+';opacity:'+(selected?'.58':'1')+'"><div style="position:relative;aspect-ratio:1.25;overflow:hidden;background:var(--sf)"><img src="data:'+grokImageEscape(item.mime)+';base64,'+item.b64+'" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;left:5px;top:5px;padding:2px 5px;border-radius:4px;background:rgba(0,0,0,.72);color:#FDBA74;font-family:var(--font-mono);font-size:8px">'+grokImageEscape(grokImageAssetRoleLabel(item.role))+'</span>'+(selected?'<span style="position:absolute;right:5px;top:5px;padding:2px 5px;border-radius:4px;background:var(--ok);color:#07130f;font-family:var(--font-mono);font-size:8px;font-weight:800">추가됨</span>':'')+'</div><div title="'+grokImageEscape(item.name)+'" style="padding:7px;font-family:var(--font-mono);font-size:9px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+grokImageEscape(item.name)+'</div></button>';
+  }).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;border:1px dashed var(--bd);border-radius:8px;font-family:var(--font-mono);font-size:11px;color:var(--mu)">해당 에셋이 없습니다. Asset Library 탭에서 먼저 이미지를 추가하세요.</div>';
+}
+
+function grokImageOpenAssetPicker() {
+  grokImageAssetPickerItems = grokImageCollectAssetPickerItems();
+  let modal = document.getElementById('grokImageAssetPicker');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'grokImageAssetPicker';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:22px';
+    modal.onclick = function(event) { if (event.target === modal) grokImageCloseAssetPicker(); };
+    modal.innerHTML = '<div style="width:min(980px,96vw);max-height:88vh;display:flex;flex-direction:column;background:var(--sf);border:1px solid rgba(253,186,116,.45);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.55);overflow:hidden"><div style="padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:12px"><div><div style="font-family:var(--font-mono);font-size:14px;color:#FDBA74;font-weight:800">Grok 레퍼런스 · Asset Library</div><div id="grokImageAssetPickerCount" style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:3px"></div></div><button type="button" onclick="grokImageCloseAssetPicker()" style="width:32px;height:32px;border:1px solid var(--bd);border-radius:50%;background:transparent;color:var(--tx);cursor:pointer">×</button></div><div style="padding:10px 16px;border-bottom:1px solid var(--bd);display:flex;gap:6px;flex-wrap:wrap"><button class="ca-pre" data-grok-asset-filter="all" onclick="grokImageRenderAssetPicker(\'all\')">전체</button><button class="ca-pre" data-grok-asset-filter="identity" onclick="grokImageRenderAssetPicker(\'identity\')">인물·얼굴</button><button class="ca-pre" data-grok-asset-filter="wardrobe" onclick="grokImageRenderAssetPicker(\'wardrobe\')">의상</button><button class="ca-pre" data-grok-asset-filter="location" onclick="grokImageRenderAssetPicker(\'location\')">장소·배경</button><button class="ca-pre" data-grok-asset-filter="object" onclick="grokImageRenderAssetPicker(\'object\')">소품</button></div><div id="grokImageAssetPickerGrid" style="padding:14px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px"></div><div style="padding:10px 16px;border-top:1px solid var(--bd);font-family:var(--font-mono);font-size:10px;color:var(--mu)">클릭한 에셋은 Grok 레퍼런스에 즉시 추가되며 인물·의상·장소·소품 역할이 자동 지정됩니다.</div></div>';
+    document.body.appendChild(modal);
+  }
+  modal.style.display = 'flex';
+  grokImageRenderAssetPicker('all');
+}
+
+function grokImageCloseAssetPicker() {
+  const modal = document.getElementById('grokImageAssetPicker');
+  if (modal) modal.style.display = 'none';
+}
+
+function grokImageAddAssetReference(index) {
+  const item = grokImageAssetPickerItems[index];
+  if (!item) return;
+  if (grokImageRefs.length >= 12) { alert('Grok 레퍼런스는 최대 12장입니다.'); return; }
+  if (grokImageRefs.some(function(ref) { return ref && ref.b64 === item.b64; })) return;
+  grokImageRefs.push({b64:item.b64,mime:item.mime,name:item.name,_label:item.name,role:item.role,_type:item.role,source:'asset-library',assetCategory:item.category});
+  grokImageRenderRefs();
+  grokImageRenderAssetPicker(grokImageAssetPickerFilter);
 }
 
 function grokImageReadFile(file) {

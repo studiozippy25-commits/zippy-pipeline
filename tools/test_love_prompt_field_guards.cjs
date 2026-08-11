@@ -76,7 +76,10 @@ assert.equal(cameraContext.recommendCameraMoveForShot({
 
 assert.match(html, /SEQUENCE FRAME ACTION REPLACEMENT — HIGHEST PRIORITY/);
 assert.match(html, /original shot ACTION and FUNCTION above are source context only and are CANCELLED/);
-assert.match(html, /Object\.assign\(\{\}, shot, \{desc:_seq\.phase/);
+assert.match(html, /Object\.assign\(\{\}, shot, \{char:loveS03ObjectOnlyPhase/);
 assert.match(html, /composeImagePrompt\(directorShot, _finalPrompt\)/);
+assert.match(html, /LOVE TEMPORAL COVERAGE — OBJECT-ONLY FRAME/);
+assert.match(html, /imgInputs = imgInputs\.filter\(function\(input\)\{ return input && input\._type === 'background'; \}\)/);
+assert.match(html, /char:loveS03ObjectOnlyPhase \? \[\] : shot\.char/);
 
 console.log('PASS LOVE shot-type guards, S03 tactile continuity, and LOCKED camera priority');

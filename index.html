@@ -73658,6 +73658,18 @@ ${negativeBlock}`;
     let _finalPrompt = isProofOfTasteProject()
       ? buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeDna, charDnaBlock, projNegative, proofOfTastePromptGuards)
       : prompt;
+    const loveS03ObjectOnlyPhase = isLoveFilmStoryboardProject() && shot.id === 'LOVE-EP01-S03' && _seq && !_seq.branch && Number.isInteger(_seq.slotIndex) && _seq.slotIndex < 2;
+    if (loveS03ObjectOnlyPhase) {
+      imgInputs = imgInputs.filter(function(input){ return input && input._type === 'background'; });
+      _finalPrompt = [
+        'LOVE TEMPORAL COVERAGE — OBJECT-ONLY FRAME. This compact prompt replaces the parent storyboard prompt for this call.',
+        _seq.phase,
+        'VISIBLE CONTENT LOCK: only the white milk carton, droplets when requested, the declared street/sky geometry, and at most the tiny anonymous motion witness explicitly allowed by the phase. No named character, no face, no body, no hand, no film camera, no camera strap, no shutter finger, no portrait, and no later beat.',
+        'LOCATION: ' + (resolveShotLoc(shot) || preset.loc || '[SP-01] 서울 도심 등굣길') + ' · TIME: ' + (shot.time || preset.time || 'clear spring morning'),
+        'LIGHTING: preserve the same clear spring morning direction, natural exposure, blue sky, street scale, and fresh LOVE live-action realism.',
+        'Generate one horizontal 16:9 Korean live-action cinematic insert. Natural optics and physical gravity. No collage, split screen, triptych, readable text, title, logo, watermark, fantasy stage, concert, camera, or person.'
+      ].join('\n');
+    }
     if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityAppearanceLock(shot, shot.promptOverride);
     if (_seq && _seq.phase) {
       if (_seq.branch) {
@@ -73670,7 +73682,7 @@ ${negativeBlock}`;
     }
     if (window.ZippyDirectorV3) {
       const directorShot = (_seq && _seq.phase && !_seq.branch)
-        ? Object.assign({}, shot, {desc:_seq.phase, func:'Render only temporal coverage frame ' + (Number.isInteger(_seq.slotIndex) ? (_seq.slotIndex + 1) : '') + '; the parent-shot action remains offscreen.'})
+        ? Object.assign({}, shot, {char:loveS03ObjectOnlyPhase ? [] : shot.char, costumeVariants:loveS03ObjectOnlyPhase ? {} : shot.costumeVariants, desc:_seq.phase, func:'Render only temporal coverage frame ' + (Number.isInteger(_seq.slotIndex) ? (_seq.slotIndex + 1) : '') + '; the parent-shot action remains offscreen.'})
         : shot;
       _finalPrompt = window.ZippyDirectorV3.composeImagePrompt(directorShot, _finalPrompt);
     }

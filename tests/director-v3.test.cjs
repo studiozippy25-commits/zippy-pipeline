@@ -33,8 +33,8 @@ const document = {
 
 const shot = {
   id: 'LOVE-EP01-S11', ep: 1, scene: 11, loc: 'old rehearsal room',
-  char: ['A'], obj: ['pen'], frame: '85mm macro locked shot',
-  desc: 'angry A reads a Korean message and grips the pen',
+  char: ['A'], obj: ['pen'], frame: '85mm macro orbit shot',
+  desc: 'the jaw sets and releases; breath exits once through the nose as A reads a Korean message and grips the pen',
   func: 'realizes the second song was written for her',
   dialogue: '왜 두 번째 곡이야?',
 };
@@ -180,16 +180,16 @@ assert.match(html, /id="tabSheet"/);
 assert.match(html, /id="pSeedance"/);
 assert.match(html, /id="tabSeedance"/);
 assert.match(html, /Seedance 프롬프트/);
-assert.match(html, /GPT 이미지로 얼굴 고정 시트 만들기/);
+assert.match(html, /캐릭터·배경 360° 시트 만들기/);
 assert.match(html, /src="sheet-maker\.js"/);
 assert.match(html, /href="sheet-maker\.css"/);
 assert.match(html, /src="seedance-planner\.js"/);
 assert.match(html, /href="seedance-planner\.css"/);
-assert.match(sheetSource, /FOUR full-body views in a row/);
+assert.match(sheetSource, /FOUR full-body views in one row/);
 assert.match(sheetSource, /FRONT, 3\/4, SIDE PROFILE, BACK/);
-assert.match(sheetSource, /one large face close-up inset panel/);
+assert.match(sheetSource, /one large face close-up inset/);
 assert.match(sheetSource, /Never render a reference sheet or duplicate a subject/);
-assert.match(sheetSource, /assetLib\.char\.push/);
+assert.match(sheetSource, /assetLib\[bucket\]\.push/);
 assert.match(seedanceSource, /MAX_SECONDS=30/);
 assert.match(seedanceSource, /MAX_IMAGE_REFS=30/);
 assert.match(seedanceSource, /callGtiBridge/);

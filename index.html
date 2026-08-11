@@ -68412,6 +68412,7 @@ function genVideoPrompt(shotId) {
   var loveReferenceLightingLock = (typeof buildLoveReferenceLightingLock === 'function') ? buildLoveReferenceLightingLock(shot, sbCam) : '';
   var loveHandOwnershipLock = (typeof buildLoveHandOwnershipLock === 'function') ? buildLoveHandOwnershipLock(shot) : '';
   var loveShotVariationLock = (typeof buildLoveShotVariationLock === 'function') ? buildLoveShotVariationLock(shot, sbCam) : '';
+  var loveShotTypeLock = (typeof buildLoveShotTypeLock === 'function') ? buildLoveShotTypeLock(shot) : '';
   var storyboardCoverageLock = (typeof buildStoryboardCoverageLock === 'function') ? buildStoryboardCoverageLock(shot) : '';
   var ratio = currentProject.defaultRatio || '16:9';
   var desc = shot.desc || '';
@@ -68457,6 +68458,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'LIGHTING: ' + (lightDna || shot.light || '') + ' ' + (shot.time || preset.time || '') + '\n\n';
   if (storyboardCoverageLock) imgPrompt += storyboardCoverageLock;
   if (loveHandOwnershipLock) imgPrompt += loveHandOwnershipLock;
+  if (loveShotTypeLock) imgPrompt += loveShotTypeLock;
   if (loveShotVariationLock) imgPrompt += loveShotVariationLock;
   if (loveReferenceLightingLock) imgPrompt += loveReferenceLightingLock;
   imgPrompt += 'CAMERA POSITION (concrete, anti-textbook):\n';
@@ -70294,7 +70296,7 @@ function buildLoveDenseSequencePhases(shot) {
   if (!isLoveFilmStoryboardProject()) return null;
   if (shot && shot.id === 'LOVE-EP01-S03') {
     return [
-      'FRAME 1 of 3 — EXCLUSIVE SETUP CUT. Show the running schoolboy losing the white milk carton at street level. Use a wider low-angle setup with readable morning street geography. EXCLUDE Iruri, every camera, every hand pressing a shutter, the suspended-carton peak, split screen, collage, and later reactions.',
+      'FRAME 1 of 3 — EXCLUSIVE TACTILE SETUP INSERT. Keep the white milk carton as the dominant subject at street level at the exact instant it leaves the lower edge of frame. Show at most one blurred school shoe and trouser cuff as a motion witness; never show a whole person, portrait, or walking-away wide shot. Use a tight low-angle insert with the carton occupying roughly 25–40% of the frame and readable asphalt-to-morning-sky direction. EXCLUDE Iruri, every camera, every hand pressing a shutter, the suspended-carton peak, split screen, collage, and later reactions.',
       'FRAME 2 of 3 — EXCLUSIVE PEAK INSERT. Show only the white milk carton suspended against the clean morning sky with droplets scattering. Use a clean low-angle telephoto insert. EXCLUDE Iruri, the film camera, every hand or finger, the boy, split screen, collage, and before/after states.',
       'FRAME 3 of 3 — EXCLUSIVE SHUTTER INSERT. Show only Iruri’s small feminine hand pressing the shutter of her vintage film camera, with the yellow strap edge if visible. Use a tight side ECU with metal glint and optical bokeh. EXCLUDE the milk carton, the running boy, the wide street action, split screen, collage, and any masculine adult hand.'
     ];
@@ -70376,6 +70378,42 @@ function buildLoveShotVariationLock(shot, sbCam) {
     'Across adjacent shots and 3-frame sequences, change at least TWO of: shot size, camera side, camera height, lens distance, foreground layer, or subject blocking. Preserve character identity, wardrobe, location architecture, time of day, and screen direction.',
     'Each generation call produces ONE independent horizontal 16:9 cinematic frame. Never combine several beats, views, poses, timelines, split screens, contact sheets, or collage panels into one image.'
   ].join('\n') + '\n\n';
+}
+
+function buildLoveShotTypeLock(shot) {
+  if (!isLoveFilmStoryboardProject() || !shot) return '';
+  const text = loveShotDenseText(shot);
+  const frame = String(shot.frame || '');
+  const chars = Array.isArray(shot.char) ? shot.char.map(function(name){ return String(name).replace(/\s*[\(（].*$/, ''); }).filter(Boolean) : [];
+  const lines = ['LOVE SHOT-TYPE FIELD GUARD (260811) — OBEY THE STORYBOARD CATEGORY:'];
+  let hasRule = false;
+  const insertLike = /(?:^|\s)(?:INS|INSERT|ECU)(?:\s|$)|macro|insert|인서트|매크로|손가락|손끝|셔터|레버|우유팩|milk carton/i.test(frame + ' ' + text);
+  const faceLike = /얼굴|표정|눈|시선|미소|질색|반응|face|portrait|deadpan|reaction/i.test(text);
+  const closeLike = /(?:^|\s)(?:CU|MCU|ECU)(?:\s|$)|close-up|medium close-up|클로즈/i.test(frame + ' ' + text);
+  const wideLike = /(?:^|\s)(?:WS|EWS|MLS)(?:\s|$)|wide shot|establishing|와이드|전경|공간/i.test(frame + ' ' + text);
+  const transitionLike = /상상|뮤지컬|무대 조명|stage light|freeze-frame|리버브|셔터.*진입|현실.*전환|imagination|musical transition/i.test(text);
+  const dialogueLike = chars.length >= 2 || /대화|묻|답하|말하|친구.*옆|two-shot|two person|dialogue|answering|beside her/i.test(text);
+
+  if (insertLike && !faceLike) {
+    hasRule = true;
+    lines.push('INSERT / HAND / PROP: the named hand or object is the visual subject and must occupy a clearly readable foreground area. Preserve exact mechanism, contact point, hand ownership, and object scale. Do not escape to a person-wide shot, portrait, generic establishing view, or unrelated reaction. Show no face unless ACTION explicitly requires one.');
+  }
+  if (dialogueLike) {
+    hasRule = true;
+    lines.push('TWO-PERSON DIALOGUE: render exactly the scripted named people' + (chars.length ? ' (' + chars.join(' + ') + ')' : '') + ', never a third actor. Keep their faces as two separate approved identities with distinct eye spacing, jawlines, hairstyles, and accessories; never average or merge them. Preserve the declared eyeline, screen side, speaking/listening asymmetry, interpersonal distance, and reaction timing.');
+  } else if (chars.length === 1 && closeLike && faceLike) {
+    hasRule = true;
+    lines.push('SINGLE-PERSON FACE CLOSE-UP: render only ' + chars[0] + ' as the visible identity. The approved face reference outranks beauty, mood, lens stylization, and costume references. Preserve exact eye shape, nose, mouth/philtrum, jaw/chin, hairline, age, skin landmarks, and only the accessories present in the approved reference. Use natural perspective without wide-angle facial distortion or portrait beautification.');
+  }
+  if (wideLike) {
+    hasRule = true;
+    lines.push('LOCATION WIDE: make the declared school/street architecture, path, anchors, depth, and light direction readable before adding spectacle. Keep people subordinate to geography unless ACTION names a hero subject. Do not replace the location with a generic park, generic road, concert venue, or fantasy void.');
+  }
+  if (transitionLike) {
+    hasRule = true;
+    lines.push('REALITY → MUSICAL IMAGINATION: preserve the same real-world location geometry, time of day, characters, wardrobe, and screen direction. Transform only the scripted cue first (shutter freeze, suspended object, crosswalk light, or stage-light accent), then escalate progressively. Never jump immediately to an unrelated concert stage, idol performance, fantasy city, or different location.');
+  }
+  return hasRule ? lines.join('\n') + '\n\n' : '';
 }
 
 
@@ -73489,6 +73527,7 @@ async function generateSBShot(shotId, _seq, _provider) {
   const loveReferenceLightingLock = (typeof buildLoveReferenceLightingLock === 'function') ? buildLoveReferenceLightingLock(shot, sbCam) : '';
   const loveHandOwnershipLock = (typeof buildLoveHandOwnershipLock === 'function') ? buildLoveHandOwnershipLock(shot) : '';
   const loveShotVariationLock = (typeof buildLoveShotVariationLock === 'function') ? buildLoveShotVariationLock(shot, sbCam) : '';
+  const loveShotTypeLock = (typeof buildLoveShotTypeLock === 'function') ? buildLoveShotTypeLock(shot) : '';
   const storyboardCoverageLock = (typeof buildStoryboardCoverageLock === 'function') ? buildStoryboardCoverageLock(shot) : '';
   const cloudriderWorldToneLock = (typeof buildCloudRiderWorldToneLock === 'function') ? buildCloudRiderWorldToneLock() : '';
   const cloudriderCanonSafetyLock = (typeof buildCloudRiderCanonSafetyLock === 'function') ? buildCloudRiderCanonSafetyLock(shot) : '';
@@ -73559,7 +73598,7 @@ SPACE DNA: ${spaceDna || resolveShotLoc(shot) || preset.loc || ''}
 MOOD: ${emoDna || ''}
 LIGHTING: ${lightDna || shot.light || ''} ${shot.time || preset.time || ''}
 
-${storyboardCoverageLock}${loveHandOwnershipLock}${loveShotVariationLock}${loveReferenceLightingLock}CAMERA POSITION (concrete, anti-textbook):
+${storyboardCoverageLock}${loveHandOwnershipLock}${loveShotTypeLock}${loveShotVariationLock}${loveReferenceLightingLock}CAMERA POSITION (concrete, anti-textbook):
 ${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
 Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
 
@@ -74635,6 +74674,8 @@ function applySelectedCameraMoveToStoryboard() {
 }
 function recommendCameraMoveForShot(shot) {
   const text = ((shot && shot.frame) || '') + ' ' + ((shot && shot.desc) || '') + ' ' + ((shot && shot.func) || '');
+  const declaredFrame = ((shot && shot.frame) || '');
+  if (/LOCKED|locked tripod|고정|정적 이미지|static/i.test(declaredFrame)) return 'locked-static';
   const faceDetail = /얼굴|표정|눈|시선|눈빛|미소|웃|입|입술|턱|고개|반응|상반신|바스트|클로즈|초상|응시|바라|portrait|face|eyes/i.test(text);
   const tactileDetail = /손|손가락|펜|카드|QR|종이|메뉴|문구|소품|자물쇠|서랍|폰|휴대폰|발|발걸음|신발|문손잡이|손잡이|그릇|식재료|오디오|LP|턴테이블|컵|잔|향수|샘플|보드|노트|책|가방|표면|질감|텍스처|macro|object|prop/i.test(text);
   const explicitInsert = /INS|INSERT|인서트|매크로|소품 클로즈업|디테일|ECU/i.test(text);

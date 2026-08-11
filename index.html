@@ -75288,7 +75288,10 @@ function getGrokBuildBridgeBase(sourceId) {
 }
 function getGrokBuildBridgeKey(sourceId) {
   const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey') || document.getElementById('grokImageBridgeKey');
-  const key = (el?.value || '').trim();
+  let key = (el?.value || '').trim();
+  if (!key) {
+    try { key = (localStorage.getItem('zippy_local_video_gateway_key') || '').trim(); } catch(e) {}
+  }
   try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
   const main = document.getElementById('grokBuildBridgeKey');
   const sb = document.getElementById('sbGrokBuildBridgeKey');

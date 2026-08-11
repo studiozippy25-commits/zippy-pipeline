@@ -75289,8 +75289,14 @@ function getGrokBuildBridgeBase(sourceId) {
 function getGrokBuildBridgeKey(sourceId) {
   const el = (sourceId && document.getElementById(sourceId)) || document.getElementById('grokBuildBridgeKey') || document.getElementById('sbGrokBuildBridgeKey') || document.getElementById('grokImageBridgeKey');
   let key = (el?.value || '').trim();
-  if (!key) {
-    try { key = (localStorage.getItem('zippy_local_video_gateway_key') || '').trim(); } catch(e) {}
+  const urlSourceId = sourceId ? sourceId.replace(/Key$/, 'Url') : 'grokBuildBridgeUrl';
+  const urlEl = document.getElementById(urlSourceId) || document.getElementById('grokBuildBridgeUrl') || document.getElementById('sbGrokBuildBridgeUrl') || document.getElementById('grokImageBridgeUrl');
+  const isLocalBridge = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::|\/|$)/i.test((urlEl?.value || DEFAULT_GROK_BUILD_BRIDGE).trim());
+  if (isLocalBridge || !key) {
+    try {
+      const sharedKey = (localStorage.getItem('zippy_local_video_gateway_key') || '').trim();
+      if (sharedKey) key = sharedKey;
+    } catch(e) {}
   }
   try { if (key) localStorage.setItem('zippy_grok_build_bridge_key', key); } catch(e) {}
   const main = document.getElementById('grokBuildBridgeKey');

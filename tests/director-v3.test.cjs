@@ -201,7 +201,7 @@ assert.match(html, /src="director-v3\.js"/);
 assert.equal((html.match(/ZippyDirectorV3\.cardControls\(shot\)/g) || []).length, 2);
 const cameraBlock = html.slice(html.indexOf('const CAMERA_MOVES = ['), html.indexOf('const CAMERA_MOVE_ALIASES'));
 assert.equal((cameraBlock.match(/\{id:"/g) || []).length, 57, 'camera library should expose 57 movements');
-for (const hook of ['beforeGenerate(shot', 'beforeBatch(remaining)', 'composeImagePrompt(shot, _finalPrompt)', 'composeVideoPrompt(shot, prompt)', 'afterGenerate(shot']) {
+for (const hook of ['beforeGenerate(shot', 'beforeBatch(remaining)', 'composeImagePrompt(directorShot, _finalPrompt)', 'composeVideoPrompt(shot, prompt)', 'afterGenerate(shot']) {
   assert.match(html, new RegExp(hook.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
 assert.match(source, /물리 헌법 7항/);

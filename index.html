@@ -73663,12 +73663,17 @@ ${negativeBlock}`;
       if (_seq.branch) {
         _finalPrompt += '\n\nSHOT BRANCH OVERRIDE — MORE SPECIFIC THAN CAMERA ABOVE:\n' + _seq.phase + '\nThe attached generated seed is continuity authority for wardrobe, props, environment, lighting, and the frozen action instant only. It is explicitly NOT face authority and NOT framing authority. Reconstruct a genuinely new camera view; do not mirror, crop, zoom, or copy the seed composition. Produce one independent 16:9 frame.' + ((typeof buildStoryboardBranchIdentityLock === 'function') ? buildStoryboardBranchIdentityLock(shot, imgInputs) : '');
       } else {
-        _finalPrompt += '\n\nSEQUENCE FRAME OVERRIDE — MORE SPECIFIC THAN ACTION ABOVE:\n' + _seq.phase + '\nSEQUENCE CONTINUITY (CRITICAL): preserve character identity, exact wardrobe, location architecture, time of day, screen direction, and lighting logic. The frame override is the ONLY visible beat for this call. Previous frames are not attached and are never composition authority. Change camera size/side/height or foreground layer as directed. Produce one independent 16:9 frame; never a collage, split screen, triptych, contact sheet, or several moments in one image.';
+        _finalPrompt += '\n\nSEQUENCE FRAME ACTION REPLACEMENT — HIGHEST PRIORITY:\n' + _seq.phase + '\nThe original shot ACTION and FUNCTION above are source context only and are CANCELLED as visible content for this call. Do not render, combine, foreshadow, or import any subject, hand, camera, person, prop, or event excluded by this sequence-frame instruction. SEQUENCE CONTINUITY (CRITICAL): preserve character identity, exact wardrobe, location architecture, time of day, screen direction, and lighting logic. This replacement is the ONLY visible beat for this call. Previous frames are not attached and are never composition authority. Change camera size/side/height or foreground layer as directed. Produce one independent 16:9 frame; never a collage, split screen, triptych, contact sheet, or several moments in one image.';
         if (sbIsNcityDokgoCombatCostume(shot)) _finalPrompt += '\nDOKGO COMBAT 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 he wears the same selected combat outfit, the same approved engraved lower-face mask, and no eyeglasses. Never change to factory/day mode between sequence frames.';
         if (sbIsNcityYujinTacticalShot(shot)) _finalPrompt += '\nSEO YUJIN TACTICAL 3-FRAME LOCK: in FRAME 1, FRAME 2, and FRAME 3 she wears the same approved black-and-purple lower-face mask and the same black tactical Western outfit. Never switch to her ordinary unmasked face or bartender mode.';
       }
     }
-    if (window.ZippyDirectorV3) _finalPrompt = window.ZippyDirectorV3.composeImagePrompt(shot, _finalPrompt);
+    if (window.ZippyDirectorV3) {
+      const directorShot = (_seq && _seq.phase && !_seq.branch)
+        ? Object.assign({}, shot, {desc:_seq.phase, func:'Render only temporal coverage frame ' + (Number.isInteger(_seq.slotIndex) ? (_seq.slotIndex + 1) : '') + '; the parent-shot action remains offscreen.'})
+        : shot;
+      _finalPrompt = window.ZippyDirectorV3.composeImagePrompt(directorShot, _finalPrompt);
+    }
     let result;
     if (useGrokImageBridge) {
       progress(imgInputs.length ? 'Grok image_edit · 카드 안에서 생성 중...' : 'Grok image_gen · 카드 안에서 생성 중...');

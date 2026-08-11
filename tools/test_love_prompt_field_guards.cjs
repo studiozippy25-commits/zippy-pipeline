@@ -74,4 +74,9 @@ assert.equal(cameraContext.recommendCameraMoveForShot({
   func: '대화 리액션'
 }), 'locked-static', 'declared LOCKED camera must override action keyword heuristics');
 
+assert.match(html, /SEQUENCE FRAME ACTION REPLACEMENT — HIGHEST PRIORITY/);
+assert.match(html, /original shot ACTION and FUNCTION above are source context only and are CANCELLED/);
+assert.match(html, /Object\.assign\(\{\}, shot, \{desc:_seq\.phase/);
+assert.match(html, /composeImagePrompt\(directorShot, _finalPrompt\)/);
+
 console.log('PASS LOVE shot-type guards, S03 tactile continuity, and LOCKED camera priority');

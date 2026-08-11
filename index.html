@@ -74308,11 +74308,11 @@ async function regenerateSBSeqFrame(shotId, index) {
     if (!sbSeqImages[shotId]) sbSeqImages[shotId] = [];
     sbSeqImages[shotId][index] = b64;
     if (index === 0 || !sbGenImages[shotId]) sbGenImages[shotId] = b64;
-    await saveStoryboardFrameToHistory(shotId, b64, index + 1, 'coverage-frame-regenerated');
-    zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (index + 1), b64, 'image/png', {shotId:shotId, frameIndex:index + 1, reason:'coverage-frame-regenerated'});
     buildStoryboardTimeline();
     if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
     saveStoryboardState('coverage-frame-regenerated');
+    Promise.resolve(saveStoryboardFrameToHistory(shotId, b64, index + 1, 'coverage-frame-regenerated')).catch(function(historyError){ console.warn('Coverage-frame history persistence failed:', historyError); });
+    try { zippyNasSaveImage('storyboard_sequence', shotId + '_frame_' + (index + 1), b64, 'image/png', {shotId:shotId, frameIndex:index + 1, reason:'coverage-frame-regenerated'}); } catch(nasError) { console.warn('Coverage-frame NAS persistence failed:', nasError); }
   } catch (error) {
     alert((index + 1) + '번 컷 재생성 실패: ' + error.message);
     if (statusEl) statusEl.textContent = '';

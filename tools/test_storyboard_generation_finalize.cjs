@@ -12,6 +12,15 @@ assert.doesNotMatch(block, /await\s+saveStoryboardFrameToHistory/, 'history pers
 assert.match(block, /Promise\.resolve\(saveStoryboardFrameToHistory[\s\S]*\.catch\(/, 'history persistence must handle asynchronous failure');
 assert.match(block, /try \{ zippyNasSaveImage/, 'NAS persistence must be best effort');
 
+const coverageStart = source.indexOf('async function regenerateSBSeqFrame');
+const coverageEnd = source.indexOf('function seq3up', coverageStart);
+assert.ok(coverageStart > 0 && coverageEnd > coverageStart, 'single coverage-frame regeneration path must be present');
+const coverageBlock = source.slice(coverageStart, coverageEnd);
+assert.ok(coverageBlock.indexOf('buildStoryboardTimeline()') < coverageBlock.indexOf('saveStoryboardFrameToHistory'), 'coverage frame must render before history persistence');
+assert.doesNotMatch(coverageBlock, /await\s+saveStoryboardFrameToHistory/, 'coverage history persistence must not block card refresh');
+assert.match(coverageBlock, /Promise\.resolve\(saveStoryboardFrameToHistory[\s\S]*\.catch\(/, 'coverage history persistence must handle asynchronous failure');
+assert.match(coverageBlock, /try \{ zippyNasSaveImage/, 'coverage NAS persistence must be best effort');
+
 const director = fs.readFileSync('director-v3.js', 'utf8');
 assert.match(director, /face\\s\*\(\?:is\\s\*\)\?unreadable/);
 assert.match(director, /원거리/);

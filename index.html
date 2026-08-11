@@ -3317,20 +3317,23 @@ input[type=file]{display:none}
       </label>
       <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.55">SuperGrok Heavy 기준: 6초 / 10초 / 15초, 480p / 720p</div>
     </div>
-    <div style="margin:10px 0 12px">
-      <div class="cfg-lbl">Grok 전송 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">인스타그램/스토리보드 이미지와 함께 전송</span></div>
-      <div class="cm-mini-row">
-        <label>카메라 무빙
-          <select id="vidCameraMove" class="cm-select" onchange="applyCameraMoveToVideoPrompt(this.value)"><option value="">무빙 없음</option></select>
-        </label>
-        <button class="btn bgh bsm" onclick="goStep('cam')">라이브러리 열기</button>
-        <button class="btn bor bsm" onclick="applyCameraMoveToVideoPrompt()">프롬프트 반영</button>
-      </div>
-      <textarea class="cfg-ta" id="vidTabPrompt" placeholder="비워도 실사 릴 기본값으로 전송됩니다. 예: subtle handheld vertical Instagram reel, gentle push-in, natural hair and fabric motion, keep face/outfit/location unchanged..." style="min-height:96px"></textarea>
-      <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:6px">인스타그램 탭에서 넘어온 컷은 이 입력값과 함께 Grok Build로 전송됩니다. 필요하면 여기서 바로 수정한 뒤 전송하세요.</div>
-    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin:10px 0 12px">아래 공통 영상 프롬프트와 START 프레임을 Grok Build로 전송합니다.</div>
     <input id="grokBuildResultInput" type="file" accept="video/*" style="display:none" onchange="receiveGrokBuildVideo(this.files)">
     <div id="grokBuildStatus" style="font-family:var(--font-mono);font-size:12px;color:#FDBA74;line-height:1.7">대기</div>
+  </div>
+
+  <!-- 공통 영상 프롬프트 -->
+  <div style="border:1px solid rgba(124,58,237,.24);border-radius:10px;background:var(--card);padding:14px 16px;margin-bottom:18px">
+    <div class="cfg-lbl">영상 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">Wan / LTX 2.3 / MiniMax H3 / Grok Build 공통</span></div>
+    <div class="cm-mini-row">
+      <label>카메라 무빙
+        <select id="vidCameraMove" class="cm-select" onchange="applyCameraMoveToVideoPrompt(this.value)"><option value="">무빙 없음</option></select>
+      </label>
+      <button class="btn bgh bsm" onclick="goStep('cam')">라이브러리 열기</button>
+      <button class="btn bor bsm" onclick="applyCameraMoveToVideoPrompt()">프롬프트 반영</button>
+    </div>
+    <textarea class="cfg-ta" id="vidTabPrompt" placeholder="장면의 동작, 카메라 움직임, 표정, 조명과 오디오를 입력하세요. 비워두면 기존 씬 정보를 바탕으로 기본 영상 프롬프트를 사용합니다." style="min-height:118px"></textarea>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--mu);line-height:1.6;margin-top:6px">스토리보드에서 넘어온 프롬프트도 이곳에 채워지며, 생성 전에 자유롭게 수정할 수 있습니다.</div>
   </div>
 
   <!-- 소스 이미지 선택 -->
@@ -3374,8 +3377,9 @@ input[type=file]{display:none}
       <div>
         <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel')">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel')">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateVidCost()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateVidCost()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="minimax-h3" onclick="pickSingle(this,'vmodel');updateVidCost()">MiniMax H3 <span style="font-size:9px;opacity:.5">I2V + Audio</span></button>
         </div>
       </div>
       <div>
@@ -75770,7 +75774,10 @@ async function selectHistForVideo(type, imgId) {
 
 function updateVidCost() {
   const el = document.getElementById('vidTabCost');
-  if (el) el.textContent = '로컬 5080 렌더링 · API 비용 없음';
+  if (!el) return;
+  const workflowId = getSelectedVideoWorkflowId();
+  const label = LOCAL_VIDEO_WORKFLOW_LABELS[workflowId] || workflowId;
+  el.textContent = label + ' · 로컬 5080 렌더링 · API 비용 없음';
 }
 
 function getVideoStartPayloadMeta(prompt) {
@@ -75922,6 +75929,34 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
+const LOCAL_VIDEO_WORKFLOW_LABELS = {
+  wan: 'Wan 2.2 I2V 14B',
+  ltx23: 'LTX 2.3 22B',
+  'minimax-h3': 'MiniMax H3 I2V + Native Audio'
+};
+
+function getSelectedVideoWorkflowId() {
+  const selected = document.querySelector('[data-g="vmodel"].on');
+  return selected?.dataset?.workflow || 'wan';
+}
+
+function getLocalVideoRenderOptions(workflowId, durationSeconds, ratio) {
+  if (workflowId !== 'minimax-h3') return { fps: 16 };
+  const dimensions = {
+    '16:9': [1344, 768],
+    '9:16': [768, 1344],
+    '1:1': [768, 768]
+  }[ratio] || [1344, 768];
+  const targetFrames = Math.max(5, Math.round(durationSeconds * 24));
+  const snappedFrames = targetFrames + ((5 - (targetFrames % 17) + 17) % 17);
+  return {
+    fps: 24,
+    frames: Math.max(124, Math.min(362, snappedFrames)),
+    width: dimensions[0],
+    height: dimensions[1]
+  };
+}
+
 async function executeVideoTab() {
   if (!vidStartB64) { alert('START 프레임 이미지를 업로드하세요'); return; }
   if (vidTabAbortController) vidTabAbortController.abort();
@@ -75929,11 +75964,14 @@ async function executeVideoTab() {
 
   const prompt = getVidTabPromptForGeneration();
   const payloadMeta = getVideoStartPayloadMeta(prompt);
-  const workflowPreset = getSelected('vmodel') || 'Gateway 고품질 5080';
+  const workflowPreset = getSelectedVideoWorkflowId();
+  const workflowLabel = LOCAL_VIDEO_WORKFLOW_LABELS[workflowPreset] || workflowPreset;
   const dur = getSelected('vdur') || '5초';
   const mode = getSelected('vmode') || '표준';
   const ratio = getSelected('vratio') || '16:9';
-  const modelName = 'local-5080-i2v';
+  const durationSeconds = Number(String(dur).replace('초', '')) || 5;
+  const renderOptions = getLocalVideoRenderOptions(workflowPreset, durationSeconds, ratio);
+  const modelName = 'local-5080-' + workflowPreset;
   const localGatewayRaw = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
   const localGatewayProxied = shouldProxyLocal5080(localGatewayRaw);
 
@@ -75959,13 +75997,18 @@ async function executeVideoTab() {
       source_image_hash: startImage.hash,
       metadata: payloadMeta,
       model: modelName,
+      workflow_profile: workflowPreset,
       workflow_preset: workflowPreset,
       image: startImage,
       images: refs,
       prompt,
       mode: mode === '전문가' ? 'pro' : 'std',
-      duration: Number(String(dur).replace('초', '')) || 5,
-      aspect_ratio: ratio
+      duration: durationSeconds,
+      aspect_ratio: ratio,
+      fps: renderOptions.fps,
+      frames: renderOptions.frames,
+      width: renderOptions.width,
+      height: renderOptions.height
     }, msg => { status.textContent = msg; }, { signal: vidTabAbortController.signal });
 
     status.textContent = '완료!';
@@ -75979,7 +76022,7 @@ async function executeVideoTab() {
       </div>
     `;
 
-    vidTabVideos.unshift({url: videoUrl, model: 'Local 5080', prompt: prompt, time: new Date().toLocaleTimeString()});
+    vidTabVideos.unshift({url: videoUrl, model: workflowLabel, prompt: prompt, time: new Date().toLocaleTimeString()});
     renderVidTabHistory();
   } catch(e) {
     status.textContent = isVideoAbortError(e) ? '중단됨' : '오류: ' + formatLocalGatewayError(e);

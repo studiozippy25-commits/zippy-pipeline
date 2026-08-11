@@ -6,6 +6,7 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'director-v3.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const sheetSource = fs.readFileSync(path.join(root, 'sheet-maker.js'), 'utf8');
 
 const storage = new Map();
 const elements = new Map([
@@ -107,7 +108,7 @@ assert.equal(passed.ok, true, 'completed registry should pass production gates')
 assert.equal(passed.camera.risk, 'HIGH');
 assert.match(passed.camera.alternative, /slider-right/);
 assert.equal(passed.routePlan.image, 'gemini-image');
-assert.equal(passed.routePlan.video, 'kling-video');
+assert.equal(passed.routePlan.video, 'seedance-2.5');
 assert.equal(passed.routePlan.post, 'AE 텍스트 합성');
 
 const prompt = api.buildPromptById(shot.id);
@@ -122,7 +123,18 @@ assert.match(prompt, /EXACT 1 CHARACTERS — NO DUPLICATES/);
 assert.match(prompt, /180° AXIS/);
 assert.match(prompt, /the jaw sets and releases/);
 assert.match(api.composeImagePrompt(shot, 'LEGACY'), /DIRECTOR V3 CONTROL LAYER/);
-assert.match(api.composeVideoPrompt(shot, 'LEGACY'), /VIDEO EXECUTION NOTE/);
+const seedancePrompt = api.composeVideoPrompt(shot, 'LEGACY');
+for (const heading of ['[Generation Goal]', '[Reference Roles]', '[Subject Profiles]', '[Scene]', '[Stage 1]', '[Camera]', '[Visual Treatment]', '[Audio]', '[Maintain Consistency]']) {
+  assert.match(seedancePrompt, new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+}
+assert.match(seedancePrompt, /@Image 1 is the first frame/);
+assert.match(seedancePrompt, /Initial state:/);
+assert.match(seedancePrompt, /Primary event:/);
+assert.match(seedancePrompt, /End state:/);
+assert.match(seedancePrompt, /Dialogue language: Korean/);
+assert.match(seedancePrompt, /\{왜 두 번째 곡이야\?\}/);
+assert.match(seedancePrompt, /Never render a reference sheet or duplicate a subject/);
+assert.doesNotMatch(seedancePrompt, /DIRECTOR V3 CONTROL LAYER|01 · SCENE CONTEXT/);
 assert.equal(api.beforeGenerate(shot, { provider: 'test-image' }).ok, true);
 api.afterGenerate(shot, { ok: true, provider: 'test-image', model: 'mock-model', cost: 0.125 });
 let logged = api.state().logs;
@@ -137,18 +149,40 @@ storage.set('zippy_director_v3_love', JSON.stringify(productionState));
 assert.ok(api.analyze(shot).errors.some((item) => item.includes('v15')));
 
 api.render();
-assert.match(elements.get('directorV3Mount').innerHTML, /스토리보드 감독 관문/);
-assert.match(elements.get('directorV3AssetMount').innerHTML, /DIRECTOR ASSET LOCK/);
-assert.match(elements.get('directorV3AssetMount').innerHTML, /LOCK/);
+assert.match(elements.get('directorV3Mount').innerHTML, /AI 감독 준비/);
+assert.match(elements.get('directorV3Mount').innerHTML, /자동으로 준비하기/);
+assert.match(elements.get('directorV3Mount').innerHTML, /상세 설정 보기/);
+assert.doesNotMatch(elements.get('directorV3Mount').innerHTML, /15-BLOCK PREVIEW/);
+assert.match(elements.get('directorV3AssetMount').innerHTML, /에셋 최종 확인/);
+assert.match(elements.get('directorV3AssetMount').innerHTML, /에셋 승인 확인/);
 const quotedControl = api.cardControls({ ...shot, id: "SHOT-'A" });
 assert.doesNotMatch(quotedControl, /openShot\('SHOT-'A'\)/);
 assert.match(quotedControl, /SHOT-\\&#39;A/);
+
+context.currentProjectKey = 'auto-project';
+api.autoDirector();
+const automated = api.state();
+assert.equal(automated.setup.stylePrefix.split('\n').length, 12);
+assert.ok(automated.setup.world);
+assert.ok(automated.scenes[sceneKey]);
+assert.ok(automated.scenes[sceneKey].axis);
+assert.equal(automated.assets.character.locked, false, 'automatic preparation must not falsely approve assets');
 
 context.currentProjectKey = 'other-project';
 assert.equal(api.state().mode, 'preview', 'registry state must be isolated per project');
 
 assert.match(html, /id="directorV3Mount"/);
 assert.match(html, /id="directorV3AssetMount"/);
+assert.match(html, /id="pSheet"/);
+assert.match(html, /id="tabSheet"/);
+assert.match(html, /GPT 이미지로 얼굴 고정 시트 만들기/);
+assert.match(html, /src="sheet-maker\.js"/);
+assert.match(html, /href="sheet-maker\.css"/);
+assert.match(sheetSource, /FOUR full-body views in a row/);
+assert.match(sheetSource, /FRONT, 3\/4, SIDE PROFILE, BACK/);
+assert.match(sheetSource, /one large face close-up inset panel/);
+assert.match(sheetSource, /Never render a reference sheet or duplicate a subject/);
+assert.match(sheetSource, /assetLib\.char\.push/);
 assert.match(html, /href="director-v3\.css"/);
 assert.match(html, /src="director-v3\.js"/);
 assert.equal((html.match(/ZippyDirectorV3\.cardControls\(shot\)/g) || []).length, 2);

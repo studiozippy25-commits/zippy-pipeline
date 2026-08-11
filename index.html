@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="location-scout.css">
 <link rel="stylesheet" href="director-v3.css">
+<link rel="stylesheet" href="sheet-maker.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -1160,6 +1161,7 @@ input[type=file]{display:none}
 
 <div class="snav">
   <button class="stab a1" id="tab1" onclick="goStep(1)">캐릭터 시트</button>
+  <button class="stab" id="tabSheet" onclick="goStep('sheet')" style="border-bottom-color:#34D399;color:#34D399">시트 제작</button>
   <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
   <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
   <button class="stab" id="tabGrok" onclick="goStep('grok')" style="border-bottom-color:#FDBA74;color:#FDBA74">Grok Imagine</button>
@@ -1173,6 +1175,38 @@ input[type=file]{display:none}
   <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
+</div>
+
+<!-- ═══════════════ GPT IMAGE FACE LOCK SHEET MAKER ═══════════════ -->
+<div class="panel" id="pSheet">
+  <div class="sm-hero">
+    <div><div class="slbl" style="color:#34D399">FACE LOCK SHEET MAKER</div><h2>GPT 이미지로 얼굴 고정 시트 만들기</h2><p>얼굴 사진 1장을 기준으로 정면·3/4·측면·후면 전신과 얼굴 확대를 한 장에 만듭니다. 완성한 시트는 프로젝트 에셋과 스토리보드 레퍼런스로 저장할 수 있습니다.</p></div>
+    <div class="sm-badge">GPT IMAGE 2 · 4-VIEW + FACE CU</div>
+  </div>
+  <div class="sm-layout">
+    <section class="sm-card">
+      <h3>1 · 얼굴 기준 사진</h3>
+      <div class="sm-drop" id="smFaceDrop" onclick="document.getElementById('smFaceInput').click()"><div id="smFacePreview"><b>+ 얼굴 사진 1장</b><span>정면 · 어깨 위 · 고른 조명 · 피부 질감이 보이는 사진 권장</span></div></div>
+      <input id="smFaceInput" type="file" accept="image/*" hidden onchange="ZippySheetMaker.loadFace(this.files)">
+      <div class="sm-field-grid">
+        <div class="sm-field"><label>헤어</label><input id="smHair" placeholder="길이·컬·앞머리·핀 등" oninput="ZippySheetMaker.refreshPrompt()"></div>
+        <div class="sm-field"><label>메이크업</label><input id="smMakeup" placeholder="베이스·아이·립" oninput="ZippySheetMaker.refreshPrompt()"></div>
+        <div class="sm-field full"><label>의상 전체</label><textarea id="smOutfit" placeholder="색뿐 아니라 재질·구조·레이어·잠금장치·신발까지" oninput="ZippySheetMaker.refreshPrompt()"></textarea></div>
+        <div class="sm-field"><label>착용 액세서리</label><input id="smAccessories" placeholder="없으면 비움" oninput="ZippySheetMaker.refreshPrompt()"></div>
+        <div class="sm-field"><label>생활 흔적 2~3개</label><input id="smWear" placeholder="주름·스침·먼지·마모" oninput="ZippySheetMaker.refreshPrompt()"></div>
+      </div>
+      <div class="sm-actions"><button onclick="ZippySheetMaker.refreshPrompt()">프롬프트 새로 만들기</button><button class="primary" id="smGenerate" onclick="ZippySheetMaker.generate()">GPT Image 2로 시트 생성</button></div>
+      <div class="sm-status" id="sheetMakerStatus">얼굴 사진과 의상 정보를 입력하세요.</div>
+    </section>
+    <section class="sm-card">
+      <h3>2 · 생성 프롬프트</h3>
+      <textarea id="smPrompt" class="sm-prompt" spellcheck="false"></textarea>
+      <h3 style="margin-top:14px">3 · 결과 확인</h3>
+      <div class="sm-result" id="smResult"><span>생성된 얼굴 고정 시트가 여기에 표시됩니다.</span></div>
+      <div class="sm-actions" id="smResultActions" hidden><button onclick="ZippySheetMaker.download()">다운로드</button><button class="primary" onclick="ZippySheetMaker.saveAsset()">에셋 라이브러리에 저장</button><button onclick="ZippySheetMaker.copyVideoRule()">영상용 안전문구 복사</button></div>
+      <div class="sm-rule"><b>영상 사용 원칙</b><br>시트는 얼굴·헤어·체형·의상의 기준만 제공합니다. 영상 구도는 스토리보드 첫 프레임을 따르며, “Never render a reference sheet or duplicate a subject.” 문장을 자동 안전 규칙으로 사용합니다.</div>
+    </section>
+  </div>
 </div>
 
 <!-- ═══════════════ LOCATION SCOUT ═══════════════ -->
@@ -81055,7 +81089,7 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -81067,6 +81101,7 @@ function goStep(n){
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
     else if(n==='grok') el.classList.toggle('active',id==='pGrok');
     else if(n==='scout') el.classList.toggle('active',id==='pScout');
+    else if(n==='sheet') el.classList.toggle('active',id==='pSheet');
     else if(n==='insta') el.classList.toggle('active',id==='pInsta');
     else el.classList.toggle('active', id==='p'+n);
   });
@@ -81083,6 +81118,7 @@ function goStep(n){
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
   document.getElementById('tabGrok').className='stab '+(n==='grok'?'a1':'');
   document.getElementById('tabScout').className='stab '+(n==='scout'?'a1':'');
+  document.getElementById('tabSheet').className='stab '+(n==='sheet'?'a1':'');
   document.getElementById('tabInsta').className='stab '+(n==='insta'?'a1':'');
   document.getElementById('tab2').className='stab '+(n===2?'a2':d2?'done':'');
   document.getElementById('tab3').className='stab '+(n===3?'a3':'');
@@ -81102,6 +81138,7 @@ function goStep(n){
   if(n==='hist') refreshHistory();
   if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
   if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();
+  if(n==='sheet' && window.ZippySheetMaker) window.ZippySheetMaker.init();
 }
 function setSt(pfx,idx){
   for(let i=0;i<4;i++){const el=document.getElementById(`${pfx}${i}`);if(el)el.className='ps'+(i<idx?' fin':i===idx?' cur':'');}
@@ -85137,6 +85174,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
 </script>
 <script src="location-scout.js"></script>
 <script src="director-v3.js"></script>
+<script src="sheet-maker.js"></script>
 
 </body>
 </html>

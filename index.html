@@ -1195,23 +1195,31 @@ input[type=file]{display:none}
   <div id="seedancePlannerApp"></div>
 </div>
 
-<!-- ═══════════════ GPT IMAGE FACE LOCK SHEET MAKER ═══════════════ -->
+<!-- ═══════════════ GPT IMAGE ASSET SHEET MAKER ═══════════════ -->
 <div class="panel" id="pSheet">
   <div class="sm-hero">
-    <div><div class="slbl" style="color:#34D399">FACE LOCK SHEET MAKER</div><h2>GPT 이미지로 얼굴 고정 시트 만들기</h2><p>얼굴 사진 1장을 기준으로 정면·3/4·측면·후면 전신과 얼굴 확대를 한 장에 만듭니다. 완성한 시트는 프로젝트 에셋과 스토리보드 레퍼런스로 저장할 수 있습니다.</p></div>
-    <div class="sm-badge">GPT IMAGE 2 · 4-VIEW + FACE CU</div>
+    <div><div class="slbl" style="color:#34D399">ASSET SHEET MAKER</div><h2>캐릭터·배경 360° 시트 만들기</h2><p>한 장의 기준 이미지를 정체성 원본으로 고정해 캐릭터 턴어라운드 또는 같은 공간의 360° 연속 시트를 만듭니다.</p></div>
+    <div class="sm-badge" id="smModeBadge">GPT IMAGE 2 · IDENTITY LOCK</div>
   </div>
   <div class="sm-layout">
     <section class="sm-card">
-      <h3>1 · 얼굴 기준 사진</h3>
+      <div class="sm-mode"><button id="smModeCharacter" class="on" onclick="ZippySheetMaker.setMode('character')">인물 정체성 시트</button><button id="smModeSpace" onclick="ZippySheetMaker.setMode('space360')">배경 360° 시트</button></div>
+      <h3 id="smReferenceHeading">1 · 얼굴 기준 사진</h3>
       <div class="sm-drop" id="smFaceDrop" onclick="document.getElementById('smFaceInput').click()"><div id="smFacePreview"><b>+ 얼굴 사진 1장</b><span>정면 · 어깨 위 · 고른 조명 · 피부 질감이 보이는 사진 권장</span></div></div>
-      <input id="smFaceInput" type="file" accept="image/*" hidden onchange="ZippySheetMaker.loadFace(this.files)">
-      <div class="sm-field-grid">
+      <input id="smFaceInput" type="file" accept="image/*" hidden onchange="ZippySheetMaker.loadReference(this.files)">
+      <div class="sm-actions"><button id="smDeleteReference" class="sm-danger" hidden onclick="ZippySheetMaker.deleteReference()">기준 사진 삭제</button></div>
+      <div class="sm-field-grid" id="smCharacterFields">
         <div class="sm-field"><label>헤어</label><input id="smHair" placeholder="길이·컬·앞머리·핀 등" oninput="ZippySheetMaker.refreshPrompt()"></div>
         <div class="sm-field"><label>메이크업</label><input id="smMakeup" placeholder="베이스·아이·립" oninput="ZippySheetMaker.refreshPrompt()"></div>
         <div class="sm-field full"><label>의상 전체</label><textarea id="smOutfit" placeholder="색뿐 아니라 재질·구조·레이어·잠금장치·신발까지" oninput="ZippySheetMaker.refreshPrompt()"></textarea></div>
         <div class="sm-field"><label>착용 액세서리</label><input id="smAccessories" placeholder="없으면 비움" oninput="ZippySheetMaker.refreshPrompt()"></div>
         <div class="sm-field"><label>생활 흔적 2~3개</label><input id="smWear" placeholder="주름·스침·먼지·마모" oninput="ZippySheetMaker.refreshPrompt()"></div>
+      </div>
+      <div class="sm-field-grid" id="smSpaceFields" hidden>
+        <div class="sm-field"><label>장소명</label><input id="smSpaceName" placeholder="예: 한빛고 암실" oninput="ZippySheetMaker.refreshPrompt()"></div>
+        <div class="sm-field"><label>공간 크기·구조</label><input id="smSpaceGeometry" placeholder="예: L자형 8m × 5m" oninput="ZippySheetMaker.refreshPrompt()"></div>
+        <div class="sm-field full"><label>연속성 앵커</label><textarea id="smSpaceAnchor" placeholder="문·창문·기둥·가구의 정확한 위치와 간격" oninput="ZippySheetMaker.refreshPrompt()"></textarea></div>
+        <div class="sm-field full"><label>고정 광원</label><textarea id="smSpaceLight" placeholder="예: 프레임 우측 큰 창 하나, 그림자는 좌측" oninput="ZippySheetMaker.refreshPrompt()"></textarea></div>
       </div>
       <div class="sm-actions"><button onclick="ZippySheetMaker.refreshPrompt()">프롬프트 새로 만들기</button><button class="primary" id="smGenerate" onclick="ZippySheetMaker.generate()">GPT Image 2로 시트 생성</button></div>
       <div class="sm-status" id="sheetMakerStatus">얼굴 사진과 의상 정보를 입력하세요.</div>
@@ -1220,9 +1228,9 @@ input[type=file]{display:none}
       <h3>2 · 생성 프롬프트</h3>
       <textarea id="smPrompt" class="sm-prompt" spellcheck="false"></textarea>
       <h3 style="margin-top:14px">3 · 결과 확인</h3>
-      <div class="sm-result" id="smResult"><span>생성된 얼굴 고정 시트가 여기에 표시됩니다.</span></div>
-      <div class="sm-actions" id="smResultActions" hidden><button onclick="ZippySheetMaker.download()">다운로드</button><button class="primary" onclick="ZippySheetMaker.saveAsset()">에셋 라이브러리에 저장</button><button onclick="ZippySheetMaker.copyVideoRule()">영상용 안전문구 복사</button></div>
-      <div class="sm-rule"><b>영상 사용 원칙</b><br>시트는 얼굴·헤어·체형·의상의 기준만 제공합니다. 영상 구도는 스토리보드 첫 프레임을 따르며, “Never render a reference sheet or duplicate a subject.” 문장을 자동 안전 규칙으로 사용합니다.</div>
+      <div class="sm-result" id="smResult"><span>생성된 시트가 여기에 표시됩니다.</span></div>
+      <div class="sm-actions" id="smResultActions" hidden><button onclick="ZippySheetMaker.download()">다운로드</button><button class="primary" onclick="ZippySheetMaker.saveAsset()">에셋 라이브러리에 저장</button><button onclick="ZippySheetMaker.copyVideoRule()">영상용 안전문구 복사</button><button class="sm-danger" onclick="ZippySheetMaker.deleteResult()">결과 삭제</button></div>
+      <div class="sm-rule" id="smUsageRule"><b>영상 사용 원칙</b><br>시트는 얼굴·헤어·체형·의상의 기준만 제공합니다. 영상 구도는 스토리보드 첫 프레임을 따르며, “Never render a reference sheet or duplicate a subject.” 문장을 자동 안전 규칙으로 사용합니다.</div>
     </section>
   </div>
 </div>
@@ -9645,6 +9653,9 @@ const PROJECTS = {
       "episodeLabel": "화",
       "sbEpLabel": "EP",
       "styleMode": "animation",
+      "styleReferenceUrl": "https://youtu.be/Qk-cio3amuI?si=NiD67wJmSX5WoQoz",
+      "styleReferenceRole": "2.5D material, light, depth and motion grammar only — never copy protected people, characters, compositions, titles, logos or text",
+      "visualConstitutionRevision": "260811-cloudrider-2_5d-v2",
       "spaceNames": [
             "[CR-SP-MULLAE-GARAGE] 서울 문래 차고",
             "[CR-SP-MAINT-HAON] 정비 베이와 하온 내부",
@@ -52283,8 +52294,8 @@ const PROJECTS = {
             "엑스트라 · 문래 군중": "[DNA MULLAE] 2035 Mullae ironworks alley crowd, everyday Koreans + delivery drones, lived-in textures.",
             "엑스트라 · 유목민·펍 손님": "[DNA LOCALS] Gobi nomads / cliff-pub patrons: real Earth cultures with modest future devices; no alien costume."
       },
-      "quality": "CloudRider 20-episode soft-SF road-movie animation, 2.5D hybrid (emotional 2D characters + smooth semi-3D aircraft/backgrounds), current Earth regional culture plus modest future devices, warm human-tech companionship, lyrical 16:9 cinematic composition, sky-blue and lemon-yellow HAON identity lock.",
-      "negative": "no live-action, no photoreal human skin, no face drift, no identity merge, no purple palette, no all-white/cream Hana mechanic coverall, no white jumpsuit/lab suit/painter suit on Hana, no orange on HAON aircraft, no tiny/toy/RC/backpack HAON drone, no person-sized HAON, no alien planet, no over-futuristic megacity, no military redesign, no horror, no gore, no logos, no readable UI text overlay, no horns or antlers on Mira aircraft.",
+      "quality": "CloudRider 20-episode soft-SF road-movie animation in premium cinematic 2.5D: clean expressive 2D linework and stable silhouettes, emotionally readable hand-drawn faces, restrained semi-3D facial and costume volume, soft painterly cel shading, delicately modeled eyes with tiny natural specular highlights, layered multiplane depth with subtle parallax, warm edge light against cool ambient shadow, controlled practical bokeh, hand-painted environment texture, and smoother dimensional aircraft that still belong to the same illustrated world. Current Earth regional culture plus modest future devices, warm human-tech companionship, lyrical horizontal 16:9 composition, sky-blue and lemon-yellow HAON identity lock. The approved video reference supplies material, light, depth, and motion grammar only.",
+      "negative": "no live-action, no photoreal human skin, no glossy game-engine PBR, no plastic 3D, no flat vector art, no chibi, no unstable line weight, no silhouette drift, no cel-shading flicker, no random depth-of-field, no parallax tearing, no face drift, no identity merge, no copied reference person, protected character, exact composition, title, logo or text, no purple palette, no all-white/cream Hana mechanic coverall, no white jumpsuit/lab suit/painter suit on Hana, no orange on HAON aircraft, no tiny/toy/RC/backpack HAON drone, no person-sized HAON, no alien planet, no over-futuristic megacity, no military redesign, no horror, no gore, no logos, no readable UI text overlay, no horns or antlers on Mira aircraft.",
       "lightMap": {
             "햇살 스카이블루": "clear sky-blue daylight, hopeful flight tone",
             "웜 옐로우 작업광": "warm yellow workshop light, analog focus, tool glints",
@@ -52333,7 +52344,7 @@ const PROJECTS = {
             "ryo_rescue": "cream/charcoal/denim rescue gear, winch gloves",
             "mira_comm": "red/charcoal/icy-blue comm suit, headset, crescent antenna (no horns)"
       },
-      "stability": "PROJECT LOCK: CloudRider is a 20-episode, 100-minute 2.5D animation package dated 260707. HAON LOCK: final fixed craft only: four circular ducted drone-wings, two-seat rounded cockpit, cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, NO orange, no random redesign. HAON SCALE LOCK: garage-scale two-seat aircraft, not tiny drone/toy/RC/backpack craft; fuselage about 6m, cockpit seats two humans, rotor pods are large and read bigger than Hana\'s shoulders; in garage WS/EWS shots HAON dominates the bay and people are clearly smaller beside it. HANA LOCK: human Korean girl, never mechanical or android. HANA MAINTENANCE LOCK: dark deep-navy mechanic shirt/jacket + navy overalls + brown leather tool harness/apron; cream/off-white only tiny inner-shirt accent, never all-white/cream coverall/jumpsuit/lab suit. DAON LOCK: young Korean female humanoid, black low bun, fabric costume, elegant visible mechanical joints, never faceless robot. FRIEND CRAFT LOCK: Naran tan/turquoise nomad craft; Kai forest-green/leather-brown cliff runner; Ryo cream/charcoal/denim rescue skimmer with winch/stretcher; Mira red/charcoal/icy-blue communication craft with NO horns/antlers/animal protrusions. REGION LOCK: real Earth cultures + modest future devices; no alien city; keep lyrical smooth 2.5D/semi-3D texture.",
+      "stability": "PROJECT LOCK: CloudRider is a 20-episode, 100-minute 2.5D animation package dated 260707. TEXTURE CONSTITUTION 260811: characters use clean expressive 2D linework, stable silhouettes, hand-drawn facial readability, restrained semi-3D volume, painterly cel surfaces and stable eye highlights; aircraft and environments use smoother dimensional form, hand-painted material response and layered multiplane parallax without becoming glossy PBR, plastic 3D, flat vector art, chibi or photoreal humans. The approved video reference is material/light/depth/motion grammar only and never an identity or composition source. HAON LOCK: final fixed craft only: four circular ducted drone-wings, two-seat rounded cockpit, cream-white/deep-navy body, sky-blue lights, lemon-yellow bands, NO orange, no random redesign. HAON SCALE LOCK: garage-scale two-seat aircraft, not tiny drone/toy/RC/backpack craft; fuselage about 6m, cockpit seats two humans, rotor pods are large and read bigger than Hana\'s shoulders; in garage WS/EWS shots HAON dominates the bay and people are clearly smaller beside it. HANA LOCK: human Korean girl, never mechanical or android. HANA MAINTENANCE LOCK: dark deep-navy mechanic shirt/jacket + navy overalls + brown leather tool harness/apron; cream/off-white only tiny inner-shirt accent, never all-white/cream coverall/jumpsuit/lab suit. DAON LOCK: young Korean female humanoid, black low bun, fabric costume, elegant visible mechanical joints, never faceless robot. FRIEND CRAFT LOCK: Naran tan/turquoise nomad craft; Kai forest-green/leather-brown cliff runner; Ryo cream/charcoal/denim rescue skimmer with winch/stretcher; Mira red/charcoal/icy-blue communication craft with NO horns/antlers/animal protrusions. REGION LOCK: real Earth cultures + modest future devices; no alien city.",
       "allAssetRefs": [
             {
                   "no": 1,
@@ -67688,6 +67699,19 @@ if (document.readyState === 'loading') {
   syncLandingProjectMetrics();
 }
 
+function normalizeLearnedProjectConstitutions(project, key) {
+  if (!project || project.__learnedConstitution260811) return;
+  project.__learnedConstitution260811 = true;
+  if (key === 'love-film') {
+    project.visualConstitutionRevision = '260811-love-naturalism-v2';
+    project.quality = '〈오늘은 왠지 LOVE〉 contemporary Korean youth musical-romance photographed as observed real life, not a posed fashion campaign. Fresh horizontal 16:9 cinema with clear motivated daylight, clean whites, sky-blue and leaf-green accents, natural Korean skin tone, restrained film grain, physical cine optics, and readable school geography. Use 50–85mm shallow optical depth only when the shot size supports it; wide shots keep the location readable. Skin retains pores, peach fuzz, tonal variation and asymmetry; eyes remain moist but not enlarged or glassy; hands carry one declared practical task with correct ownership, grip, five fingers and believable joints. Emotion follows objective, obstacle, tactic, beat change and unspoken subtext, rendered as only 2–4 observable cues in breath, precise eyeline, jaw or lip tension, hand-task speed, posture, interpersonal distance and reaction timing. Musical imagination grows from one visible real-world trigger, preserves the same faces and exact wardrobe variants, heightens choreography and light without becoming a generic concert, then returns through a readable physical bridge.';
+    project.negative = 'no cross-project shot, title card, character, location, costume, prop, generated frame or style; no face drift, alternate actor, identity merge, age drift, gender drift, facial averaging, structural beautification, doll skin, oversized glassy eyes, beauty-commercial polish, fashion pose, forced smile, direct-to-camera stare, mannequin body, twisted torso, floating limb, wrong hand ownership, extra finger, synchronized extras or empty reaction; no Japanese setting or signage, no Minami naming, no foreign-school substitution, no real sportswear logo, external brand mark, readable invented Korean text, subtitle, watermark or collage; no fantasy stage, concert light, magical particle field or spectacle in a reality beat; no generic concert or unmotivated choreography in an imagination beat; no muddy beige cast, heavy noir, crushed blacks, orange-teal blockbuster grade, gloomy desaturation, fake Gaussian blur, arbitrary giant bokeh, blown skin, plastic CGI, anime or illustration.';
+    project.stability = 'PROJECT LOCK: love-film only, horizontal 16:9, Korean school-life reality, approved episode and atomic-shot order. ISOLATION LOCK: no asset, generated frame, prompt, title card, character, location, costume or style from 취향의 증거, CloudRider, N-city or any other project may appear. FACE AUTHORITY: each visible character uses one approved primary face plus its matching character sheet only; face accuracy overrides mood, lens, pose and styling. WARDROBE AUTHORITY: one exact semantic costume variant per character per shot; never blend tennis, summer uniform, winter uniform, performance or gymnastics variants. PERFORMANCE LOCK: define objective, obstacle, tactic, beat change and subtext, then show only 2–4 physical cues through breath, eyeline, jaw/lips, practical hand task, posture, distance and reaction timing. REALITY/IMAGINATION LOCK: imagination begins from a declared real physical trigger, keeps identity and wardrobe, and returns through a readable physical bridge; reality shots contain no fantasy-stage leakage. PHYSICS LOCK: weight, anatomy, contact, prop ownership, shadows, reflections, scale and screen direction remain plausible. LIGHTING LOCK: one motivated sun, window or practical origin; close and medium shots may use real optical bokeh, wide geography stays readable.';
+    project.lookRevision = '260811-love-naturalism-v2';
+    project.storyboardRevision = '260811-emotion-observable-cues-v2';
+  }
+}
+
 function selectProject(key) {
   const previousProjectKey = currentProjectKey;
   if (previousProjectKey) {
@@ -67707,6 +67731,7 @@ function selectProject(key) {
   currentProjectKey = key;
   currentProject = PROJECTS[key];
   if (!currentProject) return;
+  normalizeLearnedProjectConstitutions(currentProject, key);
   if (key === 'cloudrider') normalizeCloudRiderPipelineData(currentProject);
   if (typeof syncStyleSelectorToProject === 'function') syncStyleSelectorToProject();
 

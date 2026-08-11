@@ -2,8 +2,8 @@
   'use strict';
   var MAX_SECONDS=30;
   var MAX_IMAGE_REFS=30;
-  var state={items:[],query:'',busy:false};
-  var generated={};
+  var state={items:[],query:'',busy:false,projectKey:''};
+  var generatedByProject=Object.create(null);
 
   function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function js(value){return esc(String(value==null?'':value).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n\u2028\u2029]+/g,' '));}
@@ -11,10 +11,15 @@
   function shots(){try{return typeof SB_SHOTS!=='undefined'&&Array.isArray(SB_SHOTS)?SB_SHOTS:[];}catch(e){return [];}}
   function project(){try{return typeof currentProject!=='undefined'&&currentProject?currentProject:{};}catch(e){return {};}}
   function projectKey(){try{return String(currentProjectKey||project().nameEn||project().name||'project');}catch(e){return 'project';}}
-  function storeKey(){return 'zippy_seedance_sequence_v1_'+projectKey().replace(/[^a-z0-9가-힣_-]+/gi,'-');}
-  function save(){try{localStorage.setItem(storeKey(),JSON.stringify({items:state.items,query:state.query}));}catch(e){}}
+  function safeProjectKey(value){return String(value||'project').replace(/[^a-z0-9가-힣_-]+/gi,'-');}
+  function storeKey(key){return 'zippy_seedance_sequence_v1_'+safeProjectKey(key||projectKey());}
+  function generatedStore(key){key=String(key||projectKey());if(!generatedByProject[key])generatedByProject[key]=Object.create(null);return generatedByProject[key];}
+  function ensureProjectContext(){var key=projectKey();if(state.projectKey!==key)load();return key;}
+  function save(){var key=ensureProjectContext();try{localStorage.setItem(storeKey(key),JSON.stringify({projectKey:key,items:state.items,query:state.query}));}catch(e){}}
   function load(){
-    var raw=null;try{raw=JSON.parse(localStorage.getItem(storeKey())||'null');}catch(e){}
+    var key=projectKey(),raw=null;
+    state.projectKey=key;state.items=[];state.query='';state.busy=false;
+    try{raw=JSON.parse(localStorage.getItem(storeKey(key))||'null');}catch(e){}
     if(raw&&Array.isArray(raw.items))state.items=raw.items.filter(function(item){return shotById(item.id);}).map(function(item){return {id:String(item.id),duration:clamp(item.duration,1,15)};});
     state.query=raw&&typeof raw.query==='string'?raw.query:'';
     enforceLimit();
@@ -32,34 +37,40 @@
   function toast(text,type){var el=document.getElementById('seedancePlannerStatus');if(!el)return;el.textContent=text;el.className='sp-status '+(type||'');}
 
   function addShot(id){
+    ensureProjectContext();
     if(state.items.some(function(item){return item.id===id;}))return;
     var shot=shotById(id);if(!shot)return;var duration=defaultDuration(shot);
     if(totalSeconds()+duration>MAX_SECONDS){toast('30초를 넘습니다. 기존 씬의 시간을 줄인 뒤 추가하세요.','bad');return;}
     state.items.push({id:id,duration:duration});save();render();
   }
-  function removeShot(id){state.items=state.items.filter(function(item){return item.id!==id;});save();render();}
+  function removeShot(id){ensureProjectContext();state.items=state.items.filter(function(item){return item.id!==id;});save();render();}
   function setDuration(id,value){
+    ensureProjectContext();
     var item=state.items.find(function(entry){return entry.id===id;});if(!item)return;
     var previous=item.duration;item.duration=clamp(value,1,15);
     if(totalSeconds()>MAX_SECONDS){item.duration=previous;toast('합계는 30초를 넘을 수 없습니다.','bad');render();return;}
     save();render();
   }
-  function moveShot(id,direction){var index=state.items.findIndex(function(item){return item.id===id;});var next=index+Number(direction||0);if(index<0||next<0||next>=state.items.length)return;var item=state.items.splice(index,1)[0];state.items.splice(next,0,item);save();render();}
-  function clearShots(){state.items=[];save();render();}
+  function moveShot(id,direction){ensureProjectContext();var index=state.items.findIndex(function(item){return item.id===id;});var next=index+Number(direction||0);if(index<0||next<0||next>=state.items.length)return;var item=state.items.splice(index,1)[0];state.items.splice(next,0,item);save();render();}
+  function clearShots(){ensureProjectContext();state.items=[];save();render();}
   function autoFill(){
+    ensureProjectContext();
     var ordered=shots().slice().sort(function(a,b){var ap=a.pri==='must'?0:1,bp=b.pri==='must'?0:1;return ap-bp;});state.items=[];var used=0;
     ordered.some(function(shot){var duration=defaultDuration(shot);if(used+duration>MAX_SECONDS)return false;state.items.push({id:String(shot.id),duration:duration});used+=duration;return used>=MAX_SECONDS;});
     save();render();
   }
-  function setQuery(value){state.query=String(value||'');save();renderShotList();}
+  function setQuery(value){ensureProjectContext();state.query=String(value||'');save();renderShotList();}
 
   function directFrame(shot){
+    var key=ensureProjectContext();
     var b64='';try{if(typeof sbGenImages!=='undefined')b64=sbGenImages[shot.id]||'';}catch(e){}
     try{if(!b64&&typeof sbSeqImages!=='undefined'&&Array.isArray(sbSeqImages[shot.id]))b64=sbSeqImages[shot.id].filter(Boolean)[0]||'';}catch(e){}
     try{if(b64&&typeof zippyHistoryMarker==='function'&&zippyHistoryMarker(b64))b64='';}catch(e){}
-    if(generated[shot.id])b64=generated[shot.id];
+    if(generatedStore(key)[shot.id])b64=generatedStore(key)[shot.id];
     return b64;
   }
+  function isEditorialGraphic(shot){var text=[shot&&shot.frame,shot&&shot.desc,shot&&shot.func].join(' ');return /타이틀|title\s*card|검은\s*화면|black\s*(screen|card)|자막\s*카드/i.test(text);}
+  function needsGtiFrame(shot){return !!shot&&!isEditorialGraphic(shot)&&!directFrame(shot);}
   function normalizeRef(raw,usedBy){
     if(!raw)return null;var data=raw.inline_data||{};
     return {type:String(raw._type||'reference'),label:String(raw._label||'Reference'),b64:String(raw.b64||data.data||''),mime:String(raw.mime||data.mime_type||'image/png'),url:String(raw.url||''),usedBy:[usedBy]};
@@ -81,7 +92,8 @@
   function rawRefsForShot(shot){var refs=[];try{if(typeof getSBRefsForShot==='function')refs=getSBRefsForShot(shot.scene,shot.id)||[];}catch(e){}return refs.map(function(ref){return normalizeRef(ref,shot.id);}).filter(Boolean);}
   function refKey(ref){return String(ref.type||'reference').toLowerCase()+'|'+String(ref.label||'Reference').replace(/\s+/g,' ').trim().toLowerCase();}
   function collectReferences(){
-    var all=[];selectedShots().forEach(function(entry){var shot=entry.shot;all.push({type:'storyboard',label:shot.id+' 첫 프레임',b64:directFrame(shot),mime:'image/png',url:'',usedBy:[shot.id],shotId:shot.id});rawRefsForShot(shot).forEach(function(ref){all.push(ref);});});
+    ensureProjectContext();
+    var all=[];selectedShots().forEach(function(entry){var shot=entry.shot;if(!isEditorialGraphic(shot))all.push({type:'storyboard',label:shot.id+' 첫 프레임',b64:directFrame(shot),mime:'image/png',url:'',usedBy:[shot.id],shotId:shot.id});rawRefsForShot(shot).forEach(function(ref){all.push(ref);});});
     originalCharacterRefs().forEach(function(ref){all.push(ref);});
     var map={},dedup=[];all.forEach(function(ref){var key=refKey(ref),old=map[key];if(!old){map[key]=ref;dedup.push(ref);return;}ref.usedBy.forEach(function(id){if(old.usedBy.indexOf(id)===-1)old.usedBy.push(id);});if(!old.b64&&ref.b64){old.b64=ref.b64;old.mime=ref.mime;}if(!old.url&&ref.url)old.url=ref.url;});
     var priority={storyboard:0,face:1,character:2,costume:3,background:4,location:4,prop:5,reference:6};
@@ -91,10 +103,11 @@
   function refsForShot(refs,shotId){return refs.filter(function(ref){return ref.uploadIndex&&ref.usedBy.indexOf(shotId)!==-1;}).map(function(ref){return '@Image '+ref.uploadIndex;});}
   function emotionalAction(shot){var action=String(shot.desc||'Complete the storyboard action').trim();var beat=String(shot.func||'the scene reaches a readable end state').trim();return action+' Emotional progression is performed through observable breath, gaze, hands, posture, and timing; it resolves as '+beat+'.';}
   function buildPrompt(){
+    ensureProjectContext();
     var entries=selectedShots();if(!entries.length)return '30초 안에 구성할 씬을 왼쪽에서 선택하세요.';
     var refs=collectReferences(),offset=0,timeline=[],audio=[];
-    entries.forEach(function(entry,index){var shot=entry.shot,start=offset,end=Math.round((offset+entry.duration)*10)/10,assigned=refsForShot(refs,shot.id);offset=end;var line=dialogue(shot);var camera='storyboard-defined locked camera';try{if(window.ZippyDirectorV3)camera=window.ZippyDirectorV3.cameraAdvice(shot).id;}catch(e){}
-      timeline.push('[Stage '+(index+1)+' · '+start.toFixed(1)+'–'+end.toFixed(1)+'s]\nScene: '+shotLabel(shot)+' · '+(shotLocation(shot)||'approved project location')+'.\nReferences: '+(assigned.length?assigned.join(', '):'use the declared project canon; create the missing first-frame reference before generation')+'.\nInitial state: begin on a clean, readable composition matching the storyboard and the assigned scene reference.\nPrimary event: '+emotionalAction(shot)+' Only one primary state change occurs in this stage.\nCamera: '+camera+'. Preserve screen direction and finish on one stable composition.\nEnd state: '+String(shot.func||'the visible action completes')+'; hold the readable result before the cut.\nTransition: '+(index===entries.length-1?'finish and hold':'clean motivated hard cut into Stage '+(index+2))+'.');
+    entries.forEach(function(entry,index){var shot=entry.shot,start=offset,end=Math.round((offset+entry.duration)*10)/10,assigned=refsForShot(refs,shot.id),editorial=isEditorialGraphic(shot);offset=end;var line=dialogue(shot);var camera='storyboard-defined locked camera';try{if(window.ZippyDirectorV3)camera=window.ZippyDirectorV3.cameraAdvice(shot).id;}catch(e){}
+      timeline.push('[Stage '+(index+1)+' · '+start.toFixed(1)+'–'+end.toFixed(1)+'s]\nScene: '+shotLabel(shot)+' · '+(shotLocation(shot)||'approved project location')+'.\nReferences: '+(editorial?'no generated image reference; use a clean neutral plate and add all readable title typography in editing':assigned.length?assigned.join(', '):'use the declared project canon; create the missing first-frame reference before generation')+'.\nInitial state: '+(editorial?'begin on a clean, text-free neutral plate reserved for post-production graphics.':'begin on a clean, readable composition matching the storyboard and the assigned scene reference.')+'\nPrimary event: '+emotionalAction(shot)+' Only one primary state change occurs in this stage.\nCamera: '+(editorial?'locked frame with no generated lettering':camera)+'. Preserve screen direction and finish on one stable composition.\nEnd state: '+String(shot.func||'the visible action completes')+'; hold the readable result before the cut.\nTransition: '+(index===entries.length-1?'finish and hold':'clean motivated hard cut into Stage '+(index+2))+'.');
       if(line)audio.push('Stage '+(index+1)+' · Korean dialogue in the established voice: {'+line.replace(/[{}]/g,'')+'}');
     });
     var manifest=refs.slice(0,MAX_IMAGE_REFS).map(function(ref){return '@Image '+ref.uploadIndex+' — '+ref.type.toUpperCase()+' — '+ref.label+' — role only; used in '+ref.usedBy.join(', ')+(ref.ready?'':' — PREPARE BEFORE GENERATION');}).join('\n');
@@ -112,8 +125,9 @@
     el.innerHTML=filtered.slice(0,240).map(function(shot){return '<div class="sp-shot-row '+(added[shot.id]?'added':'')+'"><div><b>'+esc(shotLabel(shot))+'</b><small>'+esc((shotLocation(shot)?shotLocation(shot)+' · ':'')+(shot.desc||shot.func||shot.frame||''))+'</small></div><button '+(added[shot.id]?'disabled':'')+' onclick="ZippySeedancePlanner.addShot(\''+js(shot.id)+'\')">'+(added[shot.id]?'추가됨':'+ 추가')+'</button></div>';}).join('')+(filtered.length>240?'<div class="sp-limit">검색 결과가 많아 240개까지만 표시합니다. 쇼트 ID나 장면 설명으로 검색하세요.</div>':'');
   }
   function refsHtml(refs){if(!refs.length)return '<div class="sp-empty">씬을 선택하면 필요한 레퍼런스가 표시됩니다.</div>';return refs.map(function(ref,index){var stateClass=ref.uploadIndex?(ref.ready?'ready':'missing'):'omitted',stateText=ref.uploadIndex?(ref.ready?'준비됨':'준비 필요'):'30장 초과';return '<div class="sp-ref"><div class="sp-ref-num">'+(ref.uploadIndex?'@'+ref.uploadIndex:'—')+'</div><div><b>'+esc(refTypeLabel(ref.type)+' · '+ref.label)+'</b><small>'+esc(ref.usedBy.join(', '))+' · '+esc(refFilename(ref,index))+'</small></div><span class="sp-ref-state '+stateClass+'">'+stateText+'</span></div>';}).join('');}
-  function gtiHtml(entries){if(!entries.length)return '<div class="sp-empty">씬을 선택하면 GTI 첫 프레임 제작 항목이 표시됩니다.</div>';return entries.map(function(entry){var shot=entry.shot,b64=directFrame(shot),ready=!!b64;return '<div class="sp-gti"><div><b>'+esc(shotLabel(shot))+' · Seedance 첫 프레임</b><small>'+esc(shot.desc||shot.func||'')+'<br>기존 캐릭터·의상·공간·소품 에셋을 입력으로 사용합니다.</small></div><div class="sp-gti-tools">'+(ready?'<img src="data:image/png;base64,'+b64+'" alt="">':'')+'<button class="sp-btn '+(ready?'':'green')+'" '+(state.busy?'disabled':'')+' onclick="ZippySeedancePlanner.generateFrame(\''+js(shot.id)+'\')">'+(ready?'GTI 재생성':'GTI 생성')+'</button></div></div>';}).join('');}
+  function gtiHtml(entries){var missing=entries.filter(function(entry){return needsGtiFrame(entry.shot);});if(!entries.length)return '<div class="sp-empty">씬을 선택하면 GTI 첫 프레임 제작 항목이 표시됩니다.</div>';if(!missing.length)return '<div class="sp-empty">부족한 첫 프레임이 없습니다. 기존 스토리보드·GTI 프레임을 그대로 사용합니다.</div>';return missing.map(function(entry){var shot=entry.shot;return '<div class="sp-gti"><div><b>'+esc(shotLabel(shot))+' · Seedance 첫 프레임</b><small>'+esc(shot.desc||shot.func||'')+'<br>기존 캐릭터·의상·공간·소품 에셋을 입력으로 사용합니다.</small></div><div class="sp-gti-tools"><button class="sp-btn green" '+(state.busy?'disabled':'')+' onclick="ZippySeedancePlanner.generateFrame(\''+js(shot.id)+'\')">GTI 생성</button></div></div>';}).join('');}
   function render(){
+    ensureProjectContext();
     var el=document.getElementById('seedancePlannerApp');if(!el)return;var total=totalSeconds(),refs=collectReferences(),entries=selectedShots(),over=total>MAX_SECONDS;
     el.innerHTML='<section class="sp-shell"><div class="sp-hero"><div><div class="sp-kicker">SEEDANCE 2.5 · 30S MULTI-SCENE PROMPT</div><h2>여러 씬을 하나의 30초 프롬프트로 구성</h2><p>스토리보드 쇼트를 순서대로 묶고 시간을 배분하면 통합 Seedance 프롬프트와 정확한 레퍼런스 업로드 순서를 만듭니다. 이 탭은 프롬프트·레퍼런스 준비 전용이며 영상을 직접 생성하지 않습니다.</p></div><div class="sp-meter '+(over?'over':'')+'"><b>'+total.toFixed(1)+' / 30.0s</b><span>'+entries.length+' SCENES SELECTED</span></div></div><div class="sp-grid"><section class="sp-card"><h3>1 · 30초 씬 타임라인</h3><p>각 씬은 하나의 주요 상태 변화만 갖도록 시간을 배분합니다.</p><div class="sp-actions"><button class="sp-btn primary" onclick="ZippySeedancePlanner.autoFill()">필수 쇼트 자동 담기</button><button class="sp-btn danger" onclick="ZippySeedancePlanner.clearShots()">전체 비우기</button></div><div class="sp-selected">'+selectedHtml()+'</div><h3 style="margin-top:16px">스토리보드에서 추가</h3><input class="sp-search" value="'+esc(state.query)+'" placeholder="쇼트 ID · 씬 · 장소 · 설명 검색" oninput="ZippySeedancePlanner.setQuery(this.value)"><div class="sp-shot-list" id="seedanceShotList"></div></section><section class="sp-card"><h3>2 · Seedance 통합 프롬프트</h3><p>선택 순서와 시간, 감정 변화, 컷 전환, 레퍼런스 역할이 한 번에 반영됩니다.</p><textarea class="sp-prompt" id="seedanceSequencePrompt" readonly>'+esc(buildPrompt())+'</textarea><div class="sp-actions"><button class="sp-btn primary" onclick="ZippySeedancePlanner.copyPrompt()">프롬프트 복사</button><button class="sp-btn" onclick="ZippySeedancePlanner.downloadPrompt()">TXT 저장</button></div><div id="seedancePlannerStatus" class="sp-status">'+(refs.length>MAX_IMAGE_REFS?'레퍼런스가 30장을 넘었습니다. 우선순위 상위 30장만 프롬프트 업로드 목록에 사용합니다.':'씬을 수정하면 프롬프트와 레퍼런스 목록이 즉시 다시 만들어집니다.')+'</div></section></div><section class="sp-card"><h3>3 · 레퍼런스 업로드 순서와 파일</h3><p>선택한 씬의 기존 에셋과 파이프라인 생성 프레임을 자동 수집합니다. 파일명은 같은 씬 구성에서 항상 동일합니다.</p><div class="sp-actions"><button class="sp-btn green" '+(!entries.length?'disabled':'')+' onclick="ZippySeedancePlanner.downloadReferencePack()">레퍼런스 ZIP 한 번에 다운로드</button></div><div class="sp-download-note">고정 파일명: CHARACTER__인물명__FACE / CHARACTER__인물명__SHEET / COSTUME__인물명 / LOCATION__장소명 / PROP__소품명 / STORYBOARD__쇼트ID__FRAME</div><div class="sp-ref-list">'+refsHtml(refs)+'</div></section><section class="sp-card"><h3>4 · 부족한 레퍼런스 GTI 자동 생성</h3><p>기존 에셋을 입력으로 사용해 선택한 씬의 Seedance 첫 프레임을 만듭니다. 생성 결과는 스토리보드 프레임으로 저장되어 ZIP에 자동 포함됩니다.</p><div class="sp-actions"><button class="sp-btn gold" '+(!entries.length||state.busy?'disabled':'')+' onclick="ZippySeedancePlanner.generateMissing()">부족한 첫 프레임 모두 GTI 생성</button></div><div class="sp-gti-list">'+gtiHtml(entries)+'</div></section></section>';
     renderShotList();
@@ -143,12 +157,12 @@
 
   function gtiRefs(shot){var priority={face:0,character:1,costume:2,background:3,location:3,prop:4};return rawRefsForShot(shot).filter(function(ref){return ref.b64;}).sort(function(a,b){var pa=priority[a.type]!=null?priority[a.type]:9,pb=priority[b.type]!=null?priority[b.type]:9;return pa-pb;}).slice(0,8).map(function(ref){return {b64:ref.b64,mime:ref.mime,_type:ref.type,_label:ref.label};});}
   function gtiPrompt(shot){var imagePrompt='';try{if(window.ZippyDirectorV3)imagePrompt=window.ZippyDirectorV3.buildPrompt(shot)||'';}catch(e){}return 'SEEDANCE REFERENCE FRAME TASK\nCreate exactly one single cinematic first frame for '+shot.id+'. Use the supplied project assets as identity, face, wardrobe, location, and prop authorities. Preserve each asset only in its declared role. The composition must depict the instant immediately before the primary action begins, with readable geography and stable screen direction. This is a finished cinematic frame, not a character sheet, contact sheet, split screen, collage, or before-and-after layout. Do not invent a new face, outfit, location, prop, logo, or readable text.\n\n'+imagePrompt;}
-  async function generateFrame(id){var shot=shotById(id);if(!shot||state.busy)return;state.busy=true;render();toast(id+' · 기존 에셋으로 GTI 첫 프레임 생성 중...');try{if(typeof callGtiBridge!=='function')throw new Error('GTI 브릿지 함수를 찾지 못했습니다.');var refs=gtiRefs(shot);if(!refs.length)throw new Error('이 씬에 사용할 기존 에셋이 없습니다. 먼저 캐릭터·의상·공간 에셋을 불러오세요.');var result=await callGtiBridge({images:refs,prompt:gtiPrompt(shot),onProgress:function(message){toast(id+' · '+message);}});if(!result||!result.imgB64)throw new Error('GTI 이미지 결과가 없습니다.');generated[id]=result.imgB64;try{if(typeof sbGenImages!=='undefined')sbGenImages[id]=result.imgB64;}catch(e){}try{if(typeof saveStoryboardState==='function')saveStoryboardState('seedance-gti-reference');}catch(e){}try{if(typeof saveToHistory==='function')saveToHistory(result.imgB64,'Seedance-GTI',id+' first frame');}catch(e){}try{if(typeof zippyNasSaveImage==='function')zippyNasSaveImage('seedance_reference',id,result.imgB64,'image/png',{shotId:id,prompt:gtiPrompt(shot),reason:'seedance-30s-reference'});}catch(e){}try{if(typeof buildStoryboardTimeline==='function')buildStoryboardTimeline();}catch(e){}toast(id+' · GTI 첫 프레임 생성·저장 완료','good');}catch(e){toast(id+' · '+(e.message||e),'bad');}finally{state.busy=false;render();}}
-  async function generateMissing(){var entries=selectedShots().filter(function(entry){return !directFrame(entry.shot);});if(!entries.length){toast('부족한 첫 프레임이 없습니다.','good');return;}for(var i=0;i<entries.length;i++){await generateFrame(entries[i].shot.id);if(state.busy)break;}}
+  async function generateFrame(id){ensureProjectContext();var originKey=projectKey(),shot=shotById(id);if(!shot||state.busy||isEditorialGraphic(shot))return;state.busy=true;render();toast(id+' · 기존 에셋으로 GTI 첫 프레임 생성 중...');try{if(typeof callGtiBridge!=='function')throw new Error('GTI 브릿지 함수를 찾지 못했습니다.');var refs=gtiRefs(shot);if(!refs.length)throw new Error('이 씬에 사용할 기존 에셋이 없습니다. 먼저 캐릭터·의상·공간 에셋을 불러오세요.');var result=await callGtiBridge({images:refs,prompt:gtiPrompt(shot),onProgress:function(message){if(projectKey()===originKey)toast(id+' · '+message);}});if(!result||!result.imgB64)throw new Error('GTI 이미지 결과가 없습니다.');if(projectKey()!==originKey)throw new Error('생성 중 프로젝트가 변경되어 결과를 현재 프로젝트에 저장하지 않았습니다.');generatedStore(originKey)[id]=result.imgB64;try{if(typeof sbGenImages!=='undefined')sbGenImages[id]=result.imgB64;}catch(e){}try{if(typeof saveStoryboardState==='function')saveStoryboardState('seedance-gti-reference');}catch(e){}try{if(typeof saveToHistory==='function')saveToHistory(result.imgB64,'Seedance-GTI',originKey+' · '+id+' first frame');}catch(e){}try{if(typeof zippyNasSaveImage==='function')zippyNasSaveImage('seedance_reference',id,result.imgB64,'image/png',{projectKey:originKey,shotId:id,prompt:gtiPrompt(shot),reason:'seedance-30s-reference'});}catch(e){}try{if(typeof buildStoryboardTimeline==='function')buildStoryboardTimeline();}catch(e){}toast(id+' · GTI 첫 프레임 생성·저장 완료','good');}catch(e){if(projectKey()===originKey)toast(id+' · '+(e.message||e),'bad');}finally{state.busy=false;render();}}
+  async function generateMissing(){ensureProjectContext();var originKey=projectKey(),entries=selectedShots().filter(function(entry){return needsGtiFrame(entry.shot);});if(!entries.length){toast('부족한 첫 프레임이 없습니다.','good');return;}for(var i=0;i<entries.length;i++){if(projectKey()!==originKey)break;await generateFrame(entries[i].shot.id);}}
 
   function openForShot(id){if(typeof window.goStep==='function')window.goStep('seedance');if(id&&!state.items.some(function(item){return item.id===id;}))addShot(id);else render();}
-  function init(){load();render();}
-  var api={init:init,render:render,addShot:addShot,removeShot:removeShot,setDuration:setDuration,moveShot:moveShot,clearShots:clearShots,autoFill:autoFill,setQuery:setQuery,copyPrompt:copyPrompt,downloadPrompt:downloadPrompt,downloadReferencePack:downloadReferencePack,generateFrame:generateFrame,generateMissing:generateMissing,openForShot:openForShot,buildPrompt:buildPrompt,collectReferences:collectReferences,state:function(){return {items:state.items.slice(),totalSeconds:totalSeconds()};}};
+  function init(){if(state.projectKey!==projectKey())load();render();}
+  var api={init:init,render:render,addShot:addShot,removeShot:removeShot,setDuration:setDuration,moveShot:moveShot,clearShots:clearShots,autoFill:autoFill,setQuery:setQuery,copyPrompt:copyPrompt,downloadPrompt:downloadPrompt,downloadReferencePack:downloadReferencePack,generateFrame:generateFrame,generateMissing:generateMissing,openForShot:openForShot,buildPrompt:buildPrompt,collectReferences:collectReferences,state:function(){ensureProjectContext();return {projectKey:state.projectKey,items:state.items.slice(),totalSeconds:totalSeconds()};}};
   window.ZippySeedancePlanner=api;
   document.addEventListener('DOMContentLoaded',function(){load();});
 })();

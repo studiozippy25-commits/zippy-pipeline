@@ -156,6 +156,7 @@
   }).filter(function(r){var key=r.label+'|'+r.b64.slice(0,32);if(!r.b64||seen[key])return false;seen[key]=1;return true;});}
   function faceVisibleInShot(shot){
     if(!exactPeople(shot).count)return false;var text=[shot&&shot.frame,shot&&shot.desc,shot&&shot.func].join(' ');
+    if(/face\s*(?:is\s*)?unreadable|distant\s+(?:figure|face)|tiny\s+distant|원거리|실루엣|silhouette|back\s+to\s+camera|얼굴\s*(?:식별|판독)\s*불가/i.test(text)&&!/\b(?:CU|MCU|BCU|ECU)\b|close[- ]?up|portrait|얼굴\s*클로즈/i.test(text))return false;
     if(/손|손가락|발|신발|카드|라벨|소품|오브제|기체|풍경|전경|insert|macro|object|prop|back\s*view|후면|등만|실루엣만/i.test(text)&&!/얼굴|표정|눈빛|face|portrait|headshot/i.test(text))return false;
     return true;
   }

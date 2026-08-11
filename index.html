@@ -73688,8 +73688,9 @@ ${negativeBlock}`;
 	    sbGrokStoryboardFrameCache[shotId] = imgB64;
 	    if (typeof recordContinuityCardForShot === 'function') recordContinuityCardForShot(shot, sbCam, imgB64);
 	    const generationReason = useGrokImageBridge ? 'grok-storyboard-generated' : 'shot-generated';
-	    await saveStoryboardFrameToHistory(shotId, imgB64, 0, generationReason);
-	    zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: generationReason});
+	    // The generated frame is the primary result. History/NAS are best-effort
+	    // persistence and must never leave a completed card stuck behind loading UI.
+	    sbHideLoading(shotId);
 	    try {
 	      buildStoryboardTimeline();
 	      if (typeof hydrateVisibleSBTimelineImagesSoon === 'function') hydrateVisibleSBTimelineImagesSoon();
@@ -73700,6 +73701,8 @@ ${negativeBlock}`;
 	    if (typeof sbRefreshVideoShotOptions === 'function') sbRefreshVideoShotOptions();
 	    saveStoryboardState(generationReason);
 	    if (window.ZippyDirectorV3) window.ZippyDirectorV3.afterGenerate(shot, {ok:true, provider:useGrokImageBridge ? 'grok-image' : 'storyboard-image', model:result.model || result.imageTool || '', cost:result.cost || result.cost_usd || (result.usage && result.usage.cost), jobId:result.jobId || ''});
+	    Promise.resolve(saveStoryboardFrameToHistory(shotId, imgB64, 0, generationReason)).catch(function(historyErr) { console.warn('Storyboard history persistence failed:', historyErr); });
+	    try { zippyNasSaveImage('storyboard', shotId, imgB64, 'image/png', {shotId: shotId, shot: shot, reason: generationReason}); } catch(nasErr) { console.warn('Storyboard NAS persistence failed:', nasErr); }
 	    return {ok:true, shotId:shotId, b64:imgB64};
 	  } catch(e) {
 	    if (_seq && _seq.returnOnly) throw e;

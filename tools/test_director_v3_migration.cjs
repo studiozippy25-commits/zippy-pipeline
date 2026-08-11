@@ -76,6 +76,7 @@ assert.equal(typeof api.openLightPlot, 'function');
 assert.equal(typeof api.resetLightPlot, 'function');
 assert.equal(typeof api.runFaceAudit, 'function');
 assert.equal(typeof api.regenerateFromAudit, 'function');
+assert.match(source, /setTimeout\(function\(\)\{delete faceAuditBusy\[id\];performFaceAudit\(id\);\},100\)/, 'face audit must leave the click event before vision work');
 assert.match(api.buildRegenerationPromptById(shot.id), /FACE IDENTITY IS THE PRIMARY ACCEPTANCE TARGET/);
 
 shot.desc = '이루리가 정이든을 바라보고 숨을 멈춘다. 두 사람의 얼굴과 눈빛이 선명하게 보인다.';

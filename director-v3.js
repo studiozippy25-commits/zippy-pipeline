@@ -344,9 +344,12 @@
       'Deliver one clean '+formatOf(state)+' cinematic storyboard frame. No collage, contact sheet, split screen, caption, logo, watermark, or explanation.'
     ].join('\n\n');
   }
-  async function runFaceAudit(id){
-    if(faceAuditBusy[id])return;var shot=selectedShotFrom(id),origin=projectKey(),frame=generatedFrame(shot),refs=faceRefsForShot(shot);if(!shot||!frame){toast('먼저 이 쇼트의 이미지를 생성하세요.','warn');return;}if(!faceVisibleInShot(shot)){toast('이 쇼트는 얼굴 비노출 컷으로 검사 대상이 아닙니다.','warn');return;}if(!refs.length){toast('승인된 FACE 레퍼런스가 없어 비교할 수 없습니다.','bad');return;}if(typeof callLLM!=='function'){toast('파이프라인 비전 LLM 연결을 찾지 못했습니다.','bad');return;}
-    var authorities=selectFaceAuthorities(shot,refs);if(!authorities.length){toast('등장인물과 연결된 얼굴 원본을 찾지 못했습니다.','bad');return;}faceAuditBusy[id]=true;openShot(id);await new Promise(function(resolve){setTimeout(resolve,0);});
+  function runFaceAudit(id){
+    if(faceAuditBusy[id])return;faceAuditBusy[id]='scheduled';openShot(id);setTimeout(function(){delete faceAuditBusy[id];performFaceAudit(id);},100);
+  }
+  async function performFaceAudit(id){
+    if(faceAuditBusy[id])return;var shot=selectedShotFrom(id),origin=projectKey(),frame=generatedFrame(shot),refs=faceRefsForShot(shot);if(!shot||!frame){toast('먼저 이 쇼트의 이미지를 생성하세요.','warn');openShot(id);return;}if(!faceVisibleInShot(shot)){toast('이 쇼트는 얼굴 비노출 컷으로 검사 대상이 아닙니다.','warn');openShot(id);return;}if(!refs.length){toast('승인된 FACE 레퍼런스가 없어 비교할 수 없습니다.','bad');openShot(id);return;}if(typeof callLLM!=='function'){toast('파이프라인 비전 LLM 연결을 찾지 못했습니다.','bad');openShot(id);return;}
+    var authorities=selectFaceAuthorities(shot,refs);if(!authorities.length){toast('등장인물과 연결된 얼굴 원본을 찾지 못했습니다.','bad');openShot(id);return;}faceAuditBusy[id]=true;openShot(id);
     try{
       var auditFrame=await prepareFaceAuditImage(frame),characters=[];for(var i=0;i<authorities.length;i++){var a=authorities[i],auditRef=await prepareFaceAuditImage(a.ref),out=await callLLM({images:[{b64:auditRef.b64,mime:auditRef.mime,_type:'face',_label:'APPROVED FACE AUTHORITY — '+a.name},{b64:auditFrame.b64,mime:auditFrame.mime,_type:'generated',_label:'GENERATED STORYBOARD FRAME'}],prompt:faceAuditPrompt(a.name,a.ref.label)}),parsed=parseJsonObject(out&&out.textOut||''),status=String(parsed.status||'unavailable').toLowerCase(),score=Math.max(0,Math.min(100,Number(parsed.score||0)));if(['pass','hold','fail','unavailable'].indexOf(status)===-1)status='unavailable';if(status!=='unavailable')status=score>=90?'pass':(score>=80?'hold':'fail');characters.push({label:a.name,authority:a.ref.label,score:score,status:status,visibility:String(parsed.visibility||''),confidence:Math.max(0,Math.min(100,Number(parsed.confidence||0))),mismatches:Array.isArray(parsed.mismatches)?parsed.mismatches.slice(0,8).map(String):[],summary:String(parsed.summary||'')});}
       if(projectKey()!==origin||frameSignature(generatedFrame(shot))!==frameSignature(frame)){toast('프로젝트 또는 생성 프레임이 바뀌어 검사 결과를 저장하지 않았습니다.','warn');return;}

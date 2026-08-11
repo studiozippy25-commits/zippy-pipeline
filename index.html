@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="location-scout.css">
 <link rel="stylesheet" href="director-v3.css">
 <link rel="stylesheet" href="sheet-maker.css">
+<link rel="stylesheet" href="seedance-planner.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -1169,12 +1170,18 @@ input[type=file]{display:none}
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
   <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
   <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
+  <button class="stab" id="tabSeedance" onclick="goStep('seedance')" style="border-bottom-color:#60A5FA;color:#60A5FA">Seedance 프롬프트</button>
   <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
   <button class="stab" id="tabCam" onclick="goStep('cam')" style="border-bottom-color:#A78BFA;color:#A78BFA">카메라 무빙</button>
   <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
+</div>
+
+<!-- ═══════════════ SEEDANCE 30S MULTI-SCENE PROMPT PLANNER ═══════════════ -->
+<div class="panel" id="pSeedance">
+  <div id="seedancePlannerApp"></div>
 </div>
 
 <!-- ═══════════════ GPT IMAGE FACE LOCK SHEET MAKER ═══════════════ -->
@@ -81089,10 +81096,11 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSheet','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
+    else if(n==='seedance') el.classList.toggle('active',id==='pSeedance');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
     else if(n==='cam') el.classList.toggle('active',id==='pCam');
     else if(n==='premiere') el.classList.toggle('active',id==='pPremiere');
@@ -81110,6 +81118,7 @@ function goStep(n){
   document.getElementById('tab0').className='stab '+(n===0?'a1':'');
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
+  document.getElementById('tabSeedance').className='stab '+(n==='seedance'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
   document.getElementById('tabCam').className='stab '+(n==='cam'?'a3':'');
   document.getElementById('tabPremiere').className='stab '+(n==='premiere'?'a1':'');
@@ -81139,6 +81148,7 @@ function goStep(n){
   if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
   if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();
   if(n==='sheet' && window.ZippySheetMaker) window.ZippySheetMaker.init();
+  if(n==='seedance' && window.ZippySeedancePlanner) window.ZippySeedancePlanner.init();
 }
 function setSt(pfx,idx){
   for(let i=0;i<4;i++){const el=document.getElementById(`${pfx}${i}`);if(el)el.className='ps'+(i<idx?' fin':i===idx?' cur':'');}
@@ -85175,6 +85185,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
 <script src="location-scout.js"></script>
 <script src="director-v3.js"></script>
 <script src="sheet-maker.js"></script>
+<script src="seedance-planner.js"></script>
 
 </body>
 </html>

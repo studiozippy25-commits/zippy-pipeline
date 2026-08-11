@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'director-v3.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const sheetSource = fs.readFileSync(path.join(root, 'sheet-maker.js'), 'utf8');
+const seedanceSource = fs.readFileSync(path.join(root, 'seedance-planner.js'), 'utf8');
 
 const storage = new Map();
 const elements = new Map([
@@ -108,7 +109,7 @@ assert.equal(passed.ok, true, 'completed registry should pass production gates')
 assert.equal(passed.camera.risk, 'HIGH');
 assert.match(passed.camera.alternative, /slider-right/);
 assert.equal(passed.routePlan.image, 'gemini-image');
-assert.equal(passed.routePlan.video, 'seedance-2.5');
+assert.equal(passed.routePlan.video, 'existing-video-provider');
 assert.equal(passed.routePlan.post, 'AE 텍스트 합성');
 
 const prompt = api.buildPromptById(shot.id);
@@ -123,7 +124,8 @@ assert.match(prompt, /EXACT 1 CHARACTERS — NO DUPLICATES/);
 assert.match(prompt, /180° AXIS/);
 assert.match(prompt, /the jaw sets and releases/);
 assert.match(api.composeImagePrompt(shot, 'LEGACY'), /DIRECTOR V3 CONTROL LAYER/);
-const seedancePrompt = api.composeVideoPrompt(shot, 'LEGACY');
+assert.equal(api.composeVideoPrompt(shot, 'LEGACY'), 'LEGACY', 'existing video providers must keep their own prompt path');
+const seedancePrompt = api.buildSeedancePromptById(shot.id);
 for (const heading of ['[Generation Goal]', '[Reference Roles]', '[Subject Profiles]', '[Scene]', '[Stage 1]', '[Camera]', '[Visual Treatment]', '[Audio]', '[Maintain Consistency]']) {
   assert.match(seedancePrompt, new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 }
@@ -175,14 +177,25 @@ assert.match(html, /id="directorV3Mount"/);
 assert.match(html, /id="directorV3AssetMount"/);
 assert.match(html, /id="pSheet"/);
 assert.match(html, /id="tabSheet"/);
+assert.match(html, /id="pSeedance"/);
+assert.match(html, /id="tabSeedance"/);
+assert.match(html, /Seedance 프롬프트/);
 assert.match(html, /GPT 이미지로 얼굴 고정 시트 만들기/);
 assert.match(html, /src="sheet-maker\.js"/);
 assert.match(html, /href="sheet-maker\.css"/);
+assert.match(html, /src="seedance-planner\.js"/);
+assert.match(html, /href="seedance-planner\.css"/);
 assert.match(sheetSource, /FOUR full-body views in a row/);
 assert.match(sheetSource, /FRONT, 3\/4, SIDE PROFILE, BACK/);
 assert.match(sheetSource, /one large face close-up inset panel/);
 assert.match(sheetSource, /Never render a reference sheet or duplicate a subject/);
 assert.match(sheetSource, /assetLib\.char\.push/);
+assert.match(seedanceSource, /MAX_SECONDS=30/);
+assert.match(seedanceSource, /MAX_IMAGE_REFS=30/);
+assert.match(seedanceSource, /callGtiBridge/);
+assert.match(seedanceSource, /zipStore/);
+assert.match(seedanceSource, /CHARACTER__/);
+assert.match(seedanceSource, /STORYBOARD__/);
 assert.match(html, /href="director-v3\.css"/);
 assert.match(html, /src="director-v3\.js"/);
 assert.equal((html.match(/ZippyDirectorV3\.cardControls\(shot\)/g) || []).length, 2);

@@ -906,6 +906,69 @@ input[type=file]{display:none}
 
 </style>
   <!-- CLOUDRIDER_CANON_ERROR_FIX_260710 -->
+<style>
+/* ═══ ZIPPY NODE CANVAS ═══ */
+.znode-shell{display:grid;gap:14px}
+.znode-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 14px;background:var(--sf);border:1px solid var(--bd);border-radius:8px}
+.znode-toolbar .znode-status{margin-left:auto;color:var(--mu);font-family:var(--font-mono);font-size:12px}
+.znode-add{background:transparent;border:1px solid var(--bd);color:var(--mu);padding:7px 10px;border-radius:6px;font-family:var(--font-mono);font-size:12px;cursor:pointer}
+.znode-add:hover{border-color:var(--cy);color:var(--cy)}
+.znode-add.active{border-color:var(--cy);color:var(--cy);background:rgba(34,211,238,.08)}
+.znode-run{background:var(--cy);color:#07151a;border:0;padding:8px 14px;border-radius:6px;font-family:var(--font-mono);font-weight:800;cursor:pointer}
+.znode-run:hover{filter:brightness(1.08)}
+.znode-run:disabled{opacity:.45;cursor:not-allowed}
+.znode-stop{background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.45);padding:8px 12px;border-radius:6px;font-family:var(--font-mono);font-weight:800;cursor:pointer}
+.znode-stop:hover{background:rgba(248,113,113,.2)}
+.znode-stop:disabled{opacity:.4;cursor:not-allowed}
+.znode-batch{display:flex;align-items:center;gap:6px;padding:8px 10px;background:#18212a;border:1px solid #3b4652;border-radius:6px}
+.znode-batch select{background:#111820;color:var(--tx);border:1px solid #475569;border-radius:4px;padding:5px;font:11px var(--font-mono)}
+.znode-zoom{color:#94a3b8;font:11px var(--font-mono);padding:0 4px;white-space:nowrap}
+.znode-canvas{position:relative;min-height:900px;overflow:auto;background:#111820;border:1px solid var(--bd);border-radius:8px;background-image:linear-gradient(rgba(156,163,175,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(156,163,175,.07) 1px,transparent 1px);background-size:24px 24px;cursor:grab;touch-action:none}
+.znode-canvas.panning{cursor:grabbing;user-select:none}
+.znode-canvas.connecting{cursor:crosshair}
+.znode-links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.znode-link{stroke:#64748b;stroke-width:2;fill:none;marker-end:url(#znode-arrow)}
+.znode-card{position:absolute;width:250px;background:#1b232c;border:1px solid #3b4652;border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,.26);overflow:hidden;user-select:none}
+.znode-card.selected{border-color:var(--cy);box-shadow:0 0 0 2px rgba(34,211,238,.15),0 10px 26px rgba(0,0,0,.26)}
+.znode-card.running{border-color:var(--wn)}
+.znode-card.done{border-color:var(--ok)}
+.znode-card.error{border-color:var(--er)}
+.znode-card.stopped{border-color:var(--wn)}
+.znode-head{display:flex;align-items:center;gap:8px;padding:9px 10px;background:#232d37;border-bottom:1px solid #3b4652;cursor:grab}
+.znode-head:active{cursor:grabbing}
+.znode-icon{width:22px;height:22px;display:grid;place-items:center;border-radius:5px;background:rgba(34,211,238,.12);color:var(--cy);font-family:var(--font-mono);font-size:11px;font-weight:800}
+.znode-title{font-family:var(--font-mono);font-size:12px;font-weight:800;color:var(--tx);flex:1}
+.znode-remove{border:0;background:transparent;color:#94a3b8;cursor:pointer;font-size:16px;line-height:1;padding:0 3px}
+.znode-remove:hover{color:var(--er)}
+.znode-body{padding:10px;display:grid;gap:8px}
+.znode-body textarea,.znode-body input,.znode-body select{width:100%;background:#111820;color:var(--tx);border:1px solid #3b4652;border-radius:5px;padding:7px 8px;font-family:var(--font-mono);font-size:11px;outline:none}
+.znode-body textarea{min-height:72px;resize:vertical;line-height:1.45}
+.znode-body textarea:focus,.znode-body input:focus,.znode-body select:focus{border-color:var(--cy)}
+.znode-label{font-family:var(--font-mono);font-size:10px;color:var(--mu)}
+.znode-file{font-family:var(--font-mono);font-size:10px;color:var(--mu)}
+.znode-file input{padding:5px}
+.znode-connect{border:1px solid #475569;background:transparent;color:#cbd5e1;border-radius:5px;padding:5px 7px;font-family:var(--font-mono);font-size:10px;cursor:pointer}
+.znode-connect.active{border-color:var(--cy);color:var(--cy)}
+.znode-output{padding:7px 8px;background:rgba(0,0,0,.16);border:1px solid rgba(148,163,184,.16);border-radius:5px;color:#cbd5e1;font-family:var(--font-mono);font-size:10px;line-height:1.45;word-break:break-word}
+.znode-output img,.znode-output video{display:block;width:100%;max-height:140px;object-fit:contain;background:#000;border-radius:4px;margin-top:5px}
+.znode-thumb{display:block;width:100%;height:116px;object-fit:cover;background:#0b1015;border-radius:5px;border:1px solid rgba(148,163,184,.16)}
+.znode-shot-thumb{height:104px}
+.znode-preview-loading{margin-top:-27px;position:relative;text-align:center;color:#64748b;font:10px var(--font-mono);pointer-events:none}
+.znode-shot-action{background:rgba(34,211,238,.12);color:var(--cy);border:1px solid rgba(34,211,238,.38);border-radius:5px;padding:7px 9px;font:700 11px var(--font-mono);cursor:pointer}
+.znode-shot-action:hover{background:rgba(34,211,238,.2)}
+.znode-shot-action:disabled{opacity:.45;cursor:not-allowed}
+.znode-shot-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.znode-shot-video-action{color:#c4b5fd;border-color:rgba(167,139,250,.45);background:rgba(167,139,250,.1)}
+.znode-shot-video-action:hover{background:rgba(167,139,250,.2)}
+.znode-thumb-empty{display:grid;place-items:center;height:72px;background:#111820;border:1px dashed #475569;border-radius:5px;color:#64748b;font-family:var(--font-mono);font-size:10px;text-align:center}
+.znode-visual-meta{display:flex;justify-content:space-between;gap:6px;color:#93c5fd;font-family:var(--font-mono);font-size:9px;text-transform:uppercase;letter-spacing:.04em}
+.znode-asset-name{font-size:11px;line-height:1.35;color:var(--tx);font-weight:700}
+.znode-script-text{min-height:170px!important}
+.znode-card:has(.znode-thumb){width:230px}
+.znode-card:has(.znode-shot-thumb){width:226px}
+.znode-help{padding:10px 12px;background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.18);border-radius:8px;color:var(--mu);font-family:var(--font-mono);font-size:11px;line-height:1.6}
+@media(max-width:760px){.znode-toolbar .znode-status{width:100%;margin-left:0}.znode-canvas{min-height:900px;overflow:auto}.znode-card{width:225px}}
+</style>
 </head>
 <body>
 <div class="gbg"></div>
@@ -1202,6 +1265,7 @@ input[type=file]{display:none}
   <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
   <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
   <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
+  <button class="stab" id="tabNode" onclick="goStep('node')" style="border-bottom-color:var(--cy);color:var(--cy)">노드 캔버스</button>
   <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
 </div>
 
@@ -3631,6 +3695,40 @@ input[type=file]{display:none}
     <div id="vbBatchOut" style="padding:16px;display:grid;gap:8px">
       <div style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">아직 생성된 오디오가 없습니다</div>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════ NODE CANVAS ═══════════════ -->
+<div class="panel" id="pNode">
+  <div class="slbl" style="color:var(--cy)">NODE CANVAS · ZIPPY WORKFLOW</div>
+  <div class="znode-shell" id="zippyNodeCanvasRoot">
+    <div class="znode-help">우리 파이프라인의 생성 단계를 노드로 연결합니다. 노드를 드래그하고, <b>연결 모드</b>를 켠 뒤 시작 노드와 도착 노드를 차례로 클릭하세요. 그래프와 결과 메타데이터는 브라우저 IndexedDB에 저장됩니다.</div>
+    <div class="znode-toolbar">
+      <button class="znode-add" type="button" data-znode-add="prompt">＋ 프롬프트</button>
+      <button class="znode-add" type="button" data-znode-add="reference">＋ 레퍼런스</button>
+      <button class="znode-add" type="button" data-znode-add="gti">＋ GTI 이미지</button>
+      <button class="znode-add" type="button" data-znode-add="localVideo">＋ Local 5080</button>
+      <button class="znode-add" type="button" data-znode-add="grok">＋ Grok Build</button>
+      <button class="znode-add" type="button" data-znode-add="voicebox">＋ Voicebox</button>
+      <button class="znode-add" type="button" data-znode-add="storyboard">＋ 스토리보드</button>
+      <button class="znode-add" type="button" data-znode-add="script">＋ 스크립트</button>
+      <button class="znode-add" type="button" id="znodeImportAssetsBtn">프로젝트 에셋</button>
+      <button class="znode-add" type="button" id="znodeImportShotsBtn">현재 에피소드 컷</button>
+      <button class="znode-add" type="button" id="znodeImportAllShotsBtn">전체 스토리보드 컷</button>
+      <button class="znode-add" type="button" id="znodeArrangeBtn">노드 배치 정리</button>
+      <button class="znode-add" type="button" id="znodeConnectBtn">연결 모드</button>
+      <button class="znode-add" type="button" id="znodeAutoConnectBtn">자동 연결</button>
+      <button class="znode-add" type="button" id="znodeDownloadBtn">보드 JSON</button>
+      <button class="znode-add" type="button" id="znodeSaveBtn">저장</button>
+      <button class="znode-add" type="button" id="znodeResetBtn">기본 그래프</button>
+      <div class="znode-batch"><span class="znode-label">이미지</span><button class="znode-run znode-image-batch" type="button" id="znodeBatchImageBtn">전체 이미지 생성</button></div>
+      <div class="znode-batch"><span class="znode-label">영상</span><select id="znodeBatchProvider"><option value="local">Local 5080</option><option value="grok">Grok Build</option></select><button class="znode-run" type="button" id="znodeBatchVideoBtn">전체 영상 생성</button></div>
+      <button class="znode-run" type="button" id="znodeRunBtn">▶ 그래프 실행</button>
+      <button class="znode-stop" type="button" id="znodeStopBtn" disabled>■ 중단</button>
+      <button class="znode-add" type="button" id="znodeZoomResetBtn">줌 초기화</button><span class="znode-zoom" id="znodeZoomLabel">100%</span>
+      <span class="znode-status" id="znodeStatus">준비됨</span>
+    </div>
+    <div class="znode-canvas" id="znodeCanvas" aria-label="ZIPPY 노드 캔버스"></div>
   </div>
 </div>
 
@@ -81589,7 +81687,7 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta','pNode'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -81601,6 +81699,7 @@ function goStep(n){
     else if(n==='voice') el.classList.toggle('active',id==='pVoice');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
+    else if(n==='node') el.classList.toggle('active',id==='pNode');
     else if(n==='grok') el.classList.toggle('active',id==='pGrok');
     else if(n==='scout') el.classList.toggle('active',id==='pScout');
     else if(n==='sheet') el.classList.toggle('active',id==='pSheet');
@@ -81620,6 +81719,7 @@ function goStep(n){
   document.getElementById('tabVoice').className='stab '+(n==='voice'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
+  document.getElementById('tabNode').className='stab '+(n==='node'?'a2':'');
   document.getElementById('tabGrok').className='stab '+(n==='grok'?'a1':'');
   document.getElementById('tabScout').className='stab '+(n==='scout'?'a1':'');
   document.getElementById('tabSheet').className='stab '+(n==='sheet'?'a1':'');
@@ -85803,5 +85903,6 @@ document.addEventListener('DOMContentLoaded',function(){directorLoadState();if(t
 <script src="sheet-maker.js"></script>
 <script src="seedance-planner.js"></script>
 
+<script src="zippy-node-canvas.js"></script>
 </body>
 </html>

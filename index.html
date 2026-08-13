@@ -3414,13 +3414,14 @@ input[type=file]{display:none}
           <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateVidCost()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
           <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateVidCost()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
           <button class="chip" data-g="vmodel" data-workflow="minimax-h3" onclick="pickSingle(this,'vmodel');updateVidCost()">MiniMax H3 <span style="font-size:9px;opacity:.5">I2V + Audio</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="seedance25" onclick="pickSingle(this,'vmodel');updateVidCost()">Seedance 2.5 <span style="font-size:9px;opacity:.5">Comfy Credits + Audio</span></button>
         </div>
       </div>
       <div>
         <div class="cfg-lbl">길이</div>
         <div class="chips">
-          <button class="chip on" data-g="vdur" onclick="pickSingle(this,'vdur')">5초</button>
-          <button class="chip" data-g="vdur" onclick="pickSingle(this,'vdur')">10초</button>
+          <button class="chip on" data-g="vdur" onclick="pickSingle(this,'vdur');updateVidCost()">5초</button>
+          <button class="chip" data-g="vdur" onclick="pickSingle(this,'vdur');updateVidCost()">10초</button>
         </div>
       </div>
       <div>
@@ -76218,6 +76219,12 @@ function updateVidCost() {
   if (!el) return;
   const workflowId = getSelectedVideoWorkflowId();
   const label = LOCAL_VIDEO_WORKFLOW_LABELS[workflowId] || workflowId;
+  if (workflowId === 'seedance25') {
+    const duration = Number(String(getSelected('vdur') || '5').replace(/[^\d.]/g, '')) || 5;
+    const estimatedCredits = duration <= 5 ? 351.6 : 700.3;
+    el.textContent = label + ' · 720p · Comfy 크레딧 약 ' + estimatedCredits.toFixed(1) + ' · 오디오 포함';
+    return;
+  }
   el.textContent = label + ' · 로컬 5080 렌더링 · API 비용 없음';
 }
 
@@ -76373,7 +76380,8 @@ function getKlingModelName() {
 const LOCAL_VIDEO_WORKFLOW_LABELS = {
   wan: 'Wan 2.2 I2V 14B',
   ltx23: 'LTX 2.3 22B',
-  'minimax-h3': 'MiniMax H3 I2V + Native Audio'
+  'minimax-h3': 'MiniMax H3 I2V + Native Audio',
+  seedance25: 'ByteDance Seedance 2.5'
 };
 
 function getSelectedVideoWorkflowId() {
@@ -76382,6 +76390,7 @@ function getSelectedVideoWorkflowId() {
 }
 
 function getLocalVideoRenderOptions(workflowId, durationSeconds, ratio) {
+  if (workflowId === 'seedance25') return { fps: 24 };
   if (workflowId !== 'minimax-h3') return { fps: 16 };
   const dimensions = {
     '16:9': [1344, 768],

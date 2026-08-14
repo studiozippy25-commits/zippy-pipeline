@@ -3477,6 +3477,7 @@ input[type=file]{display:none}
         <div class="chips">
           <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateVidCost()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
           <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateVidCost()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx25" onclick="pickSingle(this,'vmodel');updateVidCost()">LTX 2.5 Fast <span style="font-size:9px;opacity:.5">NVFP4 + Native Audio</span></button>
           <button class="chip" data-g="vmodel" data-workflow="minimax-h3" onclick="pickSingle(this,'vmodel');updateVidCost()">MiniMax H3 <span style="font-size:9px;opacity:.5">I2V + Audio</span></button>
           <button class="chip" data-g="vmodel" data-workflow="seedance25" onclick="pickSingle(this,'vmodel');updateVidCost()">Seedance 2.5 <span style="font-size:9px;opacity:.5">Comfy Credits + Audio</span></button>
         </div>
@@ -76478,6 +76479,7 @@ function getKlingModelName() {
 const LOCAL_VIDEO_WORKFLOW_LABELS = {
   wan: 'Wan 2.2 I2V 14B',
   ltx23: 'LTX 2.3 22B',
+  ltx25: 'LTX 2.5 22B Distilled NVFP4 + Native Audio',
   'minimax-h3': 'MiniMax H3 I2V + Native Audio',
   seedance25: 'ByteDance Seedance 2.5'
 };
@@ -76489,6 +76491,20 @@ function getSelectedVideoWorkflowId() {
 
 function getLocalVideoRenderOptions(workflowId, durationSeconds, ratio) {
   if (workflowId === 'seedance25') return { fps: 24 };
+  if (workflowId === 'ltx25') {
+    const dimensions = {
+      '16:9': [736, 416],
+      '9:16': [416, 736],
+      '1:1': [576, 576]
+    }[ratio] || [736, 416];
+    const frames = 1 + Math.round((durationSeconds * 24) / 8) * 8;
+    return {
+      fps: 24,
+      frames: Math.max(41, Math.min(241, frames)),
+      width: dimensions[0],
+      height: dimensions[1]
+    };
+  }
   if (workflowId !== 'minimax-h3') return { fps: 16 };
   const dimensions = {
     '16:9': [1344, 768],

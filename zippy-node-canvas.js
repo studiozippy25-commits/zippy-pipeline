@@ -702,6 +702,40 @@
     $('znodeZoomResetBtn')?.addEventListener('click', () => { state.zoom = 1; if (canvas) canvas.style.zoom = '1'; const zoomLabel = $('znodeZoomLabel'); if (zoomLabel) zoomLabel.textContent = '100%'; });
   }
   async function init() { if (!$('zippyNodeCanvasRoot')) return; state.db = await openDb(); state.graph = await loadGraph(); if (!state.initialized) { bind(); state.initialized = true; } render(); }
+  async function loadStoryboardV2(payload) {
+    await init();
+    if (!state.graph || !Array.isArray(payload)) return 0;
+    addProjectAssets();
+    const removed = new Set(state.graph.nodes.filter(node => node.type === 'shot').map(node => node.id));
+    state.graph.nodes = state.graph.nodes.filter(node => node.type !== 'shot');
+    state.graph.edges = state.graph.edges.filter(edge => !removed.has(edge.from) && !removed.has(edge.to));
+    const visible = payload.slice(0, 240);
+    for (let index = 0; index < visible.length; index++) {
+      const shot = visible[index];
+      let imageResultId = '';
+      if (shot.imageB64) {
+        const record = await saveResult({ kind: 'image', b64: shot.imageB64, mime: shot.imageMime || 'image/png', name: `${shot.id || 'shot'}-storyboard-v2.png` });
+        imageResultId = record.id;
+      }
+      state.graph.nodes.push({
+        id: `shot-v2-${String(shot.id || index).replace(/[^a-z0-9가-힣]+/gi, '-')}`,
+        type: 'shot', x: 1040 + (index % 5) * 270, y: 34 + Math.floor(index / 5) * 430,
+        config: {
+          shotId: shot.id || `SHOT-${index + 1}`,
+          episodeLabel: shot.ep ? `EP${String(shot.ep).padStart(2, '0')}` : 'STORYBOARD V2',
+          location: shot.loc || '',
+          prompt: shot.desc || '',
+          videoPrompt: shot.videoPrompt || '',
+          imageResultId
+        },
+        output: imageResultId ? { status: 'done', resultId: imageResultId, preview: 'image · V2 전송 완료' } : { status: 'ready', preview: 'V2 컷 · 이미지 대기' }
+      });
+    }
+    autoConnectProjectBoard(); arrangeGraph(); await saveGraph(false); render();
+    status(`Storyboard V2 ${visible.length}컷을 불러왔습니다`, 'var(--ok)');
+    return visible.length;
+  }
   window.zippyNodeCanvasInit = init;
+  window.zippyNodeCanvasLoadV2 = loadStoryboardV2;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

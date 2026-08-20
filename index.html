@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="sheet-maker.css">
 <link rel="stylesheet" href="seedance-planner.css">
 <link rel="stylesheet" href="cinema-reference.css">
+<link rel="stylesheet" href="reactor-prompts.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -1452,9 +1453,17 @@ input[type=file]{display:none}
     </div>
   </div>
 
+  <div class="ip-box reactor-prompts-section">
+    <div class="ip-box-head">
+      <div><b>04 REACTOR PROMPT STYLES</b><span>공개 프롬프트 14종 · 제목 클릭 즉시 적용 · 변수 편집 지원</span></div>
+      <a href="https://reactorprompt.vercel.app/templates" target="_blank" rel="noopener noreferrer" class="reactor-source-link">원문·라이선스 ↗</a>
+    </div>
+    <div id="reactorPromptLibrary"><div class="reactor-empty">Reactor 프롬프트 라이브러리 로드 중...</div></div>
+  </div>
+
   <div class="ip-box">
     <div class="ip-box-head">
-      <div><b>04 랜드마크 + GTI 이미지</b><span>1장 테스트 / 설정 컷 이미지릴</span></div>
+      <div><b>05 랜드마크 + GTI 이미지</b><span>1장 테스트 / 설정 컷 이미지릴</span></div>
       <div class="ip-actions">
         <button class="btn bor bsm" id="ipSingleBtn" onclick="ipGenerateSingle()">GTI 1장 생성</button>
         <button class="btn bpu bsm" id="ipBatchBtn" onclick="ipGenerateBatch()">GTI 설정 컷 생성</button>
@@ -84032,7 +84041,8 @@ function updatePromptPreview() {
   };
 
   window.ipDownloadManifest=function(){
-    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,placeReferences:state.place.map(function(x){return x.name;}),results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
+    const reactorMeta=(typeof window.reactorPromptGenerationMeta==='function')?window.reactorPromptGenerationMeta():null;
+    const data={createdAt:new Date().toISOString(),identityDna:state.identityDna,outfitDna:state.outfitDna,placeReferences:state.place.map(function(x){return x.name;}),reactorPrompt:reactorMeta?{id:reactorMeta.id,title:reactorMeta.title,category:reactorMeta.category,source:reactorMeta.source}:null,results:state.results.map(function(r){return{idx:r.idx,loc:r.loc,error:r.error||null,prompt:r.prompt};})};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='zippy_instagram_manifest_'+Date.now()+'.json'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
   };
@@ -84052,6 +84062,20 @@ function updatePromptPreview() {
   function buildPrompt(index,total,loc,vibe,pose,identityCount,outfitCount,placeCount){
     const custom=(document.getElementById('ipCustomPrompt').value||'').trim();
     const strength=document.getElementById('ipOutfitStrength').value;
+    const reactorMeta=(typeof window.reactorPromptGenerationMeta==='function')?window.reactorPromptGenerationMeta():null;
+    const formatRule=reactorMeta&&reactorMeta.allowPanel
+      ? 'FORMAT: 9:16 vertical multi-panel image exactly as specified by the selected Reactor style, no watermark.'
+      : (reactorMeta&&reactorMeta.allowText
+        ? 'FORMAT: 9:16 vertical designed infographic image. Exact supplied title and designed text are allowed; no watermark.'
+        : 'FORMAT: 9:16 vertical image, no collage, no text, no watermark.');
+    const materialRule=reactorMeta&&reactorMeta.allowIllustration
+      ? 'REACTOR STYLIZED MATERIAL: the selected illustration/anime rendering is allowed. Preserve the approved persona identity markers, hair silhouette, body proportions, and exact outfit design while translating them into the selected art style.'
+      : 'KOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, '+(loc&&loc[2]?'background believable and not generic, no forced landmark.':'landmark present but not tourist postcard.');
+    const negativeParts=['different person','face drift','using wardrobe model face','copying clothing-reference person','copying place-reference people','changing protagonist facial features','changing protagonist body identity','outfit drift','clothing redesign','deformed hands','extra limbs','fake logos','watermark'];
+    if(!(reactorMeta&&reactorMeta.allowIllustration)) negativeParts.push('plastic beauty filter','CGI','anime');
+    if(!(reactorMeta&&reactorMeta.allowPanel)) negativeParts.push('unrequested collage');
+    if(!(reactorMeta&&reactorMeta.allowText)) negativeParts.push('text overlay');
+    const negativeRule='NEGATIVE: '+negativeParts.join(', ')+'.';
     identityCount=identityCount||1;
     outfitCount=outfitCount||1;
     placeCount=placeCount||0;
@@ -84063,8 +84087,7 @@ function updatePromptPreview() {
     const setLabel=total===1?'single Instagram creator post':total+'-cut carousel';
     const sessionLine=total===1?'This image is a polished single Instagram creator photo from one believable visit.':'This image belongs to one continuous '+total+'-photo set shot during the same short visit.';
     const continuityLine=total===1?'Keep the selected time of day, weather, light direction, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location believable in one frame.':'Keep the same time of day, weather, light direction, shadow softness, color temperature, exposure, camera/lens profile, skin texture, makeup, hairstyle, outfit fit, and location continuity across all '+total+' images.';
-    const locationMaterial=loc&&loc[2]?'background believable and not generic, no forced landmark.':'landmark present but not tourist postcard.';
-    return 'Create ONE ultra-realistic vertical Instagram creator photo for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\nFORMAT: 9:16 vertical image, no collage, no text, no watermark.\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe or place references.\n- If wardrobe/place and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\n'+placeRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\nKOREAN INSTAGRAM MATERIAL: real creator feed photo, casual but high-quality, modern phone or compact camera, natural skin texture, realistic hands, believable street exposure, subtle color grading, outfit readable, '+locationMaterial+'\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\nNEGATIVE: different person, face drift, using wardrobe model face, copying clothing-reference person, copying place-reference people, changing protagonist facial features, changing protagonist body identity, outfit drift, clothing redesign, plastic beauty filter, CGI, anime, editorial over-posing, deformed hands, extra limbs, fake logos, text overlay.';
+    return 'Create ONE '+(reactorMeta&&reactorMeta.allowIllustration?'stylized':'ultra-realistic')+' vertical Instagram creator image for a '+setLabel+'.\n\nIMAGE '+index+' OF '+total+'.\n'+formatRule+'\n\nABSOLUTE IDENTITY LOCK — READ FIRST:\n- REFERENCE IMAGE 1 IS THE PROTAGONIST. It is the primary identity sheet / 6-view character sheet.\n- Images 1-'+identityCount+' are the ONLY allowed identity sources.\n- Copy the protagonist face, skull shape, facial proportions, eyes, nose, lips, jawline, skin undertone, hairline, hairstyle, body proportions, and aura from REFERENCE IMAGE 1 first, then supporting person references 2-'+identityCount+'.\n- Never borrow any face, head, hair, skin tone, body shape, age, gender, ethnicity, or personal identity from wardrobe or place references.\n- If wardrobe/place and identity conflict, identity reference 1 always wins.\n\nWARDROBE-ONLY LOCK:\n- Reference image '+wardrobeStart+(outfitCount>1?'-'+(wardrobeStart+outfitCount-1):'')+' is a clothing-only outfit 6-view sheet.\n- It contains wardrobe information only. It is NOT a person, NOT a model, NOT a face source, NOT a body source.\n- Change only the outfit on the protagonist. Keep the protagonist face and body identity from reference image 1.\n- '+outfitRule+'\n\n'+placeRule+'\n\nSAME PHOTO SESSION LOCK:\n- '+sessionLine+'\n- SESSION: '+(state.sessionSeed||'same time of day, same weather, same camera, same light, same styling')+'\n- '+continuityLine+'\n- Vary only micro-pose, crop distance, body angle, hand position, and background angle so the image feels natural.\n\nIDENTITY DNA:\n'+(state.identityDna||'Use reference image 1 as the primary identity lock. Do not create a new person.')+'\n\nLOCATION:\n'+loc[1]+'\n\nMOOD:\n'+vibe+'\n\nPOSE:\n'+pose+'\n\n'+materialRule+'\n'+(custom?'\nCUSTOM DIRECTION:\n'+custom+'\n':'')+'\n'+negativeRule;
   }
 
   function renderLocs(){const sel=document.getElementById('ipLocation'); if(!sel) return; const previous=sel.value; const list=state.locMode==='world'?WORLD:KR; sel.innerHTML='<option value="-1">장소 없음 / 자동</option>'+list.map(function(x,i){return '<option value="'+i+'">'+esc(x[0])+'</option>';}).join(''); sel.value=previous==='-1'?'-1':'0';}
@@ -85933,6 +85956,7 @@ document.addEventListener('DOMContentLoaded',function(){directorLoadState();if(t
 <script src="director-v3.js"></script>
 <script src="sheet-maker.js"></script>
 <script src="seedance-planner.js"></script>
+<script src="reactor-prompts.js"></script>
 <script src="cinema-reference.js"></script>
 
 <script src="zippy-node-canvas.js"></script>

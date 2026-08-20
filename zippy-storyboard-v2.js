@@ -593,7 +593,7 @@
         <label>길이<input type="number" min="1" max="30" step="0.5" value="${cut.seconds}" data-sbv2-field="seconds" data-cut-id="${esc(cut.id)}"></label>
         <label>카메라<input value="${esc(cut.camera)}" data-sbv2-field="camera" data-cut-id="${esc(cut.id)}"></label>
         <label>샷 레시피<input value="${esc(cut.recipe)}" data-sbv2-field="recipe" data-cut-id="${esc(cut.id)}"></label>
-        <label class="wide">이미지 프롬프트<textarea data-sbv2-field="framePrompt" data-cut-id="${esc(cut.id)}">${esc(cut.framePrompt)}</textarea></label>
+        <label class="wide">컷 시각 지시 · 바이블/레퍼런스/연출 규칙은 GTI 전송 시 자동 합성<textarea data-sbv2-field="framePrompt" data-cut-id="${esc(cut.id)}">${esc(cut.framePrompt)}</textarea></label>
         <label class="wide">영상 프롬프트<textarea data-sbv2-field="videoPrompt" data-cut-id="${esc(cut.id)}">${esc(cut.videoPrompt)}</textarea></label>
       </div></details>
     </article>`;
@@ -693,28 +693,95 @@
     }
     return prepared;
   }
+  function safePromptBlock(name, ...args) {
+    try { const fn = window[name]; return typeof fn === 'function' ? fn(...args) || '' : ''; } catch (_) { return ''; }
+  }
+  function globalPromptText(getter) { try { return getter() || ''; } catch (_) { return ''; } }
   function imagePrompt(cut, refs) {
-    const p = project();
-    const roles = refs.map((ref, index) => `Reference ${index + 1}: ${ref._type || 'visual'} only · ${ref._label || ''}`).join('\n');
+    const p = project(); const shot = findSourceShot(cut.sourceShotId) || {};
+    let preset = {};
+    try { preset = typeof SCENE_PRESETS !== 'undefined' ? SCENE_PRESETS[String(shot.scene)] || {} : {}; } catch (_) {}
+    if ((typeof shot.ep !== 'undefined' && shot.ep < 0) || shot.loc) preset = { ...preset, loc: shot.loc || preset.loc };
+    const location = cut.location || shotLocation(shot) || preset.loc || '';
     const dna = cut.characters.map(name => bibleCharacter(name)?.dna).filter(Boolean).join('\n');
-    const space = bibleSpace(cut.location)?.dna || '';
-    const props = cut.props.map(id => bibleProp(id)?.desc).filter(Boolean).join('\n');
-    return [
-      'STUDIO ZIPPY STORYBOARD V2 FRAME',
-      cut.framePrompt,
-      `CAMERA: ${cut.shotSize}; ${cut.camera}; recipe ${cut.recipe}.`,
-      'REFERENCE AUTHORITY: face references decide face identity only; character sheets decide body and hair; costume references decide clothing only and must never replace the face; location references decide spatial geometry only; prop references decide object design and scale only.',
-      'Identity priority is absolute. Preserve the exact approved face without beautification, age change, actor substitution, or identity blending.',
-      'Integrate subject and background with one coherent exposure, contact shadows, reflected light, lens response, and atmospheric depth. No pasted composite look.',
-      'Avoid underexposure and the characteristic dark GPT-image cast. Keep readable natural exposure unless this exact scripted shot requires darkness.',
-      roles,
+    const space = bibleSpace(location)?.dna || '';
+    const props = cut.props.map(id => [bibleProp(id)?.name || id, bibleProp(id)?.desc || ''].filter(Boolean).join(': ')).filter(Boolean).join('\n');
+    const roles = refs.map((ref, index) => `${index + 1}. ${String(ref._type || 'reference').toUpperCase()} AUTHORITY ONLY: ${ref._label || ''}`).join('\n');
+    const faceLabels = refs.filter(ref => ref._type === 'face').map(ref => ref._label || 'approved face sheet');
+    const costumeLabels = refs.filter(ref => ref._type === 'costume').map(ref => ref._label || 'approved costume sheet');
+    let costumeDna = '';
+    try {
+      costumeDna = p?.costumes?.[preset.costume] || (typeof COSTUME_DNA !== 'undefined' ? COSTUME_DNA[preset.costume] || '' : '');
+    } catch (_) {}
+    const wardrobeVariants = Object.entries(shot.costumeVariants || {}).map(([name, variant]) => {
+      const line = safePromptBlock('zippyWardrobeVariantPromptLine', name, variant);
+      return line || `${name}: use only wardrobe variant ${variant}`;
+    }).filter(Boolean).join('\n');
+    const emoDna = asArray(preset.emo).map(value => p?.emoMap?.[value] || value).join('. ');
+    const lightDna = asArray(preset.light).map(value => p?.lightMap?.[value] || value).join('. ');
+    let cameraSpec = null;
+    try { if (typeof getSBCameraSpec === 'function') cameraSpec = getSBCameraSpec(shot, preset); } catch (_) {}
+    const cameraPosition = safePromptBlock('autoCameraPos', shot);
+    const continuity = safePromptBlock('buildValidatedContinuityPromptBlock', shot, cameraSpec);
+    const projectBlocks = [
+      safePromptBlock('buildSBCharacterWardrobeBinding', shot, refs),
+      safePromptBlock('buildStoryboardCoverageLock', shot),
+      safePromptBlock('buildLoveHandOwnershipLock', shot),
+      safePromptBlock('buildLoveShotTypeLock', shot),
+      safePromptBlock('buildLoveShotVariationLock', shot, cameraSpec),
+      safePromptBlock('buildLoveReferenceLightingLock', shot, cameraSpec),
+      safePromptBlock('buildLoveDirectionalPropLock', shot),
+      safePromptBlock('buildLoveEmotionPerformanceLock', shot),
+      safePromptBlock('buildLoveSpatialContinuityLock', shot),
+      safePromptBlock('buildLoveTextPropLock', shot),
+      safePromptBlock('buildCloudRiderWorldToneLock'),
+      safePromptBlock('buildCloudRiderCanonSafetyLock', shot),
+      safePromptBlock('buildCloudRiderHaonAircraftLock', shot, refs)
+    ].filter(Boolean).join('\n\n');
+    const brightLock = globalPromptText(() => ZIPPY_BRIGHT_REAL_WORLD_LOCK);
+    const heroLock = globalPromptText(() => ZIPPY_HERO_CLEAN_LOCK);
+    const gtiShotLock = globalPromptText(() => GTI_SHOT_LOCK);
+    const gtiLighting = globalPromptText(() => GTI_LIGHTING_FIX);
+    const liveAction = globalPromptText(() => typeof getStyle === 'function' ? getStyle()?.mandate : ZIPPY_LIVE_ACTION_MANDATE);
+    const bodyLock = cut.characters.some(name => canonicalName(name).includes('독고탄'))
+      ? 'DOKGO TAN BODY LOCK: approved 9+ head-tall heroic proportion, small head, broad shoulders, V-taper torso, long controlled limbs, exact approved body identity.'
+      : 'BODY PROPORTIONS: preserve each approved character body ratio, shoulder width, limb length, build, age, and silhouette. No generic model-body replacement, oversized head, slimming, or body beautification.';
+    const negative = [p?.negative || '', shot.negativePrompt || '', globalPromptText(() => ZIPPY_HERO_CLEAN_NEGATIVE), globalPromptText(() => ZIPPY_BRIGHT_REAL_WORLD_NEGATIVE)].filter(Boolean).join(', ');
+    let prompt = [
+      'STUDIO ZIPPY STORYBOARD V2 · PRODUCTION GTI FRAME',
+      liveAction,
+      brightLock,
+      heroLock,
+      gtiShotLock,
+      gtiLighting,
+      `SHOT ID: ${cut.id}\nSCENE: ${shot.sceneName || ''}\nLOCATION: ${location}\nTIME: ${shot.time || preset.time || ''}`,
+      `CAMERA AUTHORITY:\n${cameraSpec?.summary || ''}\nCURRENT CAMERA RECIPE (${cut.cameraSource || 'camera-library'}): ${cut.camera}\nSHOT RECIPE: ${cut.recipe}\nCAMERA POSITION: ${cameraPosition}`,
+      `VISIBLE ACTION — THIS ONE DECISIVE STILL ONLY:\n${shot.promptOverride || cut.framePrompt || shot.desc || shot.frame || ''}\nFUNCTION / STORY PURPOSE: ${shot.func || ''}\nCapture one readable 0.3-second decisive instant. Never combine before/after states or several actions in one frame.`,
+      `REFERENCE MANIFEST — EXACT ORDER:\n${roles || '(no image reference supplied)'}`,
+      'REFERENCE AUTHORITY HIERARCHY: FACE references decide facial identity only and outrank every other image. CHARACTER sheets decide body, hair, and silhouette. COSTUME sheets decide clothing only and must never replace or blend the face. BACKGROUND references decide architecture, geography, scale, and practical lighting only. PROP references decide object shape, material, markings, orientation, and scale only. Never transfer a face, body, clothing, or person from the wrong reference role.',
+      faceLabels.length && `ABSOLUTE FACE LOCK: ${faceLabels.join(' / ')}. Preserve exact eyes, nose, lips, jaw, cheekbones, hairline, skin texture, age, and Korean facial proportions. Zero beautification, alternate actor, identity merge, or face borrowing from costume/location/prop images.`,
+      costumeLabels.length && `ABSOLUTE COSTUME IMAGE LOCK: ${costumeLabels.join(' / ')}. Apply the approved clothing to the matching approved person only. Preserve garment cut, fit, color, textile, seams, accessories, wear state, and character ownership.`,
       dna && `CHARACTER BIBLE:\n${dna}`,
+      costumeDna && `SCENE COSTUME DNA:\n${costumeDna}`,
+      wardrobeVariants && `PER-CHARACTER WARDROBE VARIANTS:\n${wardrobeVariants}\nNever blend variants or swap outfits between people.`,
+      bodyLock,
       space && `LOCATION BIBLE:\n${space}`,
       props && `PROP BIBLE:\n${props}`,
-      p?.stability && `PROJECT LOCK:\n${p.stability}`,
-      p?.quality && `VISUAL QUALITY:\n${p.quality}`,
-      p?.negative && `NEGATIVE:\n${p.negative}`
+      emoDna && `EMOTIONAL PERFORMANCE:\n${emoDna}`,
+      `LIGHTING / TIME CONTINUITY:\n${[lightDna, shot.light, shot.time || preset.time].filter(Boolean).join(' · ')}\nMatch the location reference with one coherent exposure, contact shadows, reflected light, practical spill, lens response, and atmospheric depth. No pasted composite look. Avoid underexposure and the characteristic dark GPT-image cast unless the script explicitly requires darkness.`,
+      continuity,
+      projectBlocks,
+      p?.stability && `PROJECT CANON LOCK:\n${p.stability}`,
+      p?.quality && `VISUAL QUALITY / LOOK:\n${p.quality}`,
+      'OFFSCREEN RULE: dialogue, V.O., phone, radio, narration, or an offscreen character must not create an extra visible person unless the visible action explicitly places that person in frame.',
+      'TEXT RULE: physical environmental signs and story props may remain visible and legible when required. Never add title cards, subtitles, watermarks, floating HUD, poster graphics, or unrelated logos.',
+      `NEGATIVE:\n${negative}\nNo collage, split screen, contact sheet, multiple moments, face morph, identity drift, wardrobe drift, prop redesign, location rebuild, axis flip, extra person, extra limb, plastic skin, AI smoothing, synthetic CG gloss, or pasted-background composite.`
     ].filter(Boolean).join('\n\n');
+    try { if (typeof appendDirector15Prompt === 'function') prompt = appendDirector15Prompt(shot, prompt, refs, cameraSpec, preset); } catch (_) {}
+    try { if (typeof enforceLovePromptGuards === 'function') prompt = enforceLovePromptGuards(shot, prompt); } catch (_) {}
+    try { if (typeof appendCinemaReferenceDirection === 'function') prompt = appendCinemaReferenceDirection(shot, prompt); } catch (_) {}
+    try { if (window.ZippyDirectorV3?.composeImagePrompt) prompt = window.ZippyDirectorV3.composeImagePrompt(shot, prompt); } catch (_) {}
+    return prompt;
   }
   async function callV2Gti(images, prompt, signal) {
     let candidates = [];

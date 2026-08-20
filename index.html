@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="director-v3.css">
 <link rel="stylesheet" href="sheet-maker.css">
 <link rel="stylesheet" href="seedance-planner.css">
+<link rel="stylesheet" href="cinema-reference.css">
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -390,19 +391,20 @@ input[type=file]{display:none}
 /* 스텝 네비 */
 .snav {
   display:grid;
-  grid-template-columns:repeat(8,minmax(0,1fr));
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:1px;
   border-radius:0;
   border:1px solid #E5E7EB;
   overflow:visible;
   margin-bottom:24px;
   box-shadow:none;
-  background:#E5E7EB;
+  background:var(--bd);
 }
 .stab {
   min-width:0;
-  min-height:50px;
-  padding:10px 8px; font-size:13px; font-weight:600;
+  min-height:52px;
+  height:auto;
+  padding:10px 10px; font-size:13px; font-weight:600;
   border-bottom:2px solid transparent;
   letter-spacing:.3px;
   text-align:center;
@@ -411,8 +413,13 @@ input[type=file]{display:none}
   text-transform:uppercase;
   background:var(--card);
   white-space:normal;
-  line-height:1.3;
-  overflow-wrap:anywhere;
+  line-height:1.35;
+  word-break:keep-all;
+  overflow-wrap:normal;
+  overflow:visible;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 .stab+.stab { border-left:none; }
 .stab:hover { color:var(--tx); background:var(--sf); }
@@ -422,8 +429,11 @@ input[type=file]{display:none}
 .stab.a2 { border-bottom-color:#2563EB; background:var(--card); color:#2563EB; font-weight:700; }
 .stab.a3 { border-bottom-color:#7C3AED; background:var(--card); color:#7C3AED; font-weight:700; }
 @media(max-width:900px){
-  .snav{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .stab{min-height:46px;padding:9px 6px;font-size:12px}
+  .snav{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stab{min-height:48px;padding:9px 7px;font-size:12px}
+}
+@media(max-width:560px){
+  .snav{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 /* 섹션 레이블 */
@@ -72826,6 +72836,7 @@ function sbStoryboardSnapshot() {
     cameraControls: (typeof sbCameraControls !== 'undefined') ? sbPlainMap(sbCameraControls) : {},
     shotLocations: (typeof SB_SHOTS !== 'undefined') ? SB_SHOTS.filter(function(s) { return s && s.id && s.loc; }).map(function(s) { return {id: s.id, loc: s.loc}; }) : [],
     shotEdits: sbShotEditorSnapshot(),
+    cinemaReferences: (typeof window.cinemaReferenceExportState === 'function') ? window.cinemaReferenceExportState() : {},
     savedAt: new Date().toISOString()
   };
 }
@@ -73053,6 +73064,7 @@ async function restoreStoryboardState(projectKey) {
       });
     }
     applySBShotEditorSnapshot(snap);
+    if (snap.cinemaReferences && typeof window.cinemaReferenceImportState === 'function') window.cinemaReferenceImportState(snap.cinemaReferences);
     if (isCloudRiderProject() && typeof SB_SHOTS !== 'undefined') {
       SB_SHOTS.forEach(function(shot) { normalizeCloudRiderShotState(shot, currentProject); });
     }
@@ -73331,6 +73343,7 @@ function renderShotCard(shot, sceneVal) {
   html += renderShotObjControl(shot);
   html += renderSBCameraControl(shot);
       if (typeof renderDirectorShotGate === 'function') html += renderDirectorShotGate(shot);
+  if (typeof renderSBCinemaReferenceControl === 'function') html += renderSBCinemaReferenceControl(shot);
   html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += renderSBGrokButton(shot.id);
@@ -73741,6 +73754,7 @@ function buildStoryboardTimeline() {
       html += `<div style="font-family:var(--font-mono);font-size:10px;color:var(--cy);margin-top:3px">${sbEscHtml(shot.func || '')}</div>`;
       html += renderSBCameraControl(shot);
       if (typeof renderDirectorShotGate === 'function') html += renderDirectorShotGate(shot);
+      if (typeof renderSBCinemaReferenceControl === 'function') html += renderSBCinemaReferenceControl(shot);
       html += `<button onclick="event.stopPropagation();generateSBSequence('${safeShotJs2}')" style="margin-top:4px;width:100%;padding:5px;border:1px solid var(--or);background:rgba(245,158,11,.06);color:var(--or);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">${coverageMode2==='camera'?'🎥 카메라 3안 · 동일 행동':(coverageMode2==='temporal'?'🎞 촘촘 3컷 · 시간 분리':'🎞 흐름 3컷 · 독립 구도')}</button>`;
   html += `<button class="sb-expand-btn" onclick="event.stopPropagation();expandSBShot('${safeShotJs2}')" style="margin-top:6px;width:100%;padding:5px;border:1px solid var(--cy);background:rgba(8,145,178,.06);color:var(--cy);font-family:var(--font-mono);font-size:10px;border-radius:4px;cursor:pointer;font-weight:600">✨ AI 디테일 확장</button>`;
   html += renderSBGrokButton(shot.id);
@@ -74104,6 +74118,7 @@ ${negativeBlock}`;
     if ((shot.promptOverride || '').trim()) _finalPrompt = sbEnforceNcityAppearanceLock(shot, shot.promptOverride);
     if (typeof appendDirector15Prompt === 'function') _finalPrompt = appendDirector15Prompt(shot, _finalPrompt, images, sbCam, preset);
     _finalPrompt = enforceLovePromptGuards(shot, _finalPrompt);
+    if (typeof appendCinemaReferenceDirection === 'function') _finalPrompt = appendCinemaReferenceDirection(shot, _finalPrompt);
     if (_seq && _seq.phase) {
       if (_seq.branch) {
         _finalPrompt += '\n\nSHOT BRANCH OVERRIDE — MORE SPECIFIC THAN CAMERA ABOVE:\n' + _seq.phase + '\nThe attached generated seed is continuity authority for wardrobe, props, environment, lighting, and the frozen action instant only. It is explicitly NOT face authority and NOT framing authority. Reconstruct a genuinely new camera view; do not mirror, crop, zoom, or copy the seed composition. Produce one independent 16:9 frame.' + ((typeof buildStoryboardBranchIdentityLock === 'function') ? buildStoryboardBranchIdentityLock(shot, imgInputs) : '');
@@ -85452,7 +85467,7 @@ globalThis.__zippyHistoryGuardLoaded = true;
 
   function sbStoryboardSnapshot(){
     function compact(src){ const out={}; let bytes=0; Object.keys(src||{}).forEach(function(k){const v=src[k]; if(Array.isArray(v)){const arr=v.map(function(x){if(typeof x==='string')bytes+=x.length;return (zippyHistoryMarker(x)?'':x);}); if(arr.some(Boolean))out[k]=arr;} else if(typeof v==='string'&&v&&!zippyHistoryMarker(v)){bytes+=v.length;out[k]=v;} }); return bytes>8000000?{}:out; }
-    return {genImages:compact(sbGenImages),seqImages:compact(sbSeqImages),branchImages:sbPlainMap(sbShotBranches),continuityCards:sbPlainMap(sbContinuityCards),localDeletedImages:sbPlainMap(sbLocalDeletedImages),cameraPositions:typeof sbCameraPositions!=='undefined'?sbPlainMap(sbCameraPositions):{},cameraControls:typeof sbCameraControls!=='undefined'?sbPlainMap(sbCameraControls):{},shotLocations:typeof SB_SHOTS!=='undefined'?SB_SHOTS.filter(function(s){return s&&s.id&&s.loc;}).map(function(s){return{id:s.id,loc:s.loc};}):[],shotEdits:sbShotEditorSnapshot(),savedAt:new Date().toISOString()};
+    return {genImages:compact(sbGenImages),seqImages:compact(sbSeqImages),branchImages:sbPlainMap(sbShotBranches),continuityCards:sbPlainMap(sbContinuityCards),localDeletedImages:sbPlainMap(sbLocalDeletedImages),cameraPositions:typeof sbCameraPositions!=='undefined'?sbPlainMap(sbCameraPositions):{},cameraControls:typeof sbCameraControls!=='undefined'?sbPlainMap(sbCameraControls):{},shotLocations:typeof SB_SHOTS!=='undefined'?SB_SHOTS.filter(function(s){return s&&s.id&&s.loc;}).map(function(s){return{id:s.id,loc:s.loc};}):[],shotEdits:sbShotEditorSnapshot(),cinemaReferences:typeof window.cinemaReferenceExportState==='function'?window.cinemaReferenceExportState():{},savedAt:new Date().toISOString()};
   }
 
   async function hydrateSBTimelineImages(root,opts){
@@ -85918,6 +85933,7 @@ document.addEventListener('DOMContentLoaded',function(){directorLoadState();if(t
 <script src="director-v3.js"></script>
 <script src="sheet-maker.js"></script>
 <script src="seedance-planner.js"></script>
+<script src="cinema-reference.js"></script>
 
 <script src="zippy-node-canvas.js"></script>
 </body>

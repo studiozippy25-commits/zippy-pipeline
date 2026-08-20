@@ -68701,7 +68701,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'CAMERA POSITION (concrete, anti-textbook):\n';
   const sbCtrlSummary = (typeof describeSBCameraControls === 'function') ? describeSBCameraControls(shotId) : '';
   if (sbCtrlSummary) imgPrompt += '🎛 USER CAMERA CONTROLS: ' + sbCtrlSummary + '\n';
-  if (typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shotId]) {
+  if (typeof sbCameraPositions !== 'undefined' && sbCameraControlIsCurrent(shotId) && sbCameraPositions[shotId]) {
     imgPrompt += '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shotId] + '\n';
   } else if (typeof autoCameraPos === 'function') {
     imgPrompt += '🎬 AUTO-DERIVED: ' + autoCameraPos(shot) + '\n';
@@ -73366,6 +73366,10 @@ function renderShotCard(shot, sceneVal) {
 // 📷 카메라 포지션 저장소 (씬별 커스텀 위치)
 const sbCameraPositions = {};
 const sbCameraControls = {};
+const SB_CAMERA_CONTROL_VERSION = 2;
+function sbCameraControlIsCurrent(shotId) {
+  return Number(sbCameraControls[shotId] && sbCameraControls[shotId]._version || 0) >= SB_CAMERA_CONTROL_VERSION;
+}
 const SB_CAMERA_BODY_OPTIONS = [
   ['', '프로젝트값 유지'],
   ['ARRI ALEXA 35', 'ARRI ALEXA 35'],
@@ -73424,6 +73428,7 @@ function sbSelectOptions(options, selected) {
 }
 function setShotCameraControl(shotId, key, val) {
   if (!sbCameraControls[shotId]) sbCameraControls[shotId] = {};
+  sbCameraControls[shotId]._version = SB_CAMERA_CONTROL_VERSION;
   if (val) sbCameraControls[shotId][key] = val;
   else delete sbCameraControls[shotId][key];
   saveStoryboardState('camera-control');
@@ -73441,8 +73446,8 @@ function describeSBCameraControls(shotId) {
 function renderSBCameraControl(shot) {
   const id = String(shot.id || '');
   const sid = sbEscJs(id);
-  const controls = sbCameraControls[id] || {};
-  const camPosCustom = (typeof sbCameraPositions !== 'undefined' && sbCameraPositions[id]) || '';
+  const controls = sbCameraControlIsCurrent(id) ? (sbCameraControls[id] || {}) : {};
+  const camPosCustom = sbCameraControlIsCurrent(id) && typeof sbCameraPositions !== 'undefined' ? sbCameraPositions[id] || '' : '';
   const camPosAuto = (typeof autoCameraPos === 'function') ? autoCameraPos(shot) : '';
   const camPosShow = camPosCustom || camPosAuto;
   const camPosTag = camPosCustom ? '⭐' : '🎬';
@@ -73467,6 +73472,8 @@ function renderSBCameraControl(shot) {
 }
 
 function setShotCameraPos(shotId, val) {
+  if (!sbCameraControls[shotId]) sbCameraControls[shotId] = {};
+  sbCameraControls[shotId]._version = SB_CAMERA_CONTROL_VERSION;
   sbCameraPositions[shotId] = val.trim();
   saveStoryboardState('camera-position');
 }
@@ -73572,7 +73579,7 @@ function getSBCameraSpec(shot, preset) {
   const apertureMatch = raw.match(/\bf\s*\/?\s*(1\.4|1\.8|2(?:\.0)?|2\.8|4|5\.6|8|11|16)\b/i);
   if (apertureMatch) aperture = 'f/' + apertureMatch[1].replace(/\.0$/, '');
 
-  const controls = (shot && typeof sbCameraControls !== 'undefined' && sbCameraControls[shot.id]) ? sbCameraControls[shot.id] : {};
+  const controls = (shot && typeof sbCameraControls !== 'undefined' && sbCameraControlIsCurrent(shot.id)) ? sbCameraControls[shot.id] : {};
   const body = controls.body || '';
   if (controls.camera) angle = controls.camera;
   if (controls.lens) lens = controls.lens;
@@ -74033,6 +74040,7 @@ Single frame, no text overlay, no border, no watermark.`;
   const prompt = `${dokgoMaskLock}${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
+${(window.zippyStoryboardV2CameraPlan && window.zippyStoryboardV2CameraPlan(shot)) ? 'CURRENT CAMERA RECIPE — overrides legacy movement only:\n' + window.zippyStoryboardV2CameraPlan(shot).directive : ''}
 LOCATION: ${resolveShotLoc(shot) || preset.loc || ''} · TIME: ${shot.time || preset.time || ''}
 ACTION (this specific shot only): ${shot.desc}
 FUNCTION: ${shot.func}
@@ -74053,7 +74061,7 @@ MOOD: ${emoDna || ''}
 LIGHTING: ${lightDna || shot.light || ''} ${shot.time || preset.time || ''}
 
 ${storyboardCoverageLock}${loveHandOwnershipLock}${loveShotTypeLock}${loveShotVariationLock}${loveReferenceLightingLock}${loveDirectionalPropLock}${loveEmotionPerformanceLock}${loveSpatialContinuityLock}${loveTextPropLock}CAMERA POSITION (concrete, anti-textbook):
-${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
+${(typeof describeSBCameraControls === 'function' && describeSBCameraControls(shot.id)) ? '🎛 USER CAMERA CONTROLS: ' + describeSBCameraControls(shot.id) + '\n' : ''}${(typeof sbCameraPositions !== 'undefined' && sbCameraControlIsCurrent(shot.id) && sbCameraPositions[shot.id]) ? '⭐ DIRECTOR-SPECIFIED: ' + sbCameraPositions[shot.id] : '🎬 AUTO-DERIVED: ' + autoCameraPos(shot)}
 Capture the 0.3-second moment BEFORE the action. Avoid perfectly centered composition.
 
   ${ZIPPY_BRIGHT_REAL_WORLD_LOCK}

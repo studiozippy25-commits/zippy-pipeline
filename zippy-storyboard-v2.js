@@ -47,6 +47,12 @@
   }
   function firstAsset(value) { return assetUrl(asArray(value)[0] || ''); }
   function refCount(value) { return asArray(value).length; }
+  function shotEpisode(shot) {
+    const direct = Number(shot?.ep ?? shot?.episode ?? shot?.episodeNumber);
+    if (Number.isFinite(direct) && direct > 0) return direct;
+    const match = String(shot?.id || '').match(/(?:^|[-_])EP(?:ISODE)?[-_ ]?0*(\d{1,3})(?:[-_]|$)/i);
+    return match ? Number(match[1]) : 1;
+  }
   function mapMatch(map, name) {
     if (!map || typeof map !== 'object') return null;
     if (Object.prototype.hasOwnProperty.call(map, name)) return map[name];
@@ -57,7 +63,9 @@
   function sourceFingerprint(p, shots) {
     const first = shots[0]?.id || '';
     const last = shots[shots.length - 1]?.id || '';
-    return [projectKey(), p?.sourceRevision || '', shots.length, first, last].join('|');
+    const episodeCounts = new Map(); shots.forEach(shot => episodeCounts.set(shotEpisode(shot), (episodeCounts.get(shotEpisode(shot)) || 0) + 1));
+    const episodeSignature = Array.from(episodeCounts.entries()).sort((a, b) => a[0] - b[0]).map(([ep, count]) => `${ep}:${count}`).join(',');
+    return [projectKey(), p?.sourceRevision || '', shots.length, first, last, episodeSignature].join('|');
   }
 
   function openDb() {
@@ -87,6 +95,13 @@
       const request = state.db.transaction(store, 'readwrite').objectStore(store).put(value);
       request.onsuccess = () => resolve(true);
       request.onerror = () => resolve(false);
+    });
+  }
+  function dbDelete(store, key) {
+    return new Promise(resolve => {
+      if (!state.db || !key) return resolve(false);
+      const request = state.db.transaction(store, 'readwrite').objectStore(store).delete(key);
+      request.onsuccess = () => resolve(true); request.onerror = () => resolve(false);
     });
   }
   async function saveDoc() {
@@ -123,10 +138,25 @@
     if (/\bws\b|wide|와이드|전경|풀샷/.test(text)) return 'wide';
     return 'medium';
   }
-  function recommendedCamera(shot) {
-    if (shot?.camera) return shot.camera;
-    try { if (typeof recommendCameraMoveForShot === 'function') return recommendCameraMoveForShot(shot) || 'Static Shot'; } catch (_) {}
-    return 'Static Shot';
+  function cameraPlan(shot) {
+    let controls = {}, position = '';
+    try {
+      controls = typeof sbCameraControls !== 'undefined' && sbCameraControls[shot?.id]?._version >= 2 ? sbCameraControls[shot.id] : {};
+      position = typeof sbCameraPositions !== 'undefined' && controls._version >= 2 ? sbCameraPositions[shot?.id] || '' : '';
+    } catch (_) {}
+    let spec = null;
+    try { if (typeof getSBCameraSpec === 'function') spec = getSBCameraSpec(shot, {}); } catch (_) {}
+    const manual = Object.keys(controls).some(key => key !== '_version' && controls[key]);
+    let moveId = '';
+    if (!manual) moveId = shot?.director15?.recommendedCameraMove || '';
+    try { if (!manual && !moveId && typeof recommendCameraMoveForShot === 'function') moveId = recommendCameraMoveForShot(shot) || ''; } catch (_) {}
+    let movePrompt = '';
+    try { if (moveId && typeof getCameraMovePromptBlock === 'function') movePrompt = getCameraMovePromptBlock(moveId) || ''; } catch (_) {}
+    const composition = spec ? [spec.shotSize, spec.angle, spec.lens ? `ARRI Signature Prime ${spec.lens}` : '', spec.aperture].filter(Boolean).join(', ') : '';
+    const directive = manual
+      ? [spec?.video || '', position].filter(Boolean).join('. ')
+      : [composition, movePrompt, position].filter(Boolean).join('. ') || shot?.camera || 'Static Shot';
+    return { id: moveId || (manual ? 'manual-v2' : 'legacy'), directive, source: manual ? 'manual-v2' : moveId ? (shot?.director15?.recommendedCameraMove ? 'director' : 'camera-library') : 'legacy' };
   }
   function suggestRecipe(shot, size) {
     const text = `${shot?.frame || ''} ${shot?.desc || ''} ${shot?.func || ''} ${shot?.audioDialogue || ''}`.toLowerCase();
@@ -219,7 +249,7 @@
   function buildScript(p, shots) {
     const episodes = new Map();
     shots.forEach((shot, index) => {
-      const ep = Number(shot.ep ?? 1) || 1;
+      const ep = shotEpisode(shot);
       if (!episodes.has(ep)) episodes.set(ep, { ep, title: p?.epTitles?.[ep] || `EP${String(ep).padStart(2, '0')}`, scenes: [] });
       const episode = episodes.get(ep);
       const sceneKey = `${shot.scene ?? ''}|${shot.sceneName || shot.loc || ''}`;
@@ -285,7 +315,7 @@
     const counters = new Map();
     let current = null;
     shots.forEach((shot, index) => {
-      const ep = Number(shot.ep ?? 1) || 1;
+      const ep = shotEpisode(shot);
       const sceneKey = `${ep}|${shot.scene ?? ''}|${shot.sceneName || shotLocation(shot) || ''}`;
       if (!episodes.has(ep)) episodes.set(ep, { ep, segments: [] });
       const episode = episodes.get(ep);
@@ -310,9 +340,10 @@
         episode.segments.push(current);
       }
       const size = inferShotSize(shot);
-      const camera = recommendedCamera(shot);
+      const camera = cameraPlan(shot);
       const cut = {
         id: shot.id || `SHOT-${index + 1}`,
+        ep,
         sourceShotId: shot.id || `SHOT-${index + 1}`,
         sourceBeatIds: [shot.sourceShotId || shot.id || `B${index + 1}`],
         startSeconds: Number(current.totalSeconds.toFixed(2)),
@@ -321,7 +352,9 @@
         location: shotLocation(shot),
         props: shotProps(shot),
         shotSize: size,
-        camera,
+        camera: camera.directive,
+        cameraMoveId: camera.id,
+        cameraSource: camera.source,
         recipe: suggestRecipe(shot, size),
         framePrompt: buildFramePrompt(shot, size),
         videoPrompt: buildVideoPrompt(shot, camera),
@@ -341,7 +374,7 @@
   function buildDocument() {
     const p = project(); const shots = sourceShots(); const maxSegmentSeconds = 15;
     return {
-      schema: 'studio-zippy-storyboard-v2/2',
+      schema: 'studio-zippy-storyboard-v2/3',
       projectKey: projectKey(),
       projectName: p?.name || projectKey(),
       sourceFingerprint: sourceFingerprint(p, shots),
@@ -552,7 +585,7 @@
           <div class="sbv2-cut-desc">${esc(findSourceShot(cut.sourceShotId)?.desc || findSourceShot(cut.sourceShotId)?.frame || '')}</div>
           <div class="sbv2-chips"><span>인물 ${cut.characters.length}</span><span>장소 ${cut.location ? 1 : 0}</span><span>소품 ${cut.props.length}</span><span class="recipe">${esc(cut.recipe)}</span></div>
           <div class="sbv2-issues">${issueMarkup(cut)}</div>
-          <div class="sbv2-cut-actions"><button data-sbv2-action="image" data-cut-id="${esc(cut.id)}">이미지 생성</button></div>
+          <div class="sbv2-cut-actions"><button data-sbv2-action="image" data-cut-id="${esc(cut.id)}">이미지 생성</button>${imageReady ? `<button data-sbv2-action="delete-image" data-cut-id="${esc(cut.id)}" class="delete">삭제</button>` : ''}</div>
         </div>
       </div>
       ${cut.videoUrl ? `<video class="sbv2-video" src="${esc(cut.videoUrl)}" controls preload="metadata"></video>` : ''}
@@ -622,15 +655,43 @@
 
   async function referenceImages(cut) {
     const shot = findSourceShot(cut.sourceShotId); if (!shot) return [];
+    try { if (typeof sbReferenceLoadPromise !== 'undefined' && sbReferenceLoadPromise) await sbReferenceLoadPromise; } catch (_) {}
     let refs = [];
     try {
       if (typeof getSBRefsForShot === 'function') refs = getSBRefsForShot(shot.scene, shot.id) || [];
     } catch (_) {}
     const priority = { face: 0, character: 1, costume: 2, background: 3, prop: 4 };
-    return refs.map(ref => ref.inline_data ? { b64: ref.inline_data.data, mime: ref.inline_data.mime_type, _type: ref._type, _label: ref._label } : ref)
+    const seen = new Set();
+    const ordered = refs.map(ref => ref.inline_data ? { b64: ref.inline_data.data, mime: ref.inline_data.mime_type, _type: ref._type, _label: ref._label } : ref)
       .filter(ref => ref?.b64)
       .sort((a, b) => (priority[a._type] ?? 9) - (priority[b._type] ?? 9))
-      .slice(0, 10);
+      .filter(ref => {
+        const key = `${ref._type || 'reference'}|${ref._label || ''}|${ref.b64.length}|${ref.b64.slice(0, 32)}`;
+        if (seen.has(key)) return false; seen.add(key); return true;
+      });
+    if (ordered.length > 16) throw new Error(`GTI 레퍼런스가 ${ordered.length}개입니다. 16개 한도를 넘지 않도록 컷의 등장 인물·소품을 분리하세요.`);
+    return ordered;
+  }
+  async function prepareV2GtiReferences(refs) {
+    if (!refs.length || typeof prepareImageRefsForJsonBridge !== 'function') return refs;
+    let prepared = await prepareImageRefsForJsonBridge(refs, {
+      maxRefs: refs.length, maxSide: 640, quality: 0.72, byteBudget: 16 * 1024 * 1024,
+      singleRefMaxBytes: 2 * 1024 * 1024, fallbackMaxSide: 448, fallbackQuality: 0.62,
+      hardInputMaxBytes: 30 * 1024 * 1024, skipBelowBytes: 180000
+    });
+    if (prepared.length !== refs.length) {
+      prepared = await prepareImageRefsForJsonBridge(refs, {
+        maxRefs: refs.length, maxSide: 448, quality: 0.62, byteBudget: 18 * 1024 * 1024,
+        singleRefMaxBytes: 1536 * 1024, fallbackMaxSide: 320, fallbackQuality: 0.54,
+        hardInputMaxBytes: 30 * 1024 * 1024, skipBelowBytes: 0
+      });
+    }
+    if (prepared.length !== refs.length) {
+      const sent = new Set(prepared.map(ref => `${ref._type}|${ref._label}`));
+      const missing = refs.filter(ref => !sent.has(`${ref._type}|${ref._label}`)).map(ref => `${ref._type}:${ref._label || '이름 없음'}`);
+      throw new Error(`GTI 레퍼런스 안전 압축 중 누락: ${missing.join(', ')}. 이 상태로는 생성하지 않습니다.`);
+    }
+    return prepared;
   }
   function imagePrompt(cut, refs) {
     const p = project();
@@ -656,27 +717,36 @@
     ].filter(Boolean).join('\n\n');
   }
   async function callV2Gti(images, prompt, signal) {
-    try {
-      if (typeof callGtiBridge === 'function') return await callGtiBridge({ images, prompt, signal, onProgress: message => status(message, 'working') });
-    } catch (error) {
-      if (error?.name === 'AbortError') throw error;
-      throw error;
+    let candidates = [];
+    try { if (typeof getGtiBridgeCandidateUrls === 'function') candidates = getGtiBridgeCandidateUrls(); } catch (_) {}
+    if (!candidates.length) {
+      let base = 'http://127.0.0.1:8799'; try { base = localStorage.getItem('zippy_gti_bridge') || base; } catch (_) {}
+      candidates = [base, 'http://127.0.0.1:8799', 'http://localhost:8799'];
     }
-    let base = 'http://127.0.0.1:8799';
-    try { base = localStorage.getItem('zippy_gti_bridge') || base; } catch (_) {}
     const headers = { 'Content-Type': 'application/json' };
     try { const key = localStorage.getItem('zippy_gti_bridge_key') || ''; if (key) headers['X-Zippy-GTI-Key'] = key; } catch (_) {}
-    const response = await fetch(String(base).replace(/\/+$/, '') + '/generate', {
-      method: 'POST', headers, signal,
-      body: JSON.stringify({ prompt, size: 'auto', images: images.map(image => ({ b64: image.b64, mime: image.mime || 'image/png' })) })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.imgB64) throw new Error(data.error || `GTI HTTP ${response.status}`);
-    return data;
+    const manifest = images.map((image, index) => ({ index: index + 1, type: image._type || 'reference', label: image._label || '' }));
+    let body;
+    try { body = JSON.stringify({ prompt, size: 'auto', reference_manifest: manifest, images: images.map(image => ({ b64: image.b64, mime: image.mime || 'image/png' })) }); }
+    catch (error) { throw new Error(`GTI payload 직렬화 실패: ${error?.message || error}`); }
+    let lastError = null;
+    for (const candidate of Array.from(new Set(candidates.map(value => String(value).replace(/\/+$/, ''))))) {
+      if (signal?.aborted) throw new DOMException('중단됨', 'AbortError');
+      try {
+        const response = await fetch(candidate + '/generate', { method: 'POST', headers, signal, body });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.imgB64) throw new Error(data.error || `GTI HTTP ${response.status}`);
+        try { if (typeof rememberGtiBridgeUrl === 'function') rememberGtiBridgeUrl(candidate); } catch (_) {}
+        return data;
+      } catch (error) {
+        if (error?.name === 'AbortError') throw error; lastError = error;
+      }
+    }
+    throw new Error(`GTI 브릿지 연결 실패 · ${lastError?.message || 'Failed to fetch'}`);
   }
   async function generateImage(cut, signal) {
     if (!cut) throw new Error('컷을 찾을 수 없습니다');
-    const refs = await referenceImages(cut);
+    const refs = await prepareV2GtiReferences(await referenceImages(cut));
     cut.status = 'image-running'; renderContent(); status(`${cut.id} GTI 이미지 생성 중`, 'working');
     const result = await callV2Gti(refs, imagePrompt(cut, refs), signal);
     if (!result?.imgB64) throw new Error('GTI 이미지 응답 없음');
@@ -846,6 +916,18 @@
     window.goStep('node');
     status(`${payload.length}컷을 노드 캔버스로 전송했습니다`, 'ok');
   }
+  async function deleteGeneratedImage(cut) {
+    if (!cut || !window.confirm(`${cut.id} 생성 이미지를 삭제할까요?`)) return;
+    if (cut.imageResultId) { await dbDelete(RESULT_STORE, cut.imageResultId); state.resultCache.delete(cut.imageResultId); }
+    try { delete generatedImages()[cut.sourceShotId]; } catch (_) {}
+    try { if (typeof sbLocalDeletedImages !== 'undefined') sbLocalDeletedImages[cut.sourceShotId] = new Date().toISOString(); } catch (_) {}
+    try { if (typeof sbContinuityCards !== 'undefined') delete sbContinuityCards[cut.sourceShotId]; } catch (_) {}
+    cut.imageResultId = ''; cut.status = 'ready'; cut.lastError = ''; clearPreview(cut.id);
+    await saveDoc(); state.validation = validateDocument();
+    try { if (typeof buildStoryboardTimeline === 'function') buildStoryboardTimeline(); } catch (_) {}
+    try { if (typeof saveStoryboardState === 'function') saveStoryboardState('storyboard-v2-image-deleted', { localOnly: true }); } catch (_) {}
+    renderShell();
+  }
   function exportJson() {
     const clean = JSON.stringify(state.doc, null, 2);
     const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([clean], { type: 'application/json' }));
@@ -867,6 +949,7 @@
     if (action === 'stop') { state.abortController?.abort(); status('중단 요청 중', 'warning'); return; }
     if (action === 'nodes') return sendToNodes();
     if (action === 'export') return exportJson();
+    if (action === 'delete-image') return deleteGeneratedImage(findCut(cutId));
     if (action === 'segment-video') {
       const segment = findSegment(segmentId); if (!segment || state.abortController) return;
       state.abortController = new AbortController(); renderShell();
@@ -916,6 +999,24 @@
     $('sbv2Modal')?.addEventListener('click', event => { if (event.target.id === 'sbv2Modal' || event.target.closest('[data-sbv2-close]')) $('sbv2Modal').classList.remove('open'); });
   }
 
+  function preserveGenerationState(nextDoc, previousDoc) {
+    const previousCuts = new Map();
+    (previousDoc?.episodes || []).forEach(episode => (episode.segments || []).forEach(segment => (segment.cuts || []).forEach(cut => previousCuts.set(cut.id, cut))));
+    const previousSegments = new Map();
+    (previousDoc?.episodes || []).forEach(episode => (episode.segments || []).forEach(segment => previousSegments.set((segment.cuts || []).map(cut => cut.id).join('|'), segment)));
+    (nextDoc.episodes || []).forEach(episode => (episode.segments || []).forEach(segment => {
+      segment.cuts.forEach(cut => {
+        const old = previousCuts.get(cut.id); if (!old) return;
+        cut.imageResultId = old.imageResultId || ''; cut.status = old.status || cut.status; cut.lastError = old.lastError || '';
+      });
+      const oldSegment = previousSegments.get(segment.cuts.map(cut => cut.id).join('|'));
+      if (oldSegment) {
+        segment.videoResultId = oldSegment.videoResultId || ''; segment.videoUrl = oldSegment.videoUrl || ''; segment.status = oldSegment.status || segment.status;
+      }
+    }));
+    return nextDoc;
+  }
+
   async function loadProjectDocument() {
     const key = projectKey();
     if (!key || !project()) { state.doc = null; state.projectKey = ''; renderShell(); return; }
@@ -923,14 +1024,14 @@
     state.projectKey = key; state.resultCache.clear();
     state.previewUrls.forEach(url => URL.revokeObjectURL(url)); state.previewUrls.clear();
     let doc = await dbGet(DOC_STORE, key);
-    if (!doc) { doc = buildDocument(); await dbPut(DOC_STORE, doc); }
-    if (doc.schema !== 'studio-zippy-storyboard-v2/2') {
-      doc.schema = 'studio-zippy-storyboard-v2/2'; doc.params = { ...(doc.params || {}), provider: 'minimax-h3' };
-      (doc.episodes || []).forEach(episode => (episode.segments || []).forEach(segment => {
-        segment.h3Prompt = buildH3Prompt(segment); segment.videoResultId = segment.videoResultId || ''; segment.videoUrl = segment.videoUrl || ''; segment.status = segment.status || 'ready';
-      }));
-      await dbPut(DOC_STORE, doc);
-    }
+    const fingerprint = sourceFingerprint(project(), sourceShots());
+    if (!doc) doc = buildDocument();
+    else if (doc.schema !== 'studio-zippy-storyboard-v2/3' || doc.sourceFingerprint !== fingerprint) doc = preserveGenerationState(buildDocument(), doc);
+    doc.schema = 'studio-zippy-storyboard-v2/3'; doc.params = { ...(doc.params || {}), provider: 'minimax-h3' };
+    (doc.episodes || []).forEach(episode => (episode.segments || []).forEach(segment => {
+      segment.h3Prompt = buildH3Prompt(segment); segment.videoResultId = segment.videoResultId || ''; segment.videoUrl = segment.videoUrl || ''; segment.status = segment.status || 'ready';
+    }));
+    await dbPut(DOC_STORE, doc);
     state.doc = doc; state.episode = doc.episodes?.[0]?.ep || 0; state.scene = 'all'; state.validation = validateDocument(); renderShell();
   }
   function showV2() {
@@ -950,7 +1051,7 @@
       .sbv2-views{display:flex;gap:3px;border-bottom:1px solid var(--bd)}.sbv2-views button{border:0;border-bottom:2px solid transparent;background:transparent;color:var(--mu);padding:9px 12px;font:700 11px var(--font-mono);cursor:pointer}.sbv2-views button.on{color:var(--cy);border-bottom-color:var(--cy)}.sbv2-content{min-height:420px}.sbv2-empty{padding:80px 20px;text-align:center;color:var(--mu);font:12px var(--font-mono)}
       .sbv2-script-head{display:grid;gap:8px;padding:14px 0;border-bottom:1px solid var(--bd)}.sbv2-script-head h3{font-size:20px}.sbv2-script-head p{font-size:14px;line-height:1.65}.sbv2-script-head>div{display:grid;grid-template-columns:90px 1fr;gap:8px;color:var(--mu);font-size:11px;line-height:1.5}.sbv2-script-head b{color:var(--tx)}.sbv2-script-list{display:grid;gap:14px;margin-top:14px}.sbv2-episode{border-top:2px solid var(--cy)}.sbv2-episode>header{padding:9px 0;font:700 12px var(--font-mono)}.sbv2-scene-line{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:10px 0;border-top:1px solid var(--bd)}.sbv2-scene-line>div span{display:block;margin-top:4px;color:var(--mu);font-size:10px}.sbv2-scene-line ol{margin:0;padding-left:22px}.sbv2-scene-line li{padding:4px 0;font-size:12px;line-height:1.45}.sbv2-scene-line li>span{display:inline-block;min-width:130px;color:var(--cy);font:9px var(--font-mono)}.sbv2-scene-line em{display:block;color:var(--wn);font-style:normal;margin-left:130px}
       .sbv2-bible-summary,.sbv2-section-title{display:flex;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.sbv2-bible-summary b,.sbv2-section-title b{font-size:16px}.sbv2-bible-summary span,.sbv2-section-title span{color:var(--mu);font-size:11px}.sbv2-section-title{margin-top:18px}.sbv2-bible-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);margin-top:10px}.sbv2-bible-item{display:grid;grid-template-columns:112px 1fr;min-height:138px;background:var(--card)}.sbv2-bible-media{display:grid;place-items:center;background:#10161d;color:var(--mu);font:9px var(--font-mono);overflow:hidden}.sbv2-bible-media img{width:100%;height:100%;max-height:170px;object-fit:cover;cursor:zoom-in}.sbv2-bible-info{padding:11px;min-width:0}.sbv2-bible-info h3{font-size:13px;margin:0 0 7px}.sbv2-bible-info p{margin:8px 0 0;color:var(--mu);font-size:10px;line-height:1.5;max-height:75px;overflow:auto}.sbv2-chips{display:flex;gap:4px;flex-wrap:wrap}.sbv2-chips span{padding:2px 5px;border:1px solid var(--bd);border-radius:3px;color:var(--mu);font:8px var(--font-mono)}.sbv2-chips span.ok{color:var(--ok);border-color:rgba(34,197,94,.35)}.sbv2-chips span.miss{color:var(--er);border-color:rgba(239,68,68,.35)}.sbv2-chips span.recipe{color:#c4b5fd}
-      .sbv2-board-note{padding:9px 11px;border-left:3px solid var(--cy);background:rgba(34,211,238,.05);color:var(--mu);font-size:10px;line-height:1.55;margin-bottom:12px}.sbv2-segment{margin-bottom:18px;border-top:2px solid #64748b}.sbv2-segment>header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 2px}.sbv2-segment>header>div{display:flex;align-items:center;gap:9px}.sbv2-segment>header b{font:700 13px var(--font-mono);color:var(--cy)}.sbv2-segment>header span{color:var(--mu);font-size:10px}.sbv2-segment>header strong{font:700 11px var(--font-mono)}.sbv2-segment>header strong.bad{color:var(--er)}.sbv2-segment-video{border:1px solid #a78bfa;background:rgba(167,139,250,.08);color:#c4b5fd;border-radius:4px;padding:5px 8px;font:700 9px var(--font-mono);cursor:pointer}.sbv2-segment-video:disabled{opacity:.35;cursor:not-allowed}.sbv2-cuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}.sbv2-cut{background:var(--card);border:1px solid var(--bd);border-radius:5px;overflow:hidden}.sbv2-cut-top{display:flex;align-items:center;gap:7px;padding:7px 9px;border-bottom:1px solid var(--bd);font:9px var(--font-mono)}.sbv2-cut-top b{color:var(--tx);margin-right:auto}.sbv2-cut-top span{color:var(--mu)}.sbv2-cut-main{display:grid;grid-template-columns:130px 1fr;min-height:126px}.sbv2-cut-media{display:grid;place-items:center;background:#0e141a;color:var(--mu);font:9px var(--font-mono);overflow:hidden}.sbv2-cut-media img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}.sbv2-cut-copy{padding:9px;display:flex;flex-direction:column;gap:7px;min-width:0}.sbv2-cut-desc{font-size:11px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.sbv2-issues{display:flex;gap:3px;flex-wrap:wrap}.sbv2-pass,.sbv2-issue{padding:2px 4px;border-radius:3px;font:8px var(--font-mono)}.sbv2-pass{color:var(--ok);background:rgba(34,197,94,.08)}.sbv2-issue.warning{color:var(--wn);background:rgba(245,158,11,.08)}.sbv2-issue.error{color:var(--er);background:rgba(239,68,68,.08)}.sbv2-cut-actions{display:flex;gap:5px;margin-top:auto}.sbv2-cut-actions button{border:1px solid var(--cy);background:transparent;color:var(--cy);border-radius:4px;padding:5px 7px;font:9px var(--font-mono);cursor:pointer}.sbv2-cut-actions button.video{border-color:#a78bfa;color:#c4b5fd}.sbv2-cut-actions button:disabled{opacity:.35;cursor:not-allowed}.sbv2-cut details{border-top:1px solid var(--bd)}.sbv2-cut summary{padding:6px 9px;color:var(--mu);font:9px var(--font-mono);cursor:pointer}.sbv2-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px}.sbv2-fields label{display:grid;gap:3px;color:var(--mu);font:8px var(--font-mono)}.sbv2-fields label.wide{grid-column:1/-1}.sbv2-fields input,.sbv2-fields textarea{width:100%;border:1px solid var(--bd);border-radius:4px;background:var(--sf);color:var(--tx);padding:6px;font:9px var(--font-mono)}.sbv2-fields textarea{min-height:65px;resize:vertical}.sbv2-h3{border:1px solid rgba(167,139,250,.24);border-top:0;background:rgba(167,139,250,.035)}.sbv2-h3 summary{padding:8px 10px;color:#c4b5fd;font:10px var(--font-mono);cursor:pointer}.sbv2-h3 textarea{display:block;width:calc(100% - 20px);min-height:220px;margin:0 10px 10px;padding:9px;border:1px solid var(--bd);border-radius:4px;background:#10141b;color:#d8d5ff;font:10px/1.55 var(--font-mono);resize:vertical}.sbv2-video{display:block;width:100%;max-height:520px;background:#000;border-top:1px solid var(--bd)}
+      .sbv2-board-note{padding:9px 11px;border-left:3px solid var(--cy);background:rgba(34,211,238,.05);color:var(--mu);font-size:10px;line-height:1.55;margin-bottom:12px}.sbv2-segment{margin-bottom:18px;border-top:2px solid #64748b}.sbv2-segment>header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 2px}.sbv2-segment>header>div{display:flex;align-items:center;gap:9px}.sbv2-segment>header b{font:700 13px var(--font-mono);color:var(--cy)}.sbv2-segment>header span{color:var(--mu);font-size:10px}.sbv2-segment>header strong{font:700 11px var(--font-mono)}.sbv2-segment>header strong.bad{color:var(--er)}.sbv2-segment-video{border:1px solid #a78bfa;background:rgba(167,139,250,.08);color:#c4b5fd;border-radius:4px;padding:5px 8px;font:700 9px var(--font-mono);cursor:pointer}.sbv2-segment-video:disabled{opacity:.35;cursor:not-allowed}.sbv2-cuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}.sbv2-cut{background:var(--card);border:1px solid var(--bd);border-radius:5px;overflow:hidden}.sbv2-cut-top{display:flex;align-items:center;gap:7px;padding:7px 9px;border-bottom:1px solid var(--bd);font:9px var(--font-mono)}.sbv2-cut-top b{color:var(--tx);margin-right:auto}.sbv2-cut-top span{color:var(--mu)}.sbv2-cut-main{display:grid;grid-template-columns:130px 1fr;min-height:126px}.sbv2-cut-media{display:grid;place-items:center;background:#0e141a;color:var(--mu);font:9px var(--font-mono);overflow:hidden}.sbv2-cut-media img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}.sbv2-cut-copy{padding:9px;display:flex;flex-direction:column;gap:7px;min-width:0}.sbv2-cut-desc{font-size:11px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.sbv2-issues{display:flex;gap:3px;flex-wrap:wrap}.sbv2-pass,.sbv2-issue{padding:2px 4px;border-radius:3px;font:8px var(--font-mono)}.sbv2-pass{color:var(--ok);background:rgba(34,197,94,.08)}.sbv2-issue.warning{color:var(--wn);background:rgba(245,158,11,.08)}.sbv2-issue.error{color:var(--er);background:rgba(239,68,68,.08)}.sbv2-cut-actions{display:flex;gap:5px;margin-top:auto}.sbv2-cut-actions button{border:1px solid var(--cy);background:transparent;color:var(--cy);border-radius:4px;padding:5px 7px;font:9px var(--font-mono);cursor:pointer}.sbv2-cut-actions button.video{border-color:#a78bfa;color:#c4b5fd}.sbv2-cut-actions button.delete{border-color:rgba(239,68,68,.55);color:#fca5a5}.sbv2-cut-actions button:disabled{opacity:.35;cursor:not-allowed}.sbv2-cut details{border-top:1px solid var(--bd)}.sbv2-cut summary{padding:6px 9px;color:var(--mu);font:9px var(--font-mono);cursor:pointer}.sbv2-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px}.sbv2-fields label{display:grid;gap:3px;color:var(--mu);font:8px var(--font-mono)}.sbv2-fields label.wide{grid-column:1/-1}.sbv2-fields input,.sbv2-fields textarea{width:100%;border:1px solid var(--bd);border-radius:4px;background:var(--sf);color:var(--tx);padding:6px;font:9px var(--font-mono)}.sbv2-fields textarea{min-height:65px;resize:vertical}.sbv2-h3{border:1px solid rgba(167,139,250,.24);border-top:0;background:rgba(167,139,250,.035)}.sbv2-h3 summary{padding:8px 10px;color:#c4b5fd;font:10px var(--font-mono);cursor:pointer}.sbv2-h3 textarea{display:block;width:calc(100% - 20px);min-height:220px;margin:0 10px 10px;padding:9px;border:1px solid var(--bd);border-radius:4px;background:#10141b;color:#d8d5ff;font:10px/1.55 var(--font-mono);resize:vertical}.sbv2-video{display:block;width:100%;max-height:520px;background:#000;border-top:1px solid var(--bd)}
       .sbv2-gates{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.sbv2-gates>div{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;padding:10px;border:1px solid var(--bd);background:var(--card)}.sbv2-gates>div>span{grid-row:1/3;font:700 9px var(--font-mono);align-self:center}.sbv2-gates .pass>span{color:var(--ok)}.sbv2-gates .fail>span{color:var(--er)}.sbv2-gates b{font-size:11px}.sbv2-gates em{color:var(--mu);font:9px var(--font-mono);font-style:normal}.sbv2-validation-summary{margin-top:14px;padding:10px 0;border-bottom:1px solid var(--bd);font:11px var(--font-mono)}.sbv2-validation-list>div{display:grid;grid-template-columns:120px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:10px}.sbv2-validation-list b{font-family:var(--font-mono);color:var(--cy)}.sbv2-validation-list span{color:var(--mu)}
       .sbv2-modal{position:fixed;inset:0;z-index:99999;display:none;place-items:center;padding:30px;background:rgba(0,0,0,.86)}.sbv2-modal.open{display:grid}.sbv2-modal img{max-width:min(94vw,1500px);max-height:90vh;object-fit:contain}.sbv2-modal button{position:absolute;top:18px;right:20px;width:36px;height:36px;border:1px solid #64748b;background:#111;color:#fff;font-size:22px;cursor:pointer}
       @media(max-width:900px){.sbv2-kpis{grid-template-columns:repeat(3,1fr)}.sbv2-kpis>div:nth-child(3){border-right:0}.sbv2-scene-line{grid-template-columns:1fr}.sbv2-gates{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.sbv2-head{align-items:flex-start;flex-direction:column}.sbv2-kpis{grid-template-columns:repeat(2,1fr)}.sbv2-kpis>div{border-bottom:1px solid var(--bd)}.sbv2-bible-grid,.sbv2-cuts{grid-template-columns:1fr}.sbv2-bible-item{grid-template-columns:90px 1fr}.sbv2-cut-main{grid-template-columns:105px 1fr}.sbv2-gates{grid-template-columns:1fr}.sbv2-views{overflow-x:auto}.sbv2-status{width:100%;margin-left:0}}
@@ -974,8 +1075,8 @@
     };
     state.initialized = true;
   }
-  if (typeof window !== 'undefined') window.zippyStoryboardV2Init = init;
-  if (typeof module !== 'undefined' && module.exports) module.exports = { h3Time, buildH3Prompt, buildSegments, inferShotSize, suggestRecipe };
+  if (typeof window !== 'undefined') { window.zippyStoryboardV2Init = init; window.zippyStoryboardV2CameraPlan = cameraPlan; }
+  if (typeof module !== 'undefined' && module.exports) module.exports = { h3Time, buildH3Prompt, buildSegments, inferShotSize, suggestRecipe, shotEpisode };
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
   }

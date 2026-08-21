@@ -392,7 +392,7 @@ input[type=file]{display:none}
 /* 스텝 네비 */
 .snav {
   display:grid;
-  grid-template-columns:repeat(6,minmax(0,1fr));
+  grid-template-columns:repeat(10,minmax(0,1fr));
   gap:1px;
   border-radius:0;
   border:1px solid #E5E7EB;
@@ -750,6 +750,42 @@ input[type=file]{display:none}
 .edit-menu-item .emi-icon{font-size:15px;width:20px;text-align:center}
 .edit-menu-item .emi-label{font-weight:600;font-size:12px}
 .edit-menu-item .emi-desc{font-size:10px;color:var(--mu);margin-top:1px}
+
+/* ═══ LOCAL QWEN IMAGE EDITOR ═══ */
+.qwen-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1001;display:flex;align-items:center;justify-content:center;padding:18px}
+.qwen-edit-panel{width:min(1040px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#15171c;border:1px solid rgba(255,255,255,.18);border-radius:8px;color:#fff;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.qwen-edit-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.12);background:#15171c}
+.qwen-edit-head h2{margin:0;font-family:var(--font-mono);font-size:16px;letter-spacing:0}
+.qwen-edit-close{width:34px;height:34px;border:1px solid rgba(255,255,255,.22);border-radius:6px;background:transparent;color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.qwen-edit-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.8fr);gap:16px;padding:16px}
+.qwen-edit-label{display:block;margin-bottom:6px;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.64)}
+.qwen-edit-refs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qwen-edit-ref{position:relative;aspect-ratio:1;border:1px dashed rgba(255,255,255,.28);border-radius:6px;overflow:hidden;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.45);font-family:var(--font-mono);font-size:11px;cursor:pointer}
+.qwen-edit-ref:first-child{border-color:rgba(14,165,233,.65)}
+.qwen-edit-ref img{width:100%;height:100%;object-fit:cover;display:block}
+.qwen-edit-ref small{position:absolute;left:5px;bottom:5px;max-width:calc(100% - 10px);padding:2px 5px;border-radius:3px;background:rgba(0,0,0,.72);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:9px}
+.qwen-edit-ref-remove{position:absolute;top:5px;right:5px;width:26px;height:26px;border:1px solid rgba(255,255,255,.35);border-radius:5px;background:rgba(0,0,0,.72);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.qwen-edit-drop{margin-top:8px;padding:9px 12px;border:1px dashed rgba(255,255,255,.25);border-radius:6px;text-align:center;color:rgba(255,255,255,.56);font-family:var(--font-mono);font-size:11px;cursor:pointer}
+.qwen-edit-drop.drag{border-color:var(--bl);background:rgba(14,165,233,.1);color:#fff}
+.qwen-edit-control{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:rgba(255,255,255,.07);color:#fff;padding:10px 12px;font-family:var(--font-body);font-size:13px;outline:none}
+.qwen-edit-control:focus{border-color:var(--bl)}
+textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
+.qwen-edit-field{margin-bottom:12px}
+.qwen-edit-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qwen-edit-status{min-height:20px;margin-top:10px;color:#93c5fd;font-family:var(--font-mono);font-size:11px;line-height:1.5}
+.qwen-edit-result{min-height:390px;border:1px solid rgba(255,255,255,.14);border-radius:6px;background:#0b0d11;display:flex;align-items:center;justify-content:center;overflow:hidden;color:rgba(255,255,255,.35);font-family:var(--font-mono);font-size:11px}
+.qwen-edit-result img{display:block;width:100%;height:100%;max-height:650px;object-fit:contain}
+.qwen-edit-result-actions{display:none;gap:8px;margin-top:8px;flex-wrap:wrap}
+.qwen-edit-tab-panel{width:100%;max-height:none;overflow:visible;background:var(--card);border-color:var(--bd);color:var(--tx);box-shadow:none}
+.qwen-edit-tab-panel .qwen-edit-body{padding:18px}
+.qwen-edit-tab-panel .qwen-edit-label{color:var(--mu)}
+.qwen-edit-tab-panel .qwen-edit-ref{border-color:var(--bd);background:var(--sf);color:var(--mu)}
+.qwen-edit-tab-panel .qwen-edit-ref:first-child{border-color:var(--bl)}
+.qwen-edit-tab-panel .qwen-edit-drop{border-color:var(--bd);color:var(--mu);background:var(--sf)}
+.qwen-edit-tab-panel .qwen-edit-control{border-color:var(--bd);background:var(--sf);color:var(--tx)}
+.qwen-edit-tab-panel .mod-toolbar-btn{border-color:var(--bd);background:var(--sf);color:var(--tx)}
+.qwen-edit-tab-panel .mod-toolbar-btn.primary{border-color:var(--bl);background:var(--bl);color:#fff}
+@media(max-width:780px){.qwen-edit-overlay{padding:0}.qwen-edit-overlay .qwen-edit-panel{max-height:100vh;height:100vh;border:0;border-radius:0}.qwen-edit-tab-panel{height:auto;max-height:none;border:1px solid var(--bd);border-radius:8px}.qwen-edit-body{grid-template-columns:1fr}.qwen-edit-result{min-height:280px}}
 
 /* ═══ PRODUCT PLACEMENT ═══ */
 .pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:997;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
@@ -1188,8 +1224,9 @@ input[type=file]{display:none}
     <span id="comfyStat" class="ast sno" style="font-size:11px">미확인</span>
     <label style="font-size:11px;color:var(--mu)">크기 <input id="localImgSize" type="number" value="1280" min="512" max="2048" step="64" style="font-family:var(--font-mono);font-size:11px;width:62px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"></label>
     <label style="font-size:11px;color:var(--mu)">T2I <select id="localT2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="zimage-turbo" selected>Z-Image Turbo</option><option value="zimage-turbo-nvfp4">Z-Image Turbo NVFP4</option><option value="qwen-image-turbo">Qwen-Image 2512 Turbo</option><option value="qwen-image-lightning">Qwen-Image 2512 Lightning</option><option value="flux-klein">FLUX.2 Klein</option></select></label>
-    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen-Edit 2509 (L4)</option><option value="qwen-edit-2509-l8">Qwen-Edit 2509 (L8)</option><option value="qwen-edit-2511">Qwen-Edit 2511</option></select></label>
+    <label style="font-size:11px;color:var(--mu)">편집 <select id="localI2IModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="qwen-edit-2509-l4" selected>Qwen Image Edit 2509 FP8 · 4-step Fast</option><option value="qwen-edit-2509-l8">Qwen Image Edit 2509 FP8 · 8-step Detail</option><option value="qwen-edit-2511">Qwen Image Edit 2511 BF16 · 4-step Quality</option></select></label>
     <label style="font-size:11px;color:var(--mu)">인페인트 <select id="localInpaintModel" style="font-family:var(--font-mono);font-size:11px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:4px;padding:2px 4px"><option value="flux-fill" selected>FLUX.1 Fill</option><option value="qwen-edit-2511">Qwen-Edit 2511 (edit)</option></select></label>
+    <button class="btn bbl bsm" onclick="openLocalQwenEditor()" style="font-size:11px;padding:3px 10px">Qwen 편집 열기</button>
   </div>
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
@@ -1264,6 +1301,7 @@ input[type=file]{display:none}
   <button class="stab" id="tabSheet" onclick="goStep('sheet')" style="border-bottom-color:#34D399;color:#34D399">시트 제작</button>
   <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
   <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
+  <button class="stab" id="tabQwenEdit" onclick="goStep('qwenedit')" style="border-bottom-color:var(--bl);color:var(--bl)">Qwen 편집</button>
   <button class="stab" id="tabGrok" onclick="goStep('grok')" style="border-bottom-color:#FDBA74;color:#FDBA74">Grok Imagine</button>
   <button class="stab" id="tabScout" onclick="goStep('scout')" style="border-bottom-color:#2DD4BF;color:#2DD4BF">🌍 LOCATION SCOUT</button>
   <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
@@ -3842,6 +3880,52 @@ input[type=file]{display:none}
     <div class="vid-warning">Local 5080 Gateway로 전송됩니다. ComfyUI가 켜져 있어야 합니다.</div>
     <div class="vid-result" id="vidResult" style="display:none"></div>
     <div class="vid-status" id="vidStatus" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ═══ LOCAL QWEN IMAGE EDITOR TAB ═══ -->
+<div class="panel" id="pQwenEdit">
+  <div class="slbl" style="color:var(--bl)">Qwen 로컬 이미지 편집 · 5080</div>
+  <div class="qwen-edit-panel qwen-edit-tab-panel">
+    <div class="qwen-edit-body">
+      <div>
+        <div class="qwen-edit-field">
+          <span class="qwen-edit-label">이미지 1 원본 · 이미지 2~3 참조</span>
+          <div class="qwen-edit-refs" id="localQwenRefs"></div>
+          <div class="qwen-edit-drop" id="localQwenDrop" onclick="document.getElementById('localQwenFiles').click()" ondragover="localQwenDragOver(event)" ondragleave="localQwenDragLeave(event)" ondrop="localQwenDropFiles(event)">이미지 선택 · 최대 3장</div>
+          <input type="file" id="localQwenFiles" accept="image/*" multiple style="display:none" onchange="handleLocalQwenFiles(this.files);this.value=''">
+        </div>
+        <div class="qwen-edit-field">
+          <label class="qwen-edit-label" for="localQwenEditorModel">로컬 모델</label>
+          <select class="qwen-edit-control" id="localQwenEditorModel" onchange="syncLocalQwenModel(this.value)">
+            <option value="qwen-edit-2509-l4">Qwen Image Edit 2509 FP8 · Lightning 4-step · Fast</option>
+            <option value="qwen-edit-2509-l8">Qwen Image Edit 2509 FP8 · Lightning 8-step · Detail</option>
+            <option value="qwen-edit-2511">Qwen Image Edit 2511 BF16 · Lightning 4-step · Quality</option>
+          </select>
+        </div>
+        <div class="qwen-edit-field">
+          <label class="qwen-edit-label" for="localQwenPrompt">편집 지시</label>
+          <textarea class="qwen-edit-control" id="localQwenPrompt" placeholder="예: 이미지 1의 인물과 구도는 유지하고 배경만 새벽의 서울 골목으로 변경"></textarea>
+        </div>
+        <div class="qwen-edit-field">
+          <label class="qwen-edit-label" for="localQwenNegative">제외 요소</label>
+          <input class="qwen-edit-control" id="localQwenNegative" value="distorted face, changed identity, extra fingers, extra limbs, text, watermark" spellcheck="false">
+        </div>
+        <div class="qwen-edit-actions">
+          <button class="mod-toolbar-btn primary" id="localQwenExecBtn" onclick="executeLocalQwenEdit()" style="flex:1;min-width:170px;padding:10px 16px;font-weight:700">편집 실행</button>
+          <button class="mod-toolbar-btn" id="localQwenAbortBtn" onclick="abortLocalQwenEdit()" disabled style="padding:10px 16px">중단</button>
+        </div>
+        <div class="qwen-edit-status" id="localQwenStatus">ComfyUI 8188 · 대기</div>
+      </div>
+      <div>
+        <span class="qwen-edit-label">결과</span>
+        <div class="qwen-edit-result" id="localQwenResult">편집 결과가 여기에 표시됩니다</div>
+        <div class="qwen-edit-result-actions" id="localQwenResultActions">
+          <button class="mod-toolbar-btn" onclick="downloadLocalQwenResult()">다운로드</button>
+          <button class="mod-toolbar-btn" onclick="useLocalQwenResultAsSource()">결과로 다시 편집</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -78860,6 +78944,181 @@ function readFile(f){
   });
 }
 
+/* ═══ LOCAL QWEN IMAGE EDITOR ═══ */
+let localQwenEditorRefs = [];
+let localQwenEditorResult = null;
+let localQwenAbortController = null;
+
+function openLocalQwenEditor(baseB64, baseMime, baseName) {
+  const localRadio = document.querySelector('input[name="imgMode"][value="local"]');
+  if (localRadio) {
+    localRadio.checked = true;
+    onImgModeChange();
+  }
+  const mainModel = document.getElementById('localI2IModel');
+  const editorModel = document.getElementById('localQwenEditorModel');
+  if (editorModel) editorModel.value = (mainModel && mainModel.value) || 'qwen-edit-2509-l4';
+  if (baseB64) {
+    const base = {b64:baseB64, mime:baseMime || 'image/png', name:baseName || '원본 이미지'};
+    if (localQwenEditorRefs.length) localQwenEditorRefs[0] = base;
+    else localQwenEditorRefs.push(base);
+  }
+  renderLocalQwenRefs();
+  goStep('qwenedit');
+}
+
+function closeLocalQwenEditor() {
+  goStep('mb');
+}
+
+function syncLocalQwenModel(value) {
+  const model = document.getElementById('localI2IModel');
+  if (model && value) model.value = value;
+}
+
+async function handleLocalQwenFiles(files) {
+  const picked = Array.from(files || []).filter(function(file) { return /^image\//.test(file.type || ''); });
+  if (!picked.length) return;
+  const room = Math.max(0, 3 - localQwenEditorRefs.length);
+  if (!room) {
+    alert('참조 이미지는 최대 3장입니다');
+    return;
+  }
+  const loaded = [];
+  for (const file of picked.slice(0, room)) loaded.push(await readFile(file));
+  localQwenEditorRefs = localQwenEditorRefs.concat(loaded).slice(0, 3);
+  renderLocalQwenRefs();
+}
+
+function renderLocalQwenRefs() {
+  const root = document.getElementById('localQwenRefs');
+  if (!root) return;
+  root.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'qwen-edit-ref';
+    const ref = localQwenEditorRefs[i];
+    if (ref) {
+      const img = document.createElement('img');
+      img.src = 'data:' + ref.mime + ';base64,' + ref.b64;
+      img.alt = i === 0 ? '원본 이미지' : '참조 이미지 ' + (i + 1);
+      slot.appendChild(img);
+      const name = document.createElement('small');
+      name.textContent = (i === 0 ? '원본 · ' : '참조 ' + (i + 1) + ' · ') + (ref.name || 'image');
+      slot.appendChild(name);
+      const remove = document.createElement('button');
+      remove.className = 'qwen-edit-ref-remove';
+      remove.type = 'button';
+      remove.title = '이미지 제거';
+      remove.setAttribute('aria-label', '이미지 제거');
+      remove.textContent = '×';
+      remove.onclick = function(event) {
+        event.stopPropagation();
+        localQwenEditorRefs.splice(i, 1);
+        renderLocalQwenRefs();
+      };
+      slot.appendChild(remove);
+    } else {
+      slot.textContent = i === 0 ? '원본 1' : '참조 ' + (i + 1);
+      slot.onclick = function() { document.getElementById('localQwenFiles').click(); };
+    }
+    root.appendChild(slot);
+  }
+}
+
+function localQwenDragOver(event) {
+  event.preventDefault();
+  event.currentTarget.classList.add('drag');
+}
+function localQwenDragLeave(event) {
+  event.currentTarget.classList.remove('drag');
+}
+function localQwenDropFiles(event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag');
+  handleLocalQwenFiles(event.dataTransfer && event.dataTransfer.files);
+}
+
+function abortLocalQwenEdit() {
+  if (localQwenAbortController) localQwenAbortController.abort();
+}
+
+async function executeLocalQwenEdit() {
+  if (!localQwenEditorRefs.length) {
+    document.getElementById('localQwenFiles').click();
+    return;
+  }
+  const promptEl = document.getElementById('localQwenPrompt');
+  const prompt = (promptEl && promptEl.value || '').trim();
+  if (!prompt) {
+    promptEl.focus();
+    return;
+  }
+  const editorModel = document.getElementById('localQwenEditorModel');
+  syncLocalQwenModel(editorModel && editorModel.value);
+  const status = document.getElementById('localQwenStatus');
+  const execBtn = document.getElementById('localQwenExecBtn');
+  const abortBtn = document.getElementById('localQwenAbortBtn');
+  const result = document.getElementById('localQwenResult');
+  const resultActions = document.getElementById('localQwenResultActions');
+  const negative = document.getElementById('localQwenNegative')?.value?.trim() || '';
+  localQwenAbortController = new AbortController();
+  execBtn.disabled = true;
+  abortBtn.disabled = false;
+  resultActions.style.display = 'none';
+  status.textContent = 'ComfyUI 연결 중...';
+  try {
+    const output = await callImageGen({
+      images:localQwenEditorRefs.map(function(ref) { return {b64:ref.b64, mime:ref.mime}; }),
+      prompt:prompt,
+      negative:negative,
+      task:'edit',
+      signal:localQwenAbortController.signal,
+      skipPromptPolicy:true,
+      onProgress:function(message) { status.textContent = message; }
+    });
+    if (!output || !output.imgB64) throw new Error('결과 이미지가 없습니다');
+    localQwenEditorResult = {b64:output.imgB64, mime:output.mime || 'image/png'};
+    result.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = 'data:' + localQwenEditorResult.mime + ';base64,' + localQwenEditorResult.b64;
+    img.alt = 'Qwen 편집 결과';
+    result.appendChild(img);
+    resultActions.style.display = 'flex';
+    status.textContent = '완료 · ' + (editorModel.options[editorModel.selectedIndex]?.text || editorModel.value);
+    if (typeof saveToHistory === 'function') saveToHistory(localQwenEditorResult.b64, 'QwenLocalEdit', prompt.substring(0, 60));
+  } catch (error) {
+    const aborted = error && (error.name === 'AbortError' || /abort|중단/i.test(error.message || ''));
+    status.textContent = aborted ? '중단됨' : '실패 · ' + ((error && error.message) || error);
+  } finally {
+    localQwenAbortController = null;
+    execBtn.disabled = false;
+    abortBtn.disabled = true;
+  }
+}
+
+function downloadLocalQwenResult() {
+  if (!localQwenEditorResult) return;
+  const link = document.createElement('a');
+  link.href = 'data:' + localQwenEditorResult.mime + ';base64,' + localQwenEditorResult.b64;
+  link.download = 'qwen_local_edit_' + Date.now() + '.png';
+  link.click();
+}
+
+function useLocalQwenResultAsSource() {
+  if (!localQwenEditorResult) return;
+  const nextSource = {b64:localQwenEditorResult.b64, mime:localQwenEditorResult.mime, name:'직전 편집 결과'};
+  if (localQwenEditorRefs.length) localQwenEditorRefs[0] = nextSource;
+  else localQwenEditorRefs.push(nextSource);
+  renderLocalQwenRefs();
+  const prompt = document.getElementById('localQwenPrompt');
+  if (prompt) {
+    prompt.value = '';
+    prompt.focus();
+  }
+  document.getElementById('localQwenStatus').textContent = '직전 결과를 원본 이미지 1로 설정했습니다';
+}
+
 /* ═══ ITERATIVE IMAGE REFINEMENT (Chain Edit) ═══ */
 async function refineImage(btn) {
   const wrap = btn.closest('.refine-wrap');
@@ -80028,6 +80287,63 @@ async function uploadImageToComfy(b64, mime='image/png', signal=null) {
 
 /* ════════ WORKFLOW BUILDERS ════════ */
 // 모델별 워크플로우 빌더. 각각 {prompt, images:[{filename}], negative, width, height, seed, mask_filename?} 받음
+function buildQwenImageEditWorkflow(ctx, options) {
+  const refs = (ctx.images || []).slice(0, 3);
+  if (!refs.length || !refs[0].filename) throw new Error('편집할 원본 이미지가 없습니다');
+
+  const wf = {
+    "1": {"class_type":"UNETLoader","inputs":{"unet_name":options.unet,"weight_dtype":"default"}},
+    "2": {"class_type":"CLIPLoader","inputs":{"clip_name":"qwen_2.5_vl_7b_fp8_scaled.safetensors","type":"qwen_image","device":"default"}},
+    "3": {"class_type":"VAELoader","inputs":{"vae_name":"qwen_image_vae.safetensors"}},
+    "4": {"class_type":"ModelSamplingAuraFlow","inputs":{"model":["1",0],"shift":3.1}},
+    "5": {"class_type":"CFGNorm","inputs":{"model":["4",0],"strength":1.0}},
+    "6": {"class_type":"LoraLoaderModelOnly","inputs":{"model":["5",0],"lora_name":options.lightning,"strength_model":1.0}}
+  };
+
+  let nextId = 7;
+  let modelNode = "6";
+  (ctx.loras || []).forEach(function(loraName) {
+    const id = String(nextId++);
+    wf[id] = {"class_type":"LoraLoaderModelOnly","inputs":{"model":[modelNode,0],"lora_name":loraName,"strength_model":1.0}};
+    modelNode = id;
+  });
+
+  const imageNodes = [];
+  refs.forEach(function(ref) {
+    const id = String(nextId++);
+    wf[id] = {"class_type":"LoadImage","inputs":{"image":ref.filename}};
+    imageNodes.push([id, 0]);
+  });
+
+  const scaledId = String(nextId++);
+  wf[scaledId] = {"class_type":"FluxKontextImageScale","inputs":{"image":imageNodes[0]}};
+  const referenceInputs = {"image1":[scaledId,0]};
+  if (imageNodes[1]) referenceInputs.image2 = imageNodes[1];
+  if (imageNodes[2]) referenceInputs.image3 = imageNodes[2];
+
+  const positiveId = String(nextId++);
+  wf[positiveId] = {"class_type":"TextEncodeQwenImageEditPlus","inputs":{
+    "clip":["2",0],"vae":["3",0],"prompt":ctx.prompt,
+    ...referenceInputs
+  }};
+  const negativeId = String(nextId++);
+  wf[negativeId] = {"class_type":"TextEncodeQwenImageEditPlus","inputs":{
+    "clip":["2",0],"vae":["3",0],"prompt":ctx.negative || "",
+    ...referenceInputs
+  }};
+  const latentId = String(nextId++);
+  wf[latentId] = {"class_type":"VAEEncode","inputs":{"pixels":[scaledId,0],"vae":["3",0]}};
+  const samplerId = String(nextId++);
+  wf[samplerId] = {"class_type":"KSampler","inputs":{
+    "model":[modelNode,0],"positive":[positiveId,0],"negative":[negativeId,0],"latent_image":[latentId,0],
+    "seed":ctx.seed,"steps":options.steps,"cfg":1.0,"sampler_name":"euler","scheduler":"simple","denoise":1.0
+  }};
+  const decodeId = String(nextId++);
+  wf[decodeId] = {"class_type":"VAEDecode","inputs":{"samples":[samplerId,0],"vae":["3",0]}};
+  wf[String(nextId)] = {"class_type":"SaveImage","inputs":{"images":[decodeId,0],"filename_prefix":"zippy_qwen_edit"}};
+  return wf;
+}
+
 const WF_BUILDERS = {
   // TXT2IMG ─────────────
   'zimage-turbo': (ctx) => {
@@ -80096,64 +80412,22 @@ const WF_BUILDERS = {
     };
   },
 
-  // IMG2IMG (Qwen-Image-Edit) ─────────────
-  'qwen-edit-2509-l4': (ctx) => {
-    // Qwen-Edit 2509 + Lightning 4-step LoRA, 첫 이미지를 참조로 편집
-    const refImg = ctx.images?.[0]?.filename;
-    if (!refImg) throw new Error('편집 대상 이미지 없음');
-    const extraLoras = ctx.loras || [];
-    let modelNode = "1", clipNode = "2";
-    let wf = {
-      "1": {"class_type":"UNETLoader","inputs":{"unet_name":"qwen_image_edit_2509_fp8_e4m3fn.safetensors","weight_dtype":"default"}},
-      "2": {"class_type":"CLIPLoader","inputs":{"clip_name":"qwen_2.5_vl_7b_fp8_scaled.safetensors","type":"qwen_image"}},
-      "3": {"class_type":"VAELoader","inputs":{"vae_name":"qwen_image_vae.safetensors"}},
-      "4": {"class_type":"LoraLoader","inputs":{"model":["1",0],"clip":["2",0],"lora_name":"Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors","strength_model":1.0,"strength_clip":1.0}},
-    };
-    modelNode = "4"; clipNode = "4"; // 4.0=model, 4.1=clip
-    let lastId = 4;
-    extraLoras.forEach(loraName => {
-      lastId++;
-      wf[String(lastId)] = {"class_type":"LoraLoader","inputs":{"model":[String(lastId-1),0],"clip":[String(lastId-1),1],"lora_name":loraName,"strength_model":1.0,"strength_clip":1.0}};
-    });
-    wf[String(lastId+1)] = {"class_type":"LoadImage","inputs":{"image":refImg}};
-    wf[String(lastId+2)] = {"class_type":"CLIPTextEncode","inputs":{"clip":[String(lastId),1],"text":ctx.prompt}};
-    wf[String(lastId+3)] = {"class_type":"CLIPTextEncode","inputs":{"clip":[String(lastId),1],"text":ctx.negative||""}};
-    wf[String(lastId+4)] = {"class_type":"VAEEncode","inputs":{"pixels":[String(lastId+1),0],"vae":["3",0]}};
-    wf[String(lastId+5)] = {"class_type":"KSampler","inputs":{"model":[String(lastId),0],"positive":[String(lastId+2),0],"negative":[String(lastId+3),0],"latent_image":[String(lastId+4),0],"seed":ctx.seed,"steps":4,"cfg":1.0,"sampler_name":"euler","scheduler":"simple","denoise":ctx.denoise||0.85}};
-    wf[String(lastId+6)] = {"class_type":"VAEDecode","inputs":{"samples":[String(lastId+5),0],"vae":["3",0]}};
-    wf[String(lastId+7)] = {"class_type":"SaveImage","inputs":{"images":[String(lastId+6),0],"filename_prefix":"zippy_edit"}};
-    return wf;
-  },
-  'qwen-edit-2509-l8': (ctx) => {
-    const wfFn = WF_BUILDERS['qwen-edit-2509-l4'];
-    const wf = wfFn(ctx);
-    // Lightning 8-step 로라 교체 + steps=8
-    Object.keys(wf).forEach(k => {
-      if (wf[k].class_type === 'LoraLoader' && wf[k].inputs.lora_name.includes('Lightning-4steps')) {
-        wf[k].inputs.lora_name = 'Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safetensors';
-      }
-      if (wf[k].class_type === 'KSampler') wf[k].inputs.steps = 8;
-    });
-    return wf;
-  },
-  'qwen-edit-2511': (ctx) => {
-    // 2511 최신 모델 (라이트닝 LoRA 없이, 더 많은 스텝)
-    const refImg = ctx.images?.[0]?.filename;
-    if (!refImg) throw new Error('편집 대상 이미지 없음');
-    return {
-      "1": {"class_type":"UNETLoader","inputs":{"unet_name":"qwen_image_edit_2511_bf16.safetensors","weight_dtype":"default"}},
-      "2": {"class_type":"CLIPLoader","inputs":{"clip_name":"qwen_2.5_vl_7b_fp8_scaled.safetensors","type":"qwen_image"}},
-      "3": {"class_type":"VAELoader","inputs":{"vae_name":"qwen_image_vae.safetensors"}},
-      "4": {"class_type":"LoraLoader","inputs":{"model":["1",0],"clip":["2",0],"lora_name":"Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors","strength_model":1.0,"strength_clip":1.0}},
-      "5": {"class_type":"LoadImage","inputs":{"image":refImg}},
-      "6": {"class_type":"CLIPTextEncode","inputs":{"clip":["4",1],"text":ctx.prompt}},
-      "7": {"class_type":"CLIPTextEncode","inputs":{"clip":["4",1],"text":ctx.negative||""}},
-      "8": {"class_type":"VAEEncode","inputs":{"pixels":["5",0],"vae":["3",0]}},
-      "9": {"class_type":"KSampler","inputs":{"model":["4",0],"positive":["6",0],"negative":["7",0],"latent_image":["8",0],"seed":ctx.seed,"steps":4,"cfg":1.0,"sampler_name":"euler","scheduler":"simple","denoise":ctx.denoise||0.85}},
-      "10": {"class_type":"VAEDecode","inputs":{"samples":["9",0],"vae":["3",0]}},
-      "11": {"class_type":"SaveImage","inputs":{"images":["10",0],"filename_prefix":"zippy_edit"}}
-    };
-  },
+  // IMG2IMG (Qwen-Image-Edit native conditioning, image 1~3) ─────────────
+  'qwen-edit-2509-l4': (ctx) => buildQwenImageEditWorkflow(ctx, {
+    unet: 'qwen_image_edit_2509_fp8_e4m3fn.safetensors',
+    lightning: 'Qwen-Image-Edit-2509-Lightning-4steps-V1.0-bf16.safetensors',
+    steps: 4
+  }),
+  'qwen-edit-2509-l8': (ctx) => buildQwenImageEditWorkflow(ctx, {
+    unet: 'qwen_image_edit_2509_fp8_e4m3fn.safetensors',
+    lightning: 'Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safetensors',
+    steps: 8
+  }),
+  'qwen-edit-2511': (ctx) => buildQwenImageEditWorkflow(ctx, {
+    unet: 'qwen_image_edit_2511_bf16.safetensors',
+    lightning: 'Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors',
+    steps: 4
+  }),
 
   // INPAINT (FLUX.1 Fill) ─────────────
   'flux-fill': (ctx) => {
@@ -80347,10 +80621,12 @@ try {
  * images: [{b64, mime}] 배열 (편집 대상)
  * mask: {b64, mime} (인페인팅용, 선택)
  */
-async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVal='1K', signal=null, width=null, height=null, onProgress=null, negative=''}) {
-  prompt = enforceLiveActionPrompt(prompt);
-  prompt = applyNcityLightingBible(prompt, task);
-  negative = enforceLiveActionNegative(negative);
+async function callImageGen({images=[], prompt, task='txt2img', mask=null, resVal='1K', signal=null, width=null, height=null, onProgress=null, negative='', skipPromptPolicy=false}) {
+  if (!skipPromptPolicy) {
+    prompt = enforceLiveActionPrompt(prompt);
+    prompt = applyNcityLightingBible(prompt, task);
+    negative = enforceLiveActionNegative(negative);
+  }
   const mode = getImgMode();
   if (mode === 'cloud') {
     return await callGemini({images, prompt, textOnly: false, resVal, signal});
@@ -81735,7 +82011,7 @@ async function vbGenBatch() {
 
 // ═══ NAV ═════════════════════════════════════════
 function goStep(n){
-  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pGrok','pScout','pInsta','pNode'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='sb') el.classList.toggle('active',id==='pSB');
@@ -81747,6 +82023,7 @@ function goStep(n){
     else if(n==='voice') el.classList.toggle('active',id==='pVoice');
     else if(n==='hist') el.classList.toggle('active',id==='pHist');
     else if(n==='mb') el.classList.toggle('active',id==='pMB');
+    else if(n==='qwenedit') el.classList.toggle('active',id==='pQwenEdit');
     else if(n==='node') el.classList.toggle('active',id==='pNode');
     else if(n==='grok') el.classList.toggle('active',id==='pGrok');
     else if(n==='scout') el.classList.toggle('active',id==='pScout');
@@ -81767,6 +82044,7 @@ function goStep(n){
   document.getElementById('tabVoice').className='stab '+(n==='voice'?'a1':'');
   document.getElementById('tabHist').className='stab '+(n==='hist'?'a1':'');
   document.getElementById('tabMB').className='stab '+(n==='mb'?'a1':'');
+  document.getElementById('tabQwenEdit').className='stab '+(n==='qwenedit'?'a2':'');
   document.getElementById('tabNode').className='stab '+(n==='node'?'a2':'');
   document.getElementById('tabGrok').className='stab '+(n==='grok'?'a1':'');
   document.getElementById('tabScout').className='stab '+(n==='scout'?'a1':'');
@@ -81789,6 +82067,14 @@ function goStep(n){
   if(n==='premiere') premiereRenderItems();
   if(n==='voice') vbInitVoiceTab();
   if(n==='hist') refreshHistory();
+  if(n==='qwenedit') {
+    const localRadio = document.querySelector('input[name="imgMode"][value="local"]');
+    if (localRadio) { localRadio.checked = true; onImgModeChange(); }
+    renderLocalQwenRefs();
+    const editorModel = document.getElementById('localQwenEditorModel');
+    const mainModel = document.getElementById('localI2IModel');
+    if (editorModel && mainModel) editorModel.value = mainModel.value;
+  }
   if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
   if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();
   if(n==='sheet' && window.ZippySheetMaker) window.ZippySheetMaker.init();

@@ -773,6 +773,11 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
 .qwen-edit-field{margin-bottom:12px}
 .qwen-edit-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .qwen-edit-status{min-height:20px;margin-top:10px;color:#93c5fd;font-family:var(--font-mono);font-size:11px;line-height:1.5}
+.qwen-translate-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.qwen-translate-toggle{display:inline-flex;align-items:center;gap:6px;color:var(--mu);font-family:var(--font-mono);font-size:10px;cursor:pointer}
+.qwen-translate-toggle input{width:15px;height:15px;accent-color:var(--bl)}
+.qwen-translate-preview{display:none;margin-top:7px;padding:8px 10px;border-left:3px solid var(--bl);border-radius:3px;background:rgba(59,130,246,.08);color:var(--tx);font-family:var(--font-mono);font-size:10px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.qwen-translate-preview.show{display:block}
 .qwen-edit-result{min-height:390px;border:1px solid rgba(255,255,255,.14);border-radius:6px;background:#0b0d11;display:flex;align-items:center;justify-content:center;overflow:hidden;color:rgba(255,255,255,.35);font-family:var(--font-mono);font-size:11px}
 .qwen-edit-result img{display:block;width:100%;height:100%;max-height:650px;object-fit:contain}
 .qwen-edit-result-actions{display:none;gap:8px;margin-top:8px;flex-wrap:wrap}
@@ -3904,8 +3909,15 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
           </select>
         </div>
         <div class="qwen-edit-field">
-          <label class="qwen-edit-label" for="localQwenPrompt">편집 지시</label>
-          <textarea class="qwen-edit-control" id="localQwenPrompt" placeholder="예: 이미지 1의 인물과 구도는 유지하고 배경만 새벽의 서울 골목으로 변경"></textarea>
+          <div class="qwen-translate-row">
+            <label class="qwen-edit-label" for="localQwenPrompt" style="margin:0">편집 지시</label>
+            <div style="display:flex;align-items:center;gap:7px">
+              <label class="qwen-translate-toggle"><input type="checkbox" id="localQwenAutoTranslate" checked onchange="rememberLocalQwenAutoTranslate(this.checked)">한국어 자동 번역</label>
+              <button type="button" class="mod-toolbar-btn" id="localQwenTranslateBtn" onclick="previewLocalQwenTranslation()" style="padding:5px 8px;font-size:10px">번역 미리보기</button>
+            </div>
+          </div>
+          <textarea class="qwen-edit-control" id="localQwenPrompt" oninput="clearLocalQwenTranslationPreview()" placeholder="예: 이미지 1의 인물과 구도는 유지하고 배경만 새벽의 서울 골목으로 변경"></textarea>
+          <div class="qwen-translate-preview" id="localQwenTranslationPreview"></div>
         </div>
         <div class="qwen-edit-field">
           <label class="qwen-edit-label" for="localQwenNegative">제외 요소</label>
@@ -78948,6 +78960,78 @@ function readFile(f){
 let localQwenEditorRefs = [];
 let localQwenEditorResult = null;
 let localQwenAbortController = null;
+const localQwenTranslationCache = new Map();
+let localQwenLastTranslation = null;
+
+function localQwenHasKorean(text) {
+  return /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(String(text || ''));
+}
+function cleanLocalQwenTranslation(text) {
+  return String(text || '')
+    .replace(/^```(?:text|english)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .replace(/^\s*(?:translation|english(?: instruction)?|translated prompt)\s*:\s*/i, '')
+    .trim();
+}
+function rememberLocalQwenAutoTranslate(enabled) {
+  try { localStorage.setItem('zippy_qwen_auto_translate', enabled ? '1' : '0'); } catch(e) {}
+  if (!enabled) clearLocalQwenTranslationPreview();
+}
+function initLocalQwenAutoTranslate() {
+  const toggle = document.getElementById('localQwenAutoTranslate');
+  if (!toggle) return;
+  try { toggle.checked = localStorage.getItem('zippy_qwen_auto_translate') !== '0'; } catch(e) { toggle.checked = true; }
+}
+function setLocalQwenTranslationPreview(text, tone) {
+  const preview = document.getElementById('localQwenTranslationPreview');
+  if (!preview) return;
+  preview.textContent = text || '';
+  preview.classList.toggle('show', !!text);
+  preview.style.borderLeftColor = tone === 'error' ? 'var(--er)' : tone === 'skip' ? 'var(--mu)' : 'var(--bl)';
+}
+function clearLocalQwenTranslationPreview() {
+  localQwenLastTranslation = null;
+  setLocalQwenTranslationPreview('');
+}
+async function translateLocalQwenInstruction(source, signal) {
+  const original = String(source || '').trim();
+  if (!original || !localQwenHasKorean(original)) return original;
+  if (localQwenTranslationCache.has(original)) return localQwenTranslationCache.get(original);
+  if (typeof callLLM !== 'function') throw new Error('번역용 LLM이 준비되지 않았습니다');
+  const request = [
+    'You are a production prompt translator for Qwen Image Edit.',
+    'Translate the Korean image-editing instruction below into concise, unambiguous English.',
+    'Return ONLY the translated English instruction. Do not explain, summarize, add creative details, or wrap it in quotes or markdown.',
+    'Preserve all image references exactly as Image 1, Image 2, and Image 3. Preserve proper names, numbers, colors, camera terms, identity constraints, negative constraints, and which elements must remain unchanged.',
+    'Translate 기체 as aircraft/craft according to context, 참조 이미지 as reference image, 원본 as source image, and 구도 as composition.',
+    '',
+    '<KOREAN_EDIT_INSTRUCTION>',
+    original,
+    '</KOREAN_EDIT_INSTRUCTION>'
+  ].join('\n');
+  const response = await callLLM({ images: [], prompt: request, signal: signal || null });
+  const translated = cleanLocalQwenTranslation(response && response.textOut);
+  if (!translated || localQwenHasKorean(translated)) throw new Error('영문 번역 결과를 받지 못했습니다');
+  localQwenTranslationCache.set(original, translated);
+  localQwenLastTranslation = { source: original, translated: translated };
+  return translated;
+}
+async function previewLocalQwenTranslation() {
+  const prompt = document.getElementById('localQwenPrompt')?.value?.trim() || '';
+  const button = document.getElementById('localQwenTranslateBtn');
+  if (!prompt) { document.getElementById('localQwenPrompt')?.focus(); return; }
+  if (!localQwenHasKorean(prompt)) { setLocalQwenTranslationPreview('이미 영어 지시문입니다 · 번역 없이 그대로 전송됩니다.', 'skip'); return; }
+  if (button) { button.disabled = true; button.textContent = '번역 중...'; }
+  setLocalQwenTranslationPreview('영문 편집 지시를 만드는 중...');
+  try {
+    const translated = await translateLocalQwenInstruction(prompt, null);
+    setLocalQwenTranslationPreview('EN · ' + translated);
+  } catch(error) {
+    setLocalQwenTranslationPreview('번역 실패 · ' + ((error && error.message) || error), 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = '번역 미리보기'; }
+  }
+}
 
 function openLocalQwenEditor(baseB64, baseMime, baseName) {
   const localRadio = document.querySelector('input[name="imgMode"][value="local"]');
@@ -78964,6 +79048,7 @@ function openLocalQwenEditor(baseB64, baseMime, baseName) {
     else localQwenEditorRefs.push(base);
   }
   renderLocalQwenRefs();
+  initLocalQwenAutoTranslate();
   goStep('qwenedit');
 }
 
@@ -79049,8 +79134,8 @@ async function executeLocalQwenEdit() {
     return;
   }
   const promptEl = document.getElementById('localQwenPrompt');
-  const prompt = (promptEl && promptEl.value || '').trim();
-  if (!prompt) {
+  const originalPrompt = (promptEl && promptEl.value || '').trim();
+  if (!originalPrompt) {
     promptEl.focus();
     return;
   }
@@ -79066,8 +79151,21 @@ async function executeLocalQwenEdit() {
   execBtn.disabled = true;
   abortBtn.disabled = false;
   resultActions.style.display = 'none';
-  status.textContent = 'ComfyUI 연결 중...';
+  let prompt = originalPrompt;
   try {
+    const autoTranslate = document.getElementById('localQwenAutoTranslate')?.checked !== false;
+    if (autoTranslate && localQwenHasKorean(originalPrompt)) {
+      status.textContent = '한국어 편집 지시를 영어로 번역 중...';
+      try {
+        prompt = await translateLocalQwenInstruction(originalPrompt, localQwenAbortController.signal);
+        setLocalQwenTranslationPreview('EN · ' + prompt);
+      } catch(translationError) {
+        if (translationError && translationError.name === 'AbortError') throw translationError;
+        prompt = originalPrompt;
+        setLocalQwenTranslationPreview('자동 번역 실패 · 한국어 원문으로 계속 실행합니다.\n' + ((translationError && translationError.message) || translationError), 'error');
+      }
+    }
+    status.textContent = 'ComfyUI 연결 중...' + (prompt !== originalPrompt ? ' · 영문 번역 적용' : '');
     const output = await callImageGen({
       images:localQwenEditorRefs.map(function(ref) { return {b64:ref.b64, mime:ref.mime}; }),
       prompt:prompt,
@@ -79086,7 +79184,7 @@ async function executeLocalQwenEdit() {
     result.appendChild(img);
     resultActions.style.display = 'flex';
     status.textContent = '완료 · ' + (editorModel.options[editorModel.selectedIndex]?.text || editorModel.value);
-    if (typeof saveToHistory === 'function') saveToHistory(localQwenEditorResult.b64, 'QwenLocalEdit', prompt.substring(0, 60));
+    if (typeof saveToHistory === 'function') saveToHistory(localQwenEditorResult.b64, 'QwenLocalEdit', (prompt !== originalPrompt ? originalPrompt + ' → ' + prompt : prompt).substring(0, 120));
   } catch (error) {
     const aborted = error && (error.name === 'AbortError' || /abort|중단/i.test(error.message || ''));
     status.textContent = aborted ? '중단됨' : '실패 · ' + ((error && error.message) || error);
@@ -79116,6 +79214,7 @@ function useLocalQwenResultAsSource() {
     prompt.value = '';
     prompt.focus();
   }
+  clearLocalQwenTranslationPreview();
   document.getElementById('localQwenStatus').textContent = '직전 결과를 원본 이미지 1로 설정했습니다';
 }
 
@@ -82074,6 +82173,7 @@ function goStep(n){
     const editorModel = document.getElementById('localQwenEditorModel');
     const mainModel = document.getElementById('localI2IModel');
     if (editorModel && mainModel) editorModel.value = mainModel.value;
+    initLocalQwenAutoTranslate();
   }
   if(n==='grok' && typeof grokImageInitTab==='function') grokImageInitTab();
   if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();

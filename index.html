@@ -82182,7 +82182,7 @@ async function previsCheckBridge(){
     previsState.bridge=body;
     previsSetBridgeStatus(true,'연결됨 · CozyClay '+(body.version||'')+' · 프로젝트 '+Number(body.projectCount||0));
     return body;
-  }catch(e){previsState.bridge=null;previsSetBridgeStatus(false,'연결 실패 · '+(e&&e.message||e));throw e;}
+  }catch(e){const message=String(e&&e.message||e);const reason=/Failed to fetch|Load failed|NetworkError/i.test(message)?'Chrome 사이트 설정에서 로컬 네트워크 액세스를 허용하세요':message;previsState.bridge=null;previsSetBridgeStatus(false,'연결 실패 · '+reason);throw e;}
 }
 async function previsOpenApp(){
   let appUrl=previsState.bridge&&previsState.bridge.appUrl;
@@ -82269,7 +82269,7 @@ function previsLinkToStoryboard(){
 function previsOpenLinkedDirector(){const targetId=document.getElementById('previsTargetShot')&&document.getElementById('previsTargetShot').value;if(!targetId||!previsFindLink(targetId)){alert('먼저 프리비즈 Shot을 스토리보드 컷에 연결하세요.');return;}if(typeof directorOpenShot==='function')directorOpenShot(targetId);}
 function previsExportLinks(){const links=previsLoadLinks();previsDownload('COZYCLAY_STORYBOARD_LINKS_'+String(typeof currentProjectKey!=='undefined'&&currentProjectKey?currentProjectKey:'global')+'.json',JSON.stringify({schema:'studiozippy-previs-links/v1',projectKey:typeof currentProjectKey!=='undefined'?currentProjectKey:'',links:links},null,2));}
 function previsInitTab(){
-  const stored=localStorage.getItem('zippy_previs_bridge_url_v1');if(stored&&previsBridgeInput())previsBridgeInput().value=stored;previsUpdateTargetShots();
+  let stored=localStorage.getItem('zippy_previs_bridge_url_v1');if(stored==='http://localhost:5185'){stored='http://127.0.0.1:5185';localStorage.setItem('zippy_previs_bridge_url_v1',stored);}if(stored&&previsBridgeInput())previsBridgeInput().value=stored;previsUpdateTargetShots();
   if(previsState.project)previsRenderProject();else{const status=document.getElementById('previsLinkStatus');if(status)status.textContent='CozyClay 프로젝트를 불러온 뒤 Scene과 Shot을 선택합니다.';}
 }
 

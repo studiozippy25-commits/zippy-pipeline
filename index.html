@@ -16,6 +16,8 @@
 <link rel="stylesheet" href="seedance-planner.css">
 <link rel="stylesheet" href="cinema-reference.css">
 <link rel="stylesheet" href="reactor-prompts.css">
+<script src="zippy-model-registry.js"></script>
+<script src="zippy-local-5080-client.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 <script>
@@ -75957,38 +75959,25 @@ async function generateRelight() {
 }
 
 /* ═══ VIDEO MODE (Local 5080 Gateway) ═══ */
-const DEFAULT_LOCAL_VIDEO_GATEWAY = 'https://zippy-5080.studiozippy.co.kr';
-const DEFAULT_GROK_BUILD_BRIDGE = 'http://127.0.0.1:8790';
+const LOCAL_5080_CLIENT = globalThis.ZippyLocal5080Client;
+const MODEL_REGISTRY = globalThis.ZippyPipelineModels;
+const DEFAULT_LOCAL_VIDEO_GATEWAY = LOCAL_5080_CLIENT.constants.defaultGateway;
+const DEFAULT_GROK_BUILD_BRIDGE = LOCAL_5080_CLIENT.constants.defaultGrokBridge;
 const GROK_IMAGE_MAX_REFERENCES = 3;
 const GROK_IMAGE_LIBRARY_MAX_REFERENCES = 12;
-const DEFAULT_LOCAL_5080_PROXY_PATH = '/proxy/local5080';
-const DEFAULT_LOCAL_COMFY_PATH = '/comfy';
+const DEFAULT_LOCAL_5080_PROXY_PATH = LOCAL_5080_CLIENT.constants.proxyPath;
+const DEFAULT_LOCAL_COMFY_PATH = LOCAL_5080_CLIENT.constants.comfyPath;
 function isLegacyComfyDirectUrl(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return false;
-  try {
-    const u = new URL(raw);
-    const host = String(u.hostname || '').replace(/^\[|\]$/g, '');
-    return ['127.0.0.1', 'localhost', '::1'].includes(host) && u.port === '8000';
-  } catch(e) {
-    return /^(https?:\/\/)?(127\.0\.0\.1|localhost):8000(?:\/|$)/i.test(raw);
-  }
+  return LOCAL_5080_CLIENT.isLegacyComfyDirectUrl(value);
 }
 function normalizeLocal5080GatewayValue(value) {
-  const raw = String(value || '').trim();
-  if (!raw || isLegacyComfyDirectUrl(raw)) return DEFAULT_LOCAL_VIDEO_GATEWAY;
-  let normalized = raw.replace(/\/+$/, '');
-  normalized = normalized.replace(/\/comfy$/i, '');
-  return normalized || DEFAULT_LOCAL_VIDEO_GATEWAY;
+  return LOCAL_5080_CLIENT.normalizeGateway(value);
 }
 function isZippy5080Gateway(value) {
-  try { return new URL(normalizeLocal5080GatewayValue(value)).hostname === 'zippy-5080.studiozippy.co.kr'; } catch(e) { return false; }
+  return LOCAL_5080_CLIENT.isZippyGateway(value);
 }
 function getComfyGatewayFetchBase(value) {
-  const base = normalizeLocal5080GatewayValue(value);
-  if (shouldProxyLocal5080(base)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH + DEFAULT_LOCAL_COMFY_PATH;
-  if (isZippy5080Gateway(base)) return base + DEFAULT_LOCAL_COMFY_PATH;
-  return base;
+  return LOCAL_5080_CLIENT.getComfyBase(value, {pageHostname:location.hostname, grokBridgeBase:getGrokBuildBridgeBase()});
 }
 const DEFAULT_VIDEO_REALISM_PROMPT = 'Photorealistic live-action Instagram reel from this exact source frame. Keep the same person, face identity, body shape, outfit, hairstyle, background, lighting, colors, camera angle, and composition unchanged. Subtle handheld camera movement, gentle push-in, natural breathing, tiny eye/head movement, realistic hair and fabric micro-motion, real smartphone/ARRI-style footage, natural motion blur. No face morphing, no outfit change, no background change, no extra people, no text, no logo, no AI/CG look.';
 let vidSourceB64 = null;
@@ -75999,17 +75988,10 @@ function getLocalVideoGatewayBase() {
   const value = normalizeLocal5080GatewayValue((el && el.value.trim()) || DEFAULT_LOCAL_VIDEO_GATEWAY);
   if (el && el.value.trim() !== value) el.value = value;
   try { localStorage.setItem('zippy_local_video_gateway', value); } catch(e) {}
-  if (shouldProxyLocal5080(value)) return getGrokBuildBridgeBase() + DEFAULT_LOCAL_5080_PROXY_PATH;
-  return value.replace(/\/+$/, '');
+  return LOCAL_5080_CLIENT.getGatewayBase(value, {pageHostname:location.hostname, grokBridgeBase:getGrokBuildBridgeBase()});
 }
 function shouldProxyLocal5080(value) {
-  try {
-    const localPage = ['127.0.0.1', 'localhost', '::1'].includes(location.hostname);
-    const target = new URL(normalizeLocal5080GatewayValue(value || DEFAULT_LOCAL_VIDEO_GATEWAY));
-    return localPage && target.hostname === 'zippy-5080.studiozippy.co.kr';
-  } catch(e) {
-    return false;
-  }
+  return LOCAL_5080_CLIENT.shouldProxy(value || DEFAULT_LOCAL_VIDEO_GATEWAY, location.hostname);
 }
 function getLocalVideoGatewayKey() {
   const keyEls = ['vidLocalGatewayKey', 'comfyGatewayKey'].map(id => document.getElementById(id)).filter(Boolean);
@@ -76027,15 +76009,10 @@ function getLocalVideoGatewayKey() {
 }
 function getLocal5080GatewayHeaders(options) {
   const opts = options || {};
-  const headers = opts.json ? {'Content-Type':'application/json'} : {};
   const key = getLocalVideoGatewayKey();
-  if (key) { headers.Authorization = 'Bearer ' + key; headers['X-Zippy-Gateway-Key'] = key; }
   const urlValue = document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY;
-  if (shouldProxyLocal5080(urlValue)) {
-    const grokKey = getGrokBuildBridgeKey();
-    if (grokKey) headers['X-Zippy-Grok-Key'] = grokKey;
-  }
-  return headers;
+  const proxied = shouldProxyLocal5080(urlValue);
+  return LOCAL_5080_CLIENT.buildHeaders({json:!!opts.json, gatewayKey:key, proxied, grokKey:proxied ? getGrokBuildBridgeKey() : ''});
 }
 function getLocalVideoGatewayHeaders() {
   return getLocal5080GatewayHeaders({json:true});
@@ -76215,79 +76192,25 @@ function initLocalVideoGatewayFields() {
   }
 }
 async function requestLocalVideo(payload, onProgress, options) {
-  const signal = options && options.signal;
-  const base = getLocalVideoGatewayBase();
-  const headers = getLocalVideoGatewayHeaders();
-  throwIfVideoAborted(signal);
-  if (onProgress) onProgress('ComfyUI 연결 확인 중...');
-  const healthRes = await fetch(base + '/health', { headers, signal });
-  const healthData = await healthRes.json().catch(() => ({}));
-  throwIfVideoAborted(signal);
-  if (!healthRes.ok || healthData.comfy_ok !== true) {
-    if (healthRes.ok && healthData.comfy_ok == null) {
-      throw new Error('Local 5080 Gateway 응답 형식이 구버전입니다. Downloads 폴더의 임시 server.mjs로 덮어쓰지 말고, Windows 최종 폴더 ZIPPY_BRIDGE_FINAL_RECOVERED/02_Local_5080/zippy-local-5080/server.mjs 상태를 확인하세요.');
-    }
-    throw new Error(healthData.comfy_error || healthData.error || healthData.hint || ('ComfyUI 연결 실패: HTTP ' + healthRes.status));
-  }
-  if (onProgress) onProgress('Local 5080 Gateway 전송 중... ComfyUI 응답 대기');
-  let waitSeconds = 0;
-  const ticker = onProgress ? setInterval(function(){
-    waitSeconds += 5;
-    onProgress('ComfyUI 처리 대기 중... (' + waitSeconds + '초) · ComfyUI 큐/콘솔을 확인하세요');
-  }, 5000) : null;
-  let createData;
-  try {
-    const createRes = await fetch(base + '/v1/videos/generations', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-      signal
-    });
-    throwIfVideoAborted(signal);
-    if (!createRes.ok) {
-      const errData = await createRes.json().catch(() => ({}));
-      throw new Error([errData.stage, errData.error || errData.message || ('HTTP ' + createRes.status), errData.hint].filter(Boolean).join(' · '));
-    }
-    createData = await createRes.json();
-  } finally {
-    if (ticker) clearInterval(ticker);
-  }
-  if (createData.video_url || createData?.video?.url) return createData.video_url || createData.video.url;
-  const requestId = createData.request_id || createData.id;
-  if (!requestId) throw new Error('로컬 게이트웨이 응답에 video_url/request_id가 없습니다');
-  for (let i = 0; i < 120; i++) {
-    await waitWithVideoAbort(5000, signal);
-    if (onProgress) onProgress('로컬 렌더링 중... (' + ((i + 1) * 5) + '초 경과)');
-    const pollRes = await fetch(base + '/v1/videos/' + encodeURIComponent(requestId), { headers, signal });
-    if (!pollRes.ok) continue;
-    const pollData = await pollRes.json();
-    const status = pollData.status || pollData.state;
-    if (status === 'done' || status === 'succeeded' || status === 'success') return pollData.video_url || pollData?.video?.url;
-    if (status === 'failed' || status === 'error') throw new Error(pollData.error || pollData.message || '로컬 영상 생성 실패');
-  }
-  throw new Error('로컬 렌더링 시간 초과');
-}
-function makeVideoAbortError() {
-  try { return new DOMException('Video generation aborted', 'AbortError'); }
-  catch(e) { const err = new Error('Video generation aborted'); err.name = 'AbortError'; return err; }
-}
-function throwIfVideoAborted(signal) {
-  if (signal && signal.aborted) throw makeVideoAbortError();
-}
-function waitWithVideoAbort(ms, signal) {
-  return new Promise(function(resolve, reject) {
-    if (signal && signal.aborted) return reject(makeVideoAbortError());
-    const timer = setTimeout(resolve, ms);
-    if (signal) {
-      signal.addEventListener('abort', function() {
-        clearTimeout(timer);
-        reject(makeVideoAbortError());
-      }, { once: true });
-    }
+  return LOCAL_5080_CLIENT.requestVideo({
+    base:getLocalVideoGatewayBase(),
+    headers:getLocalVideoGatewayHeaders(),
+    payload,
+    onProgress,
+    signal:options && options.signal
   });
 }
+function makeVideoAbortError() {
+  return LOCAL_5080_CLIENT.makeAbortError();
+}
+function throwIfVideoAborted(signal) {
+  return LOCAL_5080_CLIENT.throwIfAborted(signal);
+}
+function waitWithVideoAbort(ms, signal) {
+  return LOCAL_5080_CLIENT.wait(ms, signal);
+}
 function isVideoAbortError(e) {
-  return !!(e && (e.name === 'AbortError' || /aborted|abort|중단/i.test(e.message || String(e))));
+  return LOCAL_5080_CLIENT.isAbortError(e);
 }
 function setAbortButtonEnabled(id, enabled) {
   const btn = document.getElementById(id);
@@ -76299,11 +76222,7 @@ async function checkLocalVideoGateway() {
   const el = document.getElementById('vidLocalGatewayStatus');
   if (el) el.textContent = '확인 중...';
   try {
-    const res = await fetch(getLocalVideoGatewayBase() + '/health', { headers: getLocalVideoGatewayHeaders() });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    if (data.comfy_ok == null) throw new Error('게이트웨이 구버전 · Windows 최종 폴더 ZIPPY_BRIDGE_FINAL_RECOVERED/02_Local_5080/zippy-local-5080/server.mjs 확인 필요');
-    if (data.comfy_ok === false) throw new Error(data.comfy_error || data.hint || 'ComfyUI 연결 실패');
+    const data = await LOCAL_5080_CLIENT.checkHealth({base:getLocalVideoGatewayBase(), headers:getLocalVideoGatewayHeaders()});
     const proxied = shouldProxyLocal5080(document.getElementById('vidLocalGatewayUrl')?.value || DEFAULT_LOCAL_VIDEO_GATEWAY);
     if (el) { el.textContent = '연결됨 · ' + (data.comfy || 'ComfyUI') + (proxied ? ' · 로컬 프록시 경유' : ''); el.style.color = 'var(--ok)'; }
   } catch(e) {
@@ -76311,12 +76230,7 @@ async function checkLocalVideoGateway() {
   }
 }
 function formatLocalGatewayError(e) {
-  if (isVideoAbortError(e)) return '중단됨';
-  const msg = e && e.message ? e.message : String(e || '');
-  if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
-    return '게이트웨이에 연결할 수 없습니다. URL, 터널 상태, CORS, Gateway Key를 확인하세요.';
-  }
-  return msg;
+  return LOCAL_5080_CLIENT.formatError(e);
 }
 function zippySendImageToVideoTab(imgB64, mime, prompt, meta) {
   vidStartReadSeq += 1;
@@ -76746,28 +76660,7 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
-const VIDEO_NODE_PROFILES = {
-  wan: {
-    summary:'Wan 2.2 I2V 14B · Camera LoRA · Local 5080', route:'Local Gateway → ComfyUI 8188',
-    nodes:[['input','입력','START + END','키프레임'],['condition','조건','영상 프롬프트','카메라 무빙 LoRA'],['model','모델','Wan 2.2 I2V 14B','High + Low Noise'],['sample','샘플링','Lightning 4step','I2V sampler'],['finish','후처리','VAE Decode','프레임 복원'],['output','출력','MP4','Local 5080']]
-  },
-  'minimax-h3': {
-    summary:'MiniMax H3 FL2VA · INT8 ConvRot · Turbo 8step', route:'Local Gateway → ComfyUI 8188 · Native Audio',
-    nodes:[['input','입력','START + END','First / Last Frame'],['condition','조건','Qwen3-VL 32B','NVFP4 AWQ'],['model','모델','MiniMax H3 FL2VA','Pruned INT8 ConvRot'],['sample','샘플링','Turbo 8step','res_multistep'],['finish','후처리','Video + Audio VAE','24fps · Stereo'],['output','출력','MP4 + Audio','Local 5080']]
-  },
-  ltx25: {
-    summary:'LTX 2.5 22B Distilled · Comfy NVFP4 · Fixed 8step', route:'Local Gateway → ComfyUI 8188 · Conv VAE',
-    nodes:[['input','입력','START Frame','Image to Video'],['condition','조건','Gemma4 12B','Comfy INT8 ConvRot'],['model','모델','LTX 2.5 Distilled','Comfy NVFP4'],['sample','샘플링','Fixed 8step','CFG 1'],['finish','후처리','Conv VAE','저메모리 Decode'],['output','출력','MP4 + Audio','24fps']]
-  },
-  ltx23: {
-    summary:'LTX 2.3 22B · Legacy Compatibility', route:'Local Gateway → ComfyUI 8188',
-    nodes:[['input','입력','START Frame','Image to Video'],['condition','조건','Prompt Encoder','Legacy preset'],['model','모델','LTX 2.3 22B','Distilled FP8'],['sample','샘플링','Legacy sampler','16fps preset'],['finish','후처리','VAE Decode','Video'],['output','출력','MP4','Local 5080']]
-  },
-  seedance25: {
-    summary:'ByteDance Seedance 2.5 · Comfy Credits · Multi-scene', route:'Local Gateway → Comfy Partner Node',
-    nodes:[['input','입력','START + References','멀티모달 입력'],['condition','조건','30초 씬 프롬프트','Shot timing'],['model','모델','Seedance 2.5','Partner Node'],['sample','생성','Cloud Queue','Comfy Credits'],['finish','후처리','Audio + Video','서비스 출력'],['output','출력','MP4 + Audio','최대 30초']]
-  }
-};
+const VIDEO_NODE_PROFILES = MODEL_REGISTRY.video;
 
 function renderVideoNodeCanvas(profileId) {
   const profile = VIDEO_NODE_PROFILES[profileId] || VIDEO_NODE_PROFILES.wan;
@@ -76791,13 +76684,7 @@ function selectVideoNodeProfile(profileId) {
 
 function initVideoNodeCanvas() { renderVideoNodeCanvas(getSelectedVideoWorkflowId()); }
 
-const LOCAL_VIDEO_WORKFLOW_LABELS = {
-  wan: 'Wan 2.2 I2V 14B',
-  ltx23: 'LTX 2.3 22B',
-  ltx25: 'LTX 2.5 22B Distilled NVFP4 + Native Audio',
-  'minimax-h3': 'MiniMax H3 I2V + Native Audio',
-  seedance25: 'ByteDance Seedance 2.5'
-};
+const LOCAL_VIDEO_WORKFLOW_LABELS = MODEL_REGISTRY.workflowLabels;
 
 function getSelectedVideoWorkflowId() {
   const selected = document.querySelector('[data-g="vmodel"].on');
@@ -76805,35 +76692,7 @@ function getSelectedVideoWorkflowId() {
 }
 
 function getLocalVideoRenderOptions(workflowId, durationSeconds, ratio) {
-  if (workflowId === 'seedance25') return { fps: 24 };
-  if (workflowId === 'ltx25') {
-    const dimensions = {
-      '16:9': [736, 416],
-      '9:16': [416, 736],
-      '1:1': [576, 576]
-    }[ratio] || [736, 416];
-    const frames = 1 + Math.round((durationSeconds * 24) / 8) * 8;
-    return {
-      fps: 24,
-      frames: Math.max(41, Math.min(241, frames)),
-      width: dimensions[0],
-      height: dimensions[1]
-    };
-  }
-  if (workflowId !== 'minimax-h3') return { fps: 16 };
-  const dimensions = {
-    '16:9': [1344, 768],
-    '9:16': [768, 1344],
-    '1:1': [768, 768]
-  }[ratio] || [1344, 768];
-  const targetFrames = Math.max(5, Math.round(durationSeconds * 24));
-  const snappedFrames = targetFrames + ((5 - (targetFrames % 17) + 17) % 17);
-  return {
-    fps: 24,
-    frames: Math.max(124, Math.min(362, snappedFrames)),
-    width: dimensions[0],
-    height: dimensions[1]
-  };
+  return MODEL_REGISTRY.getVideoRenderOptions(workflowId, durationSeconds, ratio);
 }
 
 async function executeVideoTab() {

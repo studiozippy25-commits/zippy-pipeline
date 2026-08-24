@@ -389,53 +389,53 @@ input[type=file]{display:none}
 .msel { border-radius:8px; padding:9px 12px; border:1.5px solid var(--s2); background:var(--sf); font-size:13px; }
 .ast  { border-radius:8px; font-size:11px; padding:6px 12px; font-weight:600; }
 
-/* 스텝 네비 */
-.snav {
-  display:grid;
-  grid-template-columns:repeat(10,minmax(0,1fr));
-  gap:1px;
-  border-radius:0;
-  border:1px solid #E5E7EB;
-  overflow:visible;
-  margin-bottom:24px;
-  box-shadow:none;
-  background:var(--bd);
-}
-.stab {
-  min-width:0;
-  min-height:52px;
-  height:auto;
-  padding:10px 10px; font-size:13px; font-weight:600;
-  border-bottom:2px solid transparent;
-  letter-spacing:.3px;
-  text-align:center;
-  transition:all .15s;
-  color:#9CA3AF;
-  text-transform:uppercase;
-  background:var(--card);
-  white-space:normal;
-  line-height:1.35;
-  word-break:keep-all;
-  overflow-wrap:normal;
-  overflow:visible;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.stab+.stab { border-left:none; }
-.stab:hover { color:var(--tx); background:var(--sf); }
-.stab:first-child { border-radius:0; }
-.stab:last-child  { border-radius:0; }
-.stab.a1 { border-bottom-color:#2563EB; background:var(--card); color:#2563EB; font-weight:700; }
-.stab.a2 { border-bottom-color:#2563EB; background:var(--card); color:#2563EB; font-weight:700; }
-.stab.a3 { border-bottom-color:#7C3AED; background:var(--card); color:#7C3AED; font-weight:700; }
-@media(max-width:900px){
-  .snav{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .stab{min-height:48px;padding:9px 7px;font-size:12px}
-}
-@media(max-width:560px){
-  .snav{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
+/* Pipeline navigation */
+.pipeline-nav{margin-bottom:24px;border:1px solid var(--bd);background:var(--card)}
+.pipeline-nav-groups{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-bottom:1px solid var(--bd);background:var(--sf)}
+.pipeline-nav-group{min-width:0;min-height:48px;padding:9px 10px;border:0;border-right:1px solid var(--bd);border-bottom:3px solid transparent;background:transparent;color:var(--mu);font-family:var(--font-mono);font-size:13px;font-weight:800;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.pipeline-nav-group:last-child{border-right:0}
+.pipeline-nav-group:hover{background:var(--card);color:var(--tx)}
+.pipeline-nav-group.on{background:var(--card);color:var(--bl);border-bottom-color:var(--bl)}
+.pipeline-nav-group[data-nav-group="video"].on{color:var(--pu);border-bottom-color:var(--pu)}
+.pipeline-nav-group[data-nav-group="instagram"].on{color:#DB2777;border-bottom-color:#DB2777}
+.pipeline-nav-subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px 0;color:var(--mu);font-family:var(--font-mono);font-size:10px;font-weight:700;text-transform:uppercase}
+.pipeline-nav-subhead[hidden]{display:none}
+.snav{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;border:0;overflow:visible;margin:0;padding:9px 12px 12px;box-shadow:none;background:var(--card)}
+.snav[hidden]{display:none}
+.stab{min-width:0;min-height:52px;padding:10px 8px;font-size:13px;font-weight:600;border:1px solid var(--bd);border-bottom:2px solid transparent;letter-spacing:.3px;text-align:center;transition:all .15s;color:#9CA3AF;text-transform:uppercase;background:var(--card);white-space:normal;line-height:1.3;overflow-wrap:anywhere}
+.stab+.stab{border-left:1px solid var(--bd)}
+.stab:hover{color:var(--tx);background:var(--sf)}
+.stab:first-child,.stab:last-child{border-radius:0}
+.stab.a1{border-bottom-color:#2563EB;background:var(--card);color:#2563EB;font-weight:700}
+.stab.a2{border-bottom-color:#2563EB;background:var(--card);color:#2563EB;font-weight:700}
+.stab.a3{border-bottom-color:#7C3AED;background:var(--card);color:#7C3AED;font-weight:700}
+.stab-title,.stab-meta{display:block}
+.stab-meta{margin-top:4px;color:var(--mu);font-size:9px;font-weight:600;line-height:1.2;text-transform:none}
+.stab.a1 .stab-meta,.stab.a2 .stab-meta,.stab.a3 .stab-meta{color:currentColor;opacity:.7}
+@media(max-width:900px){.pipeline-nav-groups{grid-template-columns:repeat(3,minmax(0,1fr))}.pipeline-nav-group:nth-child(3){border-right:0}.pipeline-nav-group:nth-child(-n+3){border-bottom-width:1px}.pipeline-nav-group.on:nth-child(-n+3){border-bottom-width:3px}.snav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px}.pipeline-nav-subhead{padding:8px 9px 0}.stab{min-height:46px;padding:9px 6px;font-size:12px}}
+
+/* Local video workflow canvas */
+.video-node-workbench{border:1px solid var(--bd);background:var(--card);margin-bottom:18px}
+.video-node-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--bd)}
+.video-node-title{font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--tx)}
+.video-node-machine{padding:5px 8px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:var(--ok);font-family:var(--font-mono);font-size:10px;font-weight:800}
+.video-profile-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--sf)}
+.video-profile-btn{min-width:0;min-height:58px;padding:9px 10px;border:1px solid var(--bd);background:var(--card);color:var(--mu);font-family:var(--font-mono);font-size:11px;font-weight:800;text-align:left;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.video-profile-btn span{display:block;margin-top:4px;font-size:9px;font-weight:600;line-height:1.25;color:var(--mu)}
+.video-profile-btn:hover{border-color:var(--pu);color:var(--tx)}
+.video-profile-btn.on{border-color:var(--pu);background:rgba(124,58,237,.08);color:var(--pu)}
+.video-node-canvas{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:24px;padding:18px 16px;overflow:visible;background:var(--s2)}
+.video-flow-node{position:relative;min-width:0;min-height:86px;padding:11px 12px;border:1px solid var(--bd);border-left:3px solid var(--bl);background:var(--card)}
+.video-flow-node:not(:last-child)::after{content:'\2192';position:absolute;right:-21px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:18px;font-weight:800}
+.video-flow-node[data-node-kind="model"]{border-left-color:var(--pu)}
+.video-flow-node[data-node-kind="sample"]{border-left-color:var(--wn)}
+.video-flow-node[data-node-kind="output"]{border-left-color:var(--ok)}
+.video-flow-kicker{font-family:var(--font-mono);font-size:9px;font-weight:800;color:var(--mu);text-transform:uppercase}
+.video-flow-label{margin-top:7px;font-size:12px;font-weight:800;color:var(--tx);line-height:1.3;overflow-wrap:anywhere}
+.video-flow-meta{margin-top:5px;font-family:var(--font-mono);font-size:9px;color:var(--mu);line-height:1.35;overflow-wrap:anywhere}
+.video-node-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-top:1px solid var(--bd);font-family:var(--font-mono);font-size:10px;color:var(--mu)}
+@media(max-width:1100px){.video-profile-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.video-node-canvas{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.video-flow-node:not(:last-child)::after{display:none}}
+@media(max-width:680px){.video-profile-strip{grid-template-columns:1fr 1fr;padding:10px}.video-node-canvas{grid-template-columns:1fr 1fr;padding:10px}.video-node-footer{align-items:flex-start;flex-direction:column}.video-profile-btn{min-height:62px}}
 
 /* 섹션 레이블 */
 .slbl { font-size:18px; letter-spacing:.2px; margin-bottom:24px; font-weight:700; line-height:1.5; color:var(--tx); }
@@ -1301,26 +1301,55 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   </div>
 </div>
 
-<div class="snav">
-  <button class="stab a1" id="tab1" onclick="goStep(1)">캐릭터 시트</button>
-  <button class="stab" id="tabSheet" onclick="goStep('sheet')" style="border-bottom-color:#34D399;color:#34D399">시트 제작</button>
-  <button class="stab" id="tab0" onclick="goStep(0)" style="border-bottom-color:var(--ok)">Asset Library</button>
-  <button class="stab" id="tabMB" onclick="goStep('mb')">이미지 생성</button>
-  <button class="stab" id="tabQwenEdit" onclick="goStep('qwenedit')" style="border-bottom-color:var(--bl);color:var(--bl)">Qwen 편집</button>
-  <button class="stab" id="tabGrok" onclick="goStep('grok')" style="border-bottom-color:#FDBA74;color:#FDBA74">Grok Imagine</button>
-  <button class="stab" id="tabScout" onclick="goStep('scout')" style="border-bottom-color:#2DD4BF;color:#2DD4BF">🌍 LOCATION SCOUT</button>
-  <button class="stab" id="tab2" onclick="goStep(2)">씬 이미지 · DNA</button>
-  <button class="stab" id="tab3" onclick="goStep(3)">바리에이션</button>
-  <button class="stab" id="tabSB" onclick="goStep('sb')" style="border-bottom-color:var(--wn);color:var(--wn)">스토리보드</button>
-  <button class="stab" id="tabSeedance" onclick="goStep('seedance')" style="border-bottom-color:#60A5FA;color:#60A5FA">Seedance 프롬프트</button>
-  <button class="stab" id="tabVid" onclick="goStep('vid')" style="border-bottom-color:var(--pu);color:var(--pu)">영상 제작</button>
-  <button class="stab" id="tabCam" onclick="goStep('cam')" style="border-bottom-color:#A78BFA;color:#A78BFA">카메라 무빙</button>
-  <button class="stab" id="tabDirector" onclick="goStep('director')" style="border-bottom-color:#22D3EE;color:#22D3EE">AI 감독</button>
-  <button class="stab" id="tabPremiere" onclick="goStep('premiere')" style="border-bottom-color:#22D3EE;color:#22D3EE">Premiere</button>
-  <button class="stab" id="tabVoice" onclick="goStep('voice')" style="border-bottom-color:var(--or);color:var(--or)">더빙</button>
-  <button class="stab" id="tabInsta" onclick="goStep('insta')" style="border-bottom-color:#F472B6;color:#F472B6">Instagram</button>
-  <button class="stab" id="tabNode" onclick="goStep('node')" style="border-bottom-color:var(--cy);color:var(--cy)">노드 캔버스</button>
-  <button class="stab" id="tabHist" onclick="goStep('hist')">히스토리</button>
+<div class="pipeline-nav" aria-label="제작 파이프라인">
+  <div class="pipeline-nav-groups" role="tablist" aria-label="작업 영역">
+    <button class="pipeline-nav-group on" type="button" data-nav-group="plan" onclick="setPipelineNavGroup('plan',true)">기획</button>
+    <button class="pipeline-nav-group" type="button" data-nav-group="image" onclick="setPipelineNavGroup('image',true)">이미지</button>
+    <button class="pipeline-nav-group" type="button" data-nav-group="story" onclick="setPipelineNavGroup('story',true)">스토리보드</button>
+    <button class="pipeline-nav-group" type="button" data-nav-group="video" onclick="setPipelineNavGroup('video',true)">영상</button>
+    <button class="pipeline-nav-group" type="button" data-nav-group="post" onclick="setPipelineNavGroup('post',true)">후반</button>
+    <button class="pipeline-nav-group" type="button" data-nav-group="instagram" onclick="setPipelineNavGroup('instagram',true)">Instagram</button>
+  </div>
+
+  <div class="pipeline-nav-subhead" data-nav-group-heading="plan"><span>기준 자산</span><span>캐릭터 · 공간 · 에셋</span></div>
+  <div class="snav" data-nav-group-panel="plan">
+    <button class="stab a1" id="tab1" onclick="goStep(1)"><span class="stab-title">캐릭터 시트</span><span class="stab-meta">기준 얼굴 · 의상</span></button>
+    <button class="stab" id="tabSheet" onclick="goStep('sheet')"><span class="stab-title">시트 제작</span><span class="stab-meta">360° 턴어라운드</span></button>
+    <button class="stab" id="tab0" onclick="goStep(0)"><span class="stab-title">Asset Library</span><span class="stab-meta">승인 자산 관리</span></button>
+    <button class="stab" id="tabScout" onclick="goStep('scout')"><span class="stab-title">Location Scout</span><span class="stab-meta">공간 레퍼런스</span></button>
+  </div>
+
+  <div class="pipeline-nav-subhead" data-nav-group-heading="image" hidden><span>이미지 제작</span><span>생성 · 편집 · DNA</span></div>
+  <div class="snav" data-nav-group-panel="image" hidden>
+    <button class="stab" id="tabMB" onclick="goStep('mb')"><span class="stab-title">이미지 생성</span><span class="stab-meta">Z-Image · FLUX</span></button>
+    <button class="stab" id="tabQwenEdit" onclick="goStep('qwenedit')"><span class="stab-title">Qwen 편집</span><span class="stab-meta">2509 · 2511</span></button>
+    <button class="stab" id="tabGrok" onclick="goStep('grok')"><span class="stab-title">Grok Imagine</span><span class="stab-meta">생성 · 수정</span></button>
+    <button class="stab" id="tab2" onclick="goStep(2)"><span class="stab-title">씬 이미지 · DNA</span><span class="stab-meta">인물 일관성</span></button>
+    <button class="stab" id="tab3" onclick="goStep(3)"><span class="stab-title">바리에이션</span><span class="stab-meta">컷 확장</span></button>
+  </div>
+
+  <div class="pipeline-nav-subhead" data-nav-group-heading="story" hidden><span>샷 설계</span><span>타임라인 · 감독 QC</span></div>
+  <div class="snav" data-nav-group-panel="story" hidden>
+    <button class="stab" id="tabSB" onclick="goStep('sb')"><span class="stab-title">스토리보드</span><span class="stab-meta">타임라인 · 샷 확정</span></button>
+    <button class="stab" id="tabDirector" onclick="goStep('director')"><span class="stab-title">AI 감독</span><span class="stab-meta">라우팅 · 9프레임 QC</span></button>
+  </div>
+
+  <div class="pipeline-nav-subhead" data-nav-group-heading="video" hidden><span>영상 제작</span><span>Local 5080 · 실행 노드</span></div>
+  <div class="snav" data-nav-group-panel="video" hidden>
+    <button class="stab" id="tabVid" onclick="goStep('vid')"><span class="stab-title">영상 제작</span><span class="stab-meta">H3 · LTX 2.5 · Wan</span></button>
+    <button class="stab" id="tabCam" onclick="goStep('cam')"><span class="stab-title">카메라 무빙</span><span class="stab-meta">무빙 · LoRA</span></button>
+    <button class="stab" id="tabSeedance" onclick="goStep('seedance')"><span class="stab-title">Seedance</span><span class="stab-meta">30초 멀티씬</span></button>
+    <button class="stab" id="tabNode" onclick="goStep('node')"><span class="stab-title">노드 캔버스</span><span class="stab-meta">파이프라인 조립</span></button>
+  </div>
+
+  <div class="pipeline-nav-subhead" data-nav-group-heading="post" hidden><span>후반 제작</span><span>편집 · 음성 · 기록</span></div>
+  <div class="snav" data-nav-group-panel="post" hidden>
+    <button class="stab" id="tabPremiere" onclick="goStep('premiere')"><span class="stab-title">Premiere</span><span class="stab-meta">가편집 패키지</span></button>
+    <button class="stab" id="tabVoice" onclick="goStep('voice')"><span class="stab-title">더빙</span><span class="stab-meta">Voicebox · 믹싱</span></button>
+    <button class="stab" id="tabHist" onclick="goStep('hist')"><span class="stab-title">히스토리</span><span class="stab-meta">생성 결과 관리</span></button>
+  </div>
+
+  <div hidden><button class="stab" id="tabInsta" onclick="goStep('insta')">Instagram</button></div>
 </div>
 
 <!-- ═══════════════ SEEDANCE 30S MULTI-SCENE PROMPT PLANNER ═══════════════ -->
@@ -3447,6 +3476,22 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
     </div>
   </div>
 
+  <section class="video-node-workbench" aria-label="Local 5080 영상 실행 흐름">
+    <div class="video-node-head">
+      <div class="video-node-title">Local 5080 노드 캔버스</div>
+      <div class="video-node-machine">RTX 5080 · 16GB</div>
+    </div>
+    <div class="video-profile-strip" role="tablist" aria-label="영상 모델 선택">
+      <button class="video-profile-btn" type="button" data-video-profile="wan" onclick="selectVideoNodeProfile('wan')">카메라 무빙<span>Wan 2.2 I2V · LoRA</span></button>
+      <button class="video-profile-btn on" type="button" data-video-profile="minimax-h3" onclick="selectVideoNodeProfile('minimax-h3')">빠른 인서트<span>MiniMax H3 FL2VA · 8step</span></button>
+      <button class="video-profile-btn" type="button" data-video-profile="ltx25" onclick="selectVideoNodeProfile('ltx25')">시네마틱 I2V<span>LTX 2.5 Distilled · 8step</span></button>
+      <button class="video-profile-btn" type="button" data-video-profile="ltx23" onclick="selectVideoNodeProfile('ltx23')">레거시 호환<span>LTX 2.3 22B</span></button>
+      <button class="video-profile-btn" type="button" data-video-profile="seedance25" onclick="selectVideoNodeProfile('seedance25')">30초 멀티씬<span>Seedance 2.5 · Credits</span></button>
+    </div>
+    <div class="video-node-canvas" id="videoNodeCanvas"></div>
+    <div class="video-node-footer"><span id="videoNodeProfileSummary">MiniMax H3 FL2VA · INT8 ConvRot · Turbo 8step</span><span id="videoNodeProfileRoute">Local Gateway → ComfyUI 8188 · Native Audio</span></div>
+  </section>
+
   <div style="border:1px solid rgba(251,146,60,.28);border-radius:10px;background:rgba(251,146,60,.06);padding:14px 16px;margin-bottom:18px">
     <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px">
       <div>
@@ -3484,7 +3529,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
 
   <!-- 공통 영상 프롬프트 -->
   <div style="border:1px solid rgba(124,58,237,.24);border-radius:10px;background:var(--card);padding:14px 16px;margin-bottom:18px">
-    <div class="cfg-lbl">영상 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">Wan / LTX 2.3 / MiniMax H3 / Grok Build 공통</span></div>
+    <div class="cfg-lbl">영상 프롬프트 <span style="opacity:.55;font-weight:400;font-size:10px">Wan / LTX 2.5 / MiniMax H3 / Grok Build 공통</span></div>
     <div class="cm-mini-row">
       <label>카메라 무빙
         <select id="vidCameraMove" class="cm-select" onchange="applyCameraMoveToVideoPrompt(this.value)"><option value="">무빙 없음</option></select>
@@ -3537,11 +3582,11 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
       <div>
         <div class="cfg-lbl">로컬 워크플로우</div>
         <div class="chips">
-          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="pickSingle(this,'vmodel');updateVidCost()">기본 <span style="font-size:9px;opacity:.5">Wan</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="pickSingle(this,'vmodel');updateVidCost()">고품질 <span style="font-size:9px;opacity:.5">LTX 2.3</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="ltx25" onclick="pickSingle(this,'vmodel');updateVidCost()">LTX 2.5 Fast <span style="font-size:9px;opacity:.5">NVFP4 + Native Audio</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="minimax-h3" onclick="pickSingle(this,'vmodel');updateVidCost()">MiniMax H3 <span style="font-size:9px;opacity:.5">I2V + Audio</span></button>
-          <button class="chip" data-g="vmodel" data-workflow="seedance25" onclick="pickSingle(this,'vmodel');updateVidCost()">Seedance 2.5 <span style="font-size:9px;opacity:.5">Comfy Credits + Audio</span></button>
+          <button class="chip on" data-g="vmodel" data-workflow="wan" onclick="selectVideoNodeProfile('wan')">Wan 2.2 <span style="font-size:9px;opacity:.5">I2V · LoRA</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="minimax-h3" onclick="selectVideoNodeProfile('minimax-h3')">MiniMax H3 <span style="font-size:9px;opacity:.5">FL2VA + Audio</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx25" onclick="selectVideoNodeProfile('ltx25')">LTX 2.5 Fast <span style="font-size:9px;opacity:.5">NVFP4 + Native Audio</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="ltx23" onclick="selectVideoNodeProfile('ltx23')">LTX 2.3 <span style="font-size:9px;opacity:.5">Legacy</span></button>
+          <button class="chip" data-g="vmodel" data-workflow="seedance25" onclick="selectVideoNodeProfile('seedance25')">Seedance 2.5 <span style="font-size:9px;opacity:.5">Comfy Credits + Audio</span></button>
         </div>
       </div>
       <div>
@@ -76604,6 +76649,51 @@ function getKlingModelName() {
   return 'kling-v3';
 }
 
+const VIDEO_NODE_PROFILES = {
+  wan: {
+    summary:'Wan 2.2 I2V 14B · Camera LoRA · Local 5080', route:'Local Gateway → ComfyUI 8188',
+    nodes:[['input','입력','START + END','키프레임'],['condition','조건','영상 프롬프트','카메라 무빙 LoRA'],['model','모델','Wan 2.2 I2V 14B','High + Low Noise'],['sample','샘플링','Lightning 4step','I2V sampler'],['finish','후처리','VAE Decode','프레임 복원'],['output','출력','MP4','Local 5080']]
+  },
+  'minimax-h3': {
+    summary:'MiniMax H3 FL2VA · INT8 ConvRot · Turbo 8step', route:'Local Gateway → ComfyUI 8188 · Native Audio',
+    nodes:[['input','입력','START + END','First / Last Frame'],['condition','조건','Qwen3-VL 32B','NVFP4 AWQ'],['model','모델','MiniMax H3 FL2VA','Pruned INT8 ConvRot'],['sample','샘플링','Turbo 8step','res_multistep'],['finish','후처리','Video + Audio VAE','24fps · Stereo'],['output','출력','MP4 + Audio','Local 5080']]
+  },
+  ltx25: {
+    summary:'LTX 2.5 22B Distilled · Comfy NVFP4 · Fixed 8step', route:'Local Gateway → ComfyUI 8188 · Conv VAE',
+    nodes:[['input','입력','START Frame','Image to Video'],['condition','조건','Gemma4 12B','Comfy INT8 ConvRot'],['model','모델','LTX 2.5 Distilled','Comfy NVFP4'],['sample','샘플링','Fixed 8step','CFG 1'],['finish','후처리','Conv VAE','저메모리 Decode'],['output','출력','MP4 + Audio','24fps']]
+  },
+  ltx23: {
+    summary:'LTX 2.3 22B · Legacy Compatibility', route:'Local Gateway → ComfyUI 8188',
+    nodes:[['input','입력','START Frame','Image to Video'],['condition','조건','Prompt Encoder','Legacy preset'],['model','모델','LTX 2.3 22B','Distilled FP8'],['sample','샘플링','Legacy sampler','16fps preset'],['finish','후처리','VAE Decode','Video'],['output','출력','MP4','Local 5080']]
+  },
+  seedance25: {
+    summary:'ByteDance Seedance 2.5 · Comfy Credits · Multi-scene', route:'Local Gateway → Comfy Partner Node',
+    nodes:[['input','입력','START + References','멀티모달 입력'],['condition','조건','30초 씬 프롬프트','Shot timing'],['model','모델','Seedance 2.5','Partner Node'],['sample','생성','Cloud Queue','Comfy Credits'],['finish','후처리','Audio + Video','서비스 출력'],['output','출력','MP4 + Audio','최대 30초']]
+  }
+};
+
+function renderVideoNodeCanvas(profileId) {
+  const profile = VIDEO_NODE_PROFILES[profileId] || VIDEO_NODE_PROFILES.wan;
+  const canvas = document.getElementById('videoNodeCanvas');
+  if (canvas) canvas.innerHTML = profile.nodes.map(function(node) {
+    return '<div class="video-flow-node" data-node-kind="' + escAttr(node[0]) + '"><div class="video-flow-kicker">' + escAttr(node[1]) + '</div><div class="video-flow-label">' + escAttr(node[2]) + '</div><div class="video-flow-meta">' + escAttr(node[3]) + '</div></div>';
+  }).join('');
+  document.querySelectorAll('[data-video-profile]').forEach(function(button) { button.classList.toggle('on', button.dataset.videoProfile === profileId); });
+  const summary = document.getElementById('videoNodeProfileSummary');
+  const route = document.getElementById('videoNodeProfileRoute');
+  if (summary) summary.textContent = profile.summary;
+  if (route) route.textContent = profile.route;
+}
+
+function selectVideoNodeProfile(profileId) {
+  const chip = document.querySelector('[data-g="vmodel"][data-workflow="' + profileId + '"]');
+  if (chip) pickSingle(chip, 'vmodel');
+  renderVideoNodeCanvas(profileId);
+  updateVidCost();
+}
+
+function initVideoNodeCanvas() { renderVideoNodeCanvas(getSelectedVideoWorkflowId()); }
+
 const LOCAL_VIDEO_WORKFLOW_LABELS = {
   wan: 'Wan 2.2 I2V 14B',
   ltx23: 'LTX 2.3 22B',
@@ -76744,9 +76834,11 @@ function renderVidTabHistory() {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initLocalVideoGatewayFields);
   document.addEventListener('DOMContentLoaded', initCameraMovementLibrary);
+  document.addEventListener('DOMContentLoaded', initVideoNodeCanvas);
 } else {
   initLocalVideoGatewayFields();
   initCameraMovementLibrary();
+  initVideoNodeCanvas();
 }
 
 /* ═══ PREMIERE ROUGHCUT EXPORT ═══ */
@@ -82109,7 +82201,42 @@ async function vbGenBatch() {
 }
 
 // ═══ NAV ═════════════════════════════════════════
+const PIPELINE_NAV_GROUPS = {
+  plan: { steps:[1,'sheet',0,'scout'], defaultStep:1 },
+  image: { steps:['mb','qwenedit','grok',2,3], defaultStep:'mb' },
+  story: { steps:['sb','director'], defaultStep:'sb' },
+  video: { steps:['vid','cam','seedance','node'], defaultStep:'vid' },
+  post: { steps:['premiere','voice','hist'], defaultStep:'premiere' },
+  instagram: { steps:['insta'], defaultStep:'insta' }
+};
+const pipelineNavLastStep = {};
+
+function pipelineNavGroupForStep(step) {
+  return Object.keys(PIPELINE_NAV_GROUPS).find(function(group) {
+    return PIPELINE_NAV_GROUPS[group].steps.some(function(value) { return value === step; });
+  }) || 'plan';
+}
+
+function setPipelineNavGroup(group, openDefault) {
+  const config = PIPELINE_NAV_GROUPS[group] || PIPELINE_NAV_GROUPS.plan;
+  document.querySelectorAll('[data-nav-group]').forEach(function(button) {
+    const active = button.dataset.navGroup === group;
+    button.classList.toggle('on', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-nav-group-panel]').forEach(function(panel) { panel.hidden = panel.dataset.navGroupPanel !== group; });
+  document.querySelectorAll('[data-nav-group-heading]').forEach(function(heading) { heading.hidden = heading.dataset.navGroupHeading !== group; });
+  if (openDefault) goStep(pipelineNavLastStep[group] ?? config.defaultStep);
+}
+
+function syncPipelineNavForStep(step) {
+  const group = pipelineNavGroupForStep(step);
+  pipelineNavLastStep[group] = step;
+  setPipelineNavGroup(group, false);
+}
+
 function goStep(n){
+  syncPipelineNavForStep(n);
   ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;

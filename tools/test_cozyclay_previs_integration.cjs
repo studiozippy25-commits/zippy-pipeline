@@ -10,6 +10,7 @@ assert.match(html, /id="tabPrevis"/);
 assert.match(html, /id="pPrevis"/);
 assert.match(html, /studiozippy-cozyclay-transfer\/v1/);
 assert.match(html, /COZYCLAY .*SCENE GEO/i);
+assert.match(html, /LOVE_EP01_V5_PREVIS_TRANSFER\.json/);
 
 const elements = new Map();
 function element(id) {

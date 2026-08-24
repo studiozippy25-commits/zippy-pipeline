@@ -1123,9 +1123,9 @@
       .sbv2-modal{position:fixed;inset:0;z-index:99999;display:none;place-items:center;padding:30px;background:rgba(0,0,0,.86)}.sbv2-modal.open{display:grid}.sbv2-modal img{max-width:min(94vw,1500px);max-height:90vh;object-fit:contain}.sbv2-modal button{position:absolute;top:18px;right:20px;width:36px;height:36px;border:1px solid #64748b;background:#111;color:#fff;font-size:22px;cursor:pointer}
       @media(max-width:900px){.sbv2-kpis{grid-template-columns:repeat(3,1fr)}.sbv2-kpis>div:nth-child(3){border-right:0}.sbv2-scene-line{grid-template-columns:1fr}.sbv2-gates{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.sbv2-head{align-items:flex-start;flex-direction:column}.sbv2-kpis{grid-template-columns:repeat(2,1fr)}.sbv2-kpis>div{border-bottom:1px solid var(--bd)}.sbv2-bible-grid,.sbv2-cuts{grid-template-columns:1fr}.sbv2-bible-item{grid-template-columns:90px 1fr}.sbv2-cut-main{grid-template-columns:105px 1fr}.sbv2-gates{grid-template-columns:1fr}.sbv2-views{overflow-x:auto}.sbv2-status{width:100%;margin-left:0}}
     `; document.head.appendChild(style);
-    const nav = document.querySelector('.snav'); const tab = document.createElement('button');
+    const nav = document.querySelector('[data-nav-group-panel="story"]') || document.querySelector('.snav'); const tab = document.createElement('button');
     tab.className = 'stab'; tab.id = 'tabSB2'; tab.textContent = '스토리보드 V2'; tab.style.borderBottomColor = 'var(--cy)'; tab.style.color = 'var(--cy)'; tab.onclick = () => window.goStep('sb2');
-    nav?.insertBefore(tab, $('tabVid') || $('tabHist'));
+    nav?.insertBefore(tab, $('tabDirector') || null);
     const panel = document.createElement('div'); panel.className = 'panel'; panel.id = 'pSB2';
     panel.innerHTML = '<div class="sbv2-root" id="zippyStoryboardV2Root"></div><div class="sbv2-modal" id="sbv2Modal"><button type="button" data-sbv2-close>×</button><img alt="확대 이미지"></div>';
     ($('pSB') || $('pHist'))?.insertAdjacentElement('afterend', panel);

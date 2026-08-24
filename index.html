@@ -414,6 +414,31 @@ input[type=file]{display:none}
 .stab.a1 .stab-meta,.stab.a2 .stab-meta,.stab.a3 .stab-meta{color:currentColor;opacity:.7}
 @media(max-width:900px){.pipeline-nav-groups{grid-template-columns:repeat(3,minmax(0,1fr))}.pipeline-nav-group:nth-child(3){border-right:0}.pipeline-nav-group:nth-child(-n+3){border-bottom-width:1px}.pipeline-nav-group.on:nth-child(-n+3){border-bottom-width:3px}.snav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px}.pipeline-nav-subhead{padding:8px 9px 0}.stab{min-height:46px;padding:9px 6px;font-size:12px}}
 
+/* ═══ COZYCLAY 3D PREVIS ═══ */
+.pv-shell{display:grid;gap:14px}
+.pv-hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:18px;border:1px solid rgba(124,58,237,.32);border-radius:12px;background:linear-gradient(135deg,rgba(124,58,237,.11),rgba(34,211,238,.05))}
+.pv-hero h2{margin:4px 0 7px;font-size:23px}.pv-hero p{margin:0;color:var(--mu);font-size:13px;line-height:1.7;max-width:820px}
+.pv-badge{font-family:var(--font-mono);font-size:10px;font-weight:800;color:#A78BFA;border:1px solid rgba(167,139,250,.45);border-radius:999px;padding:7px 10px;white-space:nowrap}
+.pv-grid{display:grid;grid-template-columns:minmax(320px,.85fr) minmax(0,1.45fr);gap:14px}
+.pv-card{border:1px solid var(--bd);border-radius:10px;background:var(--card);padding:15px;min-width:0}
+.pv-card h3{margin:0 0 10px;font-family:var(--font-mono);font-size:12px;color:#A78BFA;letter-spacing:.5px}
+.pv-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.pv-input{flex:1 1 220px;min-width:0;border:1px solid var(--bd);border-radius:6px;background:var(--sf);color:var(--tx);font-family:var(--font-mono);font-size:12px;padding:8px 10px}
+.pv-dot{width:9px;height:9px;border-radius:50%;background:#9CA3AF;display:inline-block;flex:0 0 auto}
+.pv-status{font-family:var(--font-mono);font-size:11px;color:var(--mu)}
+.pv-help{font-size:11px;line-height:1.65;color:var(--mu);padding:9px 10px;border-radius:7px;background:var(--sf)}
+.pv-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.pv-stat{padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--sf)}.pv-stat b{display:block;font-size:20px;color:#A78BFA}.pv-stat span{font-size:10px;color:var(--mu)}
+.pv-scenes{display:grid;grid-template-columns:minmax(230px,.72fr) minmax(0,1.28fr);gap:10px}
+.pv-list{max-height:540px;overflow:auto;border:1px solid var(--bd);border-radius:8px;background:var(--sf)}
+.pv-scene-btn,.pv-shot-btn{display:block;width:100%;border:0;border-bottom:1px solid var(--bd);background:transparent;color:var(--tx);text-align:left;padding:10px;cursor:pointer}.pv-scene-btn:last-child,.pv-shot-btn:last-child{border-bottom:0}
+.pv-scene-btn:hover,.pv-shot-btn:hover,.pv-scene-btn.on,.pv-shot-btn.on{background:rgba(124,58,237,.11)}
+.pv-scene-btn b,.pv-shot-btn b{display:block;font-size:12px}.pv-scene-btn span,.pv-shot-btn span{display:block;margin-top:4px;color:var(--mu);font-family:var(--font-mono);font-size:9px;line-height:1.45}
+.pv-detail{white-space:pre-wrap;word-break:break-word;border:1px solid var(--bd);border-radius:8px;background:#0B1020;color:#DDE7FF;font-family:var(--font-mono);font-size:11px;line-height:1.65;padding:12px;min-height:190px;max-height:430px;overflow:auto}
+.pv-link-grid{display:grid;grid-template-columns:minmax(210px,.75fr) minmax(0,1.25fr);gap:10px;align-items:end}
+.pv-muted{color:var(--mu);font-size:11px;line-height:1.55}
+@media(max-width:1000px){.pv-grid,.pv-scenes,.pv-link-grid{grid-template-columns:1fr}.pv-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.pv-hero{display:block}.pv-badge{display:inline-block;margin-top:10px}}
+
 /* Local video workflow canvas */
 .video-node-workbench{border:1px solid var(--bd);background:var(--card);margin-bottom:18px}
 .video-node-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--bd)}
@@ -1330,6 +1355,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
 
   <div class="pipeline-nav-subhead" data-nav-group-heading="story" hidden><span>샷 설계</span><span>타임라인 · 감독 QC</span></div>
   <div class="snav" data-nav-group-panel="story" hidden>
+    <button class="stab" id="tabPrevis" onclick="goStep('previs')"><span class="stab-title">3D Previs</span><span class="stab-meta">GEO · 동선 · 카메라</span></button>
     <button class="stab" id="tabSB" onclick="goStep('sb')"><span class="stab-title">스토리보드</span><span class="stab-meta">타임라인 · 샷 확정</span></button>
     <button class="stab" id="tabDirector" onclick="goStep('director')"><span class="stab-title">AI 감독</span><span class="stab-meta">라우팅 · 9프레임 QC</span></button>
   </div>
@@ -1338,7 +1364,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   <div class="snav" data-nav-group-panel="video" hidden>
     <button class="stab" id="tabVid" onclick="goStep('vid')"><span class="stab-title">영상 제작</span><span class="stab-meta">H3 · LTX 2.5 · Wan</span></button>
     <button class="stab" id="tabCam" onclick="goStep('cam')"><span class="stab-title">카메라 무빙</span><span class="stab-meta">무빙 · LoRA</span></button>
-    <button class="stab" id="tabSeedance" onclick="goStep('seedance')"><span class="stab-title">Seedance</span><span class="stab-meta">30초 멀티씬</span></button>
+    <button class="stab" id="tabSeedance" onclick="goStep('seedance')"><span class="stab-title">Seedance 프롬프트</span><span class="stab-meta">30초 멀티씬</span></button>
     <button class="stab" id="tabNode" onclick="goStep('node')"><span class="stab-title">노드 캔버스</span><span class="stab-meta">파이프라인 조립</span></button>
   </div>
 
@@ -1350,6 +1376,77 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   </div>
 
   <div hidden><button class="stab" id="tabInsta" onclick="goStep('insta')">Instagram</button></div>
+</div>
+
+<!-- ═══════════════ COZYCLAY 3D PREVIS ═══════════════ -->
+<div class="panel" id="pPrevis">
+  <div class="pv-shell">
+    <div class="pv-hero">
+      <div>
+        <div class="slbl" style="color:#A78BFA">COZYCLAY 3D PREVIS · SCENE GEO → CAMERA → STORYBOARD</div>
+        <h2>인물 동선과 카메라를 생성 전에 3D로 확정합니다</h2>
+        <p>CozyClay은 로컬 촬영장으로 실행됩니다. 파이프라인은 프로젝트 파일을 읽어 Scene·Shot·카메라·렌즈·인물 좌표를 스토리보드와 Director 15블록에 연결합니다. 얼굴·의상·감정·최종 이미지 생성은 기존 파이프라인이 계속 담당합니다.</p>
+      </div>
+      <div class="pv-badge">LOCAL ONLY · ARDY/API OFF</div>
+    </div>
+
+    <div class="pv-grid">
+      <section class="pv-card">
+        <h3>1 · LOCAL PREVIS 연결</h3>
+        <div class="pv-row">
+          <span class="pv-dot" id="previsBridgeDot"></span>
+          <span class="pv-status" id="previsBridgeStatus">연결 전</span>
+        </div>
+        <div class="pv-row"><input class="pv-input" id="previsBridgeUrl" value="http://localhost:5185" spellcheck="false" aria-label="CozyClay 프리비즈 브리지 주소"></div>
+        <div class="pv-row">
+          <button class="btn bgh bsm" type="button" onclick="previsCheckBridge()">연결 확인</button>
+          <button class="btn bpu bsm" type="button" onclick="previsOpenApp()">CozyClay 열기</button>
+          <button class="btn bgh bsm" type="button" onclick="previsChooseLovePilot()">LOVE EP01 선택</button>
+        </div>
+        <div class="pv-help">처음에는 바탕화면 또는 파일럿 폴더의 <b>START_ZIPPY_COZYCLAY_PREVIS.command</b>를 더블클릭합니다. ARDY·MCP·외부 유료 영상 API·자동 업데이트는 실행하지 않습니다.</div>
+
+        <h3 style="margin-top:16px">2 · COZYCLAY 프로젝트 불러오기</h3>
+        <input id="previsProjectInput" type="file" accept=".cclayproject,.json,application/json" hidden onchange="previsLoadProjectFile(this.files&&this.files[0])">
+        <div class="pv-row">
+          <button class="btn bgh bsm" type="button" onclick="document.getElementById('previsProjectInput').click()">PREVIS 전송파일 선택</button>
+          <button class="btn bgh bsm" type="button" onclick="previsDownloadImportedJson()">프리비즈 JSON 저장</button>
+        </div>
+        <div class="pv-summary">
+          <div class="pv-stat"><b id="previsSceneCount">0</b><span>SCENES</span></div>
+          <div class="pv-stat"><b id="previsShotCount">0</b><span>SHOTS</span></div>
+          <div class="pv-stat"><b id="previsAssetCount">0</b><span>ASSETS</span></div>
+          <div class="pv-stat"><b id="previsDuration">0s</b><span>MAX SCENE</span></div>
+        </div>
+        <div class="pv-muted" id="previsProjectMeta">프로젝트 파일을 선택하면 Scene과 Shot을 분석합니다.</div>
+      </section>
+
+      <section class="pv-card">
+        <h3>3 · SCENE / SHOT 검토</h3>
+        <div class="pv-scenes">
+          <div class="pv-list" id="previsSceneList"><div class="pv-muted" style="padding:12px">Scene 없음</div></div>
+          <div>
+            <div class="pv-list" id="previsShotList" style="max-height:250px"><div class="pv-muted" style="padding:12px">Shot 없음</div></div>
+            <pre class="pv-detail" id="previsShotDetail">선택한 Shot의 카메라·렌즈·인물 좌표가 여기에 표시됩니다.</pre>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="pv-card">
+      <h3>4 · STORYBOARD / DIRECTOR 15-BLOCK 연결</h3>
+      <div class="pv-link-grid">
+        <label class="pv-muted">파이프라인 스토리보드 컷
+          <select class="pv-input" id="previsTargetShot" style="display:block;width:100%;margin-top:5px"></select>
+        </label>
+        <div class="pv-row">
+          <button class="btn bpu bsm" type="button" onclick="previsLinkToStoryboard()">선택 프리비즈를 컷에 연결</button>
+          <button class="btn bgh bsm" type="button" onclick="previsOpenLinkedDirector()">AI 감독에서 15블록 확인</button>
+          <button class="btn bgh bsm" type="button" onclick="previsExportLinks()">연결표 JSON</button>
+        </div>
+      </div>
+      <div class="pv-help" id="previsLinkStatus">연결하면 CozyClay의 Scene GEO, 카메라 시작·끝, 렌즈, 화면 이동 방향이 해당 컷의 Director 15블록에 우선 반영됩니다.</div>
+    </section>
+  </div>
 </div>
 
 <!-- ═══════════════ SEEDANCE 30S MULTI-SCENE PROMPT PLANNER ═══════════════ -->
@@ -82200,11 +82297,128 @@ async function vbGenBatch() {
   if (btn) btn.disabled = false;
 }
 
+// ═══ COZYCLAY 3D PREVIS ═══════════════════════════
+const PREVIS_MAX_PROJECT_BYTES = 80 * 1024 * 1024;
+let previsState = {project:null,scenes:[],sceneIndex:0,shotIndex:0,bridge:null,fileName:''};
+
+function previsEsc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+function previsDownload(name,data,type){const url=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type:type||'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
+function previsBridgeInput(){return document.getElementById('previsBridgeUrl');}
+function previsBridgeBase(){
+  const raw=(previsBridgeInput()&&previsBridgeInput().value||'http://localhost:5185').trim().replace(/\/+$/,'');
+  let url;try{url=new URL(raw);}catch(e){throw new Error('브리지 주소 형식이 올바르지 않습니다');}
+  const loopback=url.hostname==='localhost'||url.hostname==='127.0.0.1'||url.hostname==='[::1]';
+  if(url.protocol!=='https:'&&!(url.protocol==='http:'&&loopback))throw new Error('로컬 http 또는 https 브리지만 허용됩니다');
+  return url.origin;
+}
+function previsSetBridgeStatus(ok,text){const dot=document.getElementById('previsBridgeDot');const status=document.getElementById('previsBridgeStatus');if(dot)dot.style.background=ok?'var(--ok)':'var(--er)';if(status){status.style.color=ok?'var(--ok)':'var(--er)';status.textContent=text;}}
+async function previsCheckBridge(){
+  try{
+    const base=previsBridgeBase();
+    localStorage.setItem('zippy_previs_bridge_url_v1',base);
+    previsSetBridgeStatus(false,'확인 중...');
+    const res=await fetch(base+'/health',{signal:AbortSignal.timeout(4500),cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const body=await res.json();if(!body||body.ok!==true)throw new Error(body&&body.reason||'응답 오류');
+    previsState.bridge=body;
+    previsSetBridgeStatus(true,'연결됨 · CozyClay '+(body.version||'')+' · 프로젝트 '+Number(body.projectCount||0));
+    return body;
+  }catch(e){previsState.bridge=null;previsSetBridgeStatus(false,'연결 실패 · '+(e&&e.message||e));throw e;}
+}
+async function previsOpenApp(){
+  let appUrl=previsState.bridge&&previsState.bridge.appUrl;
+  if(!appUrl){try{appUrl=(await previsCheckBridge()).appUrl;}catch(e){appUrl='http://127.0.0.1:5180/app/';}}
+  const parsed=new URL(appUrl);if(!['127.0.0.1','localhost','[::1]'].includes(parsed.hostname)||parsed.protocol!=='http:'){alert('안전한 로컬 CozyClay 주소를 확인하지 못했습니다.');return;}
+  window.open(parsed.href,'_blank','noopener');
+}
+function previsChooseLovePilot(){
+  const meta=document.getElementById('previsProjectMeta');if(meta)meta.textContent='로컬 파일럿 폴더의 LOVE_EP01_PREVIS_TRANSFER.json을 선택하세요. 이미지 바이트가 없는 100KB 전송파일이며 브라우저 메모리에서만 읽습니다.';
+  document.getElementById('previsProjectInput').click();
+}
+async function previsLoadProjectFile(file){
+  if(!file)return;
+  if(file.size>PREVIS_MAX_PROJECT_BYTES){alert('프로젝트 파일은 80MB 이하만 불러올 수 있습니다.');return;}
+  try{await previsLoadProjectText(await file.text(),file.name);}catch(e){alert('CozyClay 프로젝트 읽기 실패: '+(e&&e.message||e));}
+  const input=document.getElementById('previsProjectInput');if(input)input.value='';
+}
+async function previsLoadProjectText(text,fileName){
+  let doc;try{doc=JSON.parse(text);}catch(e){throw new Error('JSON 형식이 아닙니다');}
+  if(doc&&doc.schema==='studiozippy-cozyclay-transfer/v1'&&Array.isArray(doc.scenes))doc={app:'cozyclay',kind:'project',version:Number(doc.projectVersion)||2,name:doc.name||'CozyClay Transfer',assets:Array.from({length:Math.max(0,Math.min(9999,Number(doc.assetCount)||0))},function(){return null;}),scenes:{scenes:doc.scenes},transferOnly:true};
+  if(!doc||doc.app!=='cozyclay'||doc.kind!=='project'||!doc.scenes||!Array.isArray(doc.scenes.scenes))throw new Error('CozyClay 프로젝트 또는 PREVIS 전송파일 형식이 아닙니다');
+  if(Number(doc.version)>2)throw new Error('현재 파이프라인보다 새로운 CozyClay 프로젝트 버전입니다');
+  const scenes=doc.scenes.scenes.filter(function(scene){return scene&&typeof scene.id==='string'&&Array.isArray(scene.objects)&&scene.stage&&scene.shotDocument;});
+  if(!scenes.length)throw new Error('사용 가능한 Scene이 없습니다');
+  previsState={project:doc,scenes:scenes,sceneIndex:0,shotIndex:0,bridge:previsState.bridge,fileName:fileName||''};
+  previsRenderProject();
+}
+function previsScene(){return previsState.scenes[previsState.sceneIndex]||null;}
+function previsShots(scene){return scene&&scene.shotDocument&&Array.isArray(scene.shotDocument.shots)?scene.shotDocument.shots:[];}
+function previsShot(){const shots=previsShots(previsScene());return shots[previsState.shotIndex]||null;}
+function previsFocalMm(fovDeg,sensorId,aspect){
+  const sensors={super16:{w:12.52,h:7.41},super35:{w:24.89,h:18.66},fullFrame:{w:36,h:24},'65mm':{w:52.63,h:23.01}};
+  const sensor=sensors[sensorId]||sensors.fullFrame;const ratio=Number(aspect)||16/9;const usedH=Math.min(sensor.h,sensor.w/ratio);const fov=Number(fovDeg)*Math.PI/180;
+  if(!Number.isFinite(fov)||fov<=0)return null;const exact=usedH/(2*Math.tan(fov/2));const primes=[14,18,24,28,35,50,85,100,135];return primes.reduce(function(best,n){return Math.abs(n-exact)<Math.abs(best-exact)?n:best;},primes[0]);
+}
+function previsCameraKeys(shot){return Array.isArray(shot&&shot.cameraKeys)?shot.cameraKeys.filter(function(key){return key&&key.framing&&key.framing.pos;}).slice().sort(function(a,b){return a.frame-b.frame;}):[];}
+function previsCameraMove(shot){
+  const keys=previsCameraKeys(shot);if(keys.length<2)return 'locked-static';const a=keys[0].framing.pos,b=keys[keys.length-1].framing.pos;const dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z;
+  if(Math.abs(dy)>.45)return dy>0?'crane-up':'crane-down';
+  if(Math.abs(dx)>.65&&Math.abs(dx)>Math.abs(dz))return dx>0?'truck-right':'truck-left';
+  if(Math.hypot(dx,dz)>.55)return dz<0?'tracking-forward':'pull-out';
+  const focalA=previsFocalMm(keys[0].framing.fovDeg,'fullFrame',16/9),focalB=previsFocalMm(keys[keys.length-1].framing.fovDeg,'fullFrame',16/9);if(focalA&&focalB&&focalB-focalA>12)return 'zoom-in';if(focalA&&focalB&&focalA-focalB>12)return 'zoom-out';return 'subtle-camera-adjustment';
+}
+function previsCharacterGeo(scene){
+  const chars=scene&&scene.stage&&Array.isArray(scene.stage.characters)?scene.stage.characters:[];
+  return chars.filter(function(entry){return entry&&entry.hidden!==true;}).map(function(entry){return {id:entry.id,subject:entry.subject||entry.id,x:Number(entry.x)||0,y:Number(entry.y)||0,z:Number(entry.z)||0,rotationDeg:Number(entry.rot)||0,scale:Number(entry.scale)||1,waypoints:entry.layer&&Array.isArray(entry.layer.waypoints)?entry.layer.waypoints:[]};});
+}
+function previsScreenDirection(scene,shot){
+  const parts=[];previsCharacterGeo(scene).forEach(function(char){const points=char.waypoints.filter(function(p){return Number(p.frame)>=shot.startFrame&&Number(p.frame)<=shot.endFrame;}).sort(function(a,b){return a.frame-b.frame;});if(points.length<2)return;const a=points[0],b=points[points.length-1],dx=b.x-a.x,dz=b.z-a.z;let travel=Math.abs(dx)>Math.abs(dz)?(dx>0?'screen/world right':'screen/world left'):(dz<0?'deeper into scene':'toward camera');parts.push(char.id+': '+travel+' ('+dx.toFixed(2)+'m x, '+dz.toFixed(2)+'m z)');});return parts.join(' / ')||'static blocking or no authored waypoint inside this shot';
+}
+function previsShotSummary(scene,shot){
+  const keys=previsCameraKeys(shot),first=keys[0]&&keys[0].framing,last=keys[keys.length-1]&&keys[keys.length-1].framing;const sensor=scene.stage&&scene.stage.sensorId||'fullFrame';const aspectLabel=scene.stage&&scene.stage.shotAspect||'16:9';const ratio=aspectLabel==='2.39:1'?2.39:aspectLabel==='9:16'?9/16:aspectLabel==='1:1'?1:aspectLabel==='4:3'?4/3:16/9;
+  const firstLens=first?previsFocalMm(first.fovDeg,sensor,ratio):null,lastLens=last?previsFocalMm(last.fovDeg,sensor,ratio):null;
+  return {sceneId:scene.id,sceneName:scene.name,environment:scene.stage&&scene.stage.environment||'',shotId:shot.id,shotName:shot.name,startFrame:shot.startFrame,endFrame:shot.endFrame,fps:24,startSeconds:shot.startFrame/24,endSeconds:(shot.endFrame+1)/24,durationSeconds:(shot.endFrame-shot.startFrame+1)/24,sensor:sensor,aspect:aspectLabel,cameraMove:previsCameraMove(shot),startCamera:first?{position:first.pos,yawRad:first.yaw,pitchRad:first.pitch,fovDeg:first.fovDeg,lensMm:firstLens}:null,endCamera:last?{position:last.pos,yawRad:last.yaw,pitchRad:last.pitch,fovDeg:last.fovDeg,lensMm:lastLens}:null,screenDirection:previsScreenDirection(scene,shot),characters:previsCharacterGeo(scene).map(function(c){return {id:c.id,subject:c.subject,x:c.x,y:c.y,z:c.z,rotationDeg:c.rotationDeg,scale:c.scale};})};
+}
+function previsRenderProject(){
+  const allShots=previsState.scenes.reduce(function(out,scene){return out.concat(previsShots(scene));},[]);const maxFrames=Math.max.apply(null,previsState.scenes.map(function(scene){return Number(scene.shotDocument&&scene.shotDocument.frameCount)||0;}));
+  const set=function(id,value){const el=document.getElementById(id);if(el)el.textContent=value;};set('previsSceneCount',previsState.scenes.length);set('previsShotCount',allShots.length);set('previsAssetCount',Array.isArray(previsState.project.assets)?previsState.project.assets.length:0);set('previsDuration',Math.round(maxFrames/24)+'s');
+  const meta=document.getElementById('previsProjectMeta');if(meta)meta.textContent=(previsState.project.name||'CozyClay Project')+' · '+(previsState.fileName||'memory')+' · project v'+previsState.project.version;
+  const list=document.getElementById('previsSceneList');if(list)list.innerHTML=previsState.scenes.map(function(scene,i){return '<button type="button" class="pv-scene-btn '+(i===previsState.sceneIndex?'on':'')+'" onclick="previsSelectScene('+i+')"><b>'+previsEsc(scene.name||scene.id)+'</b><span>'+previsShots(scene).length+' shots · '+((Number(scene.shotDocument.frameCount)||0)/24).toFixed(1)+'s</span></button>';}).join('');
+  previsRenderShots();previsUpdateTargetShots();
+}
+function previsRenderShots(){
+  const scene=previsScene(),shots=previsShots(scene);if(previsState.shotIndex>=shots.length)previsState.shotIndex=0;const list=document.getElementById('previsShotList');if(list)list.innerHTML=shots.length?shots.map(function(shot,i){const summary=previsShotSummary(scene,shot);return '<button type="button" class="pv-shot-btn '+(i===previsState.shotIndex?'on':'')+'" onclick="previsSelectShot('+i+')"><b>'+previsEsc(shot.name||shot.id)+'</b><span>'+summary.startSeconds.toFixed(1)+'–'+summary.endSeconds.toFixed(1)+'s · '+previsEsc(summary.cameraMove)+' · '+previsEsc((summary.startCamera&&summary.startCamera.lensMm||'—')+'mm')+'</span></button>';}).join(''):'<div class="pv-muted" style="padding:12px">Shot 없음</div>';
+  previsRenderDetail();
+}
+function previsRenderDetail(){const scene=previsScene(),shot=previsShot(),detail=document.getElementById('previsShotDetail');if(!detail)return;detail.textContent=scene&&shot?JSON.stringify(previsShotSummary(scene,shot),null,2):'선택한 Shot이 없습니다.';}
+function previsSelectScene(index){previsState.sceneIndex=Math.max(0,Math.min(Number(index)||0,previsState.scenes.length-1));previsState.shotIndex=0;previsRenderProject();}
+function previsSelectShot(index){previsState.shotIndex=Math.max(0,Math.min(Number(index)||0,previsShots(previsScene()).length-1));previsRenderShots();}
+function previsDownloadImportedJson(){if(!previsState.project){alert('먼저 CozyClay 프로젝트를 불러오세요.');return;}const summary={schema:'studiozippy-previs/v1',source:{name:previsState.project.name,file:previsState.fileName},scenes:previsState.scenes.map(function(scene){return {id:scene.id,name:scene.name,environment:scene.stage&&scene.stage.environment||'',characters:previsCharacterGeo(scene),shots:previsShots(scene).map(function(shot){return previsShotSummary(scene,shot);})};})};previsDownload('COZYCLAY_PREVIS_'+String(previsState.project.name||'project').replace(/[^a-zA-Z0-9가-힣_-]+/g,'_')+'.json',JSON.stringify(summary,null,2));}
+function previsUpdateTargetShots(){const select=document.getElementById('previsTargetShot');if(!select)return;const all=typeof SB_SHOTS!=='undefined'&&Array.isArray(SB_SHOTS)?SB_SHOTS:[];const projectLabel=[previsState.project&&previsState.project.name,previsState.fileName].filter(Boolean).join(' ');const epMatch=/\bEP\s*0*(\d{1,3})\b/i.exec(projectLabel);const ep=epMatch?Number(epMatch[1]):null;const shots=ep?all.filter(function(shot){return new RegExp('(?:^|-)EP0*'+ep+'(?:-|$)','i').test(String(shot&&shot.id||''));}):all;const previous=select.value;select.innerHTML=shots.length?shots.map(function(shot){return '<option value="'+previsEsc(shot.id)+'">'+previsEsc((shot.id||'')+' · '+String(shot.frame||shot.desc||'').slice(0,84))+'</option>';}).join(''):'<option value="">스토리보드 컷 없음</option>';if(previous&&shots.some(function(s){return s.id===previous;}))select.value=previous;}
+function previsLinksKey(){return 'zippy_previs_links_v1_'+String(typeof currentProjectKey!=='undefined'&&currentProjectKey?currentProjectKey:'global');}
+function previsLoadLinks(){try{return JSON.parse(localStorage.getItem(previsLinksKey())||'{}')||{};}catch(e){return {};}}
+function previsSaveLinks(links){localStorage.setItem(previsLinksKey(),JSON.stringify(links||{}));}
+function previsFindLink(shotId){const shot=typeof SB_SHOTS!=='undefined'&&Array.isArray(SB_SHOTS)?SB_SHOTS.find(function(s){return s&&s.id===shotId;}):null;return shot&&shot.previs||previsLoadLinks()[shotId]||null;}
+function previsBuildLink(scene,shot){const summary=previsShotSummary(scene,shot);return {schema:'studiozippy-previs-link/v1',linkedAt:new Date().toISOString(),cozyProject:previsState.project&&previsState.project.name||'',cozyFile:previsState.fileName,sceneId:scene.id,sceneName:scene.name,shotId:shot.id,shotName:shot.name,startFrame:summary.startFrame,endFrame:summary.endFrame,durationSeconds:summary.durationSeconds,sceneGeo:summary.characters.map(function(c){return c.id+' @ ('+c.x.toFixed(2)+', '+c.y.toFixed(2)+', '+c.z.toFixed(2)+') rot '+c.rotationDeg.toFixed(1)+'° scale '+c.scale.toFixed(2);}).join(' / '),environment:summary.environment,cameraMove:summary.cameraMove,cameraSummary:(summary.startCamera?('START '+summary.startCamera.lensMm+'mm @ '+JSON.stringify(summary.startCamera.position)):'START —')+(summary.endCamera?' → END '+summary.endCamera.lensMm+'mm @ '+JSON.stringify(summary.endCamera.position):''),screenDirection:summary.screenDirection,raw:summary};}
+function previsLinkToStoryboard(){
+  const scene=previsScene(),shot=previsShot(),targetId=document.getElementById('previsTargetShot')&&document.getElementById('previsTargetShot').value;if(!scene||!shot){alert('먼저 CozyClay Scene과 Shot을 선택하세요.');return;}if(!targetId){alert('연결할 스토리보드 컷을 선택하세요.');return;}
+  const target=typeof SB_SHOTS!=='undefined'&&SB_SHOTS.find(function(item){return item&&item.id===targetId;});if(!target){alert('스토리보드 컷을 찾지 못했습니다.');return;}
+  const link=previsBuildLink(scene,shot),links=previsLoadLinks();links[targetId]=link;previsSaveLinks(links);target.previs=link;delete target.director15;if(typeof directorEnsureShot15==='function')directorEnsureShot15(target);
+  const status=document.getElementById('previsLinkStatus');if(status)status.innerHTML='<b style="color:var(--ok)">'+previsEsc(targetId)+'</b> ← '+previsEsc(scene.name)+' / '+previsEsc(shot.name)+' 연결 완료 · '+previsEsc(link.cameraMove)+' · '+previsEsc(link.cameraSummary);
+  if(typeof directorRecordLog==='function')directorRecordLog('previs-linked',target,{reason:scene.name+' / '+shot.name+' · '+link.cameraMove});
+}
+function previsOpenLinkedDirector(){const targetId=document.getElementById('previsTargetShot')&&document.getElementById('previsTargetShot').value;if(!targetId||!previsFindLink(targetId)){alert('먼저 프리비즈 Shot을 스토리보드 컷에 연결하세요.');return;}if(typeof directorOpenShot==='function')directorOpenShot(targetId);}
+function previsExportLinks(){const links=previsLoadLinks();previsDownload('COZYCLAY_STORYBOARD_LINKS_'+String(typeof currentProjectKey!=='undefined'&&currentProjectKey?currentProjectKey:'global')+'.json',JSON.stringify({schema:'studiozippy-previs-links/v1',projectKey:typeof currentProjectKey!=='undefined'?currentProjectKey:'',links:links},null,2));}
+function previsInitTab(){
+  const stored=localStorage.getItem('zippy_previs_bridge_url_v1');if(stored&&previsBridgeInput())previsBridgeInput().value=stored;previsUpdateTargetShots();
+  if(previsState.project)previsRenderProject();else{const status=document.getElementById('previsLinkStatus');if(status)status.textContent='CozyClay 프로젝트를 불러온 뒤 Scene과 Shot을 선택합니다.';}
+}
+
 // ═══ NAV ═════════════════════════════════════════
 const PIPELINE_NAV_GROUPS = {
   plan: { steps:[1,'sheet',0,'scout'], defaultStep:1 },
   image: { steps:['mb','qwenedit','grok',2,3], defaultStep:'mb' },
-  story: { steps:['sb','director'], defaultStep:'sb' },
+  story: { steps:['previs','sb','director'], defaultStep:'previs' },
   video: { steps:['vid','cam','seedance','node'], defaultStep:'vid' },
   post: { steps:['premiere','voice','hist'], defaultStep:'premiere' },
   instagram: { steps:['insta'], defaultStep:'insta' }
@@ -82237,10 +82451,11 @@ function syncPipelineNavForStep(step) {
 
 function goStep(n){
   syncPipelineNavForStep(n);
-  ['p0','p1','p2','p3','pSheet','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pPrevis','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
-    if(n==='sb') el.classList.toggle('active',id==='pSB');
+    if(n==='previs') el.classList.toggle('active',id==='pPrevis');
+    else if(n==='sb') el.classList.toggle('active',id==='pSB');
     else if(n==='seedance') el.classList.toggle('active',id==='pSeedance');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
     else if(n==='cam') el.classList.toggle('active',id==='pCam');
@@ -82261,6 +82476,7 @@ function goStep(n){
   const d2=document.getElementById('out2').style.display!=='none';
   document.getElementById('tab0').className='stab '+(n===0?'a1':'');
   document.getElementById('tab1').className='stab '+(n===1?'a1':d1?'done':'');
+  document.getElementById('tabPrevis').className='stab '+(n==='previs'?'a1':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
   document.getElementById('tabSeedance').className='stab '+(n==='seedance'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
@@ -82289,6 +82505,7 @@ function goStep(n){
       if (typeof zippyNasScheduleAutoLoad === 'function') zippyNasScheduleAutoLoad('storyboard-tab');
     });
   }
+  if(n==='previs') previsInitTab();
   if(n==='director' && typeof directorRefreshPanel==='function') directorRefreshPanel();
   if(n==='premiere') premiereRenderItems();
   if(n==='voice') vbInitVoiceTab();
@@ -84287,7 +84504,7 @@ function updatePromptPreview() {
 	      const pInsta=document.getElementById('pInsta');
 	      const tabInsta=document.getElementById('tabInsta');
 	      if(n==='insta'){
-	        ['p0','p1','p2','p3','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
+	        ['p0','p1','p2','p3','pPrevis','pSB','pVid','pCam','pPremiere','pVoice','pHist','pMB','pGrok'].forEach(function(id){const el=document.getElementById(id); if(el) el.classList.remove('active');});
 	        if(pInsta) pInsta.classList.add('active');
 	        document.querySelectorAll('.stab').forEach(function(b){b.className='stab';});
 	        if(tabInsta) tabInsta.className='stab a1';
@@ -86140,10 +86357,30 @@ function directorRouteModel(task,shot,ctx){
 function directorCostLabel(route){if(!route)return '—';return route.estimatedUsd===null?'요금 확인':route.estimatedUsd===0?'추가 API비용 0 추정':'$'+Number(route.estimatedUsd).toFixed(3)+' 추정';}
 
 function directorEnsureShot15(shot){
-  if(!shot)return null;if(shot.director15&&Array.isArray(shot.director15.blocks)&&shot.director15.blocks.length===15)return shot.director15;
-  const explicitLocked=/\bLOCKED\b|고정/i.test([shot.frame,shot.camera,shot.moving].join(' '));const move=explicitLocked?'locked-static':(typeof recommendCameraMoveForShot==='function'?recommendCameraMoveForShot(shot):'locked-static');const risk=directorCameraAssessment(move,shot);const emotion=shot.emotionBeat||{};const chars=directorResolveChars(shot).join(', ')||'no visible character';const vals=[
-    (currentProject&&currentProject.name||'project')+' · '+(currentProject&&currentProject.defaultRatio||'16:9'),shot.func||shot.sceneName||'story progression',chars,shot.costume||shot.costumeMode||'approved wardrobe state',(shot.loc||'')+' · anchor/distance/180-axis/eyeline lock',String(shot.time||'')+' · '+String(shot.light||'approved lighting'),shot.frame||'storyboard composition',(shot.camera||shot.lens||'project camera DNA')+' · '+risk.name,(shot.screenMotion&&shot.screenMotion.travel)||'preserve blocking and screen direction',emotion.focalCharacter?(emotion.entryState+' -> '+emotion.exitState+' · '+emotion.microActing):(shot.emo||'grounded motivated micro-acting'),(shot.desc||'')+' · one atomic beat',String(emotion.continuityFromShotId||shot.continuityFromShotId||'canon')+' -> '+String(shot.id||''),(Array.isArray(shot.obj)?shot.obj.join(', '):'')+' · physics/contact/text-surface correctness',shot.negativePrompt||(currentProject&&currentProject.negative)||'no drift/collage/text overlay','route '+directorRouteModel('storyboard-image',shot,{referenceCount:0}).model+' · camera '+risk.level+' · asset 10/10 · 9-frame QC >=90'];
-  shot.director15={schema:'studioZIPPY-director-15/v4',recommendedCameraMove:move,cameraRisk:risk.level,saferCameraAlternative:risk.alternative,blocks:DIRECTOR_15_NAMES.map(function(name,i){return {index:i+1,name:String(i+1).padStart(2,'0')+' '+name,value:String(vals[i]||'')};})};return shot.director15;
+  if(!shot)return null;
+  const pv=typeof previsFindLink==='function'?previsFindLink(shot.id):shot.previs||null;
+  const linkedAt=pv&&pv.linkedAt||'';
+  if(shot.director15&&Array.isArray(shot.director15.blocks)&&shot.director15.blocks.length===15&&String(shot.director15.previsLinkedAt||'')===String(linkedAt))return shot.director15;
+  const explicitLocked=/\bLOCKED\b|고정/i.test([shot.frame,shot.camera,shot.moving].join(' '));
+  const move=pv&&pv.cameraMove?pv.cameraMove:(explicitLocked?'locked-static':(typeof recommendCameraMoveForShot==='function'?recommendCameraMoveForShot(shot):'locked-static'));
+  const risk=directorCameraAssessment(move,shot);const emotion=shot.emotionBeat||{};const chars=directorResolveChars(shot).join(', ')||'no visible character';
+  const geoBase=(shot.loc||'')+' · anchor/distance/180-axis/eyeline lock';
+  const geo=pv?(geoBase+' · COZYCLAY '+pv.sceneName+' · '+pv.sceneGeo):geoBase;
+  const cameraBase=(shot.camera||shot.lens||'project camera DNA')+' · '+risk.name;
+  const camera=pv?(cameraBase+' · PREVIS '+pv.cameraSummary):cameraBase;
+  const blockingBase=(shot.screenMotion&&shot.screenMotion.travel)||'preserve blocking and screen direction';
+  const blocking=pv?(blockingBase+' · PREVIS '+pv.screenDirection):blockingBase;
+  const vals=[
+    (currentProject&&currentProject.name||'project')+' · '+(currentProject&&currentProject.defaultRatio||'16:9'),
+    shot.func||shot.sceneName||'story progression',chars,shot.costume||shot.costumeMode||'approved wardrobe state',geo,
+    String(shot.time||'')+' · '+String(shot.light||'approved lighting'),shot.frame||'storyboard composition',camera,blocking,
+    emotion.focalCharacter?(emotion.entryState+' -> '+emotion.exitState+' · '+emotion.microActing):(shot.emo||'grounded motivated micro-acting'),
+    (shot.desc||'')+' · one atomic beat',String(emotion.continuityFromShotId||shot.continuityFromShotId||'canon')+' -> '+String(shot.id||''),
+    (Array.isArray(shot.obj)?shot.obj.join(', '):'')+' · physics/contact/text-surface correctness',
+    shot.negativePrompt||(currentProject&&currentProject.negative)||'no drift/collage/text overlay',
+    'route '+directorRouteModel('storyboard-image',shot,{referenceCount:0}).model+' · camera '+risk.level+' · asset 10/10 · 9-frame QC >=90'+(pv?' · CozyClay geometry linked':'')
+  ];
+  shot.director15={schema:'studioZIPPY-director-15/v4',recommendedCameraMove:move,cameraRisk:risk.level,saferCameraAlternative:risk.alternative,previsLinkedAt:linkedAt,previsLink:pv?{sceneId:pv.sceneId,sceneName:pv.sceneName,shotId:pv.shotId,shotName:pv.shotName}:null,blocks:DIRECTOR_15_NAMES.map(function(name,i){return {index:i+1,name:String(i+1).padStart(2,'0')+' '+name,value:String(vals[i]||'')};})};return shot.director15;
 }
 function directorEnsureProject15(project){(project&&Array.isArray(project.storyboardShots)?project.storyboardShots:[]).forEach(directorEnsureShot15);}
 function directorSerialize15(shot){const d=directorEnsureShot15(shot);if(!d)return '';return 'DIRECTOR 15-BLOCK SERIALIZATION — '+(shot.id||'')+'\n'+d.blocks.map(function(b){return '['+String(b.index).padStart(2,'0')+'] '+b.name.replace(/^\d+\s+/,'')+'\n'+b.value;}).join('\n\n');}

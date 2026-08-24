@@ -1399,7 +1399,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
           <span class="pv-dot" id="previsBridgeDot"></span>
           <span class="pv-status" id="previsBridgeStatus">연결 전</span>
         </div>
-        <div class="pv-row"><input class="pv-input" id="previsBridgeUrl" value="http://localhost:5185" spellcheck="false" aria-label="CozyClay 프리비즈 브리지 주소"></div>
+        <div class="pv-row"><input class="pv-input" id="previsBridgeUrl" value="http://127.0.0.1:5185" spellcheck="false" aria-label="CozyClay 프리비즈 브리지 주소"></div>
         <div class="pv-row">
           <button class="btn bgh bsm" type="button" onclick="previsCheckBridge()">연결 확인</button>
           <button class="btn bpu bsm" type="button" onclick="previsOpenApp()">CozyClay 열기</button>
@@ -82164,7 +82164,7 @@ function previsEsc(value){return String(value==null?'':value).replace(/[&<>"']/g
 function previsDownload(name,data,type){const url=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type:type||'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url);},1500);}
 function previsBridgeInput(){return document.getElementById('previsBridgeUrl');}
 function previsBridgeBase(){
-  const raw=(previsBridgeInput()&&previsBridgeInput().value||'http://localhost:5185').trim().replace(/\/+$/,'');
+  const raw=(previsBridgeInput()&&previsBridgeInput().value||'http://127.0.0.1:5185').trim().replace(/\/+$/,'');
   let url;try{url=new URL(raw);}catch(e){throw new Error('브리지 주소 형식이 올바르지 않습니다');}
   const loopback=url.hostname==='localhost'||url.hostname==='127.0.0.1'||url.hostname==='[::1]';
   if(url.protocol!=='https:'&&!(url.protocol==='http:'&&loopback))throw new Error('로컬 http 또는 https 브리지만 허용됩니다');
@@ -82176,7 +82176,7 @@ async function previsCheckBridge(){
     const base=previsBridgeBase();
     localStorage.setItem('zippy_previs_bridge_url_v1',base);
     previsSetBridgeStatus(false,'확인 중...');
-    const res=await fetch(base+'/health',{signal:AbortSignal.timeout(4500),cache:'no-store'});
+    const res=await fetch(base+'/health',{signal:AbortSignal.timeout(4500),cache:'no-store',targetAddressSpace:'loopback'});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const body=await res.json();if(!body||body.ok!==true)throw new Error(body&&body.reason||'응답 오류');
     previsState.bridge=body;

@@ -1,0 +1,628 @@
+[
+  {
+    "id": "aerial-shot",
+    "name": "Aerial Shot",
+    "nameKo": "항공 앵글",
+    "kind": "framing",
+    "description": "지리·도시 규모와 이동 경로를 함께 보여줍니다.",
+    "instruction": "Frame the location from an oblique elevated viewpoint. Keep a recognizable scale anchor and the route through foreground, middle ground and distance legible.",
+    "keywords": [
+      "항공",
+      "드론",
+      "도시 전경",
+      "aerial",
+      "drone"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/aerial-shot"
+  },
+  {
+    "id": "birds-eye-view",
+    "name": "Birds Eye View",
+    "nameKo": "버드아이",
+    "kind": "framing",
+    "description": "상공 수직 시점으로 공간 배치를 보여줍니다.",
+    "instruction": "Look vertically down from above with no horizon. Keep the spatial arrangement and subject positions readable.",
+    "keywords": [
+      "버드아이",
+      "수직 상공",
+      "birds eye"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/birds-eye-view"
+  },
+  {
+    "id": "close-up",
+    "name": "Close Up",
+    "nameKo": "클로즈업",
+    "kind": "framing",
+    "description": "표정과 시선을 가까이 읽습니다.",
+    "instruction": "Frame the face closely with natural perspective, clear eyeline and enough margin for the specified expression.",
+    "keywords": [
+      "클로즈업",
+      "표정",
+      "눈물",
+      "close-up",
+      "expression"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/close-up"
+  },
+  {
+    "id": "dutch-angle",
+    "name": "Dutch Angle",
+    "nameKo": "더치 앵글",
+    "kind": "framing",
+    "description": "불안정함이 필요한 장면에 고정된 기울기를 사용합니다.",
+    "instruction": "Use a modest fixed roll angle with a readable horizon or vertical reference. Keep the angle constant during the action.",
+    "keywords": [
+      "더치",
+      "기울어진",
+      "dutch"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/dutch-angle"
+  },
+  {
+    "id": "dolly-shot",
+    "name": "Dolly Shot",
+    "nameKo": "달리",
+    "kind": "movement",
+    "description": "실제 카메라 이동으로 거리와 시차를 바꿉니다.",
+    "instruction": "Move the camera slowly along one short straight path while maintaining the subject's screen position; settle at the stated ending composition.",
+    "keywords": [
+      "달리",
+      "dolly"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/dolly-shot"
+  },
+  {
+    "id": "establishing-shot",
+    "name": "Establishing Shot",
+    "nameKo": "공간 설정 와이드",
+    "kind": "framing",
+    "description": "장면의 장소·출입구·동선을 먼저 설명합니다.",
+    "instruction": "Use a wide location view that shows the principal subject, access points and spatial relationships needed to understand the action.",
+    "keywords": [
+      "전경",
+      "장소 소개",
+      "공간 소개",
+      "establishing",
+      "location overview"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/establishing-shot"
+  },
+  {
+    "id": "extreme-close-up",
+    "name": "Extreme Close Up",
+    "nameKo": "익스트림 클로즈업",
+    "kind": "framing",
+    "description": "사건을 결정하는 작은 디테일 하나에 집중합니다.",
+    "instruction": "Isolate one specified small detail in extreme close-up. Keep its position and physical state legible without exaggerated surface detail.",
+    "keywords": [
+      "익스트림",
+      "눈동자",
+      "매크로",
+      "extreme close",
+      "macro"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/extreme-close-up"
+  },
+  {
+    "id": "extreme-long-shot",
+    "name": "Extreme Long Shot",
+    "nameKo": "익스트림 롱샷",
+    "kind": "framing",
+    "description": "작은 피사체와 넓은 환경의 크기를 비교합니다.",
+    "instruction": "Place a small but identifiable subject within a vast environment with readable scale references at multiple distances.",
+    "keywords": [
+      "광활",
+      "거대한 도시",
+      "extreme long",
+      "vast"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/extreme-long-shot"
+  },
+  {
+    "id": "eye-level-shot",
+    "name": "Eye Level Shot",
+    "nameKo": "눈높이",
+    "kind": "framing",
+    "description": "인물 눈높이에서 중립적으로 관찰합니다.",
+    "instruction": "Position the camera at the subject's eye height with a level horizon and natural perspective.",
+    "keywords": [
+      "눈높이",
+      "eye level",
+      "eye-level"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/eye-level-shot"
+  },
+  {
+    "id": "handheld-shot",
+    "name": "Handheld Shot",
+    "nameKo": "핸드헬드",
+    "kind": "movement",
+    "description": "현장에서 관찰자가 따라가는 호흡을 만듭니다.",
+    "instruction": "Use restrained handheld breathing drift at a consistent distance, responding to the subject's movement. Avoid random shake; settle on the final state.",
+    "keywords": [
+      "브이로그",
+      "vlog",
+      "v-log",
+      "핸드헬드",
+      "handheld",
+      "현장 기록"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/handheld-shot"
+  },
+  {
+    "id": "head-on-shot",
+    "name": "Head On Shot",
+    "nameKo": "정면",
+    "kind": "framing",
+    "description": "카메라를 향한 시선·접근을 보여줍니다.",
+    "instruction": "Frame the subject approaching or facing the lens directly, maintaining readable space around the subject.",
+    "keywords": [
+      "정면 접근",
+      "head-on"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/head-on-shot"
+  },
+  {
+    "id": "high-angle-shot",
+    "name": "High Angle Shot",
+    "nameKo": "하이 앵글",
+    "kind": "framing",
+    "description": "위에서 인물과 주변 압박·출구를 함께 읽습니다.",
+    "instruction": "Look diagonally down from above the subject, keeping surrounding barriers and exits legible with moderate perspective.",
+    "keywords": [
+      "하이 앵글",
+      "내려다",
+      "high angle",
+      "high-angle"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/high-angle-shot"
+  },
+  {
+    "id": "insert-shot",
+    "name": "Insert Shot",
+    "nameKo": "인서트",
+    "kind": "framing",
+    "description": "손·소품·작동의 중요한 정보를 보여줍니다.",
+    "instruction": "Frame the specified hand or scene-owned object tightly enough to read the action. Preserve its owner, orientation and surrounding spatial cues.",
+    "keywords": [
+      "인서트",
+      "버튼",
+      "손잡이",
+      "소품",
+      "물건",
+      "insert",
+      "button",
+      "latch"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/insert-shot"
+  },
+  {
+    "id": "long-shot",
+    "name": "Long Shot",
+    "nameKo": "전신 롱샷",
+    "kind": "framing",
+    "description": "전신 동작과 주변 거리를 동시에 보여줍니다.",
+    "instruction": "Keep the entire subject from head to feet visible with room for the action and readable distance to nearby objects.",
+    "keywords": [
+      "전신",
+      "달린",
+      "달리",
+      "추격",
+      "long shot",
+      "full body",
+      "run",
+      "chase"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/long-shot"
+  },
+  {
+    "id": "low-angle-shot",
+    "name": "Low Angle Shot",
+    "nameKo": "로우 앵글",
+    "kind": "framing",
+    "description": "아래에서 올려다보며 수직 관계를 강조합니다.",
+    "instruction": "Place the camera moderately below the subject and look upward, preserving recognizable proportions and vertical scale cues.",
+    "keywords": [
+      "로우 앵글",
+      "올려다",
+      "low angle",
+      "low-angle"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/low-angle-shot"
+  },
+  {
+    "id": "master-shot",
+    "name": "Master Shot",
+    "nameKo": "마스터샷",
+    "kind": "framing",
+    "description": "전체 행동과 인물 간 위치를 유지합니다.",
+    "instruction": "Frame the complete action area with readable actor spacing, entrances and eyelines throughout this shot.",
+    "keywords": [
+      "마스터샷",
+      "전체 동선",
+      "master shot"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/master-shot"
+  },
+  {
+    "id": "medium-shot",
+    "name": "Medium Shot",
+    "nameKo": "미디엄샷",
+    "kind": "framing",
+    "description": "표정·손·몸짓을 균형 있게 담습니다.",
+    "instruction": "Use waist-up framing with space for hands and gestures, natural perspective and readable nearby context.",
+    "keywords": [
+      "미디엄",
+      "허리 위",
+      "medium shot"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/medium-shot"
+  },
+  {
+    "id": "over-the-shoulder",
+    "name": "Over The Shoulder",
+    "nameKo": "오버숄더",
+    "kind": "framing",
+    "description": "상대와의 거리·시선 관계를 보여줍니다.",
+    "instruction": "Frame the speaking or reacting subject past the other person's foreground shoulder, preserving the established eyeline and screen direction.",
+    "keywords": [
+      "오버숄더",
+      "어깨 너머",
+      "over-the-shoulder",
+      "ots"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/over-the-shoulder"
+  },
+  {
+    "id": "overhead-shot",
+    "name": "Overhead Shot",
+    "nameKo": "오버헤드",
+    "kind": "framing",
+    "description": "손의 작업과 물건 배치를 수직으로 보여줍니다.",
+    "instruction": "Look vertically down at the working surface. Keep the hands, object arrangement and procedural paths fully visible.",
+    "keywords": [
+      "오버헤드",
+      "작업대",
+      "테이블 위",
+      "overhead",
+      "workbench"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/overhead-shot"
+  },
+  {
+    "id": "pan-shot",
+    "name": "Pan Shot",
+    "nameKo": "팬",
+    "kind": "movement",
+    "description": "고정 위치에서 좌우로 주의를 옮깁니다.",
+    "instruction": "Rotate horizontally from the stated opening target toward the ending target at a measured speed, without translating the camera. Stop and hold the final framing.",
+    "keywords": [
+      "팬",
+      "좌우",
+      "pan"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/pan-shot"
+  },
+  {
+    "id": "pov-shot",
+    "name": "Pov Shot",
+    "nameKo": "시점샷",
+    "kind": "framing",
+    "description": "누가 무엇을 보는지 명확히 합니다.",
+    "instruction": "Use the named observer's eye position and height to show the stated target; keep the owner's viewing direction consistent.",
+    "keywords": [
+      "시점샷",
+      "1인칭",
+      "pov",
+      "first-person"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/pov-shot"
+  },
+  {
+    "id": "rack-focus",
+    "name": "Rack Focus",
+    "nameKo": "초점 이동",
+    "kind": "movement",
+    "description": "두 거리의 대상 사이로 주의를 옮깁니다.",
+    "instruction": "Keep the camera position fixed and shift focus once from the specified near target to the specified far target after the action cue; hold the destination in focus.",
+    "keywords": [
+      "초점 이동",
+      "초점이",
+      "rack focus"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/rack-focus"
+  },
+  {
+    "id": "slow-motion",
+    "name": "Slow Motion",
+    "nameKo": "슬로모션",
+    "kind": "movement",
+    "description": "빠른 사건의 정점을 천천히 읽습니다.",
+    "instruction": "Show the stated action in continuous slow motion with a stable camera and physically consistent direction and contact; resolve on the final state.",
+    "keywords": [
+      "슬로모션",
+      "slow motion"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/slow-motion"
+  },
+  {
+    "id": "steadicam",
+    "name": "Steadicam",
+    "nameKo": "스테디캠",
+    "kind": "movement",
+    "description": "매끄럽게 이동하며 공간을 연결합니다.",
+    "instruction": "Follow the subject smoothly along the stated route at a consistent distance and height, using gentle acceleration and a level horizon; settle at the destination.",
+    "keywords": [
+      "스테디캠",
+      "매끄럽게 따라",
+      "steadicam"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/steadicam"
+  },
+  {
+    "id": "tracking-shot",
+    "name": "Tracking Shot",
+    "nameKo": "트래킹",
+    "kind": "movement",
+    "description": "움직이는 피사체와 함께 실제로 이동합니다.",
+    "instruction": "Track alongside the moving subject at a matching speed, consistent height and medium travel distance. Preserve foreground parallax and settle when the subject stops.",
+    "keywords": [
+      "걸어",
+      "걷",
+      "달려",
+      "추격",
+      "따라가",
+      "tracking",
+      "walk",
+      "run",
+      "chase",
+      "follow"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/tracking-shot"
+  },
+  {
+    "id": "vertigo-effect",
+    "name": "Vertigo Effect",
+    "nameKo": "달리 줌",
+    "kind": "movement",
+    "description": "거리 이동과 줌을 반대로 결합해 공간감을 바꿉니다.",
+    "instruction": "Make one short, slow dolly move paired with an opposing zoom so the subject size stays stable while the background perspective changes; stop together on the final beat.",
+    "keywords": [
+      "달리 줌",
+      "현기증 효과",
+      "dolly zoom",
+      "vertigo"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/vertigo-effect"
+  },
+  {
+    "id": "crane-shot",
+    "name": "Crane Shot",
+    "nameKo": "크레인",
+    "kind": "movement",
+    "description": "높이 변화로 주변 관계를 순차 공개합니다.",
+    "instruction": "Raise the camera smoothly over a moderate vertical distance from the subject toward the surrounding environment, keeping the original subject traceable and ending on the wider context.",
+    "keywords": [
+      "크레인",
+      "카메라가 상승",
+      "crane"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/crane-shot"
+  },
+  {
+    "id": "one-er",
+    "name": "One Er",
+    "nameKo": "원테이크",
+    "kind": "movement",
+    "description": "연속 경로의 행동을 한 번에 유지합니다.",
+    "instruction": "Follow the stated path in one uninterrupted take with measured speed and consistent eyelines; preserve every declared action boundary and finish at the specified endpoint.",
+    "keywords": [
+      "원테이크",
+      "끊지 않고",
+      "one take",
+      "one-er"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/one-er"
+  },
+  {
+    "id": "tilt-shot",
+    "name": "Tilt Shot",
+    "nameKo": "틸트",
+    "kind": "movement",
+    "description": "위아래로 연결된 정보를 공개합니다.",
+    "instruction": "Rotate vertically from the stated opening detail to the ending target at a measured speed, without translating the camera; hold on the final target.",
+    "keywords": [
+      "틸트",
+      "위로 훑",
+      "tilt"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/tilt-shot"
+  },
+  {
+    "id": "whip-pan",
+    "name": "Whip Pan",
+    "nameKo": "휘프팬",
+    "kind": "movement",
+    "description": "짧은 수평 회전 뒤 새 대상에 도착합니다.",
+    "instruction": "Make one short fast horizontal pan after the cue, with brief directional blur, then stop on the stated destination and recover a clear stable frame.",
+    "keywords": [
+      "휘프팬",
+      "whip pan"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/whip-pan"
+  },
+  {
+    "id": "two-shot",
+    "name": "Two Shot",
+    "nameKo": "투샷",
+    "kind": "framing",
+    "description": "두 사람 사이 거리와 반응을 함께 읽습니다.",
+    "instruction": "Frame both named people together, preserving their separation, body directions, eyelines and the space between them.",
+    "keywords": [
+      "두 사람",
+      "두 인물",
+      "둘이",
+      "대치",
+      "two-shot",
+      "two people",
+      "confront"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/two-shot"
+  },
+  {
+    "id": "three-shot",
+    "name": "Three Shot",
+    "nameKo": "쓰리샷",
+    "kind": "framing",
+    "description": "세 사람의 위치·시선 관계를 보여줍니다.",
+    "instruction": "Frame all three named people with distinct depth positions and readable eyelines, keeping their relative spacing clear.",
+    "keywords": [
+      "세 사람",
+      "세 인물",
+      "three-shot",
+      "three people"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/three-shot"
+  },
+  {
+    "id": "cowboy-shot",
+    "name": "Cowboy Shot",
+    "nameKo": "카우보이샷",
+    "kind": "framing",
+    "description": "표정과 허리 주변 손동작을 함께 보여줍니다.",
+    "instruction": "Frame from mid-thigh to above the head so the face, hands and waist-level action remain visible throughout.",
+    "keywords": [
+      "카우보이",
+      "허리춤",
+      "총을 뽑",
+      "cowboy",
+      "draw a gun"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/cowboy-shot"
+  },
+  {
+    "id": "medium-close-up",
+    "name": "Medium Close Up",
+    "nameKo": "미디엄 클로즈업",
+    "kind": "framing",
+    "description": "대사와 어깨·호흡 반응을 읽습니다.",
+    "instruction": "Use chest-up framing with a stable face scale, clear mouth and eyeline, preserving small shoulder and breathing changes.",
+    "keywords": [
+      "대사",
+      "말한다",
+      "고백",
+      "말하",
+      "대화",
+      "medium close",
+      "says",
+      "dialogue",
+      "speaks"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/medium-close-up"
+  },
+  {
+    "id": "choker-shot",
+    "name": "Choker Shot",
+    "nameKo": "초근접 얼굴",
+    "kind": "framing",
+    "description": "표정 극점에 제한된 얼굴 영역을 보여줍니다.",
+    "instruction": "Crop tightly from forehead to chin with natural facial perspective, maintaining the same face scale and eyeline.",
+    "keywords": [
+      "초근접 얼굴",
+      "choker"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/choker-shot"
+  },
+  {
+    "id": "push-in",
+    "name": "Push In",
+    "nameKo": "푸시인",
+    "kind": "movement",
+    "description": "깨달음·결정에 맞춰 거리를 줄입니다.",
+    "instruction": "Move physically toward the subject slowly over a short distance, reducing the framing by one shot size with visible parallax; end on a stable closer composition.",
+    "keywords": [
+      "깨닫",
+      "결심",
+      "알아차",
+      "푸시인",
+      "push-in",
+      "realize",
+      "decide"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/push-in"
+  },
+  {
+    "id": "pull-out",
+    "name": "Pull Out",
+    "nameKo": "풀아웃",
+    "kind": "movement",
+    "description": "주변 맥락을 드러내며 물러납니다.",
+    "instruction": "Move physically backward slowly over a moderate distance, keeping the original subject visible while revealing the stated surroundings; end on a stable wider composition.",
+    "keywords": [
+      "풀아웃",
+      "주변이 드러",
+      "pull-out",
+      "reveal surroundings"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/pull-out"
+  },
+  {
+    "id": "360-degree-shot",
+    "name": "360 Degree Shot",
+    "nameKo": "360도 회전",
+    "kind": "movement",
+    "description": "동일 반경의 회전으로 피사체 주변을 보여줍니다.",
+    "instruction": "Orbit the subject once at a slow even speed, fixed radius and height. Keep the subject size stable and return to the opening angle.",
+    "keywords": [
+      "360도",
+      "오비트",
+      "orbit",
+      "360-degree"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/360-degree-shot"
+  },
+  {
+    "id": "static-shot",
+    "name": "Static Shot",
+    "nameKo": "고정",
+    "kind": "movement",
+    "description": "카메라를 고정해 장면 안의 변화에 집중합니다.",
+    "instruction": "Lock the camera position, angle and focal length for the entire shot; zero travel and zero zoom. Let the specified action change within the frame.",
+    "keywords": [
+      "고정",
+      "정지 카메라",
+      "static",
+      "locked-off",
+      "no camera movement"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/static-shot"
+  },
+  {
+    "id": "crash-zoom",
+    "name": "Crash Zoom",
+    "nameKo": "크래시 줌",
+    "kind": "movement",
+    "description": "빠른 렌즈 변화로 특정 대상에 집중합니다.",
+    "instruction": "Keep the camera position fixed and make one short fast optical zoom to the specified detail; stop and hold the target clearly.",
+    "keywords": [
+      "크래시 줌",
+      "crash zoom"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/crash-zoom"
+  },
+  {
+    "id": "worms-eye-view",
+    "name": "Worms Eye View",
+    "nameKo": "지면 앙각",
+    "kind": "framing",
+    "description": "지면 가까이에서 거대한 수직 구조를 보여줍니다.",
+    "instruction": "Place the camera close to ground level looking steeply upward. Retain a ground reference and readable vertical structure while controlling distortion.",
+    "keywords": [
+      "지면 앙각",
+      "worms eye",
+      "worm's eye"
+    ],
+    "sourceUrl": "https://vvsvs.pro/cinematique/worms-eye-view"
+  }
+]

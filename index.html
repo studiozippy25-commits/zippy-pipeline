@@ -14,6 +14,8 @@
 <link rel="stylesheet" href="director-v3.css">
 <link rel="stylesheet" href="sheet-maker.css">
 <link rel="stylesheet" href="seedance-planner.css">
+<link rel="stylesheet" href="prompt-studio.css">
+<link rel="stylesheet" href="cinematography-browser.css">
 <link rel="stylesheet" href="cinema-reference.css">
 <link rel="stylesheet" href="reactor-prompts.css">
 <script src="zippy-model-registry.js"></script>
@@ -1234,7 +1236,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
       <input type="radio" name="imgMode" value="cloud" onchange="onImgModeChange()"> ☁ Nano Banana
     </label>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
-      <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image (Codex/gti)
+      <input type="radio" name="imgMode" value="gpt" checked onchange="onImgModeChange()"> ✦ GPT Image 2.5 (Codex/gti)
     </label>
     <label style="display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:13px;cursor:pointer;padding:4px 10px;border:1px solid var(--bd);border-radius:4px;background:var(--card)">
       <input type="radio" name="imgMode" value="gptapi" onchange="onImgModeChange()"> ✦ GPT Image (OpenAI API)
@@ -1263,7 +1265,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   <div class="ar" id="gtiBridgeRow" style="margin-top:6px;align-items:center;gap:8px;flex-wrap:wrap">
     <span class="al" style="color:var(--pu);font-size:11px">gti 브리지</span>
     <span id="gtiBridgeDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#9CA3AF"></span>
-    <span id="gtiBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">미확인</span>
+    <span id="gtiBridgeStatus" style="font-family:var(--font-mono);font-size:11px;color:var(--mu)">GPT Image 2.5 · 연결 및 실제 모델 미확인</span>
     <button class="btn bgh bsm" onclick="checkGtiBridge()" style="font-size:11px;padding:3px 10px">상태 확인</button>
     <span style="font-family:var(--font-mono);font-size:10px;color:var(--mu)">꺼져있으면 바탕화면 <b>gti-브리지-켜기.command</b> 더블클릭</span>
   </div>
@@ -1285,17 +1287,17 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   </div>
   <div class="ar" id="gptModelRow" style="display:flex;margin-top:6px;padding:8px 12px;background:rgba(16,163,127,.04);border:1px dashed rgba(16,163,127,.3);border-radius:6px;flex-wrap:wrap;gap:6px">
     <span class="al" style="color:#10a37f;font-size:11px;font-weight:700">GPT IMAGE</span>
-    <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
-      <span style="font-family:var(--font-mono);font-size:10px;color:#10a37f;font-weight:700">MODEL</span>
+    <div id="gptApiModelControl" style="display:none;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
+      <span style="font-family:var(--font-mono);font-size:10px;color:#10a37f;font-weight:700">OPENAI API MODEL</span>
       <select class="msel" id="gptImgModel" style="min-width:180px;border:none;background:transparent">
-        <option value="gpt-image-2" selected>gpt-image-2 (최신 · 4K)</option>
+        <option value="gpt-image-2" selected>gpt-image-2 (기존 API 경로)</option>
         <option value="gpt-image-1">gpt-image-1</option>
         <option value="dall-e-3">DALL-E 3</option>
         <option value="dall-e-2">DALL-E 2</option>
       </select>
     </div>
     <div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,163,127,.08);border:1px solid rgba(16,163,127,.25);border-radius:4px">
-      <span style="font-family:var(--font-mono);font-size:10px;color:#10a37f;font-weight:700">QUALITY</span>
+      <span style="font-family:var(--font-mono);font-size:10px;color:#10a37f;font-weight:700">QUALITY (API 전용)</span>
       <select class="msel" id="gptImgQuality" style="min-width:120px;border:none;background:transparent">
         <option value="medium" selected>medium (~$0.05/장)</option>
         <option value="high">high (~$0.21/장)</option>
@@ -1367,6 +1369,8 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
     <button class="stab" id="tabVid" onclick="goStep('vid')"><span class="stab-title">영상 제작</span><span class="stab-meta">H3 · LTX 2.5 · Wan</span></button>
     <button class="stab" id="tabCam" onclick="goStep('cam')"><span class="stab-title">카메라 무빙</span><span class="stab-meta">무빙 · LoRA</span></button>
     <button class="stab" id="tabSeedance" onclick="goStep('seedance')"><span class="stab-title">Seedance 프롬프트</span><span class="stab-meta">30초 멀티씬</span></button>
+    <button class="stab" id="tabPrompts" onclick="goStep('prompts')"><span class="stab-title">프롬프트 생성</span><span class="stab-meta">원문 분석 · 리라이팅</span></button>
+    <button class="stab" id="tabCinematique" onclick="goStep('cinematique')"><span class="stab-title">Cinematique · 앵글</span><span class="stab-meta">원본 탐색 · 자동 추천</span></button>
     <button class="stab" id="tabNode" onclick="goStep('node')"><span class="stab-title">노드 캔버스</span><span class="stab-meta">파이프라인 조립</span></button>
   </div>
 
@@ -1455,6 +1459,8 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
 <div class="panel" id="pSeedance">
   <div id="seedancePlannerApp"></div>
 </div>
+<div class="panel" id="pPrompts"><div id="promptStudioApp"></div></div>
+<div class="panel" id="pCinematique"><div id="cinematographyApp"></div></div>
 
 <!-- ═══════════════ GPT IMAGE ASSET SHEET MAKER ═══════════════ -->
 <div class="panel" id="pSheet">
@@ -1772,17 +1778,17 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
   <div class="slbl" style="color:var(--or)">이미지 생성 — 프롬프트 + 레퍼런스</div>
   <div style="padding:12px 16px;background:rgba(232,93,4,.06);border:1px solid rgba(232,93,4,.2);border-radius:8px;margin-bottom:18px;font-family:var(--font-mono);font-size:13px;color:var(--or);line-height:1.7">
     프롬프트를 입력하고 레퍼런스 이미지(선택)를 업로드한 후 생성하세요.<br>
-    <span style="font-size:11px;color:var(--mu)">상단 API 바의 이미지 모드 (Nano Banana Pro / GPT Image 2)에 따라 동작합니다.</span>
+    <span style="font-size:11px;color:var(--mu)">상단 이미지 모드에 따라 동작합니다. GPT Image 2.5는 Codex/gti 브리지를 사용합니다.</span>
   </div>
 
   <!-- 프롬프트 입력 -->
   <div class="mb-wrap" style="margin-bottom:14px">
     <div class="mb-header"><div style="font-family:var(--font-mono);font-size:13px;color:var(--or);font-weight:700">프롬프트</div></div>
     <div style="padding:14px">
-      <textarea id="igPrompt" class="ci" placeholder="생성하고 싶은 이미지를 자세히 설명하세요. 예: cinematic film still of a small Korean restaurant interior at golden hour, warm window light, wooden table, vintage audio speaker on counter, off-white walls, photorealistic" style="width:100%;min-height:110px;font-size:13px;font-family:var(--font-body);line-height:1.6;resize:vertical"></textarea>
+      <textarea id="igPrompt" class="ci" placeholder="생성하고 싶은 이미지를 자세히 설명하세요. 예: documentary photograph of a small Korean restaurant interior, available window light, wooden table, vintage audio speaker on counter, off-white walls, natural contrast" style="width:100%;min-height:110px;font-size:13px;font-family:var(--font-body);line-height:1.6;resize:vertical"></textarea>
       <div style="font-family:var(--font-mono);font-size:10px;color:var(--mu);margin-top:10px;margin-bottom:4px">▸ 스타일 / 카메라</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='cinematic film still, ARRI ALEXA 35, Kodak Vision3 500T color science, natural skin texture, visible pores, photorealistic, '">+ 시네마틱</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='v-log observational photograph, available light, natural skin texture, everyday color, restrained contrast, '">+ V-log</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='documentary photography, raw photographic capture, candid moment, '">+ 다큐멘터리</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='editorial fashion photography, Vogue style, dramatic composition, '">+ 에디토리얼</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='product photography, clean isolated subject, soft studio light, '">+ 제품샷</button>
@@ -1810,7 +1816,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='muted earth tones, beige and charcoal palette, '">+ 어스톤</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='pastel palette, soft cream and dusty pink, dreamy, '">+ 파스텔</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='monochrome black and white, classic high contrast, '">+ 흑백</button>
-        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='teal and orange grading, cinematic complementary colors, '">+ 틸&오렌지</button>
+        <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='neutral white balance, faithful everyday color, gentle highlight roll-off, readable shadows, '">+ 자연색</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='melancholic quiet mood, contemplative atmosphere, '">+ 적막함</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='nostalgic 1990s aesthetic, faded colors, '">+ 90년대 향수</button>
         <button class="ca-pre" onclick="document.getElementById('igPrompt').value+='clean minimalist, negative space, white background, '">+ 미니멀</button>
@@ -1959,7 +1965,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
             <label style="display:grid;gap:4px;font-family:var(--font-mono);font-size:10px;color:var(--mu)">화면비
               <select id="grokImageRatio" class="msel"><option value="auto">자동</option><option value="16:9" selected>16:9</option><option value="9:16">9:16</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="3:4">3:4</option></select>
             </label>
-            <button class="ca-pre" onclick="grokImageAppendPrompt('cinematic live-action film still, natural skin texture, physically motivated lighting, ')" type="button">+ 시네마틱</button>
+            <button class="ca-pre" onclick="grokImageAppendPrompt('documentary / v-log photograph, natural skin texture, available lighting, restrained contrast, ')" type="button">+ 다큐 / V-log</button>
             <button class="ca-pre" onclick="grokImageAppendPrompt('preserve the exact face identity, hairstyle, body proportions and wardrobe, ')" type="button">+ 정체성 고정</button>
             <button class="ca-pre" onclick="grokImageAppendPrompt('preserve the composition and camera position; change only the requested element, ')" type="button">+ 부분 수정</button>
           </div>
@@ -3536,6 +3542,12 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
 <!-- ═══════════════ CAMERA MOVEMENT LIBRARY ═══════════════ -->
 <div class="panel" id="pCam">
   <div class="slbl" style="color:#A78BFA">카메라 무빙 레퍼런스 — I2V 프롬프트 라이브러리</div>
+  <div class="cm-note" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <label for="cmPromptTarget">프롬프트 생성기 적용 컷</label>
+    <select id="cmPromptTarget" class="cm-select" aria-label="카메라 무빙을 적용할 프롬프트 컷"></select>
+    <button class="btn bgh bsm" onclick="goStep('cinematique')">Cinematique에서 앵글 찾기</button>
+    <span id="cmPromptStatus" role="status" style="font-size:12px">선택한 무빙의 방향·속도 지시를 그대로 전달합니다.</span>
+  </div>
   <div class="cm-note">
     이 탭은 <a href="https://aicameramovements.com/" target="_blank" rel="noopener noreferrer" style="color:#A78BFA;font-weight:900">https://aicameramovements.com/ 의 내용</a>입니다. 내부 검수용 임시 레퍼런스로 46개 MP4 프리뷰를 직접 연결했습니다. 추후 우리 영상으로 교체할 때는 각 프리셋의 media/poster 경로만 바꾸면 됩니다.
   </div>
@@ -3547,6 +3559,7 @@ textarea.qwen-edit-control{min-height:132px;resize:vertical;line-height:1.55}
     <div id="cmActiveInfo" style="font-family:var(--font-mono);font-size:12px;color:var(--mu)">선택된 무빙 없음</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn bgh bsm" onclick="applySelectedCameraMoveToVideo()">영상 탭에 적용</button>
+      <button class="btn bpu bsm" onclick="ZippyPromptStudio.applyLegacyCameraMove(selectedCameraMoveId).catch(function(e){document.getElementById('cmPromptStatus').textContent=e.message;})">프롬프트 생성기로</button>
     </div>
   </div>
   <div id="cmLibraryGrid" class="cm-grid"></div>
@@ -68895,14 +68908,14 @@ function genVideoPrompt(shotId) {
     return zippyWardrobeVariantPromptLine(name, variant);
   }).filter(Boolean);
   var shotWardrobePromptBlock = shotWardrobePromptLines.length ? 'PER-CHARACTER WARDROBE LOCK:\n' + shotWardrobePromptLines.join('\n') + '\n' : '';
-  // === IMAGE PROMPT (ZIPPY 시네마틱 + BAENE 리얼리티) ===
+  // === IMAGE PROMPT (ZIPPY 다큐멘터리 / V-log) ===
   var fStop = sbCam.aperture || '';
   var projQuality = currentProject.quality || (typeof POT_QUALITY !== 'undefined' ? POT_QUALITY : '');
   var dokgoNightNegative = sbIsNcityDokgoNightShot(shot) ? 'eyeglasses, spectacles, clear lenses, sunglasses, daytime factory glasses on Dokgo Tan' : '';
   var projNegative = [currentProject.negative || (typeof POT_NEGATIVE !== 'undefined' ? POT_NEGATIVE : ''), shot.negativePrompt || '', dokgoNightNegative].filter(Boolean).join(', ');
   var projStability = currentProject.stability || (typeof POT_STABILITY !== 'undefined' ? POT_STABILITY : '');
   var imgPrompt = '';
-  imgPrompt += '── IMAGE PROMPT (ZIPPY 시네마틱 + BAENE 리얼리티) ──\n\n';
+  imgPrompt += '── IMAGE PROMPT (ZIPPY 다큐멘터리 / V-log) ──\n\n';
   // Reference manifest
   const _ms = (typeof getSBRefMatchSummary === 'function') ? getSBRefMatchSummary(shot.scene, shot.id) : null;
   if (_ms && _ms.labels.length > 0) {
@@ -68911,7 +68924,7 @@ function genVideoPrompt(shotId) {
     _ms.labels.forEach((l, i) => { imgPrompt += '  ' + (i+1) + '. ' + l + '\n'; });
     imgPrompt += '\n';
   }
-  imgPrompt += 'CINEMATIC STORYBOARD FRAME — SHOT ' + shotId + '\n\n';
+  imgPrompt += 'STORYBOARD REFERENCE FRAME — SHOT ' + shotId + '\n\n';
   imgPrompt += 'CAMERA:\n' + sbCam.summary + '\n';
   imgPrompt += 'LOCATION: ' + (_gloc || '') + ' · TIME: ' + (shot.time || preset.time || '') + '\n';
   imgPrompt += 'ACTION: ' + desc + '\n';
@@ -68947,12 +68960,12 @@ function genVideoPrompt(shotId) {
     imgPrompt += '🎬 AUTO-DERIVED: ' + autoCameraPos(shot) + '\n';
   }
   imgPrompt += 'Capture 0.3s before action. Avoid perfectly centered composition.\n\n';
-  imgPrompt += 'VISUAL LANGUAGE: Roger Deakins / Lubezki / Wong Kar-wai / Bong Joon-ho frame composition. Real cinematic, NOT magazine cover, NOT Instagram.\n\n';
-  imgPrompt += 'STYLE: Cinematic film photography' + (sbCam.body ? ', ' + sbCam.body : '') + ', Kodak Vision3 500T color science. Natural film grain, slight halation around highlights, organic color bleed.\n';
-  if (projQuality) imgPrompt += projQuality + '\n';
+  imgPrompt += 'VISUAL LANGUAGE: observe the specified action with readable geography, motivated subject placement and the declared camera angle. Preserve the approved project medium.\n\n';
+  imgPrompt += 'STYLE: ' + (typeof getStyle === 'function' && getStyle().kind === 'anim' ? 'Approved animation rendering medium' : 'Documentary / v-log photography, available light, faithful everyday color, restrained natural contrast') + (sbCam.body ? ', ' + sbCam.body : '') + '.\n';
+  imgPrompt += (currentProject.quality || ZIPPY_STYLE_BASE.docLook) + '\n';
   imgPrompt += '\n';
   imgPrompt += 'COLOR & CONTRAST (anti-AI grading):\n';
-  imgPrompt += 'Lifted blacks, milky shadows, rolled-off highlights. NO crushed shadows. Desaturated muted palette, soft film contrast curve. Flat log-style base before grading. NO orange-teal grading, NO HDR, NO oversaturation, NO digital clean look. Natural-light approach of Roma / In the Mood for Love.\n\n';
+  imgPrompt += 'Faithful location color, readable shadows, gentle highlight roll-off and natural contrast. Preserve the specified time of day and practical light sources. No imposed color cast, theatrical grade, HDR or oversaturation.\n\n';
   imgPrompt += 'ANTI-CG REALITY MANDATE:\n';
   imgPrompt += 'Visible pores, follicle micro-shadows, natural skin oils, fine facial hair, capillary flush.\n';
   imgPrompt += 'All surfaces show material age: dust accumulation, paint micro-peeling, concrete grain, fabric weave texture.\n';
@@ -68960,7 +68973,7 @@ function genVideoPrompt(shotId) {
   imgPrompt += 'STABILITY: ' + projStability + '\n\n';
   imgPrompt += 'NEGATIVE: ' + projNegative + '\n';
   imgPrompt += 'no high contrast, no oversaturated, no digital clean look, no HDR, no Instagram filter, no textbook angle, no perfectly centered composition. no CGI, no 3D render, no octane/unreal render, no concept art, no digital painting, no video-game look, no plastic airbrushed skin, no HUD overlay, no UI overlay, no floating hologram interface, no vector graphics, no title card, no subtitles, no logo, no watermark, no calligraphy text, no brush-stroke title marks, no graphic black slash overlays. Keep location-specific physical signboards and signage when described.\n';
-  imgPrompt += 'Single frame, no text overlay, no border, no watermark. Photorealistic film still.\n';
+  imgPrompt += 'Single frame, no added text overlay, no border, no watermark. Preserve the approved rendering medium.\n';
   // === 8-Layer Stack 영상 프롬프트 ===
   var vidPrompt = '';
   vidPrompt += '\n\n── VIDEO PROMPT (ZIPPY 8-Layer Stack · Kling 3.0) ──\n\n';
@@ -72019,7 +72032,7 @@ function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeD
     'PROOF OF TASTE TEXT / QR / HANDWRITING SAFETY:',
     'This story uses cards, QR codes, menu boards, messages, checklists, and handwritten phrases as plot props. Do NOT invent crisp readable Korean, fake QR codes, subtitles, or graphic overlays inside the image.',
     'For shots tagged [텍스트 선처리] or mentioning exact phrases, render the physical card/board/phone as a believable prop with blank, blurred, partial, or unreadable marks. Final typography and readable QR/text are handled separately in post.',
-    'Keep the image as one restrained Korean live-action film still, not a poster, ad layout, phone screenshot, or design mockup.'
+    'Keep the image as one restrained documentary / v-log photograph in the declared Korean setting, not a poster, ad layout, phone screenshot, or design mockup.'
   ].join('\n');
   const framingSafety = [
     'PROOF OF TASTE FRAMING VARIETY GUARD:',
@@ -72028,7 +72041,7 @@ function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeD
     'Across adjacent shots, preserve a restrained wide / medium / detail rhythm. Avoid consecutive anonymous close-ups that lose who is acting, where the action happens, or how the object sits in the real space.'
   ].join('\n');
   return [
-    'CINEMATIC STORYBOARD FRAME — Proof of Taste fallback render',
+    'STORYBOARD REFERENCE FRAME — Proof of Taste fallback render',
     'SHOT: ' + (shot.id || ''),
     noFaceDetail ? 'NO FACE VISIBLE: this is a tactile insert/detail shot. Render only hands, object, and surface details. Do not show a face or invent a portrait.' : 'FACE LOCK: if face reference sheets are provided, they are the only authority for facial identity. Do not copy faces from outfit, prop, food, place, or moodboard references.',
     extraLocks || '',
@@ -72043,8 +72056,8 @@ function buildProofOfTasteFallbackPrompt(shot, preset, sbCam, spaceDna, costumeD
     'SUBJECT DNA: ' + (charDnaBlock || '(no visible character)'),
     'COSTUME: ' + (costumeDna || '(default from references and character DNA)'),
     'SPACE DNA: ' + (spaceDna || resolveShotLoc(shot) || preset.loc || ''),
-    'STYLE: restrained Korean live-action romance film still, physical set, natural light, Kodak Vision3 500T, visible pores, fabric weave, real props, muted Seongsu palette, one complete frame.',
-    'REFERENCE HANDLING: use only the provided few references; do not copy grid layouts or readable text. Generate a single complete cinematic frame.',
+    'STYLE: restrained documentary / v-log photograph, physical location, available natural light, faithful Seongsu colors, readable shadows, natural skin texture, fabric weave, real props, one complete frame.',
+    'REFERENCE HANDLING: use only the provided few references; do not copy grid layouts or readable text. Generate a single complete scene frame.',
     'NEGATIVE: ' + (projNegative || '') + ', no collage, no split-screen, no text overlay, no logo, no watermark, no CGI, no anime, no plastic skin, no Instagram food styling, no commercial product ad, no fashion editorial excess.'
   ].filter(Boolean).join('\n');
 }
@@ -73357,7 +73370,7 @@ async function expandSBShot(shotId) {
   let preset = SCENE_PRESETS[String(shot.scene)] || {};
   if ((typeof shot.ep !== 'undefined' && shot.ep < 0) || shot.loc) preset = {};
   const charDNAList = currentProject && currentProject.characterDNA ? Object.keys(currentProject.characterDNA).join(', ') : '';
-  const prompt = `Expand this storyboard shot into a detailed cinematic shot description for AI image generation.
+  const prompt = `Expand this storyboard shot into a detailed observational shot description for AI image generation. Use documentary / v-log capture for live-action; retain the approved medium for animated projects. Preserve the specified angle, geography and time of day without adding a theatrical grade.
 
 CONTEXT:
 - Project: ${currentProject.name}
@@ -74159,7 +74172,7 @@ async function generateSBShot(shotId, _seq, _provider) {
     lightDna = preset.light.map(function(l){ return currentProject.lightMap[l] || l; }).join('. ');
   }
   // Project-specific quality/negative or fallback to global
-  const projQuality = (currentProject && currentProject.quality) || POT_QUALITY;
+  const projQuality = (currentProject && currentProject.quality) || ZIPPY_STYLE_BASE.docLook;
   const dokgoNightNegative = sbIsNcityDokgoNightShot(shot) ? 'eyeglasses, spectacles, clear lenses, sunglasses, daytime factory glasses on Dokgo Tan' : '';
   const combatAppearanceNegative = sbIsNcityDokgoCombatCostume(shot) ? 'unmasked Dokgo Tan, exposed mouth, exposed lower face, removed mask, lowered mask' : '';
   const yujinTacticalNegative = sbIsNcityYujinTacticalShot(shot) ? 'unmasked Seo Yujin, exposed mouth, exposed lower face, removed tactical mask, lowered tactical mask, ordinary bartender outfit' : '';
@@ -74219,7 +74232,7 @@ async function generateSBShot(shotId, _seq, _provider) {
     'REFERENCE HANDLING:\nReference images may be CONCEPT MOODBOARDS containing multiple sample photos with grid layout and text labels. ' +
     'CRITICAL — Do NOT replicate any grid/collage layout. Do NOT reproduce any visible text, captions, numbers, or labels from references. ' +
     'Extract ONLY: mood, color palette, lighting quality, material/texture, atmospheric tone. ' +
-    'Generate a SINGLE complete cinematic frame matching the SHOT description below — never a collage.\n\n' : '';
+    'Generate a SINGLE complete scene frame matching the SHOT description below in its approved rendering medium — never a collage.\n\n' : '';
   const characterWardrobeLock = (typeof buildSBCharacterWardrobeBinding === 'function') ? buildSBCharacterWardrobeBinding(shot, images) : '';
   const loveReferenceLightingLock = (typeof buildLoveReferenceLightingLock === 'function') ? buildLoveReferenceLightingLock(shot, sbCam) : '';
   const loveDirectionalPropLock = (typeof buildLoveDirectionalPropLock === 'function') ? buildLoveDirectionalPropLock(shot) : '';
@@ -74277,7 +74290,7 @@ Single frame, no text overlay, no border, no watermark.`;
   const shotWardrobeVariantBlock = shotWardrobeVariantLines.length
     ? 'PER-CHARACTER WARDROBE LOCK:\n' + shotWardrobeVariantLines.join('\n') + '\nDo not blend, swap, or combine wardrobe variants between characters.\n'
     : '';
-  const prompt = `${dokgoMaskLock}${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}CINEMATIC STORYBOARD FRAME — SHOT ${shot.id}
+  const prompt = `${dokgoMaskLock}${lockHeader}${objLockHeader}${missingCostumeLock}${characterWardrobeLock}${cloudriderWorldToneLock}${cloudriderCanonSafetyLock}${cloudriderHaonLock}${continuityBlock}${moodGuideHeader}${refManifest}STORYBOARD REFERENCE FRAME — SHOT ${shot.id}
 
 CAMERA:\n${sbCam.summary}
 ${(window.zippyStoryboardV2CameraPlan && window.zippyStoryboardV2CameraPlan(shot)) ? 'CURRENT CAMERA RECIPE — overrides legacy movement only:\n' + window.zippyStoryboardV2CameraPlan(shot).directive : ''}
@@ -75329,6 +75342,7 @@ function renderCameraMoveLibrary() {
         '<div class="cm-prompt">' + cmEsc(getCameraMovePromptBlock(move.id)) + '</div>' +
         '<div class="cm-actions">' +
           '<button class="btn bpu bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\');applySelectedCameraMoveToVideo()">영상 탭 적용</button>' +
+          '<button class="btn bpu bsm" onclick="ZippyPromptStudio.applyLegacyCameraMove(\'' + cmEsc(move.id) + '\').catch(function(e){document.getElementById(\'cmPromptStatus\').textContent=e.message;})">프롬프트 생성기로</button>' +
           '<button class="btn bgh bsm" onclick="copyCameraMovePrompt(\'' + cmEsc(move.id) + '\')">복사</button>' +
           '<button class="btn bgh bsm" onclick="selectCameraMove(\'' + cmEsc(move.id) + '\')">선택</button>' +
         '</div>' +
@@ -78048,13 +78062,13 @@ async function generateIGImage() {
   const refs = (typeof mbImages !== 'undefined' ? mbImages : []).map(im => ({b64: im.b64, mime: im.mime}));
 
   // Aspect ratio hint 추가
-  const ratioMap = {'16:9':'wide cinematic 16:9 aspect ratio','9:16':'vertical 9:16 portrait aspect ratio','1:1':'square 1:1 aspect ratio','4:3':'4:3 aspect ratio','3:4':'3:4 portrait aspect ratio','2:3':'2:3 portrait aspect ratio','3:2':'3:2 landscape aspect ratio'};
+  const ratioMap = {'16:9':'wide 16:9 aspect ratio','9:16':'vertical 9:16 portrait aspect ratio','1:1':'square 1:1 aspect ratio','4:3':'4:3 aspect ratio','3:4':'3:4 portrait aspect ratio','2:3':'2:3 portrait aspect ratio','3:2':'3:2 landscape aspect ratio'};
   // Moodboard safety guide (적용: 레퍼런스가 있을 때)
   const moodGuide = refs.length > 0 ?
     '\n\nREFERENCE HANDLING:\nReference images may include concept moodboards or grid sheets containing multiple sample photos with text labels. ' +
     'CRITICAL — Do NOT replicate any grid/collage layout from references. Do NOT reproduce any text, captions, or labels visible in references. ' +
     'Extract ONLY: overall mood, color palette, lighting quality, material/texture characteristics, and atmospheric tone. ' +
-    'Generate a SINGLE complete cinematic frame, NOT a collage or multi-panel image.\n' : '';
+    'Generate a SINGLE complete frame in the requested rendering medium, NOT a collage or multi-panel image.\n' : '';
   const fullPrompt = prompt + moodGuide + '\n\nFRAME: ' + (ratioMap[ratio] || ratio) + '. Single complete frame, no border, no watermark, no text overlay.';
 
   try {
@@ -78085,7 +78099,7 @@ async function generateIGImage() {
 async function suggestIGPrompt() {
   const seedTopics = ['성수동 골목 황혼', '작은 한식당 내부 친밀한 분위기', '향수 팝업 공간 미니멀', '서울 밤 카페', '에디토리얼 패션 골목', '리넨 위 제품 매크로', '아침 빛이 드는 책방', '루프탑 골든아워 실루엣', '인디 레코드샵 빈티지', '안개 낀 공원 아침 러너', '여밀 식당 계산대 디테일', 'LATEN 팝업 블로터 카드 클로즈업', '시즌 카드 종이결 매크로', '편집숍·인쇄소 골목 외관'];
   const seed = seedTopics[Math.floor(Math.random()*seedTopics.length)];
-  const llmPrompt = `다음 시드를 바탕으로 AI 이미지 생성용 시네마틱 프롬프트를 한국어로 한 개 작성해주세요. 시드: "${seed}".
+  const llmPrompt = `다음 시드를 바탕으로 AI 이미지 생성용 다큐멘터리 / V-log 프롬프트를 한국어로 한 개 작성해주세요. 자연스러운 현장광과 색, 절제된 대비를 사용하고 지정된 구도와 시간대를 유지하세요. 시드: "${seed}".
 
 요구사항:
 - 한국어로 작성 (영어 단어가 필요한 카메라 용어는 일부 포함 가능: ARRI ALEXA 35, 35mm, f/2.8 등)
@@ -79440,6 +79454,8 @@ function onImgModeChange() {
   try { localStorage.setItem('zippy_img_mode', mode); } catch(e){}
   const gptRow = document.getElementById('gptModelRow');
   if (gptRow) gptRow.style.display = (mode === 'gpt' || mode === 'gptapi') ? '' : 'none';
+  const apiModelControl = document.getElementById('gptApiModelControl');
+  if (apiModelControl) apiModelControl.style.display = mode === 'gptapi' ? 'inline-flex' : 'none';
   const gtiRow = document.getElementById('gtiBridgeRow');
   if (gtiRow) gtiRow.style.display = (mode === 'gpt') ? '' : 'none';
   const localRow = document.getElementById('localCfgRow');
@@ -79467,9 +79483,9 @@ function chkOpenAIKey() {
   }
 }
 const ZIPPY_LIVE_ACTION_MANDATE = [
-  'LIVE-ACTION CINEMA MANDATE - ABSOLUTE:',
-  'Render as a 100% real live-action Korean cinema frame, photographed with real actors on real physical sets.',
-  'Use real costumes, real props, real lens optics, imperfect practical lighting, optical depth of field, film grain, skin pores, fabric weave, and natural material detail. Environmental dust, fingerprints, and weathering belong only on sets and props, never on the hero character unless explicitly required by the shot.',
+  'LIVE-ACTION DOCUMENTARY / V-LOG IMAGE MANDATE:',
+  'Render as an observational documentary or v-log photograph of real people and physical locations.',
+  'Use real costumes, real props, real lens optics, available practical lighting, plausible depth of field, skin pores, fabric weave, and natural material detail. Preserve the requested time of day, location, camera angle, subject scale, horizon and perspective. Use restrained natural contrast, faithful color and readable shadow detail without artificial beauty gloss, theatrical grading or forced symmetrical vanishing-point composition. Environmental wear belongs only where the references or shot require it.',
   'No illustration, no anime, no manga/webtoon look, no concept art, no poster art, no 3D render, no CGI/game-engine look, no AI-polished skin, no plastic/wax texture, no painterly brushwork.',
   'No post-production graphics inside the generated image: no HUD overlay, no floating UI, no vector interface, no title card, no subtitles, no logo plate, no infographic, no broadcast lower-third, no graphic-design panel.',
   'No generated calligraphy, ink typography, brush-stroke title marks, verdict lettering, graphic black slashes, or stylized text strokes. If calligraphy/verdict text is story-critical, leave it for post-production and show only real screen flicker, practical light falloff, soot, grime, or broken LED noise.',
@@ -79478,7 +79494,7 @@ const ZIPPY_LIVE_ACTION_MANDATE = [
   'If any style instruction conflicts with live-action photographic realism, live-action photographic realism wins.'
 ].join('\\n');
   const ZIPPY_LIVE_ACTION_NEGATIVE = 'animation, anime, manga, webtoon, illustration, concept art, poster art, 3D render, CGI, game engine, synthetic plastic skin, wax skin, AI-polished face, painterly texture, toon shading, post-production graphics, HUD overlay, floating user interface, vector interface, motion graphics, title card, subtitles, captions, logo plate, watermark, generic hologram UI, infographic overlay, map overlay, chart overlay, broadcast graphics, data overlay, AR overlay, calligraphy text, ink typography, brush-stroke title marks, verdict lettering, graphic black slash overlays, stylized text strokes';
-const ZIPPY_HERO_CLEAN_LOCK = 'HERO CHARACTER CLEANLINESS + PRESENCE LOCK: Keep the named protagonist/hero clean, sharp, intentional, charismatic, and presentation-ready. Make the hero look cool through the approved costume reference, precise tailoring, clean model-fit silhouette, controlled drape, crisp garment structure, confident posture, decisive framing, and cinematic fashion-film lighting — never by changing the face or beautifying the identity. The clothing reference is the primary authority for garment design: reproduce its exact cut, construction, layering, fabric, color, texture, hardware, seams, closures, accessories, shoes, and distinctive details before adapting it to the pose. Make the outfit look expensive, polished, stylish, and editorial while keeping the character face, body identity, age, and natural proportions unchanged. Do not turn the garment into generic streetwear, a random costume, a shapeless oversized outfit, cheap synthetic fabric, or a different fashion design. Do not add dirt, grease, oil stains, dust, mud, grime, sweat stains, torn fabric, distressed fabric, frayed edges, or weathered wardrobe to the hero unless those details are explicitly present in the approved clothing reference. Environmental wear may appear on the background and props only; it must never transfer onto the hero.';
+const ZIPPY_HERO_CLEAN_LOCK = 'HERO IDENTITY + WARDROBE LOCK: Keep the named protagonist exactly consistent with the approved identity and wardrobe references, including face, body, age and natural proportions. Reproduce garment cut, construction, layering, fabric, color, texture, hardware, seams, closures, accessories, shoes and distinctive details before adapting to the requested pose. Show natural garment drape under the scene light. Do not beautify the face, impose fashion-model posing or redesign the clothes. Preserve the approved garment condition; dirt, damage, sweat or weathering appears only when the reference or shot explicitly requires it. Environmental wear must not transfer onto the hero by default.';
 const ZIPPY_SCENE_INTEGRATION_LOCK = 'ONE PHYSICAL CAPTURE / NO COMPOSITE LOOK: The person, clothing, props, and selected background must exist together in one believable photographed space. Match camera height, focal length, perspective, subject scale, horizon, depth of field, focus falloff, motion blur, exposure, white balance, color temperature, light direction, shadow softness, contact shadows, reflected light, atmospheric perspective, surface grain, and sharpness across foreground and background. The subject must receive the background light and bounce light and cast a natural contact shadow. No cutout, pasted person, sticker edge, green-screen look, background plate, halo, matte line, edge fringe, scale mismatch, perspective mismatch, mismatched blur, mismatched grain, or separate-layer composite appearance.';
 const ZIPPY_GTI_ARTIFACT_CLEAN_LOCK = 'GTI ARTIFACT CLEANUP — STRONG: Apply strong reconstruction denoise and artifact cleanup to remove checkerboard patterns, grid lines, tiled texture, moire, repeated square marks, reference-sheet panel seams, and collage remnants. Clean the image as one continuous frame, but preserve important face identity, garment weave, seams, embroidery, hardware, material grain, and natural skin texture. Do not replace artifact cleanup with blur, beauty smoothing, plastic skin, or loss of clothing detail.';
 const ZIPPY_GTI_ARTIFACT_NEGATIVE = 'checkerboard pattern, grid pattern, tiled grid, repeated square artifacts, moire, panel seams, contact sheet, collage, split-screen, reference-sheet layout, pasted subject, cutout edge, sticker outline, green-screen halo, matte line, edge fringe, double contour, mismatched sharpness, mismatched grain, mismatched color temperature, separate background plate';
@@ -79493,9 +79509,9 @@ const ZIPPY_ANIMATION_NEGATIVE = 'live-action footage, real human photography, p
 // getStyleMode()가 고른 key로 enforceLiveAction*(상단 MANDATE)와 generateSBShot(내부 visualStyle/negative)이 분기.
 const ZIPPY_STYLE_BASE = {
   docLook:
-  `REALISM (CRITICAL): must look like a REAL PHOTOGRAPH / actual film still captured on set — candid, slightly imperfect, real human skin with visible pores, blemishes, asymmetry, stray flyaway hairs. NOT a render, NOT concept art, NOT AI-art gloss.
-Kodak Vision3 500T color science, natural film grain, slight halation, organic color bleed. Lifted milky blacks, rolled-off highlights, NO crushed shadows, muted desaturated palette, soft film contrast. NO orange-and-teal grading, NO HDR, NO oversaturation, NO digital clean look.
-ANTI-CG: visible pores, follicle micro-shadows, natural skin oils, capillary flush; background and props show material age — dust, paint micro-peeling, concrete grain, fabric weave. Keep the hero costume clean and intentional. Subtle lens vignetting, micro chromatic aberration, optical depth-of-field.`,
+  `DOCUMENTARY / V-LOG REALISM: observational photograph, candid human presence, natural skin texture and asymmetry, believable everyday materials.
+Available light appropriate to the declared place and time, neutral white balance, faithful color, restrained contrast, readable shadows and gentle highlight roll-off. Preserve the specified framing, angle, camera height, lens, horizon and subject placement.
+No imposed theatrical grade, artificial halation, orange-and-teal wash, HDR, beauty smoothing or forced centered symmetry. Preserve approved wardrobe condition; do not add grime to create realism.`,
   glossyLook:
 `CINEMATIC BEAUTY (photographic, NOT CG): a real film still shot on cinema glass, but polished and luminous — flattering key light, dewy soft skin with a healthy sheen and gentle halation/bloom around highlights, rich clean saturated color, glowing rim light, pristine reflective surfaces, creamy shallow depth of field. Skin stays REAL (fine texture, natural asymmetry) but beauty-graded — NOT gritty documentary, NOT plastic wax CG. Glossy commercial-grade cinematic finish.`,
   popLook:
@@ -79511,7 +79527,8 @@ function styleBaseLook(kind){ return kind==='glossy'?ZIPPY_STYLE_BASE.glossyLook
 function styleBaseNeg(kind){ return kind==='glossy'?ZIPPY_STYLE_BASE.glossyNeg : kind==='pop'?ZIPPY_STYLE_BASE.popNeg : kind==='noir'?ZIPPY_STYLE_BASE.noirNeg : ZIPPY_STYLE_BASE.docNeg; }
 
 const ZIPPY_STYLES = {
-  liveaction:{ label:'실사 다큐리얼 (기본)', kind:'doc', mandate:ZIPPY_LIVE_ACTION_MANDATE, negative:ZIPPY_LIVE_ACTION_NEGATIVE, look:'' },
+  liveaction:{ label:'다큐멘터리 (기본)', kind:'doc', mandate:ZIPPY_LIVE_ACTION_MANDATE, negative:ZIPPY_LIVE_ACTION_NEGATIVE, look:'' },
+  vlog:{ label:'V-log 자연스러운 기록', kind:'doc', mandate:ZIPPY_LIVE_ACTION_MANDATE, negative:ZIPPY_LIVE_ACTION_NEGATIVE, look:'V-LOG OBSERVATION: candid everyday presence and available practical light. Follow the specified shot, camera angle and subject distance; handheld or selfie framing only when the shot requests it.' },
   animation:{ label:'2.5D 하이브리드 애니', kind:'anim', mandate:ZIPPY_ANIMATION_MANDATE, negative:ZIPPY_ANIMATION_NEGATIVE, look:'' },
 
   mvglossy:{ label:'뮤비 화사·글로시 (범용)', kind:'glossy',
@@ -79612,7 +79629,7 @@ function syncStyleSelectorToProject(){
   el.value=def; onStyleModeChange();
 }
 
-const GTI_LIGHTING_FIX = 'GTI LIGHTING CONTROL: keep tone bright-neutral, balanced-to-warm practical light, readable shadows, and full shadow detail. Avoid dark noir, low-key lighting, heavy chromatic split shadows, deep underexposed areas, oppressive blue/green mood, high contrast drama, or cinematic gloom. Prefer natural fill where needed and preserve facial visibility.';
+const GTI_LIGHTING_FIX = 'GTI LIGHTING CONTROL: use available light motivated by the declared location and time of day, faithful white balance, restrained natural contrast and readable shadow detail. Preserve night, weather and established practical lights. Avoid artificial beauty gloss, crushed blacks, exaggerated color splits and theatrical grading. Preserve the approved capture medium and character style.';
 const GTI_SHOT_LOCK = 'SHOT CONSISTENCY LOCK: SHOT SIZE instructions are mandatory and must be treated as exact frame-framing contracts. Do not alter subject scale relative to frame between batches.';
 const SHOT_SIZE_DIRECTIVES = {
   'EWS':'EXTREME WIDE SHOT: character tiny, under 15% of frame height. Environment fills 85%+.',
@@ -79655,10 +79672,18 @@ function getShotSizeDirective(rawShot, fallbackText) {
   if (SHOT_SIZE_DIRECTIVES[normalized]) return SHOT_SIZE_DIRECTIVES[normalized];
   return fallback;
 }
+const ZIPPY_DOCUMENTARY_IMAGE_POLICY = 'IMAGE CAPTURE DEFAULT: documentary / v-log realism with restrained natural contrast and faithful color. Existing autogenerated cinema-style or beauty-grade language must not override this capture treatment. Preserve the explicit scene, time of day, identity, wardrobe, geography, shot size, camera angle, horizon and perspective. Do not impose centered symmetry, dramatic converging lines, artificial lens effects or an unrequested selfie angle. Preserve explicit artwork, animation, diagrams and sheet layouts when they are the requested subject.';
+function applyImageCaptureDefault(prompt) {
+  var text = String(prompt || ''), style = typeof getStyle === 'function' ? getStyle() : null;
+  if (style && style.kind !== 'doc') return text;
+  return text.includes(ZIPPY_DOCUMENTARY_IMAGE_POLICY) ? text : text + '\n\n' + ZIPPY_DOCUMENTARY_IMAGE_POLICY;
+}
 function enforceLiveActionPrompt(prompt) {
   var S = (typeof getStyle === 'function') ? getStyle() : null;
   var mandate = (S && S.mandate) ? S.mandate : ZIPPY_LIVE_ACTION_MANDATE;
-  return mandate + String.fromCharCode(10,10) + ZIPPY_SCENE_INTEGRATION_LOCK + String.fromCharCode(10) + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + String.fromCharCode(10,10) + (prompt || '');
+  var text = String(prompt || '');
+  if (!text.includes(mandate)) text = mandate + '\n\n' + ZIPPY_SCENE_INTEGRATION_LOCK + '\n' + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + '\n\n' + text;
+  return applyImageCaptureDefault(text);
 }
 function enforceLiveActionNegative(negative) {
   var S = (typeof getStyle === 'function') ? getStyle() : null;
@@ -79667,6 +79692,13 @@ function enforceLiveActionNegative(negative) {
 }
 
 const DEFAULT_GTI_BRIDGE_URL = 'http://127.0.0.1:8799';
+const GTI_REQUIRED_IMAGE_MODEL = 'gpt-image-2.5-flare';
+function requireGtiImageModel(health) {
+  if (!health || !health.ok || !/^gpt-image-2\.5-(?:flare|sunburst)(?:-\d{4}-?\d{2}-?\d{2})?$/.test(health.imageModel || '')) {
+    throw new Error('GPT Image 2.5 확인 필요 · 브리지 이미지 모델: ' + (health && health.imageModel || '미확인') + '. GTI_IMAGE_MODEL=' + GTI_REQUIRED_IMAGE_MODEL + ' 설정의 브리지를 사용하세요.');
+  }
+  return health.imageModel;
+}
 function normalizeGtiBridgeUrl(url) {
   const raw = String(url || DEFAULT_GTI_BRIDGE_URL).trim() || DEFAULT_GTI_BRIDGE_URL;
   return raw.replace(/\/+$/, '');
@@ -79700,18 +79732,20 @@ async function checkGtiBridge() {
       var r=await fetch(base+'/health',{method:'GET'});
       var d=await r.json();
       if (!r.ok || !d || !d.ok) throw new Error('HTTP ' + r.status);
+      requireGtiImageModel(d);
       rememberGtiBridgeUrl(base);
       if(dot) dot.style.background='#16a34a';
-      if(st) st.textContent='연결됨 · '+((d&&d.model)||'')+' / '+((d&&d.provider)||'')+' · '+base;
+      if(st) st.textContent='연결됨 · 이미지 '+d.imageModel+' · 컨트롤러 '+(d.model||'미확인')+' / '+(d.provider||'')+' · '+base;
       return;
     } catch(e) {
       lastError = e;
     }
   }
   if(dot) dot.style.background='#DC2626';
-  if(st) st.textContent='꺼짐 — 바탕화면 런처 더블클릭 · ' + ((lastError && lastError.message) || '연결 실패');
+  if(st) st.textContent='연결·이미지 모델 확인 실패 · ' + ((lastError && lastError.message) || '연결 실패');
 }
 async function callGtiBridge({images=[], prompt, negative='', signal=null, onProgress=null}) {
+  prompt = enforceLiveActionPrompt(prompt);
   const size = document.getElementById('gptImgSize')?.value || 'auto';
   const sourceImages = Array.isArray(images) ? images.filter(function(im) { return im && im.b64; }) : [];
   if (onProgress && sourceImages.length) onProgress('GTI 레퍼런스 압축 중... ' + sourceImages.length + '개');
@@ -79729,7 +79763,7 @@ async function callGtiBridge({images=[], prompt, negative='', signal=null, onPro
   const buildPayload = function(refs, note) {
     const prefix = buildImageRefManifestForPrompt(refs);
     return {
-      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\\n' + GTI_LIGHTING_FIX + '\\n' + ZIPPY_BRIGHT_REAL_WORLD_LOCK + '\\n' + ZIPPY_SCENE_INTEGRATION_LOCK + '\\n' + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + '\\n' + ZIPPY_HERO_CLEAN_LOCK + '\\n\\n' + prompt + '\\nNEGATIVE HERO CLEANLINESS: ' + ZIPPY_HERO_CLEAN_NEGATIVE + '\\nNEGATIVE TONE: ' + ZIPPY_BRIGHT_REAL_WORLD_NEGATIVE + '\\nNEGATIVE GTI ARTIFACTS: ' + ZIPPY_GTI_ARTIFACT_NEGATIVE + (negative ? '\\nNEGATIVE REQUEST: ' + negative : ''),
+      prompt: (note || '') + prefix + GTI_SHOT_LOCK + '\n' + ((typeof getStyle !== 'function' || getStyle().kind === 'doc') ? GTI_LIGHTING_FIX + '\n' : '') + ZIPPY_GTI_ARTIFACT_CLEAN_LOCK + '\n' + ZIPPY_HERO_CLEAN_LOCK + '\n\n' + prompt + '\nNEGATIVE GTI ARTIFACTS: ' + ZIPPY_GTI_ARTIFACT_NEGATIVE + (negative ? '\nNEGATIVE REQUEST: ' + negative : ''),
       size: size,
       images: (refs || []).map(function(im) { return { b64: im.b64, mime: im.mime || 'image/png' }; })
     };
@@ -79766,6 +79800,11 @@ async function callGtiBridge({images=[], prompt, negative='', signal=null, onPro
       if (signal && signal.aborted) throw new DOMException('Aborted', 'AbortError');
       tried.push(base);
       try {
+        // The bridge chooses imageModel from GTI_IMAGE_MODEL, not the JSON body.
+        // Verify before uploading references; never silently use an older image model.
+        const healthResponse = await fetch(base + '/health', {method:'GET', signal});
+        if (!healthResponse.ok) throw new Error('GTI health HTTP ' + healthResponse.status);
+        requireGtiImageModel(await healthResponse.json());
         const res = await fetch(base + '/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body, signal });
         if (!res.ok) {
           const er = await res.json().catch(()=>({}));
@@ -79912,6 +79951,7 @@ async function grokImageConvertToPng(b64, mime) {
 }
 
 async function callGrokBuildImageBridge({images=[], prompt, aspectRatio='auto', signal=null, onProgress=null, source='zippy_grok_imagine_tab'}) {
+  prompt = applyImageCaptureDefault(prompt);
   const sourceImages = Array.isArray(images) ? images.filter(function(image) { return image && image.b64; }) : [];
   const selectedImages = selectGrokBuildImageRefs(sourceImages, prompt);
   const droppedReferenceCount = Math.max(0, sourceImages.length - selectedImages.length);
@@ -80288,6 +80328,7 @@ function grokImageInitTab() {
 }
 
 async function callGPTImage({images=[], prompt, signal=null}) {
+  prompt = applyImageCaptureDefault(prompt);
   const model = document.getElementById('gptImgModel')?.value || 'gpt-image-1';
   const quality = document.getElementById('gptImgQuality')?.value || 'auto';
   const size = document.getElementById('gptImgSize')?.value || 'auto';
@@ -80974,6 +81015,7 @@ async function callLLM({images=[], prompt, signal=null, options={}}) {
 })();
 
 async function callGemini({images, prompt, textOnly=false, resVal='1K', signal=null}){
+  if (!textOnly) prompt = applyImageCaptureDefault(prompt);
   const model=getModel();
   const parts=[];
   images.forEach(img => {
@@ -82278,7 +82320,7 @@ const PIPELINE_NAV_GROUPS = {
   plan: { steps:[1,'sheet',0,'scout'], defaultStep:1 },
   image: { steps:['mb','qwenedit','grok',2,3], defaultStep:'mb' },
   story: { steps:['previs','sb','director'], defaultStep:'previs' },
-  video: { steps:['vid','cam','seedance','node'], defaultStep:'vid' },
+  video: { steps:['vid','cam','seedance','prompts','cinematique','node'], defaultStep:'vid' },
   post: { steps:['premiere','voice','hist'], defaultStep:'premiere' },
   instagram: { steps:['insta'], defaultStep:'insta' }
 };
@@ -82310,12 +82352,14 @@ function syncPipelineNavForStep(step) {
 
 function goStep(n){
   syncPipelineNavForStep(n);
-  ['p0','p1','p2','p3','pSheet','pPrevis','pSB','pSeedance','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
+  ['p0','p1','p2','p3','pSheet','pPrevis','pSB','pSeedance','pPrompts','pCinematique','pVid','pCam','pDirector','pPremiere','pVoice','pHist','pMB','pQwenEdit','pGrok','pScout','pInsta','pNode'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
     if(n==='previs') el.classList.toggle('active',id==='pPrevis');
     else if(n==='sb') el.classList.toggle('active',id==='pSB');
     else if(n==='seedance') el.classList.toggle('active',id==='pSeedance');
+    else if(n==='prompts') el.classList.toggle('active',id==='pPrompts');
+    else if(n==='cinematique') el.classList.toggle('active',id==='pCinematique');
     else if(n==='vid') el.classList.toggle('active',id==='pVid');
     else if(n==='cam') el.classList.toggle('active',id==='pCam');
     else if(n==='director') el.classList.toggle('active',id==='pDirector');
@@ -82338,6 +82382,8 @@ function goStep(n){
   document.getElementById('tabPrevis').className='stab '+(n==='previs'?'a1':'');
   document.getElementById('tabSB').className='stab '+(n==='sb'?'a1':'');
   document.getElementById('tabSeedance').className='stab '+(n==='seedance'?'a1':'');
+  document.getElementById('tabPrompts').className='stab '+(n==='prompts'?'a1':'');
+  document.getElementById('tabCinematique').className='stab '+(n==='cinematique'?'a1':'');
   document.getElementById('tabVid').className='stab '+(n==='vid'?'a3':'');
   document.getElementById('tabCam').className='stab '+(n==='cam'?'a3':'');
   document.getElementById('tabDirector').className='stab '+(n==='director'?'a2':'');
@@ -82382,6 +82428,9 @@ function goStep(n){
   if(n==='scout' && typeof locationScoutInit==='function') locationScoutInit();
   if(n==='sheet' && window.ZippySheetMaker) window.ZippySheetMaker.init();
   if(n==='seedance' && window.ZippySeedancePlanner) window.ZippySeedancePlanner.init();
+  if(n==='prompts' && window.ZippyPromptStudio) window.ZippyPromptStudio.init();
+  if(n==='cinematique' && window.ZippyCinematography) window.ZippyCinematography.init();
+  if(n==='cam' && window.ZippyPromptStudio) window.ZippyPromptStudio.refreshLegacyTarget();
 }
 function setSt(pfx,idx){
   for(let i=0;i<4;i++){const el=document.getElementById(`${pfx}${i}`);if(el)el.className='ps'+(i<idx?' fin':i===idx?' cur':'');}
@@ -83063,8 +83112,8 @@ ROLE:
 You are a professional casting director, photographer, and visual art director. Generate ONE complete live-action actor profile sheet based on the input provided (image and/or text).
 
 UNIVERSAL INPUT HANDLER:
-${hasRef ? '- Image(s) present: analyze face, body, styling, vibe. Lock identity from visual reference.' : '- Text/name only: fill missing details with realistic casting logic (age, ethnicity, profession, styling, cinematic tone).'}
-- If input is sparse, choose the most cinematic interpretation.
+${hasRef ? '- Image(s) present: analyze face, body, styling, vibe. Lock identity from visual reference.' : '- Text/name only: fill missing details with realistic casting logic (age, ethnicity, profession, styling, everyday presence).'}
+- If input is sparse, use restrained documentary / v-log realism without inventing dramatic styling.
 - Never invent copyrighted characters or real celebrities.
 
 TARGET LANGUAGE: Korean
@@ -83077,12 +83126,12 @@ AUTO-EXTRACTION CHECKLIST (from the input):
 - personality & emotional vibe
 - profession / archetype
 - outfit / styling direction
-- mood / cinematic tone
+- mood / natural capture tone
 - era / setting
 - signature props
 
 OUTPUT — FIXED 9-BLOCK EDITORIAL LAYOUT:
-masterpiece, best quality, ultra detailed, 4k resolution, photorealistic, cinematic lighting, high-end studio photography, professional actor profile sheet, casting board, editorial layout, magazine-style composition
+documentary photographic realism, available or soft neutral practical light, faithful color, restrained contrast, natural skin and textile detail, professional actor profile sheet, casting board, legible production-reference layout
 
 -- Actor Identity --
 Realistic human subject: gender, age range, ethnicity, vibe, one-line character essence (Korean)
@@ -83094,7 +83143,7 @@ Detailed facial features: face shape, eyes, nose, lips, eyebrows, hair color/sty
 Outfit variations matching tone: modern casual / formal business / streetwear / period costume / military / sci-fi / fantasy / genre-specific
 
 -- Role Concept --
-Character archetype + cinematic tone + 1-line backstory hook (Korean)
+Character archetype + everyday presence + 1-line backstory hook (Korean)
 
 -- Full Body Sheet --
 Front, 3/4, side, back full-body shots, neutral pose, consistent proportions, clean stance, turnaround reference style
@@ -83112,7 +83161,7 @@ Outfit pieces separated and labeled (Korean): 상의, 하의, 아우터, 신발,
 Only if role requires: phone, weapon, bag, book, instrument, cigarette, badge, etc. Omit if unnecessary.
 
 -- Color & Tone + Layout --
-Cinematic color grading palette (3–5 swatches), mood-board style direction, reference DP / lighting cue. Clean grid-based editorial layout, white or soft neutral background (#F5F3EE / #EAE7E0 range), magazine style composition, clear Korean typography.
+Faithful material color palette (3–5 swatches), documentary / v-log capture direction, available-light cue. Clean grid-based production-reference layout, white or soft neutral background (#F5F3EE / #EAE7E0 range), clear Korean typography.
 
 -- Technical Fixed Specs (studioZIPPY STANDARD) --
 Camera body: ARRI ALEXA 35
@@ -83609,7 +83658,7 @@ CHARACTER IDENTITY LOCK:
       useDNA=dna.trim();
     }catch(e){ if(!useDNA){hide('ld3');showErr(3,'DNA 추출 실패: '+e.message);btn.disabled=false;return;} }
     if(!useScenePrompt){
-      useScenePrompt=`Ultra-realistic cinematic photography, documentary realism, slightly high angle. Camera body: ARRI ALEXA 35 / Lens: ARRI Signature Prime / Aperture: F4. natural skin texture, subtle glow, visible pores, no synthetic shine. Ultra-realistic 8K.`;
+      useScenePrompt=`Documentary / v-log photography with available practical light, faithful color, restrained natural contrast and natural skin texture. Preserve the approved framing, camera height, angle, identity and materials. No synthetic shine or artificial beauty glow.`;
     }
   } else if(!useDNA||!useScenePrompt){
     hide('ld3'); showErr(3,'Step 2를 먼저 실행하거나 이미지를 업로드하세요.'); btn.disabled=false; return;
@@ -86205,8 +86254,8 @@ function directorRememberAssetGate(shotId,gate){if(!shotId||!gate)return;directo
 
 function directorRouteModel(task,shot,ctx){
   ctx=ctx||{};const refs=Number(ctx.referenceCount||0);const face=directorResolveChars(shot).length>0;let route={task:task,model:'Gemini',bridge:'Cloud proxy',estimatedUsd:0,basis:'텍스트 분석'};
-  if(task==='storyboard-image') route=face||refs>3?{task:task,model:'GPT Image 2 / GTI',bridge:'GTI 8799',estimatedUsd:0,basis:'구독 브리지·다중 레퍼런스·얼굴 우선'}:{task:task,model:'Gemini Image',bridge:'Cloud proxy',estimatedUsd:null,basis:'단순 배경/소품·빠른 생성; 실제 API 요금은 콘솔 확인'};
-  else if(task==='image-edit') route=refs<=3?{task:task,model:'Grok Imagine Edit',bridge:'Grok 8790',estimatedUsd:0,basis:'3개 이하 레퍼런스 수정·구독 브리지'}:{task:task,model:'GPT Image 2 / GTI',bridge:'GTI 8799',estimatedUsd:0,basis:'4개 이상 레퍼런스는 Grok 입력 한도 회피'};
+  if(task==='storyboard-image') route=face||refs>3?{task:task,model:'GPT Image 2.5 / GTI',bridge:'GTI 8799',estimatedUsd:0,basis:'구독 브리지·다중 레퍼런스·얼굴 우선'}:{task:task,model:'Gemini Image',bridge:'Cloud proxy',estimatedUsd:null,basis:'단순 배경/소품·빠른 생성; 실제 API 요금은 콘솔 확인'};
+  else if(task==='image-edit') route=refs<=3?{task:task,model:'Grok Imagine Edit',bridge:'Grok 8790',estimatedUsd:0,basis:'3개 이하 레퍼런스 수정·구독 브리지'}:{task:task,model:'GPT Image 2.5 / GTI',bridge:'GTI 8799',estimatedUsd:0,basis:'4개 이상 레퍼런스는 Grok 입력 한도 회피'};
   else if(task==='30s-multiscene') route={task:task,model:'Seedance 2.5',bridge:'Seedance workflow',estimatedUsd:null,basis:'최대 30초 멀티씬·레퍼런스 패키지; 실행 서비스 요금 확인'};
   else if(task==='single-shot-video'){const a=directorCameraAssessment((shot&&shot.director15&&shot.director15.recommendedCameraMove)||(typeof recommendCameraMoveForShot==='function'&&recommendCameraMoveForShot(shot)),shot);route=a.level==='high'?{task:task,model:'Kling',bridge:'Kling proxy',estimatedUsd:null,basis:'복합 운동 안정성 우선; 실제 길이/해상도별 요금 확인'}:{task:task,model:'Grok Video',bridge:'Grok 8790',estimatedUsd:0,basis:'단일 I2V·구독 브리지'};}
   else if(task==='relight') route={task:task,model:'Gemini / Relight',bridge:'existing relight',estimatedUsd:null,basis:'공간·광원 구조 보존; API 요금 확인'};
@@ -86573,6 +86622,10 @@ document.addEventListener('DOMContentLoaded',function(){directorLoadState();if(t
 <script src="director-v3.js"></script>
 <script src="sheet-maker.js"></script>
 <script src="seedance-planner.js"></script>
+<script src="prompt-engine.js"></script>
+<script src="prompt-rewriter.js"></script>
+<script src="prompt-studio.js"></script>
+<script src="cinematography-browser.js"></script>
 <script src="reactor-prompts.js"></script>
 <script src="cinema-reference.js"></script>
 

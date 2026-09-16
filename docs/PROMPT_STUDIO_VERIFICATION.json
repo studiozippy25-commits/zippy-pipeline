@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-16",
+  "baseCommit": "bc2694cdecce70f03f9b6005509b69af0d5d6958",
+  "checks": {
+    "promptEngine": "pass",
+    "promptRewriter": "pass",
+    "imageDefaults": "pass",
+    "cinematographySourceParser": "pass",
+    "realH3TextRewrite": "completed; duplicate language marker found and covered by correction regression",
+    "realSeedanceTextRewrite": "pass after canonical single-shot source association correction",
+    "legacyPanLeftTransfer": "pass; exact right-to-left instruction preserved",
+    "recompilePreservesDialogueAndCoat": true,
+    "clipboardJSON": "pass; source, model, project, camera and dialogue present",
+    "liveCinematiqueEntries": 150,
+    "cameraEntries": 41,
+    "legacyCameraEntries": 57,
+    "sourceReadView": "visually verified; inert sandboxed text snapshot",
+    "gtiHealth": {"model":"gpt-6-astra","imageModel":"gpt-image-2.5-flare","provider":"private-codex"}
+  },
+  "notTested": ["Image generation backend invocation", "Actual NAS save", "Original site's interactive iframe rendering", "All scene meanings or all source prompt formats"],
+  "limitations": ["Original site's interactive controls and videos open in a separate tab; internal source view is read-only", "Camera recommendation uses reviewed catalogue rules plus pipeline text-model analysis; review remains required"]
+}

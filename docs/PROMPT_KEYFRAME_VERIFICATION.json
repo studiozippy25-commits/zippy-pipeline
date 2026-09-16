@@ -1,0 +1,21 @@
+{
+  "date": "2026-09-16",
+  "baseCommit": "3c5a23874415791979b7629bda5b8b2f97932fb1",
+  "scope": "Keyframe attachments for H3/Seedance prompt rewriting; no media generation",
+  "checks": {
+    "engineKeyframeTests": "pass: image delivery, stable numbering, roles, reference links, duplicate/index/type/size validation, observation requirements, conflicts and no image-byte export",
+    "uiVMTests": "pass: upload without model call, 2048 resize, image forwarding, metadata persistence on recompile, failed decode preservation, remove numbering, history/project reset, stale upload guards",
+    "existingRegressions": "pass: prompt-engine, prompt-rewriter, image-defaults, cinematography-browser",
+    "browserUpload": "pass: two locally authored synthetic PNG keyframes via actual file chooser, thumbnails visible, roles selected as start/end",
+    "actualVisionModel": "GPT text route via existing pipeline proxy; H3 rewrite completed",
+    "actualImageObservations": "Text did not name colors/shapes. Output identified red square, blue round/polygon-like shape, grey background, rightward position change between frames; low-resolution shape ambiguity was reported.",
+    "actualClipboardJSON": {"submittedCount":2,"observationsReceived":2,"imagesEmbedded":false,"reattachRequired":true,"generationExecuted":false},
+    "visualReview": {"score":93,"verdict":"pass","scope":"Existing dark UI and narrow responsive layout, thumbnails and controls visible without overlap"}
+  },
+  "observedModelFailures": [
+    "Gemini route returned a non-verbatim source constraint and was rejected. Clarified separation of image observations and original constraints.",
+    "Gemini route subsequently returned image 0, absent from source and attachments. Rejected with exact invalid reference number; no silent renumbering."
+  ],
+  "notTested": ["Actual Seedance-target vision rewrite against live model", "Local/Ollama vision model", "Actual NAS save", "User character-reference images", "Image/video generation"],
+  "limitations": ["Model interpretation can be wrong and still needs review", "Prepared images are max 2048px JPEG with white backing for transparency; originals remain untouched", "JSON stores metadata and observations, not image bytes; reattach for a new image analysis"]
+}
